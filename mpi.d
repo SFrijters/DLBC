@@ -1,3 +1,4 @@
+import parameters;
 import stdio;
 
 const int D = 3;
@@ -14,9 +15,7 @@ struct MpiParams {
   int rank;
 
   // CPU position
-  int cx;
-  int cy;
-  int cz;
+  int cx, cy, cz;
 
   // Nearest neighbours
 
@@ -28,7 +27,6 @@ struct MpiParams {
   MPI_Comm comm;
   
   void show() {
-    writelog();
     writelog("Report from rank %d at position (%d, %d, %d):",rank,cx,cy,cz);
     writelog("  Currently using %d CPUs on a %d x %d x %d grid.",size,ncx,ncy,ncz);
     writelog("  Neighbours x: %#6.6d %#6.6d %#6.6d.",nbx[0],rank,nbx[1]);
@@ -63,6 +61,10 @@ void reorderMpi() {
   int[D] pos;
   int srcRank, destRank;
   MPI_Comm comm;
+
+  dims[0] = P.ncx;
+  dims[1] = P.ncy;
+  dims[2] = P.ncz;
 
   // Create cartesian grid of dimensions ( ncx * ncy * ncz )
   MPI_Dims_create(M.size,D,dims.ptr);

@@ -20,6 +20,7 @@ enum parameterDataTypes : string {
   Ulong  = "ulong",
   Bool   = "bool",
   Double = "double",
+  Int    = "int",
   Char   = parameterCharType
 };
 
@@ -28,9 +29,9 @@ enum parameterTypes : string {
   nx = PDT.Ulong, 
   ny = PDT.Ulong,
   nz = PDT.Ulong, 
-  cnx = PDT.Ulong,
-  cny = PDT.Ulong,
-  cnz = PDT.Ulong,
+  ncx = PDT.Int,
+  ncy = PDT.Int,
+  ncz = PDT.Int,
   ok =  PDT.Bool, 
   name = PDT.Char,
   G = PDT.Double
@@ -38,27 +39,39 @@ enum parameterTypes : string {
 
 /// This struct will be constructed from the parameterTypes enum
 struct ParameterSet {
-  mixin(makeStructMembers());
+  mixin(makeParameterSetMembers());
 
   void show() {
-    mixin(makeShowParameterList());
+    mixin(makeParameterSetShow());
   }
 };
 
 ParameterSet P;
 
 /// Generates Mixin to create the ParameterSet struct
-string makeStructMembers() {
+string makeParameterSetMembers() {
   string mixinString, type;
   foreach( member ; __traits(allMembers, parameterTypes)) {
     type = mixin("parameterTypes." ~ member);
     // If we have a string, we have to set it to blank so we don't send trash through MPI
     if (type == parameterCharType) {
-      mixinString ~= type ~ " " ~ member ~ " = \"\"; ";
+      mixinString ~= type ~ " " ~ member ~ " = \"\";\n";
     }
     else {
-      mixinString ~= type ~ " " ~ member ~ "; ";
+      mixinString ~= type ~ " " ~ member ~ ";\n";
     }
+  }
+  return mixinString;
+}
+
+/// Generates Mixin to list the values of P
+string makeParameterSetShow() {
+  string mixinString = "string w;\n";
+  foreach( member ; __traits(allMembers, parameterTypes)) {
+    // Add a warning '!' for variables which are still equal to their default init.
+    mixinString ~= "if ( P." ~ member ~ " == typeof(P." ~ member ~ ").init || P." ~ member ~ " != P." ~ member ~ ") w = \"!\"; else w = \"\";\n";
+    // Actual print statement
+    mixinString ~= "writelog(\"%1s %20s = %s\",w,\"" ~ member ~ "\",to!string(P." ~ member ~"));\n";
   }
   return mixinString;
 }
@@ -83,20 +96,8 @@ string makeParameterCase() {
   return mixinString;
 }
 
-/// Generates Mixin to list the values of P
-string makeShowParameterList() {
-  string mixinString = "string w;";
-  foreach( member ; __traits(allMembers, parameterTypes)) {
-    // Add a warning '!' for variables which are still equal to their default init.
-    mixinString ~= "if ( P." ~ member ~ " == typeof(P." ~ member ~ ").init || P." ~ member ~ " != P." ~ member ~ ") w = \"!\"; else w = \"\";";
-    // Actual print statement
-    mixinString ~= "writelog(\"%1s %20s = %s\",w,\"" ~ member ~ "\",to!string(P." ~ member ~")); ";
-  }
-  return mixinString;
-}
-
 /// Generates Mixin to generate MPI Type for P
-string makeParameterMpiType() {
+string makeParameterSetMpiType() {
   string mixinString, mainString, prefixString, postfixString, dispString;
   string type, mpiTypeString, lenString;
   int count;
@@ -107,6 +108,7 @@ string makeParameterMpiType() {
     case PDT.Bool:   mpiTypeString = "MPI_BYTE";          lenString = "1"; break;
     case PDT.Char:   mpiTypeString = "MPI_CHAR";          lenString = to!string(parameterCharLength); break;
     case PDT.Double: mpiTypeString = "MPI_DOUBLE";        lenString = "1"; break;
+    case PDT.Int:    mpiTypeString = "MPI_INT";           lenString = "1"; break;
     case PDT.Ulong:  mpiTypeString = "MPI_UNSIGNED_LONG"; lenString = "1"; break;
     }
     mainString ~= "lens[" ~ to!string(count) ~ "] = " ~ lenString ~ ";\n";
@@ -124,7 +126,6 @@ string makeParameterMpiType() {
   prefixString  ~= "MPI_Aint[" ~ to!string(count+1) ~ "] addrs;\n";
   prefixString  ~= "MPI_Datatype[" ~ to!string(count) ~ "] types;\n";
   prefixString  ~= "MPI_Address(&P,&addrs[0]);\n";
-  //prefixString  ~= "MPI_Datatype mpitype;\n";
   postfixString  = "MPI_Type_struct( " ~ to!string(count) ~ ", lens.ptr, disps.ptr, types.ptr, &parameterListMpiType );\n";
   postfixString ~= "MPI_Type_commit(&parameterListMpiType);\n";
 
@@ -133,15 +134,8 @@ string makeParameterMpiType() {
 }
 
 /// Creates an MPI datatype for the parameter struct using a mixin
-void setupParameterListMpiType() {
-  debug(showMixins) {
-    if (M.rank == 0) {
-      writeln("--- START mixin ---");
-      writeln(makeParameterMpiType());
-      writeln("--- END mixin ---");
-    }
-  }
-  mixin(makeParameterMpiType());
+void setupParameterSetMpiType() {
+  mixin(makeParameterSetMpiType());
 }
 
 /// Sends and receives the parameter struct over MPI
@@ -160,14 +154,6 @@ void distributeParameterList() {
 /// Parses a single line of the parameter file
 void parseParameter(char[] line, in uint ln) {
   char[] keyString, valueString;
-
-  debug(showMixins) {
-    if (M.rank == 0 && ln == 1) {
-      writeln("--- START mixin ---");
-      writeln(makeParameterCase());
-      writeln("--- END mixin ---");
-    }
-  }
 
   auto commentPos = indexOf(line, "//");
   if (commentPos >= 0) {

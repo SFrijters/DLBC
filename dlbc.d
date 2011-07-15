@@ -49,7 +49,7 @@ void divideLattice() {
   ny = P.ny / M.ncy;
   nz = P.nz / M.ncz;
 
-  writelog("Initializing %d x %d x %d lattice...",nx,ny,nz);
+  //writelog("Initializing %d x %d x %d lattice...",nx,ny,nz);
 
   L = Lattice(nx,ny,nz);
 
@@ -60,7 +60,28 @@ int main( string[] args ) {
 
   // Any output before startMpi() has been called will be very spammy, so better avoid it.
   startMpi();
-  setupParameterListMpiType();
+  
+  if (M.rank == 0) {
+    debug(showMixins) {
+      writeln("--- START makeParameterSetMembers() mixin ---\n");
+      writeln(makeParameterSetMembers());
+      writeln("--- END   makeParameterSetMembers() mixin ---\n");
+
+      writeln("--- START makeParameterSetShow() mixin ---\n");
+      writeln(makeParameterSetShow());
+      writeln("--- END   makeParameterSetShow() mixin ---\n");
+
+      writeln("--- START makeParameterSetMpiType() mixin ---\n");
+      writeln(makeParameterSetMpiType());
+      writeln("--- END   makeParameterSetMpiType() mixin ---\n");
+
+      writeln("--- START makeParameterCase() mixin ---\n");
+      writeln(makeParameterCase());
+      writeln("--- END   makeParameterCase() mixin ---\n");
+    }
+  }
+
+  setupParameterSetMpiType();
 
   // No cartesian grid yet, but rank 0 can read stuff
   if (M.rank == 0) {
@@ -70,14 +91,16 @@ int main( string[] args ) {
   // Get the parameters to all CPUs
   distributeParameterList();
 
-  // Make cartesian grid
+  // Make cartesian grid now that we have values ncx, ncy, ncz everywhere
   reorderMpi();
 
+  // Try and split the lattice
   divideLattice();
 
-  MPI_Barrier(M.comm);
-
-  if (M.rank == 1) P.show();
+  if (M.rank == 0) {
+    M.show();
+    P.show();
+  }
 
   endMpi();
 

@@ -3,6 +3,7 @@
 nx = 16 // Comment = 2
 ny = 16
   nz = 16
+ncy = 8
 name = Testeohogehgoiehgioehigoeh"
 ok = false 
 G = 42.42
