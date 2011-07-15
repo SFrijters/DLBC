@@ -1,0 +1,8 @@
+// Comment = 1
+
+nx = 16 // Comment = 2
+// ny = 
+  nz = 16
+//name = 
+ok = true
+

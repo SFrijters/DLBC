@@ -1,4 +1,29 @@
-module mpi;
+struct MpiParams {
+  int rank;
+  int size;
+}
+
+MpiParams M;
+
+void startMpi() {
+  int rank, size;
+  // C-style dummy arg vector for MPI_Init
+  int    argc = 0;
+  char** argv = null;
+
+  MPI_Init( &argc, &argv );
+  MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+  MPI_Comm_size( MPI_COMM_WORLD, &size );
+
+  M.rank = rank;
+  M.size = size;
+
+}
+
+void endMpi() {
+  MPI_Finalize();
+}
+
 
 extern(C):
 
