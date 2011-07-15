@@ -36,31 +36,48 @@ struct Lattice {
 
 Lattice L;
 
+
+void divideLattice() {
+  ulong nx, ny, nz;
+  
+  if (P.nx % M.ncx != 0 || P.ny % M.ncy != 0 || P.nz % M.ncz != 0) {
+    writelog("Cannot divide lattice evenly...");
+    throw new Exception("Lattice division exception");
+  }
+
+  nx = P.nx / M.ncx;
+  ny = P.ny / M.ncy;
+  nz = P.nz / M.ncz;
+
+  writelog("Initializing %d x %d x %d lattice...",nx,ny,nz);
+
+  L = Lattice(nx,ny,nz);
+
+}
+
 /// Test Doxygen
 int main( string[] args ) {
 
+  // Any output before startMpi() has been called will be very spammy, so better avoid it.
   startMpi();
+  setupParameterListMpiType();
 
-  // if (M.rank > 0) Thread.sleep(10_000_000);
-
-  // writelog("Hello World from process %d of %d.", M.rank, M.size );
-  // writelog();
-
-  // if (M.rank > 0) Thread.sleep(dur!("seconds")(1));
-
-  // MPI_Barrier( MPI_COMM_WORLD );
-
-  // debug(2) {
-  //   if (M.rank == 0) {
-  //     writelog( "Rank 0 reporting.");
-  //   }
-  // }
-
+  // No cartesian grid yet, but rank 0 can read stuff
   if (M.rank == 0) {
     readParameterSetFromFile("test.txt");
-    listParameterValues();
   }
 
+  // Get the parameters to all CPUs
+  distributeParameterList();
+
+  // Make cartesian grid
+  reorderMpi();
+
+  divideLattice();
+
+  MPI_Barrier(M.comm);
+
+  if (M.rank == 1) P.show();
 
   endMpi();
 
@@ -81,14 +98,6 @@ unittest {
 	L.R[k][j][i] = i+j+k;
 	L.B[k][j][i] = i+j-k;
       }
-
- 
-  // for(int i=0;i<nx;i++)
-  //   for(int j=0;j<ny;j++)
-  //     for(int k=0;k<nz;k++) {
-  // 	writelog("L.R(%d,%d,%d) = %f",i,j,k,L.R[k][j][i]);
-  // 	writelog("L.B(%d,%d,%d) = %f",i,j,k,L.B[k][j][i]);
-  //     }
 
   assert(L.R[2][1][0] == 3,  "Lattice R content test failed.");
   assert(L.B[3][2][0] == -1, "Lattice B content test failed.");

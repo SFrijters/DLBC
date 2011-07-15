@@ -1,8 +1,9 @@
 // Comment = 1
 
 nx = 16 // Comment = 2
-// ny = 
+ny = 16
   nz = 16
-//name = 
-ok = true
+name = Testeohogehgoiehgioehigoeh"
+ok = false 
+G = 42.42
 
