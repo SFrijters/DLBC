@@ -3,17 +3,9 @@ import std.file;
 import std.stream;
 import std.string;
 
-debug(showMixins) {
-  import std.stdio: writeln;
-}
-
 import stdio;
+import parallel;
 import mpi;
-
-
-/// Need to define a charlength to create an MPI datatype for the parameter struct
-const string parameterCharType = "char[256]";
-const int parameterCharLength = 256;
 
 alias parameterDataTypes PDT;
 enum parameterDataTypes : string {
@@ -21,7 +13,7 @@ enum parameterDataTypes : string {
   Bool   = "bool",
   Double = "double",
   Int    = "int",
-  Char   = parameterCharType
+  String = MpiStringType
 };
 
 /// This enum will be translated into various components through mixins
@@ -33,7 +25,7 @@ enum parameterTypes : string {
   ncy = PDT.Int,
   ncz = PDT.Int,
   ok =  PDT.Bool, 
-  name = PDT.Char,
+  name = PDT.String,
   G = PDT.Double
 };
 
@@ -54,7 +46,7 @@ string makeParameterSetMembers() {
   foreach( member ; __traits(allMembers, parameterTypes)) {
     type = mixin("parameterTypes." ~ member);
     // If we have a string, we have to set it to blank so we don't send trash through MPI
-    if (type == parameterCharType) {
+    if (type == MpiStringType) {
       mixinString ~= type ~ " " ~ member ~ " = \"\";\n";
     }
     else {
@@ -83,7 +75,7 @@ string makeParameterCase() {
     string type = mixin("parameterTypes." ~ member);
     mixinString ~= "case \"" ~ member ~ "\": \n";
     mixinString ~= "try { ";
-    if (type == parameterCharType) {
+    if (type == MpiStringType) {
       mixinString ~= "P." ~ member ~ "[0 .. valueString.length] = valueString;";      
     }
     else {
@@ -106,7 +98,7 @@ string makeParameterSetMpiType() {
     type = mixin("parameterTypes." ~ s);
     final switch(type) {
     case PDT.Bool:   mpiTypeString = "MPI_BYTE";          lenString = "1"; break;
-    case PDT.Char:   mpiTypeString = "MPI_CHAR";          lenString = to!string(parameterCharLength); break;
+    case PDT.String: mpiTypeString = "MPI_CHAR";          lenString = to!string(MpiStringLength); break;
     case PDT.Double: mpiTypeString = "MPI_DOUBLE";        lenString = "1"; break;
     case PDT.Int:    mpiTypeString = "MPI_INT";           lenString = "1"; break;
     case PDT.Ulong:  mpiTypeString = "MPI_UNSIGNED_LONG"; lenString = "1"; break;

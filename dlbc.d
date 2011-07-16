@@ -5,7 +5,7 @@ import std.conv;
 import std.string;
 import core.thread;
 
-import mpi;
+import parallel;
 import parameters;
 import stdio;
 
@@ -101,6 +101,8 @@ int main( string[] args ) {
     M.show();
     P.show();
   }
+
+  owritelog("This is a test from rank %d.",M.rank);
 
   endMpi();
 
