@@ -21,8 +21,15 @@ int main( string[] args ) {
   startMpi();
   
   writeLogRN("\nStarting DLBC on %d CPUs.\n", M.size);
-  writeLogRI("Executable built from revision %s .", revisionNumber );
 
+  if (revisionChanges.length == 0) {
+    writeLogRI("Executable built from revision %s .", revisionNumber );
+  }
+  else {
+    writeLogRI("Executable built from revision %s (with local changes).", revisionNumber );
+    writeLogRD("  Changes from HEAD: %s.\n", revisionChanges );
+  }
+  
   // Process the CLI parameters
   processCLI(args);
 
