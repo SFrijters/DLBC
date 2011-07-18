@@ -41,7 +41,7 @@ void divideLattice() {
   ulong nx, ny, nz;
   
   if (P.nx % M.ncx != 0 || P.ny % M.ncy != 0 || P.nz % M.ncz != 0) {
-    writelog("Cannot divide lattice evenly...");
+    writeLogF("Cannot divide lattice evenly...");
     throw new Exception("Lattice division exception");
   }
 
@@ -49,7 +49,7 @@ void divideLattice() {
   ny = P.ny / M.ncy;
   nz = P.nz / M.ncz;
 
-  //writelog("Initializing %d x %d x %d lattice...",nx,ny,nz);
+  //writelogI("Initializing %d x %d x %d lattice...",nx,ny,nz);
 
   L = Lattice(nx,ny,nz);
 
@@ -61,35 +61,43 @@ int main( string[] args ) {
   // Any output before startMpi() has been called will be very spammy, so better avoid it.
   startMpi();
   
-  if (M.rank == 0) {
-    debug(showMixins) {
-      writeln("--- START makeParameterSetMembers() mixin ---\n");
-      writeln(makeParameterSetMembers());
-      writeln("--- END   makeParameterSetMembers() mixin ---\n");
+  writeLogRN("\nStarted DLBC on %d CPUs.\n", M.size);
 
-      writeln("--- START makeParameterSetShow() mixin ---\n");
-      writeln(makeParameterSetShow());
-      writeln("--- END   makeParameterSetShow() mixin ---\n");
+  // Process the CLI parameters
+  processCLI(args);
 
-      writeln("--- START makeParameterSetMpiType() mixin ---\n");
-      writeln(makeParameterSetMpiType());
-      writeln("--- END   makeParameterSetMpiType() mixin ---\n");
+  debug(showMixins) {
+    globalVerbosityLevel = VL.Debug;
+    writeLogRD("--- START makeParameterSetMembers() mixin ---\n");
+    writeln(makeParameterSetMembers());
+    writeLogRD("--- END   makeParameterSetMembers() mixin ---\n");
 
-      writeln("--- START makeParameterCase() mixin ---\n");
-      writeln(makeParameterCase());
-      writeln("--- END   makeParameterCase() mixin ---\n");
-    }
+    writeLogRD("--- START makeParameterSetShow() mixin ---\n");
+    writeln(makeParameterSetShow());
+    writeLogRD("--- END   makeParameterSetShow() mixin ---\n");
+
+    writeLogRD("--- START makeParameterSetMpiType() mixin ---\n");
+    writeln(makeParameterSetMpiType());
+    writeLogRD("--- END   makeParameterSetMpiType() mixin ---\n");
+
+    writeLogRD("--- START makeParameterCase() mixin ---\n");
+    writeln(makeParameterCase());
+    writeLogRD("--- END   makeParameterCase() mixin ---\n");
   }
 
+  // Create an MPI type for the ParameterSet struct
   setupParameterSetMpiType();
 
   // No cartesian grid yet, but rank 0 can read stuff
   if (M.rank == 0) {
-    readParameterSetFromFile("test.txt");
+    readParameterSetFromFile(parameterFileName);
   }
 
   // Get the parameters to all CPUs
-  distributeParameterList();
+  distributeParameterSet();
+
+  // Set secondary values based on parameters
+  processParameters();
 
   // Make cartesian grid now that we have values ncx, ncy, ncz everywhere
   reorderMpi();
@@ -102,9 +110,12 @@ int main( string[] args ) {
     P.show();
   }
 
-  owritelog("This is a test from rank %d.",M.rank);
+  owriteLogD("This is a test from rank %d.",M.rank);
+  writeLogD("This is a test from rank %d.",M.rank);
 
   endMpi();
+
+  writeLogRN("\nFinished DLBC run.\n");
 
   return 0;
 }

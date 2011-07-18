@@ -4,7 +4,7 @@ import mpi;
 
 const int D = 3;
 
-MPI_Datatype parameterListMpiType;
+MPI_Datatype parameterSetMpiType;
 
 /// Need to define a charlength to easily transmit strings over MPI
 alias char[256] MpiString;
@@ -12,7 +12,9 @@ const string MpiStringType = "char[256]";
 const int MpiStringLength = 256;
 
 struct MpiParams {
-  
+
+  static int root = 0;
+
   // Topology  
   int ncx, ncy, ncz;
   int size;
@@ -33,11 +35,11 @@ struct MpiParams {
   MPI_Comm comm;
   
   void show() {
-    writelog("Report from rank %d at position (%d, %d, %d):",rank,cx,cy,cz);
-    writelog("  Currently using %d CPUs on a %d x %d x %d grid.",size,ncx,ncy,ncz);
-    writelog("  Neighbours x: %#6.6d %#6.6d %#6.6d.",nbx[0],rank,nbx[1]);
-    writelog("  Neighbours y: %#6.6d %#6.6d %#6.6d.",nby[0],rank,nby[1]);
-    writelog("  Neighbours z: %#6.6d %#6.6d %#6.6d.",nbz[0],rank,nbz[1]);
+    writeLogI("Report from rank %d at position (%d, %d, %d):", rank, cx, cy, cz);
+    writeLogI("  Currently using %d CPUs on a %d x %d x %d grid.", size, ncx, ncy, ncz);
+    writeLogI("  Neighbours x: %#6.6d %#6.6d %#6.6d.", nbx[0], rank, nbx[1]);
+    writeLogI("  Neighbours y: %#6.6d %#6.6d %#6.6d.", nby[0], rank, nby[1]);
+    writeLogI("  Neighbours z: %#6.6d %#6.6d %#6.6d.", nbz[0], rank, nbz[1]);
   }
 }
 
@@ -46,17 +48,19 @@ MpiParams M;
 /// Initializes barebones MPI communicator
 void startMpi() {
   int rank, size;
+  MPI_Comm commWorld = MPI_COMM_WORLD;
   // C-style dummy arg vector for MPI_Init
   int    argc = 0;
   char** argv = null;
 
   MPI_Init( &argc, &argv );
-  MPI_Comm_rank( MPI_COMM_WORLD, &rank );
-  MPI_Comm_size( MPI_COMM_WORLD, &size );
+  MPI_Comm_rank( commWorld, &rank );
+  MPI_Comm_size( commWorld, &size );
 
+  // Set values in global MPI parameter struct
   M.rank = rank;
   M.size = size;
-  M.comm = MPI_COMM_WORLD;
+  M.comm = commWorld;
 }
 
 /// Reorders MPI to use a cartesian grid
@@ -65,6 +69,7 @@ void reorderMpi() {
   int[D] dims;
   int[D] periodic = [ true , true , true ];
   int[D] pos;
+  int reorder = true;
   int srcRank, destRank;
   MPI_Comm comm;
 
@@ -73,13 +78,13 @@ void reorderMpi() {
   dims[2] = P.ncz;
 
   // Create cartesian grid of dimensions ( ncx * ncy * ncz )
-  MPI_Dims_create(M.size,D,dims.ptr);
+  MPI_Dims_create(M.size, D, dims.ptr);
   M.ncx = dims[0];
   M.ncy = dims[1];
   M.ncz = dims[2];
 
   // Create a new communicator with the grid
-  MPI_Cart_create(M.comm, D, dims.ptr, periodic.ptr, true, &comm);
+  MPI_Cart_create(M.comm, D, dims.ptr, periodic.ptr, reorder, &comm);
   M.comm = comm;
 
   // Recalculate rank (size shouldn't change)

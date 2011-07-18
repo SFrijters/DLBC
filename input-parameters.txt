@@ -1,0 +1,11 @@
+// Example parameter file for DLBC
+//
+// Empty lines are ignored, as is anything beyond '//' on a line.
+// Multiline comments are *not* supported.
+
+vl = 4     // Verbosity level
+
+nx = 16    // Lattice size x-direction
+ny = 16    // Lattice size y-direction
+nz = 16    // Lattice size z-direction
+

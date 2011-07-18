@@ -7,17 +7,11 @@ import stdio;
 import parallel;
 import mpi;
 
-alias parameterDataTypes PDT;
-enum parameterDataTypes : string {
-  Ulong  = "ulong",
-  Bool   = "bool",
-  Double = "double",
-  Int    = "int",
-  String = MpiStringType
-};
+string parameterFileName;
 
 /// This enum will be translated into various components through mixins
 enum parameterTypes : string { 
+  vl = PDT.Int,
   nx = PDT.Ulong, 
   ny = PDT.Ulong,
   nz = PDT.Ulong, 
@@ -27,6 +21,15 @@ enum parameterTypes : string {
   ok =  PDT.Bool, 
   name = PDT.String,
   G = PDT.Double
+};
+
+alias parameterDataTypes PDT;
+enum parameterDataTypes : string {
+  Ulong  = "ulong",
+  Bool   = "bool",
+  Double = "double",
+  Int    = "int",
+  String = MpiStringType
 };
 
 /// This struct will be constructed from the parameterTypes enum
@@ -63,7 +66,7 @@ string makeParameterSetShow() {
     // Add a warning '!' for variables which are still equal to their default init.
     mixinString ~= "if ( P." ~ member ~ " == typeof(P." ~ member ~ ").init || P." ~ member ~ " != P." ~ member ~ ") w = \"!\"; else w = \"\";\n";
     // Actual print statement
-    mixinString ~= "writelog(\"%1s %20s = %s\",w,\"" ~ member ~ "\",to!string(P." ~ member ~"));\n";
+    mixinString ~= "writeLogI(\"%1s %20s = %s\",w,\"" ~ member ~ "\",to!string(P." ~ member ~"));\n";
   }
   return mixinString;
 }
@@ -82,7 +85,7 @@ string makeParameterCase() {
       mixinString ~= "P." ~ member ~ " = to!" ~ type ~ "(valueString);";
     }
     mixinString ~= " } \n";
-    mixinString ~= "catch (ConvException e) { writelog(\"  ConvException at line %d of the input file.\",ln); throw e; } \n";
+    mixinString ~= "catch (ConvException e) { writeLogE(\"  ConvException at line %d of the input file.\",ln); throw e; } \n";
     mixinString ~= "break;\n";
   }
   return mixinString;
@@ -118,8 +121,8 @@ string makeParameterSetMpiType() {
   prefixString  ~= "MPI_Aint[" ~ to!string(count+1) ~ "] addrs;\n";
   prefixString  ~= "MPI_Datatype[" ~ to!string(count) ~ "] types;\n";
   prefixString  ~= "MPI_Address(&P,&addrs[0]);\n";
-  postfixString  = "MPI_Type_struct( " ~ to!string(count) ~ ", lens.ptr, disps.ptr, types.ptr, &parameterListMpiType );\n";
-  postfixString ~= "MPI_Type_commit(&parameterListMpiType);\n";
+  postfixString  = "MPI_Type_struct( " ~ to!string(count) ~ ", lens.ptr, disps.ptr, types.ptr, &parameterSetMpiType );\n";
+  postfixString ~= "MPI_Type_commit(&parameterSetMpiType);\n";
 
   mixinString = prefixString ~ mainString ~ dispString ~ postfixString;
   return mixinString;
@@ -131,15 +134,15 @@ void setupParameterSetMpiType() {
 }
 
 /// Sends and receives the parameter struct over MPI
-void distributeParameterList() {
+void distributeParameterSet() {
   MPI_Status status;
   if (M.rank == 0) {
     for (int dest = 1; dest < M.size; dest++ ) {
-      MPI_Send(&P, 1, parameterListMpiType, dest, 0, M.comm);
+      MPI_Send(&P, 1, parameterSetMpiType, dest, 0, M.comm);
     }
   }
   else {
-    MPI_Recv(&P, 1, parameterListMpiType, 0, 0, M.comm, &status);
+    MPI_Recv(&P, 1, parameterSetMpiType, 0, 0, M.comm, &status);
   }
 }
 
@@ -160,7 +163,7 @@ void parseParameter(char[] line, in uint ln) {
       // This mixin creates cases for all members of the parameterTypes struct
       mixin(makeParameterCase()); 
     default:
-      writelog("  Unknown key at line %d: <%s>", ln, keyString);
+      writeLogW("  Unknown key at line %d: <%s>", ln, keyString);
     }
   }
 
@@ -168,7 +171,21 @@ void parseParameter(char[] line, in uint ln) {
 
 /// Parses a parameter file
 void readParameterSetFromFile(string fileName) {
-  File f = new File(fileName,FileMode.In);
+  if (fileName.length == 0) {
+    writeLogRW("Parameter filename not set, please specify using the -p <filename> option.");
+    return;
+  }
+
+  File f;
+
+  try {
+    f = new File(fileName,FileMode.In);
+  }
+  catch (Exception e) {
+    writeLogRF("Error opening parameter file '%s' for reading.",fileName);
+    throw e;
+  }
+
   uint ln = 0;
   while(!f.eof()) {
     parseParameter(f.readLine(),++ln);
@@ -176,3 +193,39 @@ void readParameterSetFromFile(string fileName) {
   f.close();
 }
 
+/// Processes parameters
+void processParameters() {
+  string VLName;
+
+  globalVerbosityLevel = cast(VL) P.vl;
+  final switch(globalVerbosityLevel) {
+    case VL.Off:          VLName = "Off"; break;
+    case VL.Fatal:        VLName = "Fatal"; break;
+    case VL.Error:        VLName = "Error"; break;
+    case VL.Warning:      VLName = "Warning"; break;
+    case VL.Notification: VLName = "Notification"; break;
+    case VL.Information:  VLName = "Information"; break;
+    case VL.Debug:        VLName = "Debug"; break;
+  }
+  writeLogRI("Set globalVerbosityLevel to %d (%s).", globalVerbosityLevel, VLName);
+
+}
+
+/// Process CLI
+void processCLI(string[] args) {
+  if (args.length > 1) {
+    for (int i = 1; i < args.length; i++) {
+      switch(args[i]) {
+        case "-p": 
+	  if (args.length > i+1) {
+	    parameterFileName = args[++i]; 
+	  }
+	  else {
+	    writeLogRW("Missing filename for -p <filename>.");
+	  }
+	  break;
+        default: writeLogRW("Unknown command line option '%s'.",args[i]);
+      }
+    }
+  }
+}
