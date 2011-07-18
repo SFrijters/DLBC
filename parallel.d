@@ -13,7 +13,7 @@ const int MpiStringLength = 256;
 
 struct MpiParams {
 
-  static int root = 0;
+  const static int root = 0;
 
   // Topology  
   int ncx, ncy, ncz;

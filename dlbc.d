@@ -5,6 +5,7 @@ import std.conv;
 import std.string;
 import core.thread;
 
+import dbg: dbgShowMixins;
 import parallel;
 import parameters;
 import stdio;
@@ -66,30 +67,13 @@ int main( string[] args ) {
   // Process the CLI parameters
   processCLI(args);
 
-  debug(showMixins) {
-    globalVerbosityLevel = VL.Debug;
-    writeLogRD("--- START makeParameterSetMembers() mixin ---\n");
-    writeln(makeParameterSetMembers());
-    writeLogRD("--- END   makeParameterSetMembers() mixin ---\n");
-
-    writeLogRD("--- START makeParameterSetShow() mixin ---\n");
-    writeln(makeParameterSetShow());
-    writeLogRD("--- END   makeParameterSetShow() mixin ---\n");
-
-    writeLogRD("--- START makeParameterSetMpiType() mixin ---\n");
-    writeln(makeParameterSetMpiType());
-    writeLogRD("--- END   makeParameterSetMpiType() mixin ---\n");
-
-    writeLogRD("--- START makeParameterCase() mixin ---\n");
-    writeln(makeParameterCase());
-    writeLogRD("--- END   makeParameterCase() mixin ---\n");
-  }
+  dbgShowMixins();
 
   // Create an MPI type for the ParameterSet struct
   setupParameterSetMpiType();
 
   // No cartesian grid yet, but rank 0 can read stuff
-  if (M.rank == 0) {
+  if (M.rank == M.root) {
     readParameterSetFromFile(parameterFileName);
   }
 
@@ -105,7 +89,7 @@ int main( string[] args ) {
   // Try and split the lattice
   divideLattice();
 
-  if (M.rank == 0) {
+  if (M.rank == M.root) {
     M.show();
     P.show();
   }
