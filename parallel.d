@@ -15,6 +15,9 @@ struct MpiParams {
 
   const int root = 0;
 
+  // MPI details
+  int ver, subver;
+
   // Topology  
   int ncx, ncy, ncz;
   int size;
@@ -61,6 +64,10 @@ void startMpi() {
   M.rank = rank;
   M.size = size;
   M.comm = commWorld;
+
+  MPI_Get_version( &M.ver, &M.subver );
+
+  writeLogRI("Initialized MPI v%d.%d on %d CPUs.\n", M.ver, M.subver, M.size);
 }
 
 /// Reorders MPI to use a cartesian grid

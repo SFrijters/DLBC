@@ -191,7 +191,6 @@ void readParameterSetFromFile(string fileName) {
 void processParameters() {
   string VLName;
 
-  globalVerbosityLevel = cast(VL) P.vl;
   final switch(globalVerbosityLevel) {
     case VL.Off:          VLName = "Off"; break;
     case VL.Fatal:        VLName = "Fatal"; break;
@@ -201,7 +200,8 @@ void processParameters() {
     case VL.Information:  VLName = "Information"; break;
     case VL.Debug:        VLName = "Debug"; break;
   }
-  writeLogRI("Set globalVerbosityLevel to %d (%s).", globalVerbosityLevel, VLName);
+  writeLogRI("Setting globalVerbosityLevel to %d (%s).", globalVerbosityLevel, VLName);
+  globalVerbosityLevel = cast(VL) P.vl;
 
 }
 
@@ -223,3 +223,29 @@ void processCLI(string[] args) {
     }
   }
 }
+
+debug(showMixins) {
+
+  import std.stdio: writeln;
+
+  void dbgShowMixins() {
+
+    globalVerbosityLevel = VL.Debug;
+    writeLogRD("--- START makeParameterSetMembers() mixin ---\n");
+    writeln(makeParameterSetMembers());
+    writeLogRD("--- END makeParameterSetMembers() mixin ---\n");
+
+    writeLogRD("--- START makeParameterSetShow() mixin ---\n");
+    writeln(makeParameterSetShow());
+    writeLogRD("--- END makeParameterSetShow() mixin ---\n");
+
+    writeLogRD("--- START makeParameterSetMpiType() mixin ---\n");
+    writeln(makeParameterSetMpiType());
+    writeLogRD("--- END makeParameterSetMpiType() mixin ---\n");
+
+    writeLogRD("--- START makeParameterCase() mixin ---\n");
+    writeln(makeParameterCase());
+    writeLogRD("--- END makeParameterCase() mixin ---\n");
+  }
+}
+

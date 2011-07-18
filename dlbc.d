@@ -5,59 +5,12 @@ import std.conv;
 import std.string;
 import core.thread;
 
-import dbg: dbgShowMixins;
-import mpi;
+import lattice;
 import parallel;
 import parameters;
 import stdio;
 
-
-struct Lattice {
-  double[][][] R;
-  double[][][] B;
-  
-  this (ulong nx, ulong ny, ulong nz) {
-     R = new double[][][nz];
-     foreach (ref Ry; R) {
-       Ry = new double[][ny];
-       foreach (ref Rx; Ry) {
-	 Rx = new double[nx];
-       }
-     }
-
-     B = new double[][][nz];
-     foreach (ref By; B) {
-       By = new double[][ny];
-       foreach (ref Bx; By) {
-	 Bx = new double[nx];
-       }
-     }
-  }
-
-}
-
-Lattice L;
-
-
-void divideLattice() {
-  ulong nx, ny, nz;
-  
-  if (P.nx % M.ncx != 0 || P.ny % M.ncy != 0 || P.nz % M.ncz != 0) {
-    writeLogF("Cannot divide lattice evenly...");
-    throw new Exception("Lattice division exception");
-  }
-
-  nx = P.nx / M.ncx;
-  ny = P.ny / M.ncy;
-  nz = P.nz / M.ncz;
-
-  //writelogI("Initializing %d x %d x %d lattice...",nx,ny,nz);
-
-  L = Lattice(nx,ny,nz);
-
-}
-
-/// Test Doxygen
+/** Test Doxygen */
 int main( string[] args ) {
   debug {
     globalVerbosityLevel = VL.Debug;
@@ -66,17 +19,17 @@ int main( string[] args ) {
   // Any output before startMpi() has been called will be very spammy, so better avoid it.
   startMpi();
   
-  writeLogRN("\nStarted DLBC on %d CPUs.\n", M.size);
+  writeLogRN("\nStarting DLBC on %d CPUs.\n", M.size);
 
   // Process the CLI parameters
   processCLI(args);
 
-  dbgShowMixins();
+  debug(showMixins) { dbgShowMixins(); }
 
   // Create an MPI type for the ParameterSet struct
   setupParameterSetMpiType();
 
-  // No cartesian grid yet, but rank 0 can read stuff
+  // No cartesian grid yet, but the root can read stuff
   if (M.rank == M.root) {
     readParameterSetFromFile(parameterFileName);
   }
@@ -92,11 +45,6 @@ int main( string[] args ) {
 
   // Try and split the lattice
   divideLattice();
-
-  // if (M.rank == M.root) {
-  //   M.show();
-  //   P.show();
-  // }
 
   owriteLogD("This is a test from rank %d.",M.rank);
   writeLogD("This is a test from rank %d.",M.rank);

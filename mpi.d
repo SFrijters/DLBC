@@ -45,16 +45,20 @@ int MPI_Cart_create(MPI_Comm, int, int *, int *, int, MPI_Comm *);
 int MPI_Cart_get(MPI_Comm, int, int *, int *, int *);
 int MPI_Cart_shift(MPI_Comm, int, int, int *, int *);
 
-int MPI_Barrier(MPI_Comm);
+int MPI_Get_processor_name(char *, int *);
+int MPI_Get_version(int *, int *);
 
-int MPI_Finalize();
-int MPI_Initialized(int *);
 int MPI_Abort(MPI_Comm, int);
+int MPI_Finalize();
+
+int MPI_Initialized(int *);
+int MPI_Finalized(int *);
 
 int MPI_Bcast(void*, int, MPI_Datatype, int, MPI_Comm );
-
 int MPI_Send(void*, int, MPI_Datatype, int, int, MPI_Comm);
 int MPI_Recv(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status *);
+
+int MPI_Barrier(MPI_Comm);
 
 struct MPI_Status {
     int count;
