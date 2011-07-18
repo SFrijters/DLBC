@@ -191,7 +191,7 @@ void readParameterSetFromFile(string fileName) {
 void processParameters() {
   string VLName;
 
-  final switch(globalVerbosityLevel) {
+  final switch(P.vl) {
     case VL.Off:          VLName = "Off"; break;
     case VL.Fatal:        VLName = "Fatal"; break;
     case VL.Error:        VLName = "Error"; break;
@@ -200,7 +200,7 @@ void processParameters() {
     case VL.Information:  VLName = "Information"; break;
     case VL.Debug:        VLName = "Debug"; break;
   }
-  writeLogRI("Setting globalVerbosityLevel to %d (%s).", globalVerbosityLevel, VLName);
+  writeLogRI("Setting globalVerbosityLevel to %d (%s).", P.vl, VLName);
   globalVerbosityLevel = cast(VL) P.vl;
 
 }

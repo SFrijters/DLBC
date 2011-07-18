@@ -8,6 +8,7 @@ import core.thread;
 import lattice;
 import parallel;
 import parameters;
+import revision;
 import stdio;
 
 /** Test Doxygen */
@@ -20,6 +21,7 @@ int main( string[] args ) {
   startMpi();
   
   writeLogRN("\nStarting DLBC on %d CPUs.\n", M.size);
+  writeLogRI("Executable built from revision %s .", revisionNumber );
 
   // Process the CLI parameters
   processCLI(args);

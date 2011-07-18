@@ -67,7 +67,7 @@ void startMpi() {
 
   MPI_Get_version( &M.ver, &M.subver );
 
-  writeLogRI("Initialized MPI v%d.%d on %d CPUs.\n", M.ver, M.subver, M.size);
+  writeLogRI("Initialized MPI v%d.%d on %d CPUs.", M.ver, M.subver, M.size);
 }
 
 /// Reorders MPI to use a cartesian grid
