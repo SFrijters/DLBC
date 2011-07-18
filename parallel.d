@@ -8,12 +8,12 @@ MPI_Datatype parameterSetMpiType;
 
 /// Need to define a charlength to easily transmit strings over MPI
 alias char[256] MpiString;
-const string MpiStringType = "char[256]";
-const int MpiStringLength = 256;
+immutable string MpiStringType = "char[256]";
+immutable int MpiStringLength = 256;
 
 struct MpiParams {
 
-  const static int root = 0;
+  const int root = 0;
 
   // Topology  
   int ncx, ncy, ncz;

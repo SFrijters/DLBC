@@ -135,15 +135,9 @@ void setupParameterSetMpiType() {
 
 /// Sends and receives the parameter struct over MPI
 void distributeParameterSet() {
-  MPI_Status status;
-  if (M.rank == 0) {
-    for (int dest = 1; dest < M.size; dest++ ) {
-      MPI_Send(&P, 1, parameterSetMpiType, dest, 0, M.comm);
-    }
-  }
-  else {
-    MPI_Recv(&P, 1, parameterSetMpiType, 0, 0, M.comm, &status);
-  }
+  const int mpiCount = 1;
+  writeLogRI("Distributing parameter set through MPI_Bcast.");
+  MPI_Bcast(&P, mpiCount, parameterSetMpiType, M.root, M.comm);
 }
 
 /// Parses a single line of the parameter file

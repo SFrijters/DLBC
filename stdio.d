@@ -7,17 +7,17 @@ import std.algorithm;
 import mpi;
 import parallel;
 
-const string truncationSuffix = "[T]...";
-
+immutable string truncationSuffix = "[T]...";
 alias LogRankFormat LRF;
-static enum LogRankFormat {
+
+enum LogRankFormat {
   Root    = 0,
   Any     = 1,
   Ordered = 2
 };
 
 alias VerbosityLevel VL;
-static enum VerbosityLevel {
+enum VerbosityLevel {
   Off          = 0,
   Fatal        = 1,
   Error        = 2,

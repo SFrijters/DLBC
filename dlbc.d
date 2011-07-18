@@ -6,6 +6,7 @@ import std.string;
 import core.thread;
 
 import dbg: dbgShowMixins;
+import mpi;
 import parallel;
 import parameters;
 import stdio;
@@ -58,6 +59,9 @@ void divideLattice() {
 
 /// Test Doxygen
 int main( string[] args ) {
+  debug {
+    globalVerbosityLevel = VL.Debug;
+  }
 
   // Any output before startMpi() has been called will be very spammy, so better avoid it.
   startMpi();
@@ -89,10 +93,10 @@ int main( string[] args ) {
   // Try and split the lattice
   divideLattice();
 
-  if (M.rank == M.root) {
-    M.show();
-    P.show();
-  }
+  // if (M.rank == M.root) {
+  //   M.show();
+  //   P.show();
+  // }
 
   owriteLogD("This is a test from rank %d.",M.rank);
   writeLogD("This is a test from rank %d.",M.rank);
@@ -107,9 +111,9 @@ int main( string[] args ) {
 unittest {
 
   Lattice L;
-  static ulong nx = 2;
-  static ulong ny = 3;
-  static ulong nz = 4;
+  const ulong nx = 2;
+  const ulong ny = 3;
+  const ulong nz = 4;
 
   L = Lattice(nx,ny,nz);
   for(int i=0;i<nx;i++)

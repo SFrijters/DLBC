@@ -51,6 +51,8 @@ int MPI_Finalize();
 int MPI_Initialized(int *);
 int MPI_Abort(MPI_Comm, int);
 
+int MPI_Bcast(void*, int, MPI_Datatype, int, MPI_Comm );
+
 int MPI_Send(void*, int, MPI_Datatype, int, int, MPI_Comm);
 int MPI_Recv(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status *);
 
