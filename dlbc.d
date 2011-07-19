@@ -13,23 +13,12 @@ import stdio;
 
 /** Test Doxygen */
 int main( string[] args ) {
-  debug {
-    globalVerbosityLevel = VL.Debug;
-  }
 
   // Any output before startMpi() has been called will be very spammy, so better avoid it.
   startMpi();
   
-  writeLogRN("\nStarting DLBC on %d CPUs.\n", M.size);
+  writeLogRN("\n=== Starting DLBC on %d CPUs. ===\n", M.size);
 
-  if (revisionChanges.length == 0) {
-    writeLogRI("Executable built from revision %s .", revisionNumber );
-  }
-  else {
-    writeLogRI("Executable built from revision %s (with local changes).", revisionNumber );
-    writeLogRD("  Changes from HEAD: %s.\n", revisionChanges );
-  }
-  
   // Process the CLI parameters
   processCLI(args);
 
@@ -40,7 +29,7 @@ int main( string[] args ) {
 
   // No cartesian grid yet, but the root can read stuff
   if (M.rank == M.root) {
-    readParameterSetFromFile(parameterFileName);
+    readParameterSetFromFiles();
   }
 
   // Get the parameters to all CPUs
@@ -48,6 +37,18 @@ int main( string[] args ) {
 
   // Set secondary values based on parameters
   processParameters();
+
+  if (revisionChanges.length == 0) {
+    writeLogRI("Executable built from revision %s .", revisionNumber );
+  }
+  else {
+    writeLogRI("Executable built from revision %s (with local changes).", revisionNumber );
+    writeLogRD("  Changes from HEAD: %s.\n", revisionChanges );
+  }
+  
+  if (M.rank == M.root) {
+    P.show();
+  }
 
   // Make cartesian grid now that we have values ncx, ncy, ncz everywhere
   reorderMpi();
@@ -60,7 +61,7 @@ int main( string[] args ) {
 
   endMpi();
 
-  writeLogRN("\nFinished DLBC run.\n");
+  writeLogRN("\n=== Finished DLBC run. ===\n");
 
   return 0;
 }

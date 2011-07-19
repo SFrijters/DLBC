@@ -4,7 +4,6 @@ import std.datetime;
 import std.string;
 import std.algorithm;
 
-import mpi;
 import parallel;
 
 immutable string truncationSuffix = "[T]...";

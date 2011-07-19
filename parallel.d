@@ -1,6 +1,6 @@
 import parameters;
 import stdio;
-import mpi;
+public import mpi;
 
 const int D = 3;
 
@@ -13,10 +13,10 @@ immutable int MpiStringLength = 256;
 
 struct MpiParams {
 
-  const int root = 0;
+  static const int root = 0;
 
   // MPI details
-  int ver, subver;
+  static int ver, subver;
 
   // Topology  
   int ncx, ncy, ncz;
@@ -67,7 +67,7 @@ void startMpi() {
 
   MPI_Get_version( &M.ver, &M.subver );
 
-  writeLogRI("Initialized MPI v%d.%d on %d CPUs.", M.ver, M.subver, M.size);
+  writeLogRN("Initialized MPI v%d.%d on %d CPUs.", M.ver, M.subver, M.size);
 }
 
 /// Reorders MPI to use a cartesian grid
@@ -80,15 +80,20 @@ void reorderMpi() {
   int srcRank, destRank;
   MPI_Comm comm;
 
+  writeLogRD("Creating MPI dims from suggestion %d x %d x %d.", P.ncx, P.ncy, P.ncz);
+
   dims[0] = P.ncx;
   dims[1] = P.ncy;
   dims[2] = P.ncz;
 
   // Create cartesian grid of dimensions ( ncx * ncy * ncz )
+
   MPI_Dims_create(M.size, D, dims.ptr);
   M.ncx = dims[0];
   M.ncy = dims[1];
   M.ncz = dims[2];
+
+  writeLogRN("Reordering MPI communicator to form a %d x %d x %d grid.", M.ncx, M.ncy, M.ncz );
 
   // Create a new communicator with the grid
   MPI_Cart_create(M.comm, D, dims.ptr, periodic.ptr, reorder, &comm);
@@ -120,8 +125,12 @@ void reorderMpi() {
   MPI_Cart_shift(M.comm, 2, 1, &srcRank, &destRank);
   M.nbz[0] = srcRank;
   M.nbz[1] = destRank;
+
+  writeLogRD("Finished reordering MPI communicator.");
+
 }
 
 void endMpi() {
+  writeLogRN("Finalized MPI.");
   MPI_Finalize();
 }

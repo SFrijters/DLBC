@@ -5,9 +5,8 @@ import std.string;
 
 import stdio;
 import parallel;
-import mpi;
 
-string parameterFileName;
+string[] parameterFileNames;
 
 /// This enum will be translated into various components through mixins
 enum parameterTypes : string { 
@@ -33,6 +32,12 @@ enum parameterDataTypes : string {
 };
 
 /// This struct will be constructed from the parameterTypes enum
+struct ParameterSetDefault {
+  mixin(makeParameterSetDefaultMembers());
+}
+
+
+/// This struct will be constructed from the parameterTypes enum
 struct ParameterSet {
   mixin(makeParameterSetMembers());
 
@@ -42,6 +47,16 @@ struct ParameterSet {
 };
 
 ParameterSet P;
+ParameterSetDefault PD;
+
+/// Generates Mixin to create the ParameterSetDefault struct
+string makeParameterSetDefaultMembers() {
+  string mixinString, type;
+  foreach( member ; __traits(allMembers, parameterTypes)) {
+    mixinString ~= "bool " ~ member ~ " = true;\n";
+  }
+  return mixinString;
+}
 
 /// Generates Mixin to create the ParameterSet struct
 string makeParameterSetMembers() {
@@ -61,12 +76,15 @@ string makeParameterSetMembers() {
 
 /// Generates Mixin to list the values of P
 string makeParameterSetShow() {
-  string mixinString = "string w;\n";
+  string mixinString;
   foreach( member ; __traits(allMembers, parameterTypes)) {
     // Add a warning '!' for variables which are still equal to their default init.
-    mixinString ~= "if ( P." ~ member ~ " == typeof(P." ~ member ~ ").init || P." ~ member ~ " != P." ~ member ~ ") w = \"!\"; else w = \"\";\n";
+    mixinString ~= "if ( PD." ~ member ~ ") { \n";
     // Actual print statement
-    mixinString ~= "writeLogI(\"%1s %20s = %s\",w,\"" ~ member ~ "\",to!string(P." ~ member ~"));\n";
+    mixinString ~= "writeLogW(\"NOT SET %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~"));\n";
+    mixinString ~= "}\nelse {\n";
+    mixinString ~= "writeLogI(\"        %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~"));\n";
+    mixinString ~= "}\n";
   }
   return mixinString;
 }
@@ -86,6 +104,7 @@ string makeParameterCase() {
     }
     mixinString ~= " } \n";
     mixinString ~= "catch (ConvException e) { writeLogE(\"  ConvException at line %d of the input file.\",ln); throw e; } \n";
+    mixinString ~= "PD." ~ member ~ " = false;";
     mixinString ~= "break;\n";
   }
   return mixinString;
@@ -130,6 +149,7 @@ string makeParameterSetMpiType() {
 
 /// Creates an MPI datatype for the parameter struct using a mixin
 void setupParameterSetMpiType() {
+  writeLogRI("Setting up MPI type for parameter struct.");
   mixin(makeParameterSetMpiType());
 }
 
@@ -157,34 +177,40 @@ void parseParameter(char[] line, in uint ln) {
       // This mixin creates cases for all members of the parameterTypes struct
       mixin(makeParameterCase()); 
     default:
-      writeLogW("  Unknown key at line %d: <%s>", ln, keyString);
+      writeLogRW("  Unknown key at line %d: <%s>", ln, keyString);
     }
   }
 
 }
 
 /// Parses a parameter file
-void readParameterSetFromFile(string fileName) {
-  if (fileName.length == 0) {
-    writeLogRW("Parameter filename not set, please specify using the -p <filename> option.");
-    return;
-  }
+void readParameterSetFromFiles() {
 
-  File f;
+  foreach( fileName; parameterFileNames) {
 
-  try {
-    f = new File(fileName,FileMode.In);
-  }
-  catch (Exception e) {
-    writeLogRF("Error opening parameter file '%s' for reading.",fileName);
-    throw e;
-  }
+    writeLogRN("Reading parameters from file %s .",fileName);
 
-  uint ln = 0;
-  while(!f.eof()) {
-    parseParameter(f.readLine(),++ln);
+    if (fileName.length == 0) {
+      writeLogRW("Parameter filename not set, please specify using the -p <filename> option.");
+      return;
+    }
+
+    File f;
+
+    try {
+      f = new File(fileName,FileMode.In);
+    }
+    catch (Exception e) {
+      writeLogRF("Error opening parameter file '%s' for reading.",fileName);
+      throw e;
+    }
+    
+    uint ln = 0;
+    while(!f.eof()) {
+      parseParameter(f.readLine(),++ln);
+    }
+    f.close();
   }
-  f.close();
 }
 
 /// Processes parameters
@@ -200,19 +226,22 @@ void processParameters() {
     case VL.Information:  VLName = "Information"; break;
     case VL.Debug:        VLName = "Debug"; break;
   }
-  writeLogRI("Setting globalVerbosityLevel to %d (%s).", P.vl, VLName);
+  writeLogRN("Setting globalVerbosityLevel to %d (%s).", P.vl, VLName);
   globalVerbosityLevel = cast(VL) P.vl;
 
 }
 
 /// Process CLI
 void processCLI(string[] args) {
+
+  writeLogRN("Processing command line arguments.");
+
   if (args.length > 1) {
     for (int i = 1; i < args.length; i++) {
       switch(args[i]) {
         case "-p": 
 	  if (args.length > i+1) {
-	    parameterFileName = args[++i]; 
+	    parameterFileNames = split(args[++i],","); 
 	  }
 	  else {
 	    writeLogRW("Missing filename for -p <filename>.");
@@ -234,6 +263,10 @@ debug(showMixins) {
     writeLogRD("--- START makeParameterSetMembers() mixin ---\n");
     writeln(makeParameterSetMembers());
     writeLogRD("--- END makeParameterSetMembers() mixin ---\n");
+
+    writeLogRD("--- START makeParameterSetDefaultMembers() mixin ---\n");
+    writeln(makeParameterSetDefaultMembers());
+    writeLogRD("--- END makeParameterSetDefaultMembers() mixin ---\n");
 
     writeLogRD("--- START makeParameterSetShow() mixin ---\n");
     writeln(makeParameterSetShow());

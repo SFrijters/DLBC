@@ -2,7 +2,6 @@ all: clean version dlbc
 
 version:
 	@echo 'immutable string revisionNumber  = "'`git rev-parse HEAD`'";' > revision.d
-	#@echo 'immutable string revisionChanges = "'`git diff --stat | tr '\n' '\\n' `'";' >> revision.d
 	@git diff --stat | awk 'BEGIN {printf("immutable string revisionChanges = \"")} {printf("\\n%s",$$0)} END {printf("\";\n")}'>> revision.d 
 
 dlbc:
