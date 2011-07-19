@@ -3,7 +3,6 @@ import std.algorithm;
 import std.datetime;
 import std.conv;
 import std.string;
-import core.thread;
 
 import lattice;
 import parallel;

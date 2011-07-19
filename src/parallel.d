@@ -11,6 +11,7 @@ alias char[256] MpiString;
 immutable string MpiStringType = "char[256]";
 immutable int MpiStringLength = 256;
 
+alias MpiParams M;
 struct MpiParams {
 
   static const int root = 0;
@@ -19,25 +20,25 @@ struct MpiParams {
   static int ver, subver;
 
   // Topology  
-  int ncx, ncy, ncz;
-  int size;
+  static int ncx, ncy, ncz;
+  static int size;
 
   // CPU rank
-  int rank;
+  static int rank;
 
   // CPU position
-  int cx, cy, cz;
+  static int cx, cy, cz;
 
   // Nearest neighbours
 
-  int nbx[2];
-  int nby[2];
-  int nbz[2];
+  static int nbx[2];
+  static int nby[2];
+  static int nbz[2];
 
   // Communicator
-  MPI_Comm comm;
+  static MPI_Comm comm;
   
-  void show() {
+  static void show() {
     writeLogI("Report from rank %d at position (%d, %d, %d):", rank, cx, cy, cz);
     writeLogI("  Currently using %d CPUs on a %d x %d x %d grid.", size, ncx, ncy, ncz);
     writeLogI("  Neighbours x: %#6.6d %#6.6d %#6.6d.", nbx[0], rank, nbx[1]);
@@ -45,8 +46,6 @@ struct MpiParams {
     writeLogI("  Neighbours z: %#6.6d %#6.6d %#6.6d.", nbz[0], rank, nbz[1]);
   }
 }
-
-MpiParams M;
 
 /// Initializes barebones MPI communicator
 void startMpi() {
