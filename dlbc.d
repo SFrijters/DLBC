@@ -10,14 +10,18 @@ import parallel;
 import parameters;
 import revision;
 import stdio;
+import timers;
 
 /** Test Doxygen */
 int main( string[] args ) {
 
   // Any output before startMpi() has been called will be very spammy, so better avoid it.
   startMpi();
-  
+
   writeLogRN(makeHeaderString("Starting DLBC on %d CPUs."), M.size);
+
+  T.main = MultiStopWatch("Main");
+  T.main.start(LRF.None);
 
   // Process the CLI parameters
   processCLI(args);
@@ -58,6 +62,8 @@ int main( string[] args ) {
 
   owriteLogD("This is a test from rank %d.",M.rank);
   writeLogD("This is a test from rank %d.",M.rank);
+
+  T.main.stop(LRF.Ordered);
 
   endMpi();
 

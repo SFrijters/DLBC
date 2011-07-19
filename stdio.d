@@ -13,9 +13,10 @@ immutable string headerDash = "=";
 
 alias LogRankFormat LRF;
 enum LogRankFormat {
-  Root    = 0,
-  Any     = 1,
-  Ordered = 2
+  None    = 0,
+  Root    = 1,
+  Any     = 2,
+  Ordered = 3
 };
 
 alias VerbosityLevel VL;
@@ -153,6 +154,7 @@ string makeRankString(LogRankFormat logRankFormat) {
   string rankString;
 
   final switch(logRankFormat) {
+    case LRF.None:    rankString = ""; break;
     case LRF.Root:    rankString = ""; break;
     case LRF.Any:     rankString = format("[%#6.6d] ",M.rank); break;
     case LRF.Ordered: rankString = format("<%#6.6d> ",M.rank); break;
