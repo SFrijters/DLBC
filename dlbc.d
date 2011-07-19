@@ -29,7 +29,7 @@ int main( string[] args ) {
 
   // No cartesian grid yet, but the root can read stuff
   if (M.rank == M.root) {
-    readParameterSetFromFiles();
+    readParameterSetFromCliFiles();
   }
 
   // Get the parameters to all CPUs

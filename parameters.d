@@ -183,33 +183,35 @@ void parseParameter(char[] line, in uint ln) {
 
 }
 
-/// Parses a parameter file
-void readParameterSetFromFiles() {
+void readParameterSetFromFile(string fileName) {
+  writeLogRN("Reading parameters from file %s .",fileName);
 
-  foreach( fileName; parameterFileNames) {
+  if (fileName.length == 0) {
+    writeLogRW("Parameter filename not set, please specify using the -p <filename> option.");
+    return;
+  }
 
-    writeLogRN("Reading parameters from file %s .",fileName);
+  File f;
 
-    if (fileName.length == 0) {
-      writeLogRW("Parameter filename not set, please specify using the -p <filename> option.");
-      return;
-    }
-
-    File f;
-
-    try {
-      f = new File(fileName,FileMode.In);
-    }
-    catch (Exception e) {
-      writeLogRF("Error opening parameter file '%s' for reading.",fileName);
-      throw e;
-    }
+  try {
+    f = new File(fileName,FileMode.In);
+  }
+  catch (Exception e) {
+    writeLogRF("Error opening parameter file '%s' for reading.",fileName);
+    throw e;
+  }
     
-    uint ln = 0;
-    while(!f.eof()) {
-      parseParameter(f.readLine(),++ln);
-    }
-    f.close();
+  uint ln = 0;
+  while(!f.eof()) {
+    parseParameter(f.readLine(),++ln);
+  }
+  f.close();
+}
+
+/// Parses a parameter file
+void readParameterSetFromCliFiles() {
+  foreach( fileName; parameterFileNames) {
+    readParameterSetFromFile(fileName);
   }
 }
 
