@@ -1,17 +1,17 @@
 all: clean version dlbc 
 
 version:
-	@echo 'immutable string revisionNumber  = "'`git rev-parse HEAD`'";' > revision.d
-	@git diff --stat | awk 'BEGIN {printf("immutable string revisionChanges = \"")} {printf("\\n%s",$$0)} END {printf("\";\n")}'>> revision.d 
+	@echo 'immutable string revisionNumber  = "'`git rev-parse HEAD`'";' > src/revision.d
+	@git diff --stat | awk 'BEGIN {printf("immutable string revisionChanges = \"")} {printf("\\n%s",$$0)} END {printf("\";\n")}'>> src/revision.d 
 
 dlbc:
-	gdmd -ofdlbc -debug=2 -vdmd /opt/usr/local/mpich2-install/lib/libmpich.a /opt/usr/local/mpich2-install/lib/libmpl.a mpi.d parameters.d stdio.d dlbc.d parallel.d lattice.d revision.d timers.d
+	gdmd -ofdlbc -vdmd /opt/usr/local/mpich2-install/lib/libmpich.a /opt/usr/local/mpich2-install/lib/libmpl.a src/*.d
 
 test:
-	gdmd -debug=showMixins -unittest -cov -ofdlbc -g -debug=2 -vdmd /opt/usr/local/mpich2-install/lib/libmpich.a /opt/usr/local/mpich2-install/lib/libmpl.a mpi.d parameters.d stdio.d dlbc.d parallel.d lattice.d revision.d timers.d
+	gdmd -debug=showMixins -unittest -cov -ofdlbc -g -debug=2 -vdmd /opt/usr/local/mpich2-install/lib/libmpich.a /opt/usr/local/mpich2-install/lib/libmpl.a src/*.d
 
 clean:
-	rm -f revision.d
+	rm -f src/revision.d
 	rm -rf doc
 	rm -f *.gcda
 	rm -f *.gcno
