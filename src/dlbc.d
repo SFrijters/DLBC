@@ -1,9 +1,3 @@
-import std.stdio;
-import std.algorithm;
-import std.datetime;
-import std.conv;
-import std.string;
-
 import lattice;
 import parallel;
 import parameters;
@@ -11,7 +5,6 @@ import revision;
 import stdio;
 import timers;
 
-/** Test Doxygen */
 int main( string[] args ) {
 
   // Any output before startMpi() has been called will be very spammy, so better avoid it.
