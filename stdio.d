@@ -1,3 +1,4 @@
+import std.array;
 import std.conv;
 import std.stdio;
 import std.datetime;
@@ -7,8 +8,10 @@ import std.algorithm;
 import parallel;
 
 immutable string truncationSuffix = "[T]...";
-alias LogRankFormat LRF;
+immutable ulong headerLength = 80;
+immutable string headerDash = "=";
 
+alias LogRankFormat LRF;
 enum LogRankFormat {
   Root    = 0,
   Any     = 1,
@@ -163,5 +166,24 @@ string makeTimeString() {
   string timeString = format("%#2.2d:%#2.2d:%#2.2d",tNow.hour,tNow.minute,tNow.second);
 
   return timeString;
+}
+
+string makeHeaderString(string content) {
+  if (content.length >= headerLength - 4) {
+    return content;
+  }
+
+  string headerString;
+
+  ulong dashLength = headerLength - content.length - 2;
+  ulong preLength = dashLength/2 + dashLength%2;
+  ulong sufLength = dashLength/2;
+
+  string preDash = replicate(headerDash, preLength);
+  string sufDash = replicate(headerDash, sufLength);
+  
+  headerString = "\n" ~ preDash ~ " " ~ content ~ " " ~ sufDash ~ "\n";
+
+  return headerString;
 }
 

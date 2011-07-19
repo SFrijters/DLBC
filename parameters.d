@@ -42,7 +42,9 @@ struct ParameterSet {
   mixin(makeParameterSetMembers());
 
   void show() {
+    writeLogI("\n*** Current parameter set:");
     mixin(makeParameterSetShow());
+    writeLogI("***\n");
   }
 };
 

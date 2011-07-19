@@ -17,7 +17,7 @@ int main( string[] args ) {
   // Any output before startMpi() has been called will be very spammy, so better avoid it.
   startMpi();
   
-  writeLogRN("\n=== Starting DLBC on %d CPUs. ===\n", M.size);
+  writeLogRN(makeHeaderString("Starting DLBC on %d CPUs."), M.size);
 
   // Process the CLI parameters
   processCLI(args);
@@ -61,7 +61,7 @@ int main( string[] args ) {
 
   endMpi();
 
-  writeLogRN("\n=== Finished DLBC run. ===\n");
+  writeLogRN(makeHeaderString("Finished DLBC run."));
 
   return 0;
 }

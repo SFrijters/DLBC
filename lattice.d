@@ -10,7 +10,7 @@ void divideLattice() {
   ulong nx, ny, nz;
   
   if (P.nx % M.ncx != 0 || P.ny % M.ncy != 0 || P.nz % M.ncz != 0) {
-    writeLogRF("Cannot divide lattice evenly...");
+    writeLogRF("Cannot divide lattice evenly.");
     throw new Exception("Lattice division exception");
   }
 
@@ -18,7 +18,7 @@ void divideLattice() {
   ny = P.ny / M.ncy;
   nz = P.nz / M.ncz;
 
-  writeLogRI("Initializing %d x %d x %d local lattice...", nx, ny, nz);
+  writeLogRI("Initializing %d x %d x %d local lattice.", nx, ny, nz);
 
   L = Lattice(nx, ny, nz);
 
