@@ -2,7 +2,7 @@ import parameters;
 import stdio;
 public import mpi;
 
-const int D = 3;
+immutable int D = 3; // Dimensionality of the MPI grid.
 
 MPI_Datatype parameterSetMpiType;
 
@@ -14,7 +14,7 @@ immutable int MpiStringLength = 256;
 alias MpiParams M;
 struct MpiParams {
 
-  static const int root = 0;
+  static immutable int root = 0;
 
   // MPI details
   static int ver, subver;

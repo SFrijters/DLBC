@@ -57,6 +57,7 @@ int MPI_Finalized(int *);
 int MPI_Bcast(void*, int, MPI_Datatype, int, MPI_Comm );
 int MPI_Send(void*, int, MPI_Datatype, int, int, MPI_Comm);
 int MPI_Recv(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status *);
+int MPI_Sendrecv(void *, int, MPI_Datatype,int, int, void *, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status *);
 
 int MPI_Barrier(MPI_Comm);
 

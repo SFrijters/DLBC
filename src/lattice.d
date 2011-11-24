@@ -2,9 +2,20 @@ import parameters;
 import parallel;
 import stdio;
 
-public:
-
 Lattice L;
+
+alias haloSize H;
+int haloSize;
+
+
+void fillLatticeWithRank() {
+  for(int i=0;i<L.nxH;i++)
+    for(int j=0;j<L.nyH;j++)
+      for(int k=0;k<L.nzH;k++) {
+	L.R[k][j][i] = M.rank;
+      }
+}
+
 
 void divideLattice() {
   ulong nx, ny, nz;
@@ -18,35 +29,31 @@ void divideLattice() {
   ny = P.ny / M.ncy;
   nz = P.nz / M.ncz;
 
-  writeLogRI("Initializing %d x %d x %d local lattice.", nx, ny, nz);
+  writeLogRI("Initializing %d x %d x %d local lattice with halo of thickness %d.", nx, ny, nz, H);
 
-  L = Lattice(nx, ny, nz);
+  L = Lattice(nx, ny, nz, H);
 
 }
 
-
-private:
-
 struct Lattice {
   double[][][] R;
-  double[][][] B;
-  
-  this (ulong nx, ulong ny, ulong nz) {
-     R = new double[][][nz];
-     foreach (ref Ry; R) {
-       Ry = new double[][ny];
-       foreach (ref Rx; Ry) {
-	 Rx = new double[nx];
-       }
-     }
 
-     B = new double[][][nz];
-     foreach (ref By; B) {
-       By = new double[][ny];
-       foreach (ref Bx; By) {
-	 Bx = new double[nx];
-       }
-     }
+  ulong nx, ny, nz;
+  ulong nxH, nyH, nzH;
+  ulong H;
+  
+  this (immutable ulong nx, immutable ulong ny, immutable ulong nz, immutable ulong H) {
+
+    this.nx  = nx;
+    this.ny  = ny;
+    this.nz  = nz;
+    this.H   = H;
+    this.nxH = H + nx + H;
+    this.nyH = H + ny + H;
+    this.nzH = H + nz + H;
+    
+    R = new double[][][](nzH, nyH, nxH);
+
   }
 
 }

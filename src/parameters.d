@@ -3,8 +3,9 @@ import std.file;
 import std.stream;
 import std.string;
 
-import stdio;
+import lattice;
 import parallel;
+import stdio;
 
 string[] parameterFileNames;
 
@@ -22,6 +23,7 @@ enum parameterTypes : string {
   G = PDT.Double
 };
 
+/// Enum containing strings of datatypes
 alias parameterDataTypes PDT;
 enum parameterDataTypes : string {
   Ulong  = "ulong",
@@ -157,7 +159,7 @@ void setupParameterSetMpiType() {
 
 /// Sends and receives the parameter struct over MPI
 void distributeParameterSet() {
-  const int mpiCount = 1;
+  immutable int mpiCount = 1;
   writeLogRI("Distributing parameter set through MPI_Bcast.");
   MPI_Bcast(&P, mpiCount, parameterSetMpiType, M.root, M.comm);
 }
@@ -186,12 +188,7 @@ void parseParameter(char[] line, in uint ln) {
 }
 
 void readParameterSetFromFile(string fileName) {
-  writeLogRN("Reading parameters from file %s .",fileName);
-
-  if (fileName.length == 0) {
-    writeLogRW("Parameter filename not set, please specify using the -p <filename> option.");
-    return;
-  }
+  writeLogRI("Reading parameters from file '%s'.",fileName);
 
   File f;
 
@@ -212,6 +209,11 @@ void readParameterSetFromFile(string fileName) {
 
 /// Parses a parameter file
 void readParameterSetFromCliFiles() {
+  if (parameterFileNames.length == 0) {
+    writeLogRF("Parameter filename not set, please specify using the -p <filename> option.");
+    throw new Exception("Parameter filename not set exception.");
+  }
+
   foreach( fileName; parameterFileNames) {
     readParameterSetFromFile(fileName);
   }
@@ -219,19 +221,12 @@ void readParameterSetFromCliFiles() {
 
 /// Processes parameters
 void processParameters() {
-  string VLName;
-
-  final switch(P.vl) {
-    case VL.Off:          VLName = "Off"; break;
-    case VL.Fatal:        VLName = "Fatal"; break;
-    case VL.Error:        VLName = "Error"; break;
-    case VL.Warning:      VLName = "Warning"; break;
-    case VL.Notification: VLName = "Notification"; break;
-    case VL.Information:  VLName = "Information"; break;
-    case VL.Debug:        VLName = "Debug"; break;
+  if ( !PD.vl ) {
+    setGlobalVerbosityLevel( cast(VL) P.vl);
   }
-  writeLogRN("Setting globalVerbosityLevel to %d (%s).", P.vl, VLName);
-  globalVerbosityLevel = cast(VL) P.vl;
+
+  H = 1;
+  writeLogRN("Setting haloSize to %d.", H);
 
 }
 
@@ -245,13 +240,22 @@ void processCLI(string[] args) {
       switch(args[i]) {
         case "-p": 
 	  if (args.length > i+1) {
-	    parameterFileNames = split(args[++i],","); 
+	    parameterFileNames = split(args[++i],",");
+	    writeLogRI("Setting parameterFileNames to %s.",parameterFileNames);
 	  }
 	  else {
 	    writeLogRW("Missing filename for -p <filename>.");
 	  }
 	  break;
-        default: writeLogRW("Unknown command line option '%s'.",args[i]);
+        case "-v":
+	  if (args.length > i+1) {
+	    setGlobalVerbosityLevel( cast(VL) to!int(args[++i]) );
+	  }
+	  else {
+	    writeLogRW("Missing verbosity for -v <verbositylevel>.");
+	  }
+	  break;
+	default: writeLogRW("Unknown command line option '%s'.",args[i]);
       }
     }
   }
@@ -263,7 +267,7 @@ debug(showMixins) {
 
   void dbgShowMixins() {
 
-    globalVerbosityLevel = VL.Debug;
+    setGlobalVerbosityLevel(VL.Debug);
     writeLogRD("--- START makeParameterSetMembers() mixin ---\n");
     writeln(makeParameterSetMembers());
     writeLogRD("--- END makeParameterSetMembers() mixin ---\n");

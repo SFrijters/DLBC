@@ -30,7 +30,7 @@ enum VerbosityLevel {
   Debug        = 6
 };
 
-VL globalVerbosityLevel = VL.Notification;
+VL globalVerbosityLevel = VL.Debug;
 
 void owriteLogF(T...)(T args) { owriteLog(VL.Fatal       , args); }
 void owriteLogE(T...)(T args) { owriteLog(VL.Error       , args); }
@@ -44,7 +44,7 @@ void owriteLog(T...)(VL vl, T args) {
   string logString;
   MpiString mpiString;
   MPI_Status mpiStatus;
-  const int mpiTag = 0;
+  immutable int mpiTag = 0;
 
   if (globalVerbosityLevel >= vl) {
 
@@ -75,7 +75,7 @@ void owriteLog(T...)(VL vl, T args) {
       }
     }
     else {
-      const int destRank = M.root;
+      immutable int destRank = M.root;
       MPI_Send(&mpiString, MpiStringLength, MPI_CHAR, destRank, mpiTag, M.comm);
     }
   }
@@ -187,5 +187,10 @@ string makeHeaderString(string content) {
   headerString = "\n" ~ preDash ~ " " ~ content ~ " " ~ sufDash ~ "\n";
 
   return headerString;
+}
+
+void setGlobalVerbosityLevel(VL newVL) {
+  writeLogRN("Setting globalVerbosityLevel to %d (%s).", newVL, to!string(newVL));
+  globalVerbosityLevel = newVL;
 }
 

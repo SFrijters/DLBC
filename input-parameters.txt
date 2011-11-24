@@ -3,7 +3,7 @@
 // Empty lines are ignored, as is anything beyond '//' on a line.
 // Multiline comments are *not* supported.
 
-vl = 5     // Verbosity level
+// vl = 5     // Verbosity level
 
 nx = 16    // Lattice size x-direction
 ny = 16    // Lattice size y-direction

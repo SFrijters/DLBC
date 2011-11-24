@@ -67,20 +67,20 @@ int main( string[] args ) {
 unittest {
 
   Lattice L;
-  const ulong nx = 2;
-  const ulong ny = 3;
-  const ulong nz = 4;
+  immutable ulong nx = 2;
+  immutable ulong ny = 3;
+  immutable ulong nz = 4;
+  immutable ulong H = 1;
 
-  L = Lattice(nx,ny,nz);
-  for(int i=0;i<nx;i++)
-    for(int j=0;j<ny;j++)
-      for(int k=0;k<nz;k++) {
+  L = Lattice(nx,ny,nz,H);
+
+  for(int i=0;i<L.nxH;i++)
+    for(int j=0;j<L.nyH;j++)
+      for(int k=0;k<L.nzH;k++) {
 	L.R[k][j][i] = i+j+k;
-	L.B[k][j][i] = i+j-k;
       }
 
   assert(L.R[2][1][0] == 3,  "Lattice R content test failed.");
-  assert(L.B[3][2][0] == -1, "Lattice B content test failed.");
 
 }
 
