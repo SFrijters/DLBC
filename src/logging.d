@@ -6,6 +6,7 @@ import std.string;
 import std.algorithm;
 
 import parallel;
+import revision;
 
 immutable string truncationSuffix = "[T]...";
 immutable ulong headerLength = 80;
@@ -194,3 +195,12 @@ void setGlobalVerbosityLevel(VL newVL) {
   globalVerbosityLevel = newVL;
 }
 
+void showRevisionInfo() {
+  if (revisionChanges.length == 0) {
+    writeLogRI("Executable built from revision %s .", revisionNumber );
+  }
+  else {
+    writeLogRI("Executable built from revision %s (with local changes).", revisionNumber );
+    writeLogRD("  Changes from HEAD: %s.\n", revisionChanges );
+  }
+}
