@@ -4,8 +4,8 @@ import std.stream;
 import std.string;
 
 import lattice;
+import logging;
 import parallel;
-import stdio;
 
 string[] parameterFileNames;
 

@@ -1,5 +1,5 @@
+import logging;
 import parameters;
-import stdio;
 public import mpi;
 
 immutable int D = 3; // Dimensionality of the MPI grid.

@@ -1,6 +1,6 @@
+import logging;
 import parameters;
 import parallel;
-import stdio;
 
 Lattice L;
 

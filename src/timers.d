@@ -1,7 +1,7 @@
 import std.datetime;
 import std.string;
 
-import stdio;
+import logging;
   
 alias Timers T;
 struct Timers {

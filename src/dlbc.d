@@ -1,8 +1,8 @@
 import lattice;
+import logging;
 import parallel;
 import parameters;
 import revision;
-import stdio;
 import timers;
 
 int main( string[] args ) {
