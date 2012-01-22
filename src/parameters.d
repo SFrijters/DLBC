@@ -145,7 +145,7 @@ string makeParameterSetMpiType() {
   prefixString  ~= "MPI_Aint[" ~ to!string(count+1) ~ "] addrs;\n";
   prefixString  ~= "MPI_Datatype[" ~ to!string(count) ~ "] types;\n";
   prefixString  ~= "MPI_Address(&P,&addrs[0]);\n";
-  postfixString  = "MPI_Type_struct( " ~ to!string(count) ~ ", lens.ptr, disps.ptr, types.ptr, &parameterSetMpiType );\n";
+  postfixString  = "MPI_Type_create_struct( " ~ to!string(count) ~ ", lens.ptr, disps.ptr, types.ptr, &parameterSetMpiType );\n";
   postfixString ~= "MPI_Type_commit(&parameterSetMpiType);\n";
 
   mixinString = prefixString ~ mainString ~ dispString ~ postfixString;
