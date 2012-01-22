@@ -6,11 +6,34 @@ immutable int D = 3; // Dimensionality of the MPI grid.
 
 MPI_Datatype parameterSetMpiType;
 
-/// Need to define a charlength to easily transmit strings over MPI
-alias char[256] MpiString;
-immutable string MpiStringType = "char[256]";
+/// Need to define a charlength to easily transmit strings over MPI.
+/// One needs to change only this value, everything else should use it.
 immutable int MpiStringLength = 256;
 
+/// This will return the MPI string type as a string.
+static string MpiStringType() {
+  return "char[" ~ itoa!(MpiStringLength) ~ "]";
+}
+
+/// And this will create a nice alias MpiString with the correct length.
+mixin("alias char[" ~ itoa!(MpiStringLength) ~ "] MpiString;");
+
+/* http://www.d-programming-language.org/templates-revisited.html
+   " Template Metaprogramming With Strings " */
+template decimalDigit(int n) { 
+  const string decimalDigit = "0123456789"[n..n+1];
+} 
+
+template itoa(long n) { 
+  static if (n < 0) 
+    const string itoa = "-" ~ itoa!(-n);
+  else static if (n < 10)
+    const string itoa = decimalDigit!(n);
+  else
+    const string itoa = itoa!(n/10L) ~ decimalDigit!(n%10L);
+} 
+
+/// MPI parameters nicely packed into a struct
 alias MpiParams M;
 struct MpiParams {
 

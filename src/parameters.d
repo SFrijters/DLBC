@@ -30,7 +30,7 @@ enum parameterDataTypes : string {
   Bool   = "bool",
   Double = "double",
   Int    = "int",
-  String = MpiStringType
+  String = MpiStringType()
 };
 
 /// This struct will be constructed from the parameterTypes enum
@@ -68,7 +68,7 @@ string makeParameterSetMembers() {
   foreach( member ; __traits(allMembers, parameterTypes)) {
     type = mixin("parameterTypes." ~ member);
     // If we have a string, we have to set it to blank so we don't send trash through MPI
-    if (type == MpiStringType) {
+    if (type == MpiStringType()) {
       mixinString ~= type ~ " " ~ member ~ " = \"\";\n";
     }
     else {
@@ -100,7 +100,7 @@ string makeParameterCase() {
     string type = mixin("parameterTypes." ~ member);
     mixinString ~= "case \"" ~ member ~ "\": \n";
     mixinString ~= "try { ";
-    if (type == MpiStringType) {
+    if (type == MpiStringType()) {
       mixinString ~= "P." ~ member ~ "[0 .. valueString.length] = valueString;";      
     }
     else {
