@@ -222,9 +222,10 @@ void readParameterSetFromCliFiles() {
 /// Processes parameters
 void processParameters() {
   // Set global verbosity level
-  if ( !PD.vl ) {
+  //if ( !PD.vl ) {
+    writeLogN("Setting globalVerbosityLevel.");
     setGlobalVerbosityLevel( cast(VL) P.vl);
-  }
+    //}
 }
 
 /// Process CLI

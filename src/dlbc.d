@@ -36,7 +36,6 @@ int main( string[] args ) {
   // Set secondary values based on parameters
   processParameters();
 
- 
   if (M.rank == M.root) {
     P.show();
   }
