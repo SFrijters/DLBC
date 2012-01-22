@@ -18,7 +18,8 @@ enum parameterTypes : string {
   ncx = PDT.Int,
   ncy = PDT.Int,
   ncz = PDT.Int,
-  ok =  PDT.Bool, 
+  haloSize = PDT.Int,
+  ok = PDT.Bool, 
   name = PDT.String,
   G = PDT.Double
 };
@@ -221,13 +222,10 @@ void readParameterSetFromCliFiles() {
 
 /// Processes parameters
 void processParameters() {
+  // Set global verbosity level
   if ( !PD.vl ) {
     setGlobalVerbosityLevel( cast(VL) P.vl);
   }
-
-  H = 1;
-  writeLogRN("Setting haloSize to %d.", H);
-
 }
 
 /// Process CLI

@@ -133,3 +133,7 @@ void endMpi() {
   writeLogRN("Finalized MPI.");
   MPI_Finalize();
 }
+
+int MpiBarrier() {
+  return MPI_Barrier(M.comm);
+}

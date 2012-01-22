@@ -9,3 +9,5 @@ nx = 16    // Lattice size x-direction
 ny = 16    // Lattice size y-direction
 nz = 16    // Lattice size z-direction
 
+haloSize = 1
+

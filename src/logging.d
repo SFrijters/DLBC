@@ -49,6 +49,9 @@ void owriteLog(T...)(VL vl, T args) {
 
   if (globalVerbosityLevel >= vl) {
 
+    // Make sure all other stdout is flushed. Performance hog!
+    MpiBarrier();
+
     // Fill mpiString with spaces
     for(int i = 0; i < MpiStringLength; i++) {
       mpiString[i] = ' ';
@@ -79,6 +82,9 @@ void owriteLog(T...)(VL vl, T args) {
       immutable int destRank = M.root;
       MPI_Send(&mpiString, MpiStringLength, MPI_CHAR, destRank, mpiTag, M.comm);
     }
+
+    // Make sure all ordered output is finished before the program continues. Performance hog!
+    MpiBarrier();
   }
 }
 

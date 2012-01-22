@@ -11,6 +11,9 @@ int main( string[] args ) {
 
   writeLogRN(makeHeaderString("Starting DLBC on %d CPUs."), M.size);
 
+  // Show revision info
+  showRevisionInfo();
+
   T.main = MultiStopWatch("Main");
   T.main.start(LRF.None);
 
@@ -33,9 +36,7 @@ int main( string[] args ) {
   // Set secondary values based on parameters
   processParameters();
 
-  // Show revision info
-  showRevisionInfo();
-  
+ 
   if (M.rank == M.root) {
     P.show();
   }
@@ -43,11 +44,11 @@ int main( string[] args ) {
   // Make cartesian grid now that we have values ncx, ncy, ncz everywhere
   reorderMpi();
 
-  // Try and split the lattice
-  divideLattice();
+  // Try and create the local lattice structure
+  createLocalLattice();
 
-  owriteLogD("This is a test from rank %d.",M.rank);
-  writeLogD("This is a test from rank %d.",M.rank);
+  owriteLogD("This is an ordered log test from rank %d.\n",M.rank);
+  writeLogD("This is a log test from rank %d.\n",M.rank);
 
   T.main.stop(LRF.Ordered);
 
