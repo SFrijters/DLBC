@@ -82,12 +82,23 @@ string makeParameterSetMembers() {
 string makeParameterSetShow() {
   string mixinString;
   foreach( member ; __traits(allMembers, parameterTypes)) {
-    // Add a warning '!' for variables which are still equal to their default init.
+    string type = mixin("parameterTypes." ~ member);
+    // Add a warning 'NOT SET' for variables which are still equal to their default init.
     mixinString ~= "if ( PD." ~ member ~ ") { \n";
     // Actual print statement
-    mixinString ~= "writeLogW(\"NOT SET %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~"));\n";
+    if (type == MpiStringType()) {
+      mixinString ~= "writeLogW(\"NOT SET %20s = %s\",\"" ~ member ~ "\",P." ~ member ~ ");\n";
+    }
+    else {
+      mixinString ~= "writeLogW(\"NOT SET %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~ "));\n";
+    }
     mixinString ~= "}\nelse {\n";
-    mixinString ~= "writeLogI(\"        %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~"));\n";
+    if (type == MpiStringType()) {
+      mixinString ~= "writeLogI(\"        %20s = %s\",\"" ~ member ~ "\",P." ~ member ~ ");\n";
+    }
+    else {
+      mixinString ~= "writeLogI(\"        %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~ "));\n";
+    }
     mixinString ~= "}\n";
   }
   return mixinString;
@@ -108,7 +119,7 @@ string makeParameterCase() {
     }
     mixinString ~= " } \n";
     mixinString ~= "catch (ConvException e) { writeLogE(\"  ConvException at line %d of the input file.\",ln); throw e; } \n";
-    mixinString ~= "PD." ~ member ~ " = false;";
+    mixinString ~= "PD." ~ member ~ " = false; ";
     mixinString ~= "break;\n";
   }
   return mixinString;
@@ -222,10 +233,7 @@ void readParameterSetFromCliFiles() {
 /// Processes parameters
 void processParameters() {
   // Set global verbosity level
-  //if ( !PD.vl ) {
-    writeLogN("Setting globalVerbosityLevel.");
-    setGlobalVerbosityLevel( cast(VL) P.vl);
-    //}
+  setGlobalVerbosityLevel( cast(VL) P.vl);
 }
 
 /// Process CLI
@@ -267,23 +275,23 @@ debug(showMixins) {
 
     setGlobalVerbosityLevel(VL.Debug);
     writeLogRD("--- START makeParameterSetMembers() mixin ---\n");
-    writeln(makeParameterSetMembers());
+    if (M.isRoot() ) writeln(makeParameterSetMembers());
     writeLogRD("--- END makeParameterSetMembers() mixin ---\n");
 
     writeLogRD("--- START makeParameterSetDefaultMembers() mixin ---\n");
-    writeln(makeParameterSetDefaultMembers());
+    if (M.isRoot() ) writeln(makeParameterSetDefaultMembers());
     writeLogRD("--- END makeParameterSetDefaultMembers() mixin ---\n");
 
     writeLogRD("--- START makeParameterSetShow() mixin ---\n");
-    writeln(makeParameterSetShow());
+    if (M.isRoot() ) writeln(makeParameterSetShow());
     writeLogRD("--- END makeParameterSetShow() mixin ---\n");
 
     writeLogRD("--- START makeParameterSetMpiType() mixin ---\n");
-    writeln(makeParameterSetMpiType());
+    if (M.isRoot() ) writeln(makeParameterSetMpiType());
     writeLogRD("--- END makeParameterSetMpiType() mixin ---\n");
 
     writeLogRD("--- START makeParameterCase() mixin ---\n");
-    writeln(makeParameterCase());
+    if (M.isRoot() ) writeln(makeParameterCase());
     writeLogRD("--- END makeParameterCase() mixin ---\n");
   }
 }

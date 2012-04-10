@@ -69,7 +69,7 @@ void owriteLog(T...)(VL vl, T args) {
     mpiString[0 .. logString.length] = logString;
 
     // Convert the char[256] to string, strip the spaces, and print it
-    if (M.rank == M.root) {
+    if (M.isRoot) {
       logString = to!string(mpiString);
       writeln(strip(logString));
       for (int srcRank = 1; srcRank < M.size; srcRank++ ) {
@@ -88,12 +88,12 @@ void owriteLog(T...)(VL vl, T args) {
   }
 }
 
-void writeLogRF(T...)(T args) { if (M.rank == M.root) writeLog(VL.Fatal       , LRF.Root, args); }
-void writeLogRE(T...)(T args) { if (M.rank == M.root) writeLog(VL.Error       , LRF.Root, args); }
-void writeLogRW(T...)(T args) { if (M.rank == M.root) writeLog(VL.Warning     , LRF.Root, args); }
-void writeLogRN(T...)(T args) { if (M.rank == M.root) writeLog(VL.Notification, LRF.Root, args); }
-void writeLogRI(T...)(T args) { if (M.rank == M.root) writeLog(VL.Information , LRF.Root, args); }
-void writeLogRD(T...)(T args) { if (M.rank == M.root) writeLog(VL.Debug       , LRF.Root, args); }
+void writeLogRF(T...)(T args) { if (M.isRoot) writeLog(VL.Fatal       , LRF.Root, args); }
+void writeLogRE(T...)(T args) { if (M.isRoot) writeLog(VL.Error       , LRF.Root, args); }
+void writeLogRW(T...)(T args) { if (M.isRoot) writeLog(VL.Warning     , LRF.Root, args); }
+void writeLogRN(T...)(T args) { if (M.isRoot) writeLog(VL.Notification, LRF.Root, args); }
+void writeLogRI(T...)(T args) { if (M.isRoot) writeLog(VL.Information , LRF.Root, args); }
+void writeLogRD(T...)(T args) { if (M.isRoot) writeLog(VL.Debug       , LRF.Root, args); }
 
 void writeLogF(T...)(T args) { writeLog(VL.Fatal       , LRF.Any, args); }
 void writeLogE(T...)(T args) { writeLog(VL.Error       , LRF.Any, args); }

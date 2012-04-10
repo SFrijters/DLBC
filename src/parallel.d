@@ -47,6 +47,11 @@ struct MpiParams {
   // Communicator
   static MPI_Comm comm;
   
+  static bool isRoot() {
+    if ( this.rank == this.root ) return true;
+    return false;
+  }
+
   static void show() {
     writeLogI("Report from rank %d at position (%d, %d, %d):", rank, cx, cy, cz);
     writeLogI("  Currently using %d CPUs on a %d x %d x %d grid.", size, ncx, ncy, ncz);

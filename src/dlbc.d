@@ -26,7 +26,7 @@ int main( string[] args ) {
   setupParameterSetMpiType();
 
   // No cartesian grid yet, but the root can read stuff
-  if (M.rank == M.root) {
+  if (M.isRoot) {
     readParameterSetFromCliFiles();
   }
 
@@ -36,7 +36,7 @@ int main( string[] args ) {
   // Set secondary values based on parameters
   processParameters();
 
-  if (M.rank == M.root) {
+  if (M.isRoot) {
     P.show();
   }
 
