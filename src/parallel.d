@@ -46,14 +46,17 @@ struct MpiParams {
 
   // Communicator
   static MPI_Comm comm;
-  
+
+  // Hostname
+  static string hostname;
+
   static bool isRoot() {
     if ( this.rank == this.root ) return true;
     return false;
   }
 
   static void show() {
-    writeLogI("Report from rank %d at position (%d, %d, %d):", rank, cx, cy, cz);
+    writeLogI("Report from rank %d running on host '%s' at position (%d, %d, %d):", rank, hostname, cx, cy, cz);
     writeLogI("  Currently using %d CPUs on a %d x %d x %d grid.", size, ncx, ncy, ncz);
     writeLogI("  Neighbours x: %#6.6d %#6.6d %#6.6d.", nbx[0], rank, nbx[1]);
     writeLogI("  Neighbours y: %#6.6d %#6.6d %#6.6d.", nby[0], rank, nby[1]);
@@ -69,6 +72,10 @@ void startMpi() {
   int    argc = 0;
   char** argv = null;
 
+  // For hostnames
+  auto pname = new char[](MPI_MAX_PROCESSOR_NAME + 1);
+  int pnlen;
+
   MPI_Init( &argc, &argv );
   MPI_Comm_rank( commWorld, &rank );
   MPI_Comm_size( commWorld, &size );
@@ -79,6 +86,12 @@ void startMpi() {
   M.comm = commWorld;
 
   MPI_Get_version( &M.ver, &M.subver );
+
+  MPI_Get_processor_name( pname.ptr, &pnlen );
+  M.hostname = "";
+  for (int i = 0; i < pnlen; i++) {
+    M.hostname ~= pname[i];
+  }
 
   writeLogRN("\nInitialized MPI v%d.%d on %d CPUs.", M.ver, M.subver, M.size);
 }

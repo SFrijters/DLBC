@@ -33,6 +33,8 @@ immutable MPI_Datatype MPI_PACKED             = cast(MPI_Datatype) 0x4c00010f;
 immutable MPI_Datatype MPI_LB                 = cast(MPI_Datatype) 0x4c000010;
 immutable MPI_Datatype MPI_UB                 = cast(MPI_Datatype) 0x4c000011;
 
+immutable int MPI_MAX_PROCESSOR_NAME = 128;
+
 /* Statuses */
 struct MPI_Status {
   int count;
