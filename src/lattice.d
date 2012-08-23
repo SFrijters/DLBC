@@ -6,7 +6,7 @@ Lattice L;
 
 /// Create lattice L for every CPU, according to cartesian decomposition and halo size
 void createLocalLattice() {
-  ulong nx, ny, nz;
+  size_t nx, ny, nz;
   
   // Check if we can reconcile global lattice size with CPU grid
   if (P.nx % M.ncx != 0 || P.ny % M.ncy != 0 || P.nz % M.ncz != 0) {
@@ -15,9 +15,9 @@ void createLocalLattice() {
   }
 
   // Calculate local lattice size
-  nx = P.nx / M.ncx;
-  ny = P.ny / M.ncy;
-  nz = P.nz / M.ncz;
+  nx = cast(size_t) P.nx / M.ncx;
+  ny = cast(size_t) P.ny / M.ncy;
+  nz = cast(size_t) P.nz / M.ncz;
 
   // Check for bogus halo
   int haloSize = P.haloSize;
@@ -36,11 +36,11 @@ void createLocalLattice() {
 struct Lattice {
   double[][][] R;
 
-  ulong nx, ny, nz;
-  ulong nxH, nyH, nzH;
-  ulong haloSize;
+  size_t nx, ny, nz;
+  size_t nxH, nyH, nzH;
+  size_t haloSize;
   
-  this (immutable ulong nx, immutable ulong ny, immutable ulong nz, immutable ulong haloSize) {
+  this (immutable size_t nx, immutable size_t ny, immutable size_t nz, immutable size_t haloSize) {
 
     this.nx  = nx;
     this.ny  = ny;

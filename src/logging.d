@@ -9,7 +9,7 @@ import parallel;
 import revision;
 
 immutable string truncationSuffix = "[T]...";
-immutable ulong headerLength = 80;
+immutable size_t headerLength = 80;
 immutable string headerDash = "=";
 
 alias LogRankFormat LRF;
@@ -184,9 +184,9 @@ string makeHeaderString(string content) {
 
   string headerString;
 
-  ulong dashLength = headerLength - content.length - 2;
-  ulong preLength = dashLength/2 + dashLength%2;
-  ulong sufLength = dashLength/2;
+  size_t dashLength = headerLength - content.length - 2;
+  size_t preLength = dashLength/2 + dashLength%2;
+  size_t sufLength = dashLength/2;
 
   string preDash = replicate(headerDash, preLength);
   string sufDash = replicate(headerDash, sufLength);
