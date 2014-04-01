@@ -116,7 +116,22 @@ void writeLog(T...)(const VL vl, const LRF logRankFormat, const T args) {
 	static if (is(T[0] : string)) {
 	  string outString = makeLogString(vl, logRankFormat, args);
 	  if (outString.length != 0) {
-	    writefln(outString);
+	    if (outString[$-1..$] == "\n" ) {
+	      if (outString[0..1] == "\n" ) {
+		writefln(outString);
+	      }
+	      else {
+		writefln(stripLeft(outString));
+	      }
+	    }
+	    else {
+	      if (outString[0..1] == "\n" ) {	      
+		writefln(stripRight(outString));
+	      }
+	      else {
+		writefln(strip(outString));
+	      }
+	    }
 	    return;
 	  }
 	}
