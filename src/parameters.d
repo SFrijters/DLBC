@@ -105,7 +105,8 @@ string makeParameterCase() {
     mixinString ~= "case \"" ~ member ~ "\": \n";
     mixinString ~= "try { ";
     if (type == MpiStringType()) {
-      mixinString ~= "P." ~ member ~ "[0 .. valueString.length] = valueString;";      
+      mixinString ~= "for(size_t i = 0; i < MpiStringLength; i++) { P." ~ member ~ "[i] = ' '; }";
+      mixinString ~= "P." ~ member ~ "[0 .. valueString.length] = valueString;";
     }
     else {
       mixinString ~= "P." ~ member ~ " = to!" ~ type ~ "(valueString);";
