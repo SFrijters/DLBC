@@ -3,6 +3,7 @@ import logging;
 import parallel;
 import parameters;
 import timers;
+import versions;
 
 int main( string[] args ) {
 
@@ -11,7 +12,8 @@ int main( string[] args ) {
 
   writeLogRN(makeHeaderString("Starting DLBC on %d CPUs."), M.size);
 
-  // Show revision info
+  // Show build-related information
+  showCompilerInfo();
   showRevisionInfo();
 
   T.main = MultiStopWatch("Main");
