@@ -16,7 +16,7 @@ enum LogRankFormat {
   None    = 0,
   Root    = 1,
   Any     = 2,
-  Ordered = 3
+  Ordered = 3,
 };
 
 alias VerbosityLevel VL;
@@ -27,20 +27,20 @@ enum VerbosityLevel {
   Warning      = 3,
   Notification = 4,
   Information  = 5,
-  Debug        = 6
+  Debug        = 6,
 };
 
-VL globalVerbosityLevel = VL.Debug;
+private VL globalVerbosityLevel = VL.Debug;
 
-void owriteLogF(T...)(T args) { owriteLog(VL.Fatal       , args); }
-void owriteLogE(T...)(T args) { owriteLog(VL.Error       , args); }
-void owriteLogW(T...)(T args) { owriteLog(VL.Warning     , args); }
-void owriteLogN(T...)(T args) { owriteLog(VL.Notification, args); }
-void owriteLogI(T...)(T args) { owriteLog(VL.Information , args); }
-void owriteLogD(T...)(T args) { owriteLog(VL.Debug       , args); }
+void owriteLogF(T...)(const T args) { owriteLog(VL.Fatal       , args); }
+void owriteLogE(T...)(const T args) { owriteLog(VL.Error       , args); }
+void owriteLogW(T...)(const T args) { owriteLog(VL.Warning     , args); }
+void owriteLogN(T...)(const T args) { owriteLog(VL.Notification, args); }
+void owriteLogI(T...)(const T args) { owriteLog(VL.Information , args); }
+void owriteLogD(T...)(const T args) { owriteLog(VL.Debug       , args); }
 
 /// Ordered logwrite from all CPUs
-void owriteLog(T...)(VL vl, T args) {
+void owriteLog(T...)(const VL vl, const T args) {
   string logString;
   MpiString mpiString;
   MPI_Status mpiStatus;
@@ -52,7 +52,7 @@ void owriteLog(T...)(VL vl, T args) {
     MpiBarrier();
 
     // Fill mpiString with spaces
-    for(int i = 0; i < MpiStringLength; i++) {
+    for(size_t i = 0; i < MpiStringLength; i++) {
       mpiString[i] = ' ';
     }
 
@@ -87,55 +87,78 @@ void owriteLog(T...)(VL vl, T args) {
   }
 }
 
-void writeLogRF(T...)(T args) { if (M.isRoot) writeLog(VL.Fatal       , LRF.Root, args); }
-void writeLogRE(T...)(T args) { if (M.isRoot) writeLog(VL.Error       , LRF.Root, args); }
-void writeLogRW(T...)(T args) { if (M.isRoot) writeLog(VL.Warning     , LRF.Root, args); }
-void writeLogRN(T...)(T args) { if (M.isRoot) writeLog(VL.Notification, LRF.Root, args); }
-void writeLogRI(T...)(T args) { if (M.isRoot) writeLog(VL.Information , LRF.Root, args); }
-void writeLogRD(T...)(T args) { if (M.isRoot) writeLog(VL.Debug       , LRF.Root, args); }
+void writeLogRF(T...)(const T args) { writeLog(VL.Fatal       , LRF.Root, args); }
+void writeLogRE(T...)(const T args) { writeLog(VL.Error       , LRF.Root, args); }
+void writeLogRW(T...)(const T args) { writeLog(VL.Warning     , LRF.Root, args); }
+void writeLogRN(T...)(const T args) { writeLog(VL.Notification, LRF.Root, args); }
+void writeLogRI(T...)(const T args) { writeLog(VL.Information , LRF.Root, args); }
+void writeLogRD(T...)(const T args) { writeLog(VL.Debug       , LRF.Root, args); }
 
-void writeLogF(T...)(T args) { writeLog(VL.Fatal       , LRF.Any, args); }
-void writeLogE(T...)(T args) { writeLog(VL.Error       , LRF.Any, args); }
-void writeLogW(T...)(T args) { writeLog(VL.Warning     , LRF.Any, args); }
-void writeLogN(T...)(T args) { writeLog(VL.Notification, LRF.Any, args); }
-void writeLogI(T...)(T args) { writeLog(VL.Information , LRF.Any, args); }
-void writeLogD(T...)(T args) { writeLog(VL.Debug       , LRF.Any, args); }
+void writeLogF(T...)(const T args)  { writeLog(VL.Fatal       , LRF.Any,  args); }
+void writeLogE(T...)(const T args)  { writeLog(VL.Error       , LRF.Any,  args); }
+void writeLogW(T...)(const T args)  { writeLog(VL.Warning     , LRF.Any,  args); }
+void writeLogN(T...)(const T args)  { writeLog(VL.Notification, LRF.Any,  args); }
+void writeLogI(T...)(const T args)  { writeLog(VL.Information , LRF.Any,  args); }
+void writeLogD(T...)(const T args)  { writeLog(VL.Debug       , LRF.Any,  args); }
 
-void writeLog(T...)(VL vl, LRF logRankFormat, T args) {
-
-  if (globalVerbosityLevel >= vl) {
-
-    static if (!T.length) {
-      writeln();
-    }
-    else {
-      static if (is(T[0] : string)) {
-	string outString = makeLogString(vl, logRankFormat, args);
-	if (outString.length != 0) {
-	  writefln(outString);
-	  return;
-	}
+void writeLog(T...)(const VL vl, const LRF logRankFormat, const T args) {
+  final switch(logRankFormat) {
+  case LRF.None:
+    break;
+  case LRF.Root:
+    if (!M.isRoot) break;
+  case LRF.Any:
+    if (globalVerbosityLevel >= vl) {
+      static if (!T.length) {
+	writeln();
       }
-      // not a string, or not a formatted string
-      writeln(args);
+      else {
+	static if (is(T[0] : string)) {
+	  string outString = makeLogString(vl, logRankFormat, args);
+	  if (outString.length != 0) {
+	    writefln(outString);
+	    return;
+	  }
+	}
+	// not a string, or not a formatted string
+	writeln(args);
+      }
     }
+    break;
+  case LRF.Ordered:
+    owriteLog(vl, args);
+    break;
   }
 }
 
-string makeLogString(T...)(VL vl, LRF logRankFormat, T args) {
+private string makeLogString(T...)(const VL vl, const LRF logRankFormat, T args) {
   string logString;
   string rankTag = makeRankString(logRankFormat);
   string vlTag;
   string preTag;
 
   final switch(vl) {
-  case VL.Off:          vlTag = "[-] "; break;
-  case VL.Fatal:        vlTag = "[F] "; break;
-  case VL.Error:        vlTag = "[E] "; break;
-  case VL.Warning:      vlTag = "[W] "; break;
-  case VL.Notification: vlTag = "[N] "; break;
-  case VL.Information:  vlTag = "[I] "; break;
-  case VL.Debug:        vlTag = "[D] "; break;
+  case VL.Off:
+    vlTag = "[-] ";
+    break;
+  case VL.Fatal:
+    vlTag = "[F] ";
+    break;
+  case VL.Error:
+    vlTag = "[E] ";
+    break;
+  case VL.Warning:
+    vlTag = "[W] ";
+    break;
+  case VL.Notification:
+    vlTag = "[N] ";
+    break;
+  case VL.Information:
+    vlTag = "[I] ";
+    break;
+  case VL.Debug:
+    vlTag = "[D] ";
+    break;
   }
 
   // Move any leading newlines in front of the tags.
@@ -156,27 +179,32 @@ string makeLogString(T...)(VL vl, LRF logRankFormat, T args) {
   return logString;
 }
 
-string makeRankString(LogRankFormat logRankFormat) {
+private string makeRankString(const LogRankFormat logRankFormat) {
   string rankString;
 
   final switch(logRankFormat) {
-    case LRF.None:    rankString = ""; break;
-    case LRF.Root:    rankString = ""; break;
-    case LRF.Any:     rankString = format("[%#6.6d] ",M.rank); break;
-    case LRF.Ordered: rankString = format("<%#6.6d> ",M.rank); break;
+  case LRF.None:
+    rankString = "";
+    break;
+  case LRF.Root:
+    rankString = "";
+    break;
+  case LRF.Any:
+    rankString = format("[%#6.6d] ",M.rank);
+    break;
+  case LRF.Ordered:
+    rankString = format("<%#6.6d> ",M.rank);
+    break;
   }
-
   return rankString;
 }
 
-string makeTimeString() {
+string makeCurrTimeString() {
   SysTime tNow = Clock.currTime;
-  string timeString = format("%#2.2d:%#2.2d:%#2.2d",tNow.hour,tNow.minute,tNow.second);
-
-  return timeString;
+  return format("%#2.2d:%#2.2d:%#2.2d",tNow.hour,tNow.minute,tNow.second);
 }
 
-string makeHeaderString(string content) {
+string makeHeaderString(const string content) {
   if (content.length >= headerLength - 4) {
     return content;
   }
@@ -195,7 +223,7 @@ string makeHeaderString(string content) {
   return headerString;
 }
 
-void setGlobalVerbosityLevel(VL newVL) {
+void setGlobalVerbosityLevel(const VL newVL) {
   writeLogRN("Setting globalVerbosityLevel to %d ('%s').", newVL, to!string(newVL));
   globalVerbosityLevel = newVL;
 }
