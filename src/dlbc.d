@@ -16,6 +16,7 @@ int main( string[] args ) {
   showCompilerInfo();
   showRevisionInfo();
 
+  // Start Main timer
   T.main = MultiStopWatch("Main");
   T.main.start(LRF.None);
 
@@ -39,9 +40,7 @@ int main( string[] args ) {
   // Set secondary values based on parameters
   processParameters();
 
-  if (M.isRoot) {
-    P.show();
-  }
+  P.show(LRF.Root);
 
   // Make cartesian grid now that we have values ncx, ncy, ncz everywhere
   reorderMpi();

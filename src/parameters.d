@@ -1,3 +1,5 @@
+// Written in the D programming language.
+
 import std.conv;
 import std.file;
 import std.stream;
@@ -8,17 +10,20 @@ import parallel;
 
 string[] parameterFileNames;
 
-/// This enum will be translated into various components through mixins
-enum parameterTypes : string { 
+/** This enum will be translated into various components through mixins.
+    It contains pairs of variable names and their type value, as defined
+    through the $(D parameterDataTypes enum.
+*/
+enum parameterTypes : string {
   vl = PDT.Int,
-  nx = PDT.Ulong, 
+  nx = PDT.Ulong,
   ny = PDT.Ulong,
-  nz = PDT.Ulong, 
+  nz = PDT.Ulong,
   ncx = PDT.Int,
   ncy = PDT.Int,
   ncz = PDT.Int,
   haloSize = PDT.Int,
-  ok = PDT.Bool, 
+  ok = PDT.Bool,
   name = PDT.String,
   G = PDT.Double
 };
@@ -38,15 +43,13 @@ struct ParameterSetDefault {
   mixin(makeParameterSetDefaultMembers());
 }
 
-
 /// This struct will be constructed from the parameterTypes enum
 struct ParameterSet {
   mixin(makeParameterSetMembers());
 
-  void show() {
-    writeLogI("\n*** Current parameter set:");
+  void show(const LRF logRankFormat ) {
+    writeLog(VL.Information, logRankFormat, "Current parameter set:");
     mixin(makeParameterSetShow());
-    writeLogI("***\n");
   }
 };
 
@@ -86,19 +89,9 @@ string makeParameterSetShow() {
     // Add a warning 'NOT SET' for variables which are still equal to their default init.
     mixinString ~= "if ( PD." ~ member ~ ") { \n";
     // Actual print statement
-    if (type == MpiStringType()) {
-      mixinString ~= "writeLogW(\"NOT SET %20s = %s\",\"" ~ member ~ "\",P." ~ member ~ ");\n";
-    }
-    else {
-      mixinString ~= "writeLogW(\"NOT SET %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~ "));\n";
-    }
+    mixinString ~= "writeLog(VL.Warning, logRankFormat    ,\"NOT SET %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~ "));\n";
     mixinString ~= "}\nelse {\n";
-    if (type == MpiStringType()) {
-      mixinString ~= "writeLogI(\"        %20s = %s\",\"" ~ member ~ "\",P." ~ member ~ ");\n";
-    }
-    else {
-      mixinString ~= "writeLogI(\"        %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~ "));\n";
-    }
+    mixinString ~= "writeLog(VL.Information, logRankFormat,\"        %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~ "));\n";
     mixinString ~= "}\n";
   }
   return mixinString;
@@ -320,7 +313,7 @@ debug(showMixins) {
     writeLogRD("--- END makeParameterSetDefaultMembers() mixin ---\n");
 
     writeLogRD("--- START makeParameterSetShow() mixin ---\n");
-    if (M.isRoot() ) writeln(makeParameterSetShow());
+    if (M.isRoot() ) writeln(makeParameterSetShow(LRF.Ordered));
     writeLogRD("--- END makeParameterSetShow() mixin ---\n");
 
     writeLogRD("--- START makeParameterSetMpiType() mixin ---\n");
