@@ -100,22 +100,31 @@ string makeParameterSetShow() {
 /// Generates Mixin to create the cases for the parser
 string makeParameterCase() {
   string mixinString;
+  // Fill all char[256] with spaces.
   foreach( member ; __traits(allMembers, parameterTypes)) {
     string type = mixin("parameterTypes." ~ member);
-    mixinString ~= "case \"" ~ member ~ "\": \n";
-    mixinString ~= "try { ";
     if (type == MpiStringType()) {
       mixinString ~= "for(size_t i = 0; i < MpiStringLength; i++) { P." ~ member ~ "[i] = ' '; }";
+    }
+  }
+  // Create the switch statement.
+  mixinString ~= "switch(keyString) {\n";
+  foreach( member ; __traits(allMembers, parameterTypes)) {
+    string type = mixin("parameterTypes." ~ member);
+    mixinString ~= "case \"" ~ member ~ "\":\n";
+    mixinString ~= "try {";
+    if (type == MpiStringType()) {
       mixinString ~= "P." ~ member ~ "[0 .. valueString.length] = valueString;";
     }
     else {
       mixinString ~= "P." ~ member ~ " = to!" ~ type ~ "(valueString);";
     }
-    mixinString ~= " } \n";
-    mixinString ~= "catch (ConvException e) { writeLogE(\"  ConvException at line %d of the input file.\",ln); throw e; } \n";
-    mixinString ~= "PD." ~ member ~ " = false; ";
+    mixinString ~= " }\n";
+    mixinString ~= "catch (ConvException e) { writeLogE(\"  ConvException at line %d of the input file.\",ln); throw e; }\n";
+    mixinString ~= "PD." ~ member ~ " = false;";
     mixinString ~= "break;\n";
   }
+  mixinString ~= "default:\nwriteLogRW(\"  Unknown key at line %d: <%s>\", ln, keyString); }";
   return mixinString;
 }
 
@@ -219,12 +228,8 @@ void parseParameter(char[] line, in uint ln) {
   if (assignmentPos > 0) {
     keyString = strip(line[0 .. assignmentPos]);
     valueString = strip(line[(assignmentPos+1) .. $]);
-    switch(keyString) {
-      // This mixin creates cases for all members of the parameterTypes struct
-      mixin(makeParameterCase()); 
-    default:
-      writeLogRW("  Unknown key at line %d: <%s>", ln, keyString);
-    }
+    // This mixin creates cases for all members of the parameterTypes struct
+    mixin(makeParameterCase()); 
   }
 
 }
