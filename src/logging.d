@@ -243,3 +243,7 @@ void setGlobalVerbosityLevel(const VL newVL) {
   globalVerbosityLevel = newVL;
 }
 
+VL getGlobalVerbosityLevel() {
+  return globalVerbosityLevel;
+}
+
