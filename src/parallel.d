@@ -3,13 +3,14 @@ import mixinhelper; // For itoa template
 import parameters;
 public import mpi;
 
-immutable int D = 3; // Dimensionality of the MPI grid.
+immutable uint D = 3; // Dimensionality of the MPI grid.
 
 MPI_Datatype parameterSetMpiType;
+MPI_Datatype parameterSetDefaultMpiType;
 
 /// Need to define a charlength to easily transmit strings over MPI.
 /// One needs to change only this value, everything else should use it.
-immutable int MpiStringLength = 256;
+immutable size_t MpiStringLength = 256;
 
 /// This will return the MPI string type as a string.
 static string MpiStringType() {

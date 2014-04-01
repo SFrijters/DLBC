@@ -26,6 +26,7 @@ int main( string[] args ) {
 
   // Create an MPI type for the ParameterSet struct
   setupParameterSetMpiType();
+  setupParameterSetDefaultMpiType();
 
   // No cartesian grid yet, but the root can read stuff
   if (M.isRoot) {

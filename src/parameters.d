@@ -168,11 +168,48 @@ void setupParameterSetMpiType() {
   mixin(makeParameterSetMpiType());
 }
 
+/// Generates Mixin to generate MPI Type for PD
+string makeParameterSetDefaultMpiType() {
+  string mixinString, mainString, prefixString, postfixString, dispString;
+  string type, mpiTypeString, lenString;
+  int count = 0;
+
+  foreach( s ; __traits(allMembers, parameterTypes)) {
+    mainString ~= "lens[" ~ to!string(count) ~ "] = 1;\n";
+    mainString ~= "types[" ~ to!string(count) ~ "] = MPI_BYTE;\n";
+    mainString ~= "MPI_Address(&PD." ~ s ~ ",&addrs[" ~ to!string(count+1) ~ "]);\n";
+    count++;
+  }
+
+  for (uint i = 1; i <= count; i++) {
+    dispString ~= "disps[" ~ to!string(i-1) ~ "] = addrs[" ~ to!string(i) ~ "] - addrs[0];\n";
+  }
+
+  prefixString   = "int[" ~ to!string(count) ~ "] lens;\n";
+  prefixString  ~= "MPI_Aint[" ~ to!string(count) ~ "] disps;\n";
+  prefixString  ~= "MPI_Aint[" ~ to!string(count+1) ~ "] addrs;\n";
+  prefixString  ~= "MPI_Datatype[" ~ to!string(count) ~ "] types;\n";
+  prefixString  ~= "MPI_Address(&PD,&addrs[0]);\n";
+  postfixString  = "MPI_Type_create_struct( " ~ to!string(count) ~ ", lens.ptr, disps.ptr, types.ptr, &parameterSetDefaultMpiType );\n";
+  postfixString ~= "MPI_Type_commit(&parameterSetDefaultMpiType);\n";
+
+  mixinString = prefixString ~ mainString ~ dispString ~ postfixString;
+  return mixinString;
+}
+
+/// Creates an MPI datatype for the parameter default struct using a mixin
+void setupParameterSetDefaultMpiType() {
+  writeLogRI("Setting up MPI type for parameter default struct.");
+  mixin(makeParameterSetDefaultMpiType());
+}
+
 /// Sends and receives the parameter struct over MPI
 void distributeParameterSet() {
   immutable int mpiCount = 1;
   writeLogRI("Distributing parameter set through MPI_Bcast.");
   MPI_Bcast(&P, mpiCount, parameterSetMpiType, M.root, M.comm);
+  writeLogRI("Distributing parameter set default through MPI_Bcast.");
+  MPI_Bcast(&PD, mpiCount, parameterSetDefaultMpiType, M.root, M.comm);
 }
 
 /// Parses a single line of the parameter file
@@ -289,6 +326,10 @@ debug(showMixins) {
     writeLogRD("--- START makeParameterSetMpiType() mixin ---\n");
     if (M.isRoot() ) writeln(makeParameterSetMpiType());
     writeLogRD("--- END makeParameterSetMpiType() mixin ---\n");
+
+    writeLogRD("--- START makeParameterSetDefaultMpiType() mixin ---\n");
+    if (M.isRoot() ) writeln(makeParameterSetDefaultMpiType());
+    writeLogRD("--- END makeParameterSetDefaultMpiType() mixin ---\n");
 
     writeLogRD("--- START makeParameterCase() mixin ---\n");
     if (M.isRoot() ) writeln(makeParameterCase());
