@@ -33,6 +33,7 @@ immutable MPI_Datatype MPI_PACKED             = cast(MPI_Datatype) 0x4c00010f;
 immutable MPI_Datatype MPI_LB                 = cast(MPI_Datatype) 0x4c000010;
 immutable MPI_Datatype MPI_UB                 = cast(MPI_Datatype) 0x4c000011;
 
+immutable int MPI_ANY_TAG = -1;
 immutable int MPI_MAX_PROCESSOR_NAME = 128;
 
 /* Statuses */
@@ -45,33 +46,33 @@ struct MPI_Status {
 }
 
 /* Functions */
-int MPI_Init(int *, char ***);
-int MPI_Comm_size(MPI_Comm, int *);
-int MPI_Comm_rank(MPI_Comm, int *);
-int MPI_Dims_create(int, int, int *);
-int MPI_Cart_create(MPI_Comm, int, int *, int *, int, MPI_Comm *);
-int MPI_Cart_get(MPI_Comm, int, int *, int *, int *);
-int MPI_Cart_shift(MPI_Comm, int, int, int *, int *);
+int MPI_Init(int*, char***);
+int MPI_Comm_size(MPI_Comm, int*);
+int MPI_Comm_rank(MPI_Comm, int*);
+int MPI_Dims_create(int, int, int*);
+int MPI_Cart_create(MPI_Comm, int, int*, int*, int, MPI_Comm*);
+int MPI_Cart_get(MPI_Comm, int, int*, int*, int*);
+int MPI_Cart_shift(MPI_Comm, int, int, int*, int*);
 
-int MPI_Get_processor_name(char *, int *);
-int MPI_Get_version(int *, int *);
+int MPI_Type_size(MPI_Datatype datatype, int *size);
 
-int MPI_Initialized(int *);
+int MPI_Get_processor_name(char*, int*);
+int MPI_Get_version(int*, int*);
+
+int MPI_Initialized(int*);
 int MPI_Abort(MPI_Comm, int);
 int MPI_Finalize();
-int MPI_Finalized(int *);
+int MPI_Finalized(int*);
 
-int MPI_Address(void*, MPI_Aint *);
-int MPI_Type_create_struct(int, int *, MPI_Aint *, MPI_Datatype *, MPI_Datatype *);
+int MPI_Address(void*, MPI_Aint*);
+int MPI_Type_create_struct(int, int*, MPI_Aint*, MPI_Datatype*, MPI_Datatype*);
 int MPI_Type_commit(MPI_Datatype *);
 
-int MPI_Bcast(void*, int, MPI_Datatype, int, MPI_Comm );
-int MPI_Send(void*, int, MPI_Datatype, int, int, MPI_Comm);
-int MPI_Recv(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status *);
-int MPI_Sendrecv(void *, int, MPI_Datatype,int, int, void *, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status *);
+int MPI_Bcast(void*, int, MPI_Datatype, int, MPI_Comm);
+int MPI_Send(const void*, int, MPI_Datatype, int, int, MPI_Comm);
+int MPI_Recv(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status*);
+int MPI_Sendrecv(const void*, int, MPI_Datatype, int, int, void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status*);
 int MPI_Scatter(void* , int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm);
 
 int MPI_Barrier(MPI_Comm);
-
-
 
