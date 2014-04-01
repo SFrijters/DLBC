@@ -1,8 +1,7 @@
-all: clean version dlbc 
+all: clean src/revision.d dlbc 
 
-version:
-	@echo 'immutable string revisionNumber  = "'`git rev-parse HEAD`'";' > src/revision.d
-	@git diff --stat | awk 'BEGIN {printf("immutable string revisionChanges = \"")} {printf("\\n%s",$$0)} END {printf("\";\n")}'>> src/revision.d 
+src/revision.d: .git/HEAD .git/index
+	./get-revision.sh > $@
 
 dlbc:
 	gdmd -ofdlbc -vdmd /opt/usr/local/mpich2-install/lib/libmpich.a /opt/usr/local/mpich2-install/lib/libmpl.a src/*.d
