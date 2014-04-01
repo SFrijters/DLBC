@@ -1,3 +1,4 @@
+import getopt;
 import lattice;
 import logging;
 import parallel;

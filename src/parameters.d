@@ -15,7 +15,6 @@ string[] parameterFileNames;
     through the $(D parameterDataTypes enum.
 */
 enum parameterTypes : string {
-  vl = PDT.Int,
   nx = PDT.Ulong,
   ny = PDT.Ulong,
   nz = PDT.Ulong,
@@ -268,39 +267,7 @@ void readParameterSetFromCliFiles() {
 
 /// Processes parameters
 void processParameters() {
-  // Set global verbosity level
-  setGlobalVerbosityLevel( cast(VL) P.vl);
-}
 
-/// Process CLI
-void processCLI(string[] args) {
-
-  writeLogRN("Processing command line arguments.");
-
-  if (args.length > 1) {
-    for (int i = 1; i < args.length; i++) {
-      switch(args[i]) {
-        case "-p": 
-	  if (args.length > i+1) {
-	    parameterFileNames = split(args[++i],",");
-	    writeLogRI("Setting parameterFileNames to %s.",parameterFileNames);
-	  }
-	  else {
-	    writeLogRW("Missing filename for -p <filename>.");
-	  }
-	  break;
-        case "-v":
-	  if (args.length > i+1) {
-	    setGlobalVerbosityLevel( cast(VL) to!int(args[++i]) );
-	  }
-	  else {
-	    writeLogRW("Missing verbosity for -v <verbositylevel>.");
-	  }
-	  break;
-	default: writeLogRW("Unknown command line option '%s'.",args[i]);
-      }
-    }
-  }
 }
 
 debug(showMixins) {
