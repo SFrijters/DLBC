@@ -66,12 +66,13 @@ struct MpiParams {
 }
 
 /// Initializes barebones MPI communicator
-void startMpi() {
+void startMpi(string[] args) {
+  import std.string, std.algorithm, std.array;
   int rank, size;
   MPI_Comm commWorld = MPI_COMM_WORLD;
-  // C-style dummy arg vector for MPI_Init
-  int    argc = 0;
-  char** argv = null;
+
+  int argc = cast(int) args.length;
+  char** argv = cast(char**)map!(toStringz)(args).array.ptr;
 
   // For hostnames
   auto pname = new char[](MPI_MAX_PROCESSOR_NAME + 1);

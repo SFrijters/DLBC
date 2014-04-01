@@ -6,10 +6,10 @@ import parameters;
 import timers;
 import versions;
 
-int main( string[] args ) {
+int main(string[] args ) {
 
   // Any output before startMpi() has been called will be very spammy, so better avoid it.
-  startMpi();
+  startMpi(args);
 
   writeLogRN(makeHeaderString("Starting DLBC on %d CPUs."), M.size);
 
