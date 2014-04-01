@@ -215,7 +215,7 @@ void distributeParameterSet() {
 }
 
 /// Parses a single line of the parameter file
-void parseParameter(char[] line, in uint ln) {
+void parseParameter(char[] line, in size_t ln) {
   char[] keyString, valueString;
 
   auto commentPos = indexOf(line, "//");
@@ -228,41 +228,40 @@ void parseParameter(char[] line, in uint ln) {
     keyString = strip(line[0 .. assignmentPos]);
     valueString = strip(line[(assignmentPos+1) .. $]);
     // This mixin creates cases for all members of the parameterTypes struct
-    mixin(makeParameterCase()); 
+    mixin(makeParameterCase());
   }
-
-}
-
-void readParameterSetFromFile(string fileName) {
-  writeLogRI("Reading parameters from file '%s'.",fileName);
-
-  File f;
-
-  try {
-    f = new File(fileName,FileMode.In);
-  }
-  catch (Exception e) {
-    writeLogRF("Error opening parameter file '%s' for reading.",fileName);
-    throw e;
-  }
-    
-  uint ln = 0;
-  while(!f.eof()) {
-    parseParameter(f.readLine(),++ln);
-  }
-  f.close();
 }
 
 /// Parses a parameter file
 void readParameterSetFromCliFiles() {
   if (parameterFileNames.length == 0) {
+    import std.c.stdlib;
     writeLogRF("Parameter filename not set, please specify using the -p <filename> option.");
-    throw new Exception("Parameter filename not set exception.");
+    exit(-1);
   }
-
   foreach( fileName; parameterFileNames) {
     readParameterSetFromFile(fileName);
   }
+}
+
+void readParameterSetFromFile(string fileName) {
+  File f;
+  writeLogRI("Reading parameters from file '%s'.",fileName);
+
+  try {
+    f = new File(fileName,FileMode.In);
+  }
+  catch (OpenException e) {
+    import std.c.stdlib;
+    writeLogRF("Error opening parameter file '%s' for reading.",fileName);
+    exit(-1);
+  }
+
+  size_t ln = 0;
+  while(!f.eof()) {
+    parseParameter(f.readLine(),++ln);
+  }
+  f.close();
 }
 
 /// Processes parameters
