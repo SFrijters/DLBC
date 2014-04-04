@@ -4,9 +4,9 @@ import std.string;
 
 import parallel;
 
-immutable string truncationSuffix = "[T]...";
-immutable size_t headerLength = 80;
-immutable string headerDash = "=";
+private immutable string truncationSuffix = "[T]...";
+private immutable size_t headerLength = 80;
+private immutable string headerDash = "=";
 
 alias LogRankFormat LRF;
 enum LogRankFormat {
@@ -29,12 +29,74 @@ enum VerbosityLevel {
 
 private VL globalVerbosityLevel = VL.Debug;
 
-void owriteLogF(T...)(const T args) { owriteLog(VL.Fatal       , args); }
-void owriteLogE(T...)(const T args) { owriteLog(VL.Error       , args); }
-void owriteLogW(T...)(const T args) { owriteLog(VL.Warning     , args); }
-void owriteLogN(T...)(const T args) { owriteLog(VL.Notification, args); }
-void owriteLogI(T...)(const T args) { owriteLog(VL.Information , args); }
-void owriteLogD(T...)(const T args) { owriteLog(VL.Debug       , args); }
+void setGlobalVerbosityLevel(const VL newVL) {
+  writeLogRN("Setting globalVerbosityLevel to %d ('%s').", newVL, to!string(newVL));
+  globalVerbosityLevel = newVL;
+}
+
+VL getGlobalVerbosityLevel() {
+  return globalVerbosityLevel;
+}
+
+void writeLog(T...)(const VL vl, const LRF logRankFormat, const T args) {
+  final switch(logRankFormat) {
+  case LRF.None:
+    break;
+  case LRF.Root:
+    if (!M.isRoot) break;
+    goto case;
+  case LRF.Any:
+    if (globalVerbosityLevel >= vl) {
+      static if (!T.length) {
+	writeln();
+      }
+      else {
+	static if (is(T[0] : string)) {
+	  string outString = makeLogString(vl, logRankFormat, args);
+	  if (outString.length != 0) {
+	    if (outString[$-1..$] == "\n" ) {
+	      if (outString[0..1] == "\n" ) {
+		writefln(outString);
+	      }
+	      else {
+		writefln(stripLeft(outString));
+	      }
+	    }
+	    else {
+	      if (outString[0..1] == "\n" ) {	      
+		writefln(stripRight(outString));
+	      }
+	      else {
+		writefln(strip(outString));
+	      }
+	    }
+	    return;
+	  }
+	}
+	// not a string, or not a formatted string
+	writeln(args);
+      }
+    }
+    break;
+  case LRF.Ordered:
+    owriteLog(vl, args);
+    break;
+  }
+}
+
+void writeLogRF(T...)(const T args) { writeLog(VL.Fatal       , LRF.Root, args); }
+void writeLogRE(T...)(const T args) { writeLog(VL.Error       , LRF.Root, args); }
+void writeLogRW(T...)(const T args) { writeLog(VL.Warning     , LRF.Root, args); }
+void writeLogRN(T...)(const T args) { writeLog(VL.Notification, LRF.Root, args); }
+void writeLogRI(T...)(const T args) { writeLog(VL.Information , LRF.Root, args); }
+void writeLogRD(T...)(const T args) { writeLog(VL.Debug       , LRF.Root, args); }
+
+void writeLogF(T...)(const T args)  { writeLog(VL.Fatal       , LRF.Any,  args); }
+void writeLogE(T...)(const T args)  { writeLog(VL.Error       , LRF.Any,  args); }
+void writeLogW(T...)(const T args)  { writeLog(VL.Warning     , LRF.Any,  args); }
+void writeLogN(T...)(const T args)  { writeLog(VL.Notification, LRF.Any,  args); }
+void writeLogI(T...)(const T args)  { writeLog(VL.Information , LRF.Any,  args); }
+void writeLogD(T...)(const T args)  { writeLog(VL.Debug       , LRF.Any,  args); }
 
 /// Ordered logwrite from all CPUs
 void owriteLog(T...)(const VL vl, const T args) {
@@ -84,72 +146,18 @@ void owriteLog(T...)(const VL vl, const T args) {
   }
 }
 
-void writeLogRF(T...)(const T args) { writeLog(VL.Fatal       , LRF.Root, args); }
-void writeLogRE(T...)(const T args) { writeLog(VL.Error       , LRF.Root, args); }
-void writeLogRW(T...)(const T args) { writeLog(VL.Warning     , LRF.Root, args); }
-void writeLogRN(T...)(const T args) { writeLog(VL.Notification, LRF.Root, args); }
-void writeLogRI(T...)(const T args) { writeLog(VL.Information , LRF.Root, args); }
-void writeLogRD(T...)(const T args) { writeLog(VL.Debug       , LRF.Root, args); }
-
-void writeLogF(T...)(const T args)  { writeLog(VL.Fatal       , LRF.Any,  args); }
-void writeLogE(T...)(const T args)  { writeLog(VL.Error       , LRF.Any,  args); }
-void writeLogW(T...)(const T args)  { writeLog(VL.Warning     , LRF.Any,  args); }
-void writeLogN(T...)(const T args)  { writeLog(VL.Notification, LRF.Any,  args); }
-void writeLogI(T...)(const T args)  { writeLog(VL.Information , LRF.Any,  args); }
-void writeLogD(T...)(const T args)  { writeLog(VL.Debug       , LRF.Any,  args); }
-
-void writeLog(T...)(const VL vl, const LRF logRankFormat, const T args) {
-  final switch(logRankFormat) {
-  case LRF.None:
-    break;
-  case LRF.Root:
-    if (!M.isRoot) break;
-  case LRF.Any:
-    if (globalVerbosityLevel >= vl) {
-      static if (!T.length) {
-	writeln();
-      }
-      else {
-	static if (is(T[0] : string)) {
-	  string outString = makeLogString(vl, logRankFormat, args);
-	  if (outString.length != 0) {
-	    if (outString[$-1..$] == "\n" ) {
-	      if (outString[0..1] == "\n" ) {
-		writefln(outString);
-	      }
-	      else {
-		writefln(stripLeft(outString));
-	      }
-	    }
-	    else {
-	      if (outString[0..1] == "\n" ) {	      
-		writefln(stripRight(outString));
-	      }
-	      else {
-		writefln(strip(outString));
-	      }
-	    }
-	    return;
-	  }
-	}
-	// not a string, or not a formatted string
-	writeln(args);
-      }
-    }
-    break;
-  case LRF.Ordered:
-    owriteLog(vl, args);
-    break;
-  }
-}
+void owriteLogF(T...)(const T args) { owriteLog(VL.Fatal       , args); }
+void owriteLogE(T...)(const T args) { owriteLog(VL.Error       , args); }
+void owriteLogW(T...)(const T args) { owriteLog(VL.Warning     , args); }
+void owriteLogN(T...)(const T args) { owriteLog(VL.Notification, args); }
+void owriteLogI(T...)(const T args) { owriteLog(VL.Information , args); }
+void owriteLogD(T...)(const T args) { owriteLog(VL.Debug       , args); }
 
 private string makeLogString(T...)(const VL vl, const LRF logRankFormat, T args) {
-  string logString;
-  string rankTag = makeRankString(logRankFormat);
-  string vlTag;
-  string preTag;
   import std.algorithm: canFind;
 
+  immutable string rankTag = makeRankString(logRankFormat);
+  string vlTag, preTag;
 
   final switch(vl) {
   case VL.Off:
@@ -184,43 +192,34 @@ private string makeLogString(T...)(const VL vl, const LRF logRankFormat, T args)
   args[0] = preTag ~ vlTag ~ rankTag ~ args[0];
 
   if (canFind(args[0], "%")) {
-    logString = format(args);
+    return format(args);
   }
   else {
-    logString = args[0];
+    return args[0];
   }
-
-  return logString;
 }
 
 private string makeRankString(const LogRankFormat logRankFormat) {
-  string rankString;
-
   final switch(logRankFormat) {
   case LRF.None:
-    rankString = "";
-    break;
+    return "";
   case LRF.Root:
-    rankString = "";
-    break;
+    return "";
   case LRF.Any:
-    rankString = format("[%#6.6d] ",M.rank);
-    break;
+    return format("[%#6.6d] ", M.rank);
   case LRF.Ordered:
-    rankString = format("<%#6.6d> ",M.rank);
-    break;
+    return format("<%#6.6d> ", M.rank);
   }
-  return rankString;
 }
 
 string makeCurrTimeString() {
   import std.datetime;
 
   SysTime tNow = Clock.currTime;
-  return format("%#2.2d:%#2.2d:%#2.2d",tNow.hour,tNow.minute,tNow.second);
+  return format("%#2.2d:%#2.2d:%#2.2d", tNow.hour, tNow.minute, tNow.second);
 }
 
-string makeHeaderString(const string content) {
+string makeHeaderString(const string content) pure nothrow {
   import std.array: replicate;
 
   if (content.length >= headerLength - 4) {
@@ -239,14 +238,5 @@ string makeHeaderString(const string content) {
   headerString = "\n" ~ preDash ~ " " ~ content ~ " " ~ sufDash ~ "\n";
 
   return headerString;
-}
-
-void setGlobalVerbosityLevel(const VL newVL) {
-  writeLogRN("Setting globalVerbosityLevel to %d ('%s').", newVL, to!string(newVL));
-  globalVerbosityLevel = newVL;
-}
-
-VL getGlobalVerbosityLevel() {
-  return globalVerbosityLevel;
 }
 
