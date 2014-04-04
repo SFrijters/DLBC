@@ -1,7 +1,8 @@
+public import mpi;
+
 import logging;
 import mixinhelper; // For itoa template
 import parameters;
-public import mpi;
 
 immutable uint D = 3; // Dimensionality of the MPI grid.
 
@@ -51,23 +52,23 @@ struct MpiParams {
   // Hostname
   static string hostname;
 
-  static bool isRoot() {
-    if ( this.rank == this.root ) return true;
-    return false;
+  static bool isRoot() @property {
+    return ( this.rank == this.root );
   }
 
-  static void show() {
-    writeLogI("Report from rank %d running on host '%s' at position (%d, %d, %d):", rank, hostname, cx, cy, cz);
-    writeLogI("  Currently using %d CPUs on a %d x %d x %d grid.", size, ncx, ncy, ncz);
-    writeLogI("  Neighbours x: %#6.6d %#6.6d %#6.6d.", nbx[0], rank, nbx[1]);
-    writeLogI("  Neighbours y: %#6.6d %#6.6d %#6.6d.", nby[0], rank, nby[1]);
-    writeLogI("  Neighbours z: %#6.6d %#6.6d %#6.6d.", nbz[0], rank, nbz[1]);
+  static void show(VL vl, LRF logRankFormat) {
+    writeLog(vl, logRankFormat, "Report from rank %d running on host '%s' at position (%d, %d, %d):", rank, hostname, cx, cy, cz);
+    writeLog(vl, logRankFormat, "  Currently using %d CPUs on a %d x %d x %d grid.", size, ncx, ncy, ncz);
+    writeLog(vl, logRankFormat, "  Neighbours x: %#6.6d %#6.6d %#6.6d.", nbx[0], rank, nbx[1]);
+    writeLog(vl, logRankFormat, "  Neighbours y: %#6.6d %#6.6d %#6.6d.", nby[0], rank, nby[1]);
+    writeLog(vl, logRankFormat, "  Neighbours z: %#6.6d %#6.6d %#6.6d.", nbz[0], rank, nbz[1]);
   }
 }
 
 /// Initializes barebones MPI communicator
-void startMpi(string[] args) {
-  import std.string, std.algorithm, std.array;
+void startMpi(const string[] args) {
+  import std.conv, std.string, std.algorithm, std.array;
+
   int rank, size;
   MPI_Comm commWorld = MPI_COMM_WORLD;
 
@@ -90,10 +91,7 @@ void startMpi(string[] args) {
   MPI_Get_version( &M.ver, &M.subver );
 
   MPI_Get_processor_name( pname.ptr, &pnlen );
-  M.hostname = "";
-  for (int i = 0; i < pnlen; i++) {
-    M.hostname ~= pname[i];
-  }
+  M.hostname = to!string(pname[0..pnlen]);
 
   writeLogRN("\nInitialized MPI v%d.%d on %d CPUs.", M.ver, M.subver, M.size);
 }
