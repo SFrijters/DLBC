@@ -66,7 +66,7 @@ string makeParameterSetDefaultMembers() pure nothrow @safe {
 }
 
 /// Generates Mixin to create the ParameterSet struct
-string makeParameterSetMembers() {
+string makeParameterSetMembers() /* pure */  nothrow @safe { // GDC bug?
   string mixinString, type;
   foreach( member ; __traits(allMembers, parameterTypes)) {
     type = mixin("parameterTypes." ~ member);
@@ -98,7 +98,7 @@ string makeParameterSetShow() pure nothrow @safe {
 }
 
 /// Generates Mixin to create the cases for the parser
-string makeParameterCase() {
+string makeParameterCase() /* pure */ nothrow @safe { // GDC bug?
   string mixinString;
   // Fill all char[256] with spaces.
   foreach( member ; __traits(allMembers, parameterTypes)) {

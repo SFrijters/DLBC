@@ -14,7 +14,7 @@ MPI_Datatype parameterSetDefaultMpiType;
 immutable size_t MpiStringLength = 256;
 
 /// This will return the MPI string type as a string.
-static string MpiStringType() {
+string MpiStringType() /* pure */ nothrow @safe { // GDC bug?
   return "char[" ~ itoa!(MpiStringLength) ~ "]";
 }
 
@@ -164,3 +164,4 @@ void endMpi() {
 int MpiBarrier() {
   return MPI_Barrier(M.comm);
 }
+
