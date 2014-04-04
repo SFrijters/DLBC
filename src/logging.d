@@ -1,9 +1,6 @@
-import std.array;
 import std.conv;
 import std.stdio;
-import std.datetime;
 import std.string;
-import std.algorithm;
 
 import parallel;
 
@@ -151,6 +148,8 @@ private string makeLogString(T...)(const VL vl, const LRF logRankFormat, T args)
   string rankTag = makeRankString(logRankFormat);
   string vlTag;
   string preTag;
+  import std.algorithm: canFind;
+
 
   final switch(vl) {
   case VL.Off:
@@ -215,11 +214,15 @@ private string makeRankString(const LogRankFormat logRankFormat) {
 }
 
 string makeCurrTimeString() {
+  import std.datetime;
+
   SysTime tNow = Clock.currTime;
   return format("%#2.2d:%#2.2d:%#2.2d",tNow.hour,tNow.minute,tNow.second);
 }
 
 string makeHeaderString(const string content) {
+  import std.array: replicate;
+
   if (content.length >= headerLength - 4) {
     return content;
   }

@@ -1,10 +1,8 @@
-import std.compiler;
-import std.conv;
-
 import logging;
-import revision;
 
 void showRevisionInfo() {
+  import revision;
+
   if (revisionChanged == 0) {
     writeLogRI("Executable built from revision '%s'.", revisionDesc );
   }
@@ -18,6 +16,9 @@ void showRevisionInfo() {
 }
 
 void showCompilerInfo() {
+  import std.compiler;
+  import std.conv: to;
+
   with(std.compiler) {
     writeLogRI("Executable built using %s compiler (%s); front-end version %d.%03d.", name, to!string(vendor), version_major, version_minor );
   }
