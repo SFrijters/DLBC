@@ -12,7 +12,7 @@ string[] parameterFileNames;
 
 /** This enum will be translated into various components through mixins.
     It contains pairs of variable names and their type value, as defined
-    through the $(D parameterDataTypes enum.
+    through the $(D parameterDataTypes) enum.
 */
 enum parameterTypes : string {
   nx = PDT.Ulong,
@@ -29,6 +29,7 @@ enum parameterTypes : string {
 
 /// Enum containing strings of datatypes
 alias parameterDataTypes PDT;
+/// Ditto
 enum parameterDataTypes : string {
   Ulong  = "ulong",
   Bool   = "bool",
@@ -38,11 +39,6 @@ enum parameterDataTypes : string {
 };
 
 /// This struct will be constructed from the parameterTypes enum
-struct ParameterSetDefault {
-  mixin(makeParameterSetDefaultMembers());
-}
-
-/// This struct will be constructed from the parameterTypes enum
 struct ParameterSet {
   mixin(makeParameterSetMembers());
 
@@ -50,14 +46,19 @@ struct ParameterSet {
     writeLog(VL.Information, logRankFormat, "Current parameter set:");
     mixin(makeParameterSetShow());
   }
-};
+}
+
+/// This struct will be constructed from the parameterTypes enum
+struct ParameterSetDefault {
+  mixin(makeParameterSetDefaultMembers());
+}
 
 ParameterSet P;
 ParameterSetDefault PD;
 
 /// Generates Mixin to create the ParameterSetDefault struct
-string makeParameterSetDefaultMembers() {
-  string mixinString, type;
+string makeParameterSetDefaultMembers() pure nothrow @safe {
+  string mixinString;
   foreach( member ; __traits(allMembers, parameterTypes)) {
     mixinString ~= "bool " ~ member ~ " = true;\n";
   }
@@ -81,7 +82,7 @@ string makeParameterSetMembers() {
 }
 
 /// Generates Mixin to list the values of P
-string makeParameterSetShow() {
+string makeParameterSetShow() pure nothrow @safe {
   string mixinString;
   foreach( member ; __traits(allMembers, parameterTypes)) {
     string type = mixin("parameterTypes." ~ member);
@@ -123,12 +124,12 @@ string makeParameterCase() {
     mixinString ~= "PD." ~ member ~ " = false;";
     mixinString ~= "break;\n";
   }
-  mixinString ~= "default:\nwriteLogRW(\"  Unknown key at line %d: <%s>\", ln, keyString); }";
+  mixinString ~= "default:\nwriteLogRW(\"Unknown key at line %d: '%s'.\", ln, keyString); }";
   return mixinString;
 }
 
 /// Generates Mixin to generate MPI Type for P
-string makeParameterSetMpiType() {
+string makeParameterSetMpiType() pure @safe {
   string mixinString, mainString, prefixString, postfixString, dispString;
   string type, mpiTypeString, lenString;
   int count;
@@ -171,7 +172,7 @@ void setupParameterSetMpiType() {
 }
 
 /// Generates Mixin to generate MPI Type for PD
-string makeParameterSetDefaultMpiType() {
+string makeParameterSetDefaultMpiType() pure @safe {
   string mixinString, mainString, prefixString, postfixString, dispString;
   string type, mpiTypeString, lenString;
   int count = 0;
@@ -215,7 +216,7 @@ void distributeParameterSet() {
 }
 
 /// Parses a single line of the parameter file
-void parseParameter(char[] line, in size_t ln) {
+void parseParameter(char[] line, const size_t ln) {
   char[] keyString, valueString;
 
   auto commentPos = indexOf(line, "//");
@@ -235,7 +236,7 @@ void parseParameter(char[] line, in size_t ln) {
 /// Parses a parameter file
 void readParameterSetFromCliFiles() {
   if (parameterFileNames.length == 0) {
-    import std.c.stdlib;
+    import std.c.stdlib: exit;
     writeLogRF("Parameter filename not set, please specify using the -p <filename> option.");
     exit(-1);
   }
@@ -244,7 +245,7 @@ void readParameterSetFromCliFiles() {
   }
 }
 
-void readParameterSetFromFile(string fileName) {
+void readParameterSetFromFile(const string fileName) {
   File f;
   writeLogRI("Reading parameters from file '%s'.",fileName);
 
@@ -253,7 +254,7 @@ void readParameterSetFromFile(string fileName) {
   }
   catch (OpenException e) {
     import std.c.stdlib;
-    writeLogRF("Error opening parameter file '%s' for reading.",fileName);
+    writeLogRF("Error opening parameter file '%s' for reading.", fileName);
     exit(-1);
   }
 
@@ -265,7 +266,7 @@ void readParameterSetFromFile(string fileName) {
 }
 
 /// Processes parameters
-void processParameters() {
+void processParameters() pure nothrow @safe {
 
 }
 
@@ -285,7 +286,7 @@ debug(showMixins) {
     writeLogRD("--- END makeParameterSetDefaultMembers() mixin ---\n");
 
     writeLogRD("--- START makeParameterSetShow() mixin ---\n");
-    if (M.isRoot() ) writeln(makeParameterSetShow(LRF.Ordered));
+    if (M.isRoot() ) writeln(makeParameterSetShow());
     writeLogRD("--- END makeParameterSetShow() mixin ---\n");
 
     writeLogRD("--- START makeParameterSetMpiType() mixin ---\n");
