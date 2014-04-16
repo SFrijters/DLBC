@@ -1,0 +1,12 @@
+MODULES = 
+	$(MODULE dlbc, "D Lattice Boltzmann Code")
+	$(MODULE getopt, "Command line processing.")
+	$(MODULE lattice, "Implementation of lattice structure.")
+	$(MODULE logging, "Logging output.")
+	$(MODULE mixinhelper, "Helper functions for CTFE.")
+	$(MODULE mpi, "Header file for MPI library.")
+	$(MODULE parallel, "Helper functions for parallelisation.")
+	$(MODULE parameters, "Helper functions for reading, storage and communication of simulation parameters.")
+	$(MODULE timers, "Helper functions for performance timing.")
+	$(MODULE versions, "Wrappers for version information.")
+
