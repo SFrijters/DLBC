@@ -64,15 +64,34 @@ int MPI_Abort(MPI_Comm, int);
 int MPI_Finalize();
 int MPI_Finalized(int*);
 
-int MPI_Address(void*, MPI_Aint*);
+int MPI_Address(void*, MPI_Aint*); // Deprecated
+int MPI_Get_address(void *, MPI_Aint *);
 int MPI_Type_create_struct(int, int*, MPI_Aint*, MPI_Datatype*, MPI_Datatype*);
 int MPI_Type_commit(MPI_Datatype *);
+
+int MPI_Type_create_hindexed(int count, const int array_of_blocklengths[],
+                             const MPI_Aint array_of_displacements[], MPI_Datatype oldtype,
+                             MPI_Datatype *newtype);
+int MPI_Type_create_hvector(int count, int blocklength, MPI_Aint stride, MPI_Datatype oldtype,
+                            MPI_Datatype *newtype);
+
+int MPI_Type_contiguous(int, MPI_Datatype, MPI_Datatype *);
+int MPI_Type_extent(MPI_Datatype, MPI_Aint *);
 
 int MPI_Bcast(void*, int, MPI_Datatype, int, MPI_Comm);
 int MPI_Send(const void*, int, MPI_Datatype, int, int, MPI_Comm);
 int MPI_Recv(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status*);
-int MPI_Sendrecv(const void*, int, MPI_Datatype, int, int, void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status*);
+// int MPI_Sendrecv(const void*, int, MPI_Datatype, int, int, void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status*);
 int MPI_Scatter(void* , int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm);
+
+// int MPI_Isend(const void *buf, int count, MPI_Datatype datatype, int dest, int tag,
+//               MPI_Comm comm, MPI_Request *request);
+// int MPI_Irecv(void *buf, int count, MPI_Datatype datatype, int source, int tag,
+//               MPI_Comm comm, MPI_Request *request);
+
+int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype, int dest,
+                 int sendtag, void *recvbuf, int recvcount, MPI_Datatype recvtype,
+                 int source, int recvtag, MPI_Comm comm, MPI_Status *status);
 
 int MPI_Barrier(MPI_Comm);
 
