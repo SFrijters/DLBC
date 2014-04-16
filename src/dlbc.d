@@ -45,12 +45,16 @@ int main(string[] args ) {
 
   // Make cartesian grid now that we have values ncx, ncy, ncz everywhere
   reorderMpi();
+  M.show(VL.Debug, LRF.Ordered);
 
   // Try and create the local lattice structure
   createLocalLattice();
+  L.haloExchange();
 
-  owriteLogD("This is an ordered log test from rank %d.\n",M.rank);
-  writeLogD("This is a log test from rank %d.\n",M.rank);
+  // writeLog(VL.Information, LRF.None, "This is another None log test from rank %d.\n",M.rank);
+  // writeLog(VL.Information, LRF.Root, "This is another Root log test from rank %d.\n",M.rank);
+  // writeLog(VL.Information, LRF.Any, "This is another Any log test from rank %d.\n",M.rank);
+  // writeLog(VL.Information, LRF.Ordered, "This is another Ordered log test from rank %d.\n",M.rank);
 
   T.main.stop(LRF.Ordered);
 
