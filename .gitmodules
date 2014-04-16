@@ -1,3 +1,6 @@
 [submodule "bootDoc"]
 	path = bootDoc
 	url = git://github.com/JakobOvrum/bootDoc.git
+[submodule "unstd"]
+	path = unstd
+	url = https://bitbucket.org/denis-sh/unstandard.git
