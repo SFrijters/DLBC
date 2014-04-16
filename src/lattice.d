@@ -112,39 +112,39 @@ struct Field(T) {
     // Send to positive x
     rbuffer = multidimArray!T(haloSize, nyH, nzH);
     sbuffer = arr[$-2*haloSize-1..$ - haloSize-1, 0..$, 0..$].dup;
-    MPI_Sendrecv(sbuffer._data.ptr, nyH * nzH, MPI_INT, M.nbx[1], 0, rbuffer._data.ptr, nyH * nzH, mpiType, M.nbx[0], 0, M.comm, &mpiStatus);
+    MPI_Sendrecv(sbuffer._data.ptr, nyH * nzH, mpiType, M.nbx[1], 0, rbuffer._data.ptr, nyH * nzH, mpiType, M.nbx[0], 0, M.comm, &mpiStatus);
     arr[0..haloSize, 0..$, 0..$] = rbuffer;
     owriteLogI(arr[0,1,0..$].toString());
 
     // Send to negative x
     sbuffer = arr[1..1+haloSize, 0..$, 0..$].dup;
-    MPI_Sendrecv(sbuffer._data.ptr, nyH * nzH, MPI_INT, M.nbx[0], 0, rbuffer._data.ptr, nyH * nzH, mpiType, M.nbx[1], 0, M.comm, &mpiStatus);
+    MPI_Sendrecv(sbuffer._data.ptr, nyH * nzH, mpiType, M.nbx[0], 0, rbuffer._data.ptr, nyH * nzH, mpiType, M.nbx[1], 0, M.comm, &mpiStatus);
     arr[$ - haloSize .. $, 0..$, 0..$] = rbuffer;
     owriteLogI(arr[$-1,1,0..$].toString());
 
     // Send to positive y
     rbuffer = multidimArray!T(nxH, haloSize, nzH);
     sbuffer = arr[0..$, $-2*haloSize-1..$ - haloSize-1, 0..$].dup;
-    MPI_Sendrecv(sbuffer._data.ptr, nxH * nzH, MPI_INT, M.nby[1], 0, rbuffer._data.ptr, nxH * nzH, mpiType, M.nby[0], 0, M.comm, &mpiStatus);
+    MPI_Sendrecv(sbuffer._data.ptr, nxH * nzH, mpiType, M.nby[1], 0, rbuffer._data.ptr, nxH * nzH, mpiType, M.nby[0], 0, M.comm, &mpiStatus);
     arr[0..$, 0..haloSize, 0..$] = rbuffer;
     owriteLogI(arr[1,0,0..$].toString());
 
     // Send to negative y
     rbuffer = arr[0..$, 1..1+haloSize, 0..$].dup;
-    MPI_Sendrecv(sbuffer._data.ptr, nxH * nzH, MPI_INT, M.nby[0], 0, rbuffer._data.ptr, nxH * nzH, mpiType, M.nby[1], 0, M.comm, &mpiStatus);
+    MPI_Sendrecv(sbuffer._data.ptr, nxH * nzH, mpiType, M.nby[0], 0, rbuffer._data.ptr, nxH * nzH, mpiType, M.nby[1], 0, M.comm, &mpiStatus);
     arr[0..$, $ - haloSize .. $, 0..$] = rbuffer;
     owriteLogI(arr[1, $-1,0..$].toString());
 
     // Send to positive z
     rbuffer = multidimArray!T(nxH, nyH, haloSize);
     sbuffer = arr[0..$, 0..$, $-2*haloSize-1..$ - haloSize-1].dup;
-    MPI_Sendrecv(sbuffer._data.ptr, nxH * nyH, MPI_INT, M.nbz[1], 0, rbuffer._data.ptr, nxH * nyH, mpiType, M.nbz[0], 0, M.comm, &mpiStatus);
+    MPI_Sendrecv(sbuffer._data.ptr, nxH * nyH, mpiType, M.nbz[1], 0, rbuffer._data.ptr, nxH * nyH, mpiType, M.nbz[0], 0, M.comm, &mpiStatus);
     arr[0..$, 0..$, 0..haloSize] = rbuffer;
     // owriteLogI(arr[1,0,0..$].toString());
 
     // Send to negative z
     rbuffer = arr[0..$, 0..$, 1..1+haloSize].dup;
-    MPI_Sendrecv(sbuffer._data.ptr, nxH * nyH, MPI_INT, M.nbz[0], 0, rbuffer._data.ptr, nxH * nyH, mpiType, M.nbz[1], 0, M.comm, &mpiStatus);
+    MPI_Sendrecv(sbuffer._data.ptr, nxH * nyH, mpiType, M.nbz[0], 0, rbuffer._data.ptr, nxH * nyH, mpiType, M.nbz[1], 0, M.comm, &mpiStatus);
     arr[0..$, 0..$, $ - haloSize .. $] = rbuffer;
     // owriteLogI(arr[1, $-1,0..$].toString());
 

@@ -8,13 +8,11 @@ doc: revision *ddoc
 src/revision.d: .git/HEAD .git/index
 	./get-revision.sh > $@
 
-
 dlbc-dmd: revision
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich src/*.d unstd/unstd/multidimarray.d -ofdlbc -D -Dd./doc -I./unstd
+	dmd -L-L/usr/local/lib -L-lmpich src/*.d unstd/unstd/multidimarray.d -ofdlbc -D -Dd./doc -I./unstd
 
 test-dmd: revision
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich src/*.d -ofdlbc -debug=showMixins -unittest -cov -g -debug=2 -D -w
-
+	dmd -L-L/usr/local/lib -L-lmpich src/*.d -ofdlbc -debug=showMixins -unittest -cov -g -debug=2 -D -w
 
 clean:
 	rm -f src/revision.d

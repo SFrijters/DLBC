@@ -101,6 +101,7 @@ void writeLogD(T...)(const T args)  { writeLog(VL.Debug       , LRF.Any,  args);
 /// Ordered logwrite from all CPUs
 void owriteLog(T...)(const VL vl, const T args) {
   string logString;
+  char[17] test1; // WUT?
   MpiString mpiString;
   MPI_Status mpiStatus;
   immutable int mpiTag = 0;
