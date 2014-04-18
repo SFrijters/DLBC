@@ -1,5 +1,34 @@
+// Written in the D programming language.
+
+/**
+Functions that show information on compiler versions and code revision.
+
+Copyright: Stefan Frijters 2011-2014
+
+License: $(HTTP boost.org/LICENSE_1_0.txt, Boost License 1.0).
+
+Authors: Stefan Frijters
+
+Macros:
+	TR = <tr>$0</tr>
+	TH = <th>$0</th>
+	TD = <td>$0</td>
+	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+*/
+
+module versions;
+
 import logging;
 
+
+/**
+Write info on the revision of DLBC to stdout, depending on the verbosity level and which processes are allowed to write.
+
+Params:
+  vl = verbosity level to write at
+  logRankFormat = which processes should write
+
+*/
 void showRevisionInfo(VL vl, LRF logRankFormat)() {
   import revision;
 
@@ -15,6 +44,14 @@ void showRevisionInfo(VL vl, LRF logRankFormat)() {
   }
 }
 
+/**
+Write info on the compiler used to compile DLBC, depending on the verbosity level and which processes are allowed to write.
+
+Params:
+  vl = verbosity level to write at
+  logRankFormat = which processes should write
+
+*/
 void showCompilerInfo(VL vl, LRF logRankFormat)() {
   import std.compiler;
   import std.conv: to;

@@ -24,8 +24,18 @@ import std.string;
 
 import parallel;
 
+
+/**
+String to append to truncated messages.
+*/
 private immutable string truncationSuffix = "[T]...";
+/**
+Length of a header line.
+*/
 private immutable size_t headerLength = 80;
+/**
+Character to fill the header line with.
+*/
 private immutable string headerDash = "=";
 
 /**
@@ -86,7 +96,6 @@ VL getGlobalVerbosityLevel() {
 
 /**
 Write output to stdout, depending on the verbosity level and which processes are allowed to write.
-
 
 Params:
   vl = verbosity level to write at
@@ -193,6 +202,7 @@ Bugs: Possible memory issues causing corrupted data or hanging processes.
 
 */
 void owriteLog(VL vl, T...)(const T args) {
+  return;
   string logString;
   char[17] test1; // WUT?
   MpiString mpiString;
@@ -365,11 +375,11 @@ Returns: a string with $(D content) centered in a header line.
 string makeHeaderString(const string content) pure nothrow {
   import std.array: replicate;
 
+  static assert(headerDash.length == 1, "headerDash should be a single character." ); // Assumption for the code below.
+
   if (content.length >= headerLength - 4) {
     return content;
   }
-
-  string headerString;
 
   size_t dashLength = headerLength - content.length - 2;
   size_t preLength = dashLength/2 + dashLength%2;
@@ -378,8 +388,6 @@ string makeHeaderString(const string content) pure nothrow {
   string preDash = replicate(headerDash, preLength);
   string sufDash = replicate(headerDash, sufLength);
   
-  headerString = "\n" ~ preDash ~ " " ~ content ~ " " ~ sufDash ~ "\n";
-
-  return headerString;
+  return "\n" ~ preDash ~ " " ~ content ~ " " ~ sufDash ~ "\n";
 }
 
