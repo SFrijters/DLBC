@@ -14,8 +14,8 @@ int main(string[] args ) {
   writeLogRN(makeHeaderString("Starting DLBC on %d CPUs."), M.size);
 
   // Show build-related information
-  showCompilerInfo();
-  showRevisionInfo();
+  showCompilerInfo!(VL.Information, LRF.Root);
+  showRevisionInfo!(VL.Information, LRF.Root);
 
   // Start Main timer
   T.main = MultiStopWatch("Main");
