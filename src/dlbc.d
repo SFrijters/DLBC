@@ -13,6 +13,9 @@ int main(string[] args ) {
 
   writeLogRN(makeHeaderString("Starting DLBC on %d CPUs."), M.size);
 
+  // Process the CLI parameters
+  processCLI(args);
+
   // Show build-related information
   showCompilerInfo!(VL.Information, LRF.Root);
   showRevisionInfo!(VL.Information, LRF.Root);
@@ -20,9 +23,6 @@ int main(string[] args ) {
   // Start Main timer
   T.main = MultiStopWatch("Main");
   T.main.start!(VL.Debug, LRF.None);
-
-  // Process the CLI parameters
-  processCLI(args);
 
   debug(showMixins) { dbgShowMixins(); }
 
