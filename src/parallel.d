@@ -164,3 +164,15 @@ int MpiBarrier() {
   return MPI_Barrier(M.comm);
 }
 
+MPI_Datatype mpiTypeof(T)() {
+  static if ( is(T == int) ) {
+    return MPI_INT;
+  }
+  else static if ( is(T == double) ) {
+    return MPI_DOUBLE;
+  }
+  else {
+    static assert(0, "Datatype not implemented.");
+  }
+}
+
