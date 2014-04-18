@@ -24,7 +24,6 @@ import std.string;
 
 import parallel;
 
-
 /**
 String to append to truncated messages.
 */
@@ -56,7 +55,7 @@ enum LogRankFormat {
 alias LogRankFormat LRF;
 
 /**
-Specifies at which verbosity level the logging should be executed whtn passed as a (template) argument to various logging functions.
+Specifies at which verbosity level the logging should be executed when passed as a (template) argument to various logging functions.
 */
 enum VerbosityLevel {
   Off          = 0,

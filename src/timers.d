@@ -1,35 +1,101 @@
+// Written in the D programming language.
+
+/**
+Timers for performance measurement.
+
+Copyright: Stefan Frijters 2011-2014
+
+License: $(HTTP boost.org/LICENSE_1_0.txt, Boost License 1.0).
+
+Authors: Stefan Frijters
+
+Macros:
+	TR = <tr>$0</tr>
+	TH = <th>$0</th>
+	TD = <td>$0</td>
+	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+*/
+
+module timers;
+
 import std.datetime;
 import std.string;
 
 import logging;
-  
-alias Timers T;
+
+/**
+Container for multiple timers.
+*/
 struct Timers {
   static MSW main;
 }
+/// Ditto
+alias Timers T;
 
-alias MultiStopWatch MSW;
+/**
+Based on $(D StopWatch), a $(D MultiStopWatch) can be started and stopped multiple times, keeping track of how often it has been called.
+*/
 struct MultiStopWatch {
   private StopWatch single, multi;
+  /**
+  How many times the $(D MultiStopWatch) has been started.
+  */
   int count;
+  /**
+  Name of the $(D MultiStopWatch).
+  */
   string name;
 
+  /**
+  $(D MultiStopWatch) is constructed with a name.
+
+  Params:
+    n = name of the $(D MultiStopWatch)
+  */
   this (string n) {
     name = n;
   }
 
+  /**
+  Peek into the embedded single run $(D StopWatch).
+
+  Returns: a $(D TickDuration) struct.
+
+  */
   auto peekSingle() {
     return single.peek();
   }
 
+  /**
+  Peek into the embedded multiple run $(D StopWatch).
+
+  Returns: a $(D TickDuration) struct.
+
+  */
   auto peekMulti() {
     return multi.peek();
   }
 
+  /**
+  Write the current status of the $(D MultiStopWatch) to stdout, depending on the verbosity level and which processes are allowed to write.
+
+  Params:
+    vl = verbosity level to write at
+    logRankFormat = which processes should write
+
+  */
   void show(VL vl, LRF logRankFormat)() {
     writeLog!(vl, logRankFormat)("Timer '%s' measuring run %d for %dms. Total runtime %dms.", name, count, single.peek().msecs, multi.peek().msecs);
   }
 
+  /**
+  Start the $(D MultiStopWatch) and write the current status to stdout, depending on the verbosity level and which processes are allowed to write.
+
+  Params:
+    vl = verbosity level to write at
+    logRankFormat = which processes should write
+
+  */
   void start(VL vl, LRF logRankFormat)() {
     single.reset();
     single.start();
@@ -38,11 +104,20 @@ struct MultiStopWatch {
     writeLog!(vl, logRankFormat)("Timer '%s' started run %d.", name, count);
   }
 
+  /**
+  Stop the $(D MultiStopWatch) and write the current status to stdout, depending on the verbosity level and which processes are allowed to write.
+
+  Params:
+    vl = verbosity level to write at
+    logRankFormat = which processes should write
+
+  */
   void stop(VL vl, LRF logRankFormat)() {
     single.stop();
     multi.stop();
     writeLog!(vl, logRankFormat)("Timer '%s' finished run %d in %dms. Total runtime %dms.", name, count, single.peek().msecs, multi.peek().msecs);
   }
-
 }
+/// Ditto
+alias MultiStopWatch MSW;
 
