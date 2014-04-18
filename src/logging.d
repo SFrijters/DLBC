@@ -1,3 +1,23 @@
+// Written in the D programming language.
+
+/**
+Functions that handle (parallel) output to stdout.
+
+Copyright: Stefan Frijters 2011-2014
+
+License: $(HTTP boost.org/LICENSE_1_0.txt, Boost License 1.0).
+
+Authors: Stefan Frijters
+
+Macros:
+	TR = <tr>$0</tr>
+	TH = <th>$0</th>
+	TD = <td>$0</td>
+	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+*/
+
+module logging;
+
 import std.conv;
 import std.stdio;
 import std.string;
@@ -8,15 +28,26 @@ private immutable string truncationSuffix = "[T]...";
 private immutable size_t headerLength = 80;
 private immutable string headerDash = "=";
 
-alias LogRankFormat LRF;
+/**
+Specifies which processes should do the logging when passed as a (template) argument to various logging functions.
+
+None: no output.
+Root: only root will write output.
+Any: any process will write output.
+Ordered: all processes will send their output to the root process, which will display all output in order of process rank.
+*/
 enum LogRankFormat {
   None    = 0,
   Root    = 1,
   Any     = 2,
   Ordered = 3,
 };
+/// Ditto
+alias LogRankFormat LRF;
 
-alias VerbosityLevel VL;
+/**
+Specifies at which verbosity level the logging should be executed whtn passed as a (template) argument to various logging functions.
+*/
 enum VerbosityLevel {
   Off          = 0,
   Fatal        = 1,
@@ -26,19 +57,44 @@ enum VerbosityLevel {
   Information  = 5,
   Debug        = 6,
 };
+/// Ditto
+alias VerbosityLevel VL;
 
 private VL globalVerbosityLevel = VL.Debug;
 
+/**
+Setter function for the global verbosity level.
+
+Params:
+  newVL = new verbosity level
+
+*/
 void setGlobalVerbosityLevel(const VL newVL) {
   writeLogRN("Setting globalVerbosityLevel to %d ('%s').", newVL, to!string(newVL));
   globalVerbosityLevel = newVL;
 }
 
+/**
+Getter function for the global verbosity level.
+
+Returns: the current global verbosity level
+
+*/
 VL getGlobalVerbosityLevel() {
   return globalVerbosityLevel;
 }
 
-void writeLog(T...)(const VL vl, const LRF logRankFormat, const T args) {
+/**
+Write output to stdout, depending on the verbosity level and which processes are allowed to write.
+
+
+Params:
+  vl = verbosity level to write at
+  logRankFormat = which processes should write
+  args = data to write
+
+*/
+void writeLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
   final switch(logRankFormat) {
   case LRF.None:
     break;
@@ -52,7 +108,7 @@ void writeLog(T...)(const VL vl, const LRF logRankFormat, const T args) {
       }
       else {
 	static if (is(T[0] : string)) {
-	  string outString = makeLogString(vl, logRankFormat, args);
+	  string outString = makeLogString!(vl, logRankFormat)(args);
 	  if (outString.length != 0) {
 	    if (outString[$-1..$] == "\n" ) {
 	      if (outString[0..1] == "\n" ) {
@@ -79,34 +135,65 @@ void writeLog(T...)(const VL vl, const LRF logRankFormat, const T args) {
     }
     break;
   case LRF.Ordered:
-    owriteLog(vl, args);
+    owriteLog!(vl)(args);
     break;
   }
 
   if ( vl == VL.Fatal ) {
     import std.c.stdlib: exit;
-    writeln(makeLogString(vl, LRF.Any, "Fatal error, aborting..."));
+    writeln(makeLogString!(vl, LRF.Any)("Fatal error, aborting..."));
     exit(-1);
   }
 
 }
 
-void writeLogRF(T...)(const T args) { writeLog(VL.Fatal       , LRF.Root, args); }
-void writeLogRE(T...)(const T args) { writeLog(VL.Error       , LRF.Root, args); }
-void writeLogRW(T...)(const T args) { writeLog(VL.Warning     , LRF.Root, args); }
-void writeLogRN(T...)(const T args) { writeLog(VL.Notification, LRF.Root, args); }
-void writeLogRI(T...)(const T args) { writeLog(VL.Information , LRF.Root, args); }
-void writeLogRD(T...)(const T args) { writeLog(VL.Debug       , LRF.Root, args); }
+/**
+Shorthand for various logging templates based on $(D writeLog).
 
-void writeLogF(T...)(const T args)  { writeLog(VL.Fatal       , LRF.Any,  args); }
-void writeLogE(T...)(const T args)  { writeLog(VL.Error       , LRF.Any,  args); }
-void writeLogW(T...)(const T args)  { writeLog(VL.Warning     , LRF.Any,  args); }
-void writeLogN(T...)(const T args)  { writeLog(VL.Notification, LRF.Any,  args); }
-void writeLogI(T...)(const T args)  { writeLog(VL.Information , LRF.Any,  args); }
-void writeLogD(T...)(const T args)  { writeLog(VL.Debug       , LRF.Any,  args); }
+The last letter of the function name corresponds to the first of the verbosity level enum member that is passed into the template.
+The optional 'R' passes $(D LRF.Root), otherwise $(D LRF.Any) is passed.
 
-/// Ordered logwrite from all CPUs
-void owriteLog(T...)(const VL vl, const T args) {
+Params:
+  args = data to write
+
+*/
+void writeLogRF(T...)(const T args) { writeLog!(VL.Fatal       , LRF.Root)(args); }
+/// Ditto
+void writeLogRE(T...)(const T args) { writeLog!(VL.Error       , LRF.Root)(args); }
+/// Ditto
+void writeLogRW(T...)(const T args) { writeLog!(VL.Warning     , LRF.Root)(args); }
+/// Ditto
+void writeLogRN(T...)(const T args) { writeLog!(VL.Notification, LRF.Root)(args); }
+/// Ditto
+void writeLogRI(T...)(const T args) { writeLog!(VL.Information , LRF.Root)(args); }
+/// Ditto
+void writeLogRD(T...)(const T args) { writeLog!(VL.Debug       , LRF.Root)(args); }
+
+/// Ditto
+void writeLogF(T...)(const T args)  { writeLog!(VL.Fatal       , LRF.Any )(args); }
+/// Ditto
+void writeLogE(T...)(const T args)  { writeLog!(VL.Error       , LRF.Any )(args); }
+/// Ditto
+void writeLogW(T...)(const T args)  { writeLog!(VL.Warning     , LRF.Any )(args); }
+/// Ditto
+void writeLogN(T...)(const T args)  { writeLog!(VL.Notification, LRF.Any )(args); }
+/// Ditto
+void writeLogI(T...)(const T args)  { writeLog!(VL.Information , LRF.Any )(args); }
+/// Ditto
+void writeLogD(T...)(const T args)  { writeLog!(VL.Debug       , LRF.Any )(args); }
+
+/**
+Write output to stdout from all processes, gathered by the root process and ordered by process rank.
+
+Params:
+  vl = verbosity level to write at
+  args = data to write
+
+Bugs: Possible memory issues causing corrupted data or hanging processes.
+
+*/
+void owriteLog(VL vl, T...)(const T args) {
+  return;
   string logString;
   char[17] test1; // WUT?
   MpiString mpiString;
@@ -124,7 +211,7 @@ void owriteLog(T...)(const VL vl, const T args) {
     }
 
     // Generate string to send
-    logString = makeLogString(vl, LRF.Ordered, args);
+    logString = makeLogString!(vl, LRF.Ordered)(args);
 
     // Truncate if needed
     if (logString.length > MpiStringLength) {
@@ -139,14 +226,15 @@ void owriteLog(T...)(const VL vl, const T args) {
       logString = to!string(mpiString);
       writeln(strip(logString));
       for (int srcRank = 1; srcRank < M.size; srcRank++ ) {
-	MPI_Recv(&mpiString, MpiStringLength, MPI_CHAR, srcRank, mpiTag, M.comm, &mpiStatus);
+
+	MPI_Recv(mpiString.ptr, MpiStringLength, MPI_CHAR, srcRank, mpiTag, M.comm, &mpiStatus);
 	logString = to!string(mpiString);
 	writeln(strip(logString));
       }
     }
     else {
       immutable int destRank = M.root;
-      MPI_Send(&mpiString, MpiStringLength, MPI_CHAR, destRank, mpiTag, M.comm);
+      MPI_Send(mpiString.ptr, MpiStringLength, MPI_CHAR, destRank, mpiTag, M.comm);
     }
 
     // Make sure all ordered output is finished before the program continues. Performance hog!
@@ -154,17 +242,44 @@ void owriteLog(T...)(const VL vl, const T args) {
   }
 }
 
+/**
+Shorthand for various ordered logging templates based on $(D owriteLog).
+
+The last letter of the function name corresponds to the first of the verbosity level enum member that is passed into the template.
+
+Params:
+  args = data to write
+
+*/
 void owriteLogF(T...)(const T args) { owriteLog(VL.Fatal       , args); }
+/// Ditto
 void owriteLogE(T...)(const T args) { owriteLog(VL.Error       , args); }
+/// Ditto
 void owriteLogW(T...)(const T args) { owriteLog(VL.Warning     , args); }
+/// Ditto
 void owriteLogN(T...)(const T args) { owriteLog(VL.Notification, args); }
+/// Ditto
 void owriteLogI(T...)(const T args) { owriteLog(VL.Information , args); }
+/// Ditto
 void owriteLogD(T...)(const T args) { owriteLog(VL.Debug       , args); }
 
-private string makeLogString(T...)(const VL vl, const LRF logRankFormat, T args) {
+/**
+Creates a string with a text marker for verbosity level prepended to $(D args).
+
+This function also takes care of leading newlines, which should create completely blank lines before the actual content is shown with the proper tag.
+
+Params:
+  vl = verbosity level to use for the marker
+  logRankFormat = log type to use for the process prefix
+  args = data to write
+
+Returns: a string with a text marker for verbosity level prepended to $(D args).
+
+*/
+private string makeLogString(VL vl, LRF logRankFormat, T...)(T args) {
   import std.algorithm: canFind;
 
-  immutable string rankTag = makeRankString(logRankFormat);
+  immutable string rankTag = makeRankString!logRankFormat;
   string vlTag, preTag;
 
   final switch(vl) {
@@ -207,7 +322,16 @@ private string makeLogString(T...)(const VL vl, const LRF logRankFormat, T args)
   }
 }
 
-private string makeRankString(const LogRankFormat logRankFormat) {
+/**
+Creates a string prefix containing the current process rank, if applicable.
+
+Params:
+  logRankFormat = log type to use for the rank prefix
+
+Returns: a string prefix containing the current process rank, if applicable.
+
+*/
+private string makeRankString(LogRankFormat logRankFormat)() {
   final switch(logRankFormat) {
   case LRF.None:
     return "";
@@ -220,6 +344,12 @@ private string makeRankString(const LogRankFormat logRankFormat) {
   }
 }
 
+/**
+Creates a formatted string containing the current time.
+
+Returns: a formatted string containing the current time.
+
+*/
 string makeCurrTimeString() {
   import std.datetime;
 
@@ -227,6 +357,12 @@ string makeCurrTimeString() {
   return format("%#2.2d:%#2.2d:%#2.2d", tNow.hour, tNow.minute, tNow.second);
 }
 
+/**
+Creates a string with $(D content) centered in a header line.
+
+Returns: a string with $(D content) centered in a header line.
+
+*/
 string makeHeaderString(const string content) pure nothrow {
   import std.array: replicate;
 

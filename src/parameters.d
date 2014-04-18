@@ -42,8 +42,8 @@ enum parameterDataTypes : string {
 struct ParameterSet {
   mixin(makeParameterSetMembers());
 
-  void show(const LRF logRankFormat ) {
-    writeLog(VL.Information, logRankFormat, "Current parameter set:");
+  void show(VL vl, LRF logRankFormat)() {
+    writeLog!(vl, logRankFormat)("Current parameter set:");
     mixin(makeParameterSetShow());
   }
 }
@@ -89,9 +89,9 @@ string makeParameterSetShow() pure nothrow @safe {
     // Add a warning 'NOT SET' for variables which are still equal to their default init.
     mixinString ~= "if ( PD." ~ member ~ ") { \n";
     // Actual print statement
-    mixinString ~= "writeLog(VL.Warning, logRankFormat    ,\"NOT SET %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~ "));\n";
+    mixinString ~= "writeLog!(VL.Warning, logRankFormat)(\"NOT SET %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~ "));\n";
     mixinString ~= "}\nelse {\n";
-    mixinString ~= "writeLog(VL.Information, logRankFormat,\"        %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~ "));\n";
+    mixinString ~= "writeLog!(vl, logRankFormat)(\"        %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~ "));\n";
     mixinString ~= "}\n";
   }
   return mixinString;

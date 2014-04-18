@@ -107,7 +107,7 @@ struct Field(T) {
   }
 
   void show(VL vl, LRF logRankFormat)() {
-    writeLog(vl, logRankFormat, arr.toString());
+    writeLog!(vl, logRankFormat)(this.toString());
   }
 
   void showSlice(MultidimArray!(T, 2LU) slice) {

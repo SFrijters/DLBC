@@ -56,11 +56,11 @@ struct MpiParams {
   }
 
   void show(VL vl, LRF logRankFormat)() {
-    writeLog(vl, logRankFormat, "Report from rank %d running on host '%s' at position (%d, %d, %d):", rank, hostname, cx, cy, cz);
-    writeLog(vl, logRankFormat, "  Currently using %d CPUs on a %d x %d x %d grid.", size, ncx, ncy, ncz);
-    writeLog(vl, logRankFormat, "  Neighbours x: %#6.6d %#6.6d %#6.6d.", nbx[0], rank, nbx[1]);
-    writeLog(vl, logRankFormat, "  Neighbours y: %#6.6d %#6.6d %#6.6d.", nby[0], rank, nby[1]);
-    writeLog(vl, logRankFormat, "  Neighbours z: %#6.6d %#6.6d %#6.6d.", nbz[0], rank, nbz[1]);
+    writeLog!(vl, logRankFormat)("Report from rank %d running on host '%s' at position (%d, %d, %d):", rank, hostname, cx, cy, cz);
+    writeLog!(vl, logRankFormat)("  Currently using %d CPUs on a %d x %d x %d grid.", size, ncx, ncy, ncz);
+    writeLog!(vl, logRankFormat)("  Neighbours x: %#6.6d %#6.6d %#6.6d.", nbx[0], rank, nbx[1]);
+    writeLog!(vl, logRankFormat)("  Neighbours y: %#6.6d %#6.6d %#6.6d.", nby[0], rank, nby[1]);
+    writeLog!(vl, logRankFormat)("  Neighbours z: %#6.6d %#6.6d %#6.6d.", nbz[0], rank, nbz[1]);
   }
 }
 

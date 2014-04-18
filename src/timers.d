@@ -27,7 +27,7 @@ struct MultiStopWatch {
   }
 
   void show(VL vl, LRF logRankFormat)() {
-    writeLog(vl, logRankFormat, "Timer '%s' measuring run %d for %dms. Total runtime %dms.", name, count, single.peek().msecs, multi.peek().msecs);
+    writeLog!(vl, logRankFormat)("Timer '%s' measuring run %d for %dms. Total runtime %dms.", name, count, single.peek().msecs, multi.peek().msecs);
   }
 
   void start(VL vl, LRF logRankFormat)() {
@@ -35,13 +35,13 @@ struct MultiStopWatch {
     single.start();
     multi.start();
     count++;
-    writeLog(vl, logRankFormat, "Timer '%s' started run %d.", name, count);
+    writeLog!(vl, logRankFormat)("Timer '%s' started run %d.", name, count);
   }
 
   void stop(VL vl, LRF logRankFormat)() {
     single.stop();
     multi.stop();
-    writeLog(vl, logRankFormat, "Timer '%s' finished run %d in %dms. Total runtime %dms.", name, count, single.peek().msecs, multi.peek().msecs);
+    writeLog!(vl, logRankFormat)("Timer '%s' finished run %d in %dms. Total runtime %dms.", name, count, single.peek().msecs, multi.peek().msecs);
   }
 
 }

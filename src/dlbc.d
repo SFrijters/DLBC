@@ -41,7 +41,7 @@ int main(string[] args ) {
   // Set secondary values based on parameters
   processParameters();
 
-  P.show(LRF.Root);
+  P.show!(VL.Information, LRF.Root);
 
   // Make cartesian grid now that we have values ncx, ncy, ncz everywhere
   reorderMpi();
