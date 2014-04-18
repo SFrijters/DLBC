@@ -202,7 +202,7 @@ Bugs: Possible memory issues causing corrupted data or hanging processes.
 
 */
 void owriteLog(VL vl, T...)(const T args) {
-  return;
+  //return;
   string logString;
   char[17] test1; // WUT?
   MpiString mpiString;
