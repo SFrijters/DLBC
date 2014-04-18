@@ -172,7 +172,7 @@ MPI_Datatype mpiTypeof(T)() {
     return MPI_DOUBLE;
   }
   else {
-    static assert(0, "Datatype not implemented.");
+    static assert(0, "Datatype not implemented for MPI.");
   }
 }
 

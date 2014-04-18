@@ -3,9 +3,10 @@
 extern(C):
 
 /* Aliases */
+alias long MPI_Aint;
 alias int  MPI_Comm;
 alias int  MPI_Datatype;
-alias long MPI_Aint;
+alias int  MPI_Info;
 
 /* Communicators */
 immutable MPI_Comm MPI_COMM_WORLD = 0x44000000;
