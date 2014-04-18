@@ -9,10 +9,10 @@ src/revision.d: .git/HEAD .git/index
 	./get-revision.sh > $@
 
 dlbc-dmd: revision
-	dmd -L-L/usr/local/lib -L-lmpich src/*.d unstd/unstd/multidimarray.d -ofdlbc -D -Dd./doc -I./unstd
+	dmd -L-L/usr/local/lib -L-lmpich -L-lhdf5 src/*.d unstd/unstd/multidimarray.d -ofdlbc -D -Dd./doc -I./unstd
 
 test-dmd: revision
-	dmd -L-L/usr/local/lib -L-lmpich src/*.d -ofdlbc -debug=showMixins -unittest -cov -g -debug=2 -D -w
+	dmd -L-L/usr/local/lib -L-lmpich -L-lhdf5 src/*.d -ofdlbc -debug=showMixins -unittest -cov -g -debug=2 -D -w
 
 clean:
 	rm -f src/revision.d

@@ -1,4 +1,5 @@
 import getopt;
+import io;
 import lattice;
 import logging;
 import parallel;
@@ -19,6 +20,8 @@ int main(string[] args ) {
   // Show build-related information
   showCompilerInfo!(VL.Information, LRF.Root);
   showRevisionInfo!(VL.Information, LRF.Root);
+
+  startHDF5();
 
   // Start Main timer
   T.main = MultiStopWatch("Main");
@@ -64,6 +67,7 @@ int main(string[] args ) {
 
   T.main.stop!(VL.Information, LRF.Ordered);
 
+  endHDF5();
   endMpi();
 
   writeLogRN(makeHeaderString("Finished DLBC run."));
