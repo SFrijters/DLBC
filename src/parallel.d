@@ -22,41 +22,40 @@ string MpiStringType() /* pure */ nothrow @safe { // GDC bug?
 mixin("alias char[" ~ itoa!(MpiStringLength) ~ "] MpiString;");
 
 /// MPI parameters nicely packed into a struct
-alias MpiParams M;
+MpiParams M;
 struct MpiParams {
 
   static immutable int root = 0;
 
   // MPI details
-  static int ver, subver;
+  int ver, subver;
 
-  // Topology  
-  static int ncx, ncy, ncz;
-  static int size;
+  // Topology
+  int ncx, ncy, ncz;
+  int size;
 
   // CPU rank
-  static int rank;
+  int rank;
 
   // CPU position
-  static int cx, cy, cz;
+  int cx, cy, cz;
 
   // Nearest neighbours
-
-  static int nbx[2];
-  static int nby[2];
-  static int nbz[2];
+  int nbx[2];
+  int nby[2];
+  int nbz[2];
 
   // Communicator
-  static MPI_Comm comm;
+  MPI_Comm comm;
 
   // Hostname
-  static string hostname;
+  string hostname;
 
-  static bool isRoot() @property {
-    return ( this.rank == this.root );
+  bool isRoot() @property {
+    return ( rank == root );
   }
 
-  static void show(VL vl, LRF logRankFormat) {
+  void show(VL vl, LRF logRankFormat)() {
     writeLog(vl, logRankFormat, "Report from rank %d running on host '%s' at position (%d, %d, %d):", rank, hostname, cx, cy, cz);
     writeLog(vl, logRankFormat, "  Currently using %d CPUs on a %d x %d x %d grid.", size, ncx, ncy, ncz);
     writeLog(vl, logRankFormat, "  Neighbours x: %#6.6d %#6.6d %#6.6d.", nbx[0], rank, nbx[1]);

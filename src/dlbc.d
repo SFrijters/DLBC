@@ -45,7 +45,7 @@ int main(string[] args ) {
 
   // Make cartesian grid now that we have values ncx, ncy, ncz everywhere
   reorderMpi();
-  M.show(VL.Debug, LRF.Ordered);
+  M.show!(VL.Debug, LRF.Ordered);
 
   // Try and create the local lattice structure
   createLocalLattice();
