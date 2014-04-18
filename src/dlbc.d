@@ -48,8 +48,14 @@ int main(string[] args ) {
   M.show!(VL.Debug, LRF.Ordered);
 
   // Try and create the local lattice structure
-  createLocalLattice();
-  L.haloExchange();
+  L = Lattice(M, P);
+
+  L.red[] = M.rank;
+
+  L.red.haloExchange();
+  L.blue.haloExchange();
+
+  L.red.show!(VL.Debug, LRF.Root);
 
   // writeLog(VL.Information, LRF.None, "This is another None log test from rank %d.\n",M.rank);
   // writeLog(VL.Information, LRF.Root, "This is another Root log test from rank %d.\n",M.rank);
@@ -63,25 +69,5 @@ int main(string[] args ) {
   writeLogRN(makeHeaderString("Finished DLBC run."));
 
   return 0;
-}
-
-unittest {
-
-  Lattice L;
-  immutable ulong nx = 2;
-  immutable ulong ny = 3;
-  immutable ulong nz = 4;
-  immutable ulong H = 1;
-
-  L = Lattice(nx,ny,nz,H);
-
-  for(int i=0;i<L.nxH;i++)
-    for(int j=0;j<L.nyH;j++)
-      for(int k=0;k<L.nzH;k++) {
-	L.R[k][j][i] = i+j+k;
-      }
-
-  assert(L.R[2][1][0] == 3,  "Lattice R content test failed.");
-
 }
 
