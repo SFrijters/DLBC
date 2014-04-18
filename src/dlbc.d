@@ -19,7 +19,7 @@ int main(string[] args ) {
 
   // Start Main timer
   T.main = MultiStopWatch("Main");
-  T.main.start(LRF.None);
+  T.main.start!(VL.Debug, LRF.None);
 
   // Process the CLI parameters
   processCLI(args);
@@ -56,7 +56,7 @@ int main(string[] args ) {
   // writeLog(VL.Information, LRF.Any, "This is another Any log test from rank %d.\n",M.rank);
   // writeLog(VL.Information, LRF.Ordered, "This is another Ordered log test from rank %d.\n",M.rank);
 
-  T.main.stop(LRF.Ordered);
+  T.main.stop!(VL.Information, LRF.Ordered);
 
   endMpi();
 
