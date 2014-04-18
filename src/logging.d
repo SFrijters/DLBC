@@ -193,7 +193,6 @@ Bugs: Possible memory issues causing corrupted data or hanging processes.
 
 */
 void owriteLog(VL vl, T...)(const T args) {
-  return;
   string logString;
   char[17] test1; // WUT?
   MpiString mpiString;
@@ -227,14 +226,14 @@ void owriteLog(VL vl, T...)(const T args) {
       writeln(strip(logString));
       for (int srcRank = 1; srcRank < M.size; srcRank++ ) {
 
-	MPI_Recv(mpiString.ptr, MpiStringLength, MPI_CHAR, srcRank, mpiTag, M.comm, &mpiStatus);
+	MPI_Recv(&mpiString, MpiStringLength, MPI_CHAR, srcRank, mpiTag, M.comm, &mpiStatus);
 	logString = to!string(mpiString);
 	writeln(strip(logString));
       }
     }
     else {
       immutable int destRank = M.root;
-      MPI_Send(mpiString.ptr, MpiStringLength, MPI_CHAR, destRank, mpiTag, M.comm);
+      MPI_Send(&mpiString, MpiStringLength, MPI_CHAR, destRank, mpiTag, M.comm);
     }
 
     // Make sure all ordered output is finished before the program continues. Performance hog!
