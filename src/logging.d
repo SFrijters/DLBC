@@ -70,7 +70,7 @@ void writeLog(T...)(const VL vl, const LRF logRankFormat, const T args) {
 		writefln(strip(outString));
 	      }
 	    }
-	    return;
+	    break;
 	  }
 	}
 	// not a string, or not a formatted string
@@ -82,6 +82,13 @@ void writeLog(T...)(const VL vl, const LRF logRankFormat, const T args) {
     owriteLog(vl, args);
     break;
   }
+
+  if ( vl == VL.Fatal ) {
+    import std.c.stdlib: exit;
+    writeln(makeLogString(vl, LRF.Any, "Fatal error, aborting..."));
+    exit(-1);
+  }
+
 }
 
 void writeLogRF(T...)(const T args) { writeLog(VL.Fatal       , LRF.Root, args); }

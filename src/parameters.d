@@ -236,9 +236,7 @@ void parseParameter(char[] line, const size_t ln) {
 /// Parses a parameter file
 void readParameterSetFromCliFiles() {
   if (parameterFileNames.length == 0) {
-    import std.c.stdlib: exit;
     writeLogRF("Parameter filename not set, please specify using the -p <filename> option.");
-    exit(-1);
   }
   foreach( fileName; parameterFileNames) {
     readParameterSetFromFile(fileName);
@@ -253,9 +251,7 @@ void readParameterSetFromFile(const string fileName) {
     f = new File(fileName,FileMode.In);
   }
   catch (OpenException e) {
-    import std.c.stdlib;
     writeLogRF("Error opening parameter file '%s' for reading.", fileName);
-    exit(-1);
   }
 
   size_t ln = 0;
