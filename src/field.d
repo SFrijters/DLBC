@@ -267,7 +267,7 @@ struct Field(T, uint dim, uint veclen = 1) {
   */
   void show(VL vl, LRF logRankFormat)() {
     immutable uint vdim = dim + ( veclen > 1 );
-    static assert( vdim <= 4, "Show vector array not yet implemented for dim + vec > 4.");
+    static assert( vdim <= 4, "Show vector array not yet implemented for dim + (veclen > 1) > 4.");
 
     static if ( vdim <= 3 ) {
       writeLog!(vl, logRankFormat)(this.toString());
