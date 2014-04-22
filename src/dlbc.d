@@ -52,14 +52,19 @@ int main(string[] args ) {
   M.show!(VL.Debug, LRF.Ordered);
 
   // Try and create the local lattice structure
-  L = Lattice(M, P);
+  auto L = new Lattice!(3)(M, P);
 
+  L.haloExchange();
+  
   L.red[] = M.rank;
+  L.blue[] = M.rank;
 
   L.red.haloExchange();
   L.blue.haloExchange();
 
   L.red.show!(VL.Debug, LRF.Root);
+
+  L.blue.show!(VL.Debug, LRF.Root);
 
   // writeLog(VL.Information, LRF.None, "This is another None log test from rank %d.\n",M.rank);
   // writeLog(VL.Information, LRF.Root, "This is another Root log test from rank %d.\n",M.rank);
