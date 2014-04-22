@@ -1,4 +1,5 @@
 MODULES =
+	$(MODULE connectivity, "Pre-calculated connectivity options")
 	$(MODULE dlbc, "D Lattice Boltzmann Code")
 	$(MODULE field, "Implementation of scalar and vector fields.")
 	$(MODULE getopt, "Command line processing.")
