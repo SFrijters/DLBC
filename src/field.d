@@ -79,8 +79,6 @@ struct Field(T, uint dim, uint veclen = 1) {
   }
  
   void haloExchange() {
-    import std.conv: to;
-
     int buflen;
     MPI_Status mpiStatus;
 
@@ -88,7 +86,7 @@ struct Field(T, uint dim, uint veclen = 1) {
 
     static if ( veclen > 1 ) {
       // Send to positive x
-      buflen = to!int(nyH * nzH * veclen);
+      buflen = nyH * nzH * veclen;
       rbuffer = multidimArray!T(haloSize, nyH, nzH, veclen);
       sbuffer = arr[$-2*haloSize-1..$ - haloSize-1, 0..$, 0..$, 0..$].dup;
       MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbx[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nbx[0], 0, M.comm, &mpiStatus);
@@ -99,7 +97,7 @@ struct Field(T, uint dim, uint veclen = 1) {
       arr[$ - haloSize .. $, 0..$, 0..$, 0..$] = rbuffer;
 
       // Send to positive y
-      buflen = to!int(nxH * nzH * veclen);
+      buflen = nxH * nzH * veclen;
       rbuffer = multidimArray!T(nxH, haloSize, nzH, veclen);
       sbuffer = arr[0..$, $-2*haloSize-1..$ - haloSize-1, 0..$, 0..$].dup;
       MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nby[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nby[0], 0, M.comm, &mpiStatus);
@@ -110,7 +108,7 @@ struct Field(T, uint dim, uint veclen = 1) {
       arr[0..$, $ - haloSize .. $, 0..$, 0..$] = rbuffer;
 
       // Send to positive z
-      buflen = to!int(nxH * nyH * veclen);
+      buflen = nxH * nyH * veclen;
       rbuffer = multidimArray!T(nxH, nyH, haloSize, veclen);
       sbuffer = arr[0..$, 0..$, $-2*haloSize-1..$ - haloSize-1, 0..$].dup;
       MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, M.comm, &mpiStatus);
@@ -119,10 +117,10 @@ struct Field(T, uint dim, uint veclen = 1) {
       rbuffer = arr[0..$, 0..$, 1..1+haloSize, 0..$].dup;
       MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, rbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, M.comm, &mpiStatus);
       arr[0..$, 0..$, $ - haloSize .. $, 0..$] = rbuffer;
-    }  
+    }
     else {
       // Send to positive x
-      buflen = to!int(nyH * nzH);
+      buflen = nyH * nzH;
       rbuffer = multidimArray!T(haloSize, nyH, nzH);
       sbuffer = arr[$-2*haloSize-1..$ - haloSize-1, 0..$, 0..$].dup;
       MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbx[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nbx[0], 0, M.comm, &mpiStatus);
@@ -133,7 +131,7 @@ struct Field(T, uint dim, uint veclen = 1) {
       arr[$ - haloSize .. $, 0..$, 0..$] = rbuffer;
 
       // Send to positive y
-      buflen = to!int(nxH * nzH);
+      buflen = nxH * nzH;
       rbuffer = multidimArray!T(nxH, haloSize, nzH);
       sbuffer = arr[0..$, $-2*haloSize-1..$ - haloSize-1, 0..$].dup;
       MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nby[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nby[0], 0, M.comm, &mpiStatus);
@@ -144,7 +142,7 @@ struct Field(T, uint dim, uint veclen = 1) {
       arr[0..$, $ - haloSize .. $, 0..$] = rbuffer;
 
       // Send to positive z
-      buflen = to!int(nxH * nyH);
+      buflen = nxH * nyH;
       rbuffer = multidimArray!T(nxH, nyH, haloSize);
       sbuffer = arr[0..$, 0..$, $-2*haloSize-1..$ - haloSize-1].dup;
       MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, M.comm, &mpiStatus);
