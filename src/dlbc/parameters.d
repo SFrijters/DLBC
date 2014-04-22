@@ -22,6 +22,7 @@ enum parameterTypes : string {
   ncx = PDT.Int,
   ncy = PDT.Int,
   ncz = PDT.Int,
+  seed = PDT.Int,
   haloSize = PDT.Int,
   ok = PDT.Bool,
   name = PDT.String,

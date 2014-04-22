@@ -53,6 +53,9 @@ int main(string[] args ) {
   reorderMpi();
   M.show!(VL.Debug, LRF.Ordered);
 
+  // Init random number generator.
+  initRNG();
+
   // Try and create the local lattice structure
   auto L = new Lattice!(3)(M, P);
 
