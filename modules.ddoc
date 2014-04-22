@@ -1,5 +1,6 @@
 MODULES =
 	$(MODULE dlbc, "D Lattice Boltzmann Code")
+	$(MODULE field, "Implementation of scalar and vector fields.")
 	$(MODULE getopt, "Command line processing.")
 	$(MODULE hdf5, "Header file for HDF5 library.")
 	$(MODULE io, "Functions that handle (parallel) output to disk.")
