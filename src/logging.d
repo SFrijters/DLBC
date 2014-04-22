@@ -368,6 +368,9 @@ string makeCurrTimeString() {
 /**
 Creates a string with $(D content) centered in a header line.
 
+Params:
+  content = string to make into a header
+
 Returns: a string with $(D content) centered in a header line.
 
 */
@@ -388,5 +391,25 @@ string makeHeaderString(const string content) pure nothrow {
   string sufDash = replicate(headerDash, sufLength);
   
   return "\n" ~ preDash ~ " " ~ content ~ " " ~ sufDash ~ "\n";
+}
+
+/**
+Creates a string with the values in $(D lengths) separated by "x" to denote grid size.
+
+Params:
+  lengths = array of lengths of arbitrary dimension
+
+Returns: a string with the values in $(D lengths) separated by "x" to denote grid size.
+
+*/
+string makeLengthsString(const uint[] lengths) pure {
+  string str;
+  foreach( l ; lengths ) {
+    if ( str.length > 0 ) {
+      str ~= " x ";
+    }
+    str ~= format("%d",l);
+  }
+  return str;
 }
 
