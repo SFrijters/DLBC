@@ -157,16 +157,16 @@ struct Field(T, uint dim, uint veclen = 1) {
   }
 
   void show(VL vl, LRF logRankFormat)() {
-    static if ( dim <= 3 ) {
+    immutable uint vdim = dim + ( veclen > 1 );
+    static assert( vdim <= 4, "Show vector array not yet implemented for dim + vec > 4.");
+
+    static if ( vdim <= 3 ) {
       writeLog!(vl, logRankFormat)(this.toString());
     }
-    else if ( dim == 4 ) {
+    else if ( vdim == 4 ) {
       foreach(row; this.byTopDimension) {
         writeLog!(vl, logRankFormat)(row.toString());
       }
-    }
-    else {
-      static assert(false, "Show vector array not yet implemented for dim + vec > 4.");
     }
   }
 
