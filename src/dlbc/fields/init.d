@@ -1,6 +1,6 @@
-module dlbc.field.init;
+module dlbc.fields.init;
 
-import dlbc.field.field;
+import dlbc.fields.field;
 import dlbc.logging;
 import dlbc.random;
 

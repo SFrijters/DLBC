@@ -1,6 +1,6 @@
 import dlbc.getopt;
 import dlbc.hdf5;
-import dlbc.field.init;
+import dlbc.fields.init;
 import dlbc.io;
 import dlbc.lattice;
 import dlbc.logging;
