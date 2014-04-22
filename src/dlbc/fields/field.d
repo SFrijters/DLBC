@@ -23,6 +23,7 @@ import dlbc.parameters;
 import dlbc.parallel;
 
 import unstd.multidimarray;
+import unstd.generictuple;
 
 /**
 The $(D Field) struct is designed as a template to hold scalars of vectors of
@@ -61,8 +62,8 @@ struct Field(T, uint dim, uint veclen = 1) {
 
   private uint _dimensions = dim;
   private uint[dim] _lengths;
+  private uint _haloSize;
   private uint[dim] _lengthsH;
-  private uint _nxH, _nyH, _nzH, _haloSize;
 
   /**
      Number of dimensions of the field.
@@ -173,6 +174,48 @@ struct Field(T, uint dim, uint veclen = 1) {
       arr = multidimArray!T(nxH, nyH, nzH);
     }
   }
+
+  /**
+     This variant of opApply loops over the physical part of the lattice only
+     and overloads the opApply of the underlying multidimArray.
+     If the foreach loop is supplied with a reference to the array directly
+     it will loop over all lattice sites instead (including the halo).
+
+     Example:
+     ----
+     foreach(z, y, x, ref el; field) {
+       // Loops over physical sites only.
+     }
+
+     foreach(z, y, x, ref el; field.arr) {
+       // Loops over all lattice sites.
+     }
+     ---
+  */
+  int opApply(int delegate(RepeatTuple!(arr.dimensions, size_t), ref T) dg) {
+    if(!elements)
+      return 0;
+
+    RepeatTuple!(arr.dimensions, size_t) indices = haloSize;
+    indices[$ - 1] = -1 + haloSize;
+
+    for(;;)
+      {
+        foreach_reverse(const plane, ref index; indices)
+          {
+            if(++index < arr.lengths[plane] - haloSize)
+              break;
+            else if(plane)
+              index = haloSize;
+            else
+              return 0;
+          }
+
+        if(const res = dg(indices, arr._data[getOffset(indices)]))
+          return res;
+      }
+  }
+
 
   /**
      The halo of the field is exchanged with all 6 neighbours, according to the haloSize specified when the field was created.
