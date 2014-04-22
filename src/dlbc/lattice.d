@@ -29,8 +29,9 @@ struct Lattice(uint dim) {
     return _lengths[2];
   }
 
-  Field!(int, dim) red;
+  Field!(double, dim, 19) red;
   Field!(double, dim, 19) blue;
+  Field!(int, dim) index;
 
   this ( MpiParams M, ParameterSet P ) {
     // Check if we can reconcile global lattice size with CPU grid
@@ -52,14 +53,15 @@ struct Lattice(uint dim) {
       writeLogF("Halo size < 1 not allowed.");
     }
 
+    red = Field!(double, dim, 19)(lengths, P.haloSize);
     blue = Field!(double, dim, 19)(lengths, P.haloSize);
-    red = Field!(int, dim)(lengths, P.haloSize);
+    index = Field!(int, dim)(lengths, P.haloSize);
   }
 
-  void haloExchange() {
+  void exchangeHalo() {
     import std.algorithm: startsWith;
     foreach(e ; __traits(derivedMembers, Lattice)) {
-      mixin(`static if(typeof(Lattice.`~e~`).stringof.startsWith("Field!")) { `~e~`.haloExchange();};`);
+      mixin(`static if(typeof(Lattice.`~e~`).stringof.startsWith("Field!")) { `~e~`.exchangeHalo();};`);
     }
   }
 }

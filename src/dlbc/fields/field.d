@@ -216,16 +216,17 @@ struct Field(T, uint dim, uint veclen = 1) {
       }
   }
 
-
   /**
-     The halo of the field is exchanged with all 6 neighbours, according to the haloSize specified when the field was created.
-     The data is first stored in the send buffer $(D sbuffer), and data from the neighbours is received in $(D rbuffer).
-     Because the slicing is performed in an identical fashion on all processes, we can easily put the data in the correct
-     spot in the main array.
+     The halo of the field is exchanged with all 6 neighbours, according to 
+     the haloSize specified when the field was created. The data is first
+     stored in the send buffer $(D sbuffer), and data from the neighbours is
+     received in $(D rbuffer). Because the slicing is performed in an
+     identical fashion on all processes, we can easily put the data in the
+     correct spot in the main array.
 
      A special case exists again for scalar data, because the $(D multidimArray) doesn't have a fourth dimension.
   */
-  void haloExchange() {
+  void exchangeHalo() {
     int buflen;
     MPI_Status mpiStatus;
 

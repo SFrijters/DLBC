@@ -59,17 +59,41 @@ int main(string[] args ) {
   // Try and create the local lattice structure
   auto L = new Lattice!(3)(M, P);
 
-  L.haloExchange();
-  
+  L.exchangeHalo();
+
   L.red[] = M.rank;
   L.blue[] = M.rank;
+  L.index[] = M.rank;
 
-  L.red.haloExchange();
-  L.blue.haloExchange();
+  L.red.initRandom();
+  L.blue.initRandom();
 
-  L.red.show!(VL.Debug, LRF.Root);
+  L.index.exchangeHalo();
 
-  L.blue.show!(VL.Debug, LRF.Root);
+  // L.red.exchangeHalo();
+  // L.blue.exchangeHalo();
+
+  // L.red.show!(VL.Debug, LRF.Root);
+  // L.blue.show!(VL.Debug, LRF.Root);
+
+  // foreach(v, z, y, x, ref el; L.red) { // using opApply
+  //   el = z * 100 + y * 10 + x;
+  // }
+
+  // L.index.show!(VL.Debug, LRF.Root);
+
+  // foreach(z, y, x, ref el; L.index) {
+  //   writeLogRD("%d %d %d %d", el, z, y, x);
+  // }
+
+  // foreach(z, y, x, ref el; L.index.arr) {
+  //   writeLogRD("%d %d %d %d", el, z, y, x);
+  // }
+
+  // L.index.show!(VL.Debug, LRF.Root);
+
+
+  // L.blue.show!(VL.Debug, LRF.Root);
 
   // writeLog(VL.Information, LRF.None, "This is another None log test from rank %d.\n",M.rank);
   // writeLog(VL.Information, LRF.Root, "This is another Root log test from rank %d.\n",M.rank);
