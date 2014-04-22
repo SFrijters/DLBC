@@ -16,9 +16,9 @@ Macros:
 	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
-module versions;
+module dlbc.versions;
 
-import logging;
+import dlbc.logging;
 
 
 /**
@@ -30,7 +30,7 @@ Params:
 
 */
 void showRevisionInfo(VL vl, LRF logRankFormat)() {
-  import revision;
+  import dlbc.revision;
 
   if (revisionChanged == 0) {
     writeLog!(vl, logRankFormat)("Executable built from revision '%s'.", revisionDesc );

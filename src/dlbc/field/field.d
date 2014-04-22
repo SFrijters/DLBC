@@ -16,11 +16,11 @@ Macros:
 	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
-module field;
+module dlbc.field.field;
 
-import logging;
-import parameters;
-import parallel;
+import dlbc.logging;
+import dlbc.parameters;
+import dlbc.parallel;
 
 import unstd.multidimarray;
 
@@ -34,7 +34,7 @@ Params:
   dim = dimensionality of the field
   veclen = length of the vector to be stored at every point; a value of 1
     corresponds to a scalar and is treated as a special case
-           
+
 */
 struct Field(T, uint dim, uint veclen = 1) {
   static assert(dim > 1, "1D fields are not supported.");
@@ -148,10 +148,9 @@ struct Field(T, uint dim, uint veclen = 1) {
   */
   alias arr this;
 
-
   /**
      A $(D Field) is constructed by specifying the size of the physical domain and the required halo size.
-     
+
      Params:
        lengths = lengths of the dimensions of the physical domain
        haloSize = size of the halo region

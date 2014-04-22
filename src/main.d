@@ -1,12 +1,14 @@
-import getopt;
-import hdf5;
-import io;
-import lattice;
-import logging;
-import parallel;
-import parameters;
-import timers;
-import versions;
+import dlbc.getopt;
+import dlbc.hdf5;
+import dlbc.field.init;
+import dlbc.io;
+import dlbc.lattice;
+import dlbc.logging;
+import dlbc.parallel;
+import dlbc.parameters;
+import dlbc.random;
+import dlbc.timers;
+import dlbc.versions;
 
 int main(string[] args ) {
 

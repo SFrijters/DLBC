@@ -16,13 +16,13 @@ Macros:
 	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
-module io;
+module dlbc.io;
 
-import hdf5;
-import lattice;
-import logging;
-import parallel;
-import parameters;
+import dlbc.hdf5;
+import dlbc.lattice;
+import dlbc.logging;
+import dlbc.parallel;
+import dlbc.parameters;
 
 void dumpFieldHDF5(T)(const Field!T f, const string name) {
 

@@ -1,4 +1,5 @@
 /// mpi.h -> mpi.d
+module dlbc.mpi;
 
 extern(C):
 

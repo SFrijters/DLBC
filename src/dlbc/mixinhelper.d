@@ -1,3 +1,5 @@
+module dlbc.mixinhelper;
+
 /* http://www.d-programming-language.org/templates-revisited.html
    " Template Metaprogramming With Strings " */
 template decimalDigit(const int n) {

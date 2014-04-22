@@ -1,7 +1,9 @@
-import logging;
-import parameters;
+module dlbc.getopt;
 
-import std.getopt; 
+import dlbc.logging;
+import dlbc.parameters;
+
+import std.getopt;
 
 /// Process CLI
 void processCLI(string[] args) {

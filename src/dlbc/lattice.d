@@ -1,7 +1,9 @@
-import field;
-import logging;
-import parameters;
-import parallel;
+module dlbc.lattice;
+
+import dlbc.field.field;
+import dlbc.logging;
+import dlbc.parameters;
+import dlbc.parallel;
 
 struct Lattice(uint dim) {
   private uint _dimensions = dim;

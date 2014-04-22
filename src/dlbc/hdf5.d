@@ -1,3 +1,5 @@
+module dlbc.hdf5;
+
 /// hdf5.h -> hdf5.d
 
 /++

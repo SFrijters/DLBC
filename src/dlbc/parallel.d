@@ -1,8 +1,10 @@
-public import mpi;
+module dlbc.parallel;
 
-import logging;
-import mixinhelper; // For itoa template
-import parameters;
+public import dlbc.mpi;
+
+import dlbc.logging;
+import dlbc.mixinhelper; // For itoa template
+import dlbc.parameters;
 
 immutable uint D = 3; // Dimensionality of the MPI grid.
 

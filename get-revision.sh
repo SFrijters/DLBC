@@ -37,6 +37,7 @@ fi
 read -d '' DVARS <<EOF
 
 // Written in the D programming language.
+module dlbc.revision;
 
 immutable {
 

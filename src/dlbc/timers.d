@@ -16,12 +16,12 @@ Macros:
 	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
-module timers;
+module dlbc.timers;
 
 import std.datetime;
 import std.string;
 
-import logging;
+import dlbc.logging;
 
 /**
 Container for multiple timers.

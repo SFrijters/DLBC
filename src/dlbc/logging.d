@@ -16,13 +16,13 @@ Macros:
 	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
-module logging;
+module dlbc.logging;
 
 import std.conv;
 import std.stdio;
 import std.string;
 
-import parallel;
+import dlbc.parallel;
 
 /**
 String to append to truncated messages.

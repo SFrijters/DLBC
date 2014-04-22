@@ -1,12 +1,13 @@
 // Written in the D programming language.
+module dlbc.parameters;
 
 import std.conv;
 import std.file;
 import std.stream;
 import std.string;
 
-import logging;
-import parallel;
+import dlbc.logging;
+import dlbc.parallel;
 
 string[] parameterFileNames;
 
