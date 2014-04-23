@@ -224,11 +224,38 @@ struct Field(T, uint dim, uint veclen = 1) {
      identical fashion on all processes, we can easily put the data in the
      correct spot in the main array.
 
-     A special case exists again for scalar data, because the $(D multidimArray) doesn't have a fourth dimension.
+     A special case exists for scalar data, because the underlying
+     $(D multidimArray) lacks a fourth dimension.
+
+     Params:
+       haloSize = width of the halo to be exchanged; this can be smaller than
+                  the halo that is held in memory
   */
   void exchangeHalo() {
-    int buflen;
+    exchangeHalo(this._haloSize);
+  }
+  /// Ditto
+  void exchangeHalo(uint haloSize) {
+    if ( haloSize > this._haloSize) {
+      writeLogF("Requested size %d of halo exchange cannot be larger than halo size %d.", haloSize, this._haloSize);
+    }
+
+    writeLogRD("Performing halo exchange of size %d.", haloSize);
+
+    uint buflen;
     MPI_Status mpiStatus;
+
+    uint haloOffset = this._haloSize - haloSize;
+
+    uint lus = this._haloSize + haloOffset + haloSize;
+    uint uus = this._haloSize + haloOffset;
+    uint lls = this._haloSize + haloOffset;
+    uint uls = this._haloSize + haloOffset + haloSize;
+
+    uint lur = haloOffset + haloSize;
+    uint uur = haloOffset;
+    uint llr = haloOffset;
+    uint ulr = haloOffset + haloSize;
 
     static if ( veclen > 1 ) {
       // Send to positive x
@@ -266,37 +293,37 @@ struct Field(T, uint dim, uint veclen = 1) {
     }
     else {
       // Send to positive x
-      buflen = nyH * nzH;
-      rbuffer = multidimArray!T(haloSize, nyH, nzH);
-      sbuffer = arr[$-2*haloSize-1..$ - haloSize-1, 0..$, 0..$].dup;
+      buflen = (ny + 2*haloSize) * (nz + 2*haloSize) * haloSize;
+      rbuffer = multidimArray!T(haloSize, (ny + 2*haloSize), (nz + 2*haloSize));
+      sbuffer = arr[$-lus .. $-uus, haloOffset..$-haloOffset, haloOffset..$-haloOffset].dup;
       MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbx[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nbx[0], 0, M.comm, &mpiStatus);
-      arr[0..haloSize, 0..$, 0..$] = rbuffer;
+      arr[llr..ulr, haloOffset..$-haloOffset, haloOffset..$-haloOffset] = rbuffer;
       // Send to negative x
-      sbuffer = arr[1..1+haloSize, 0..$, 0..$].dup;
+      sbuffer = arr[lls..uls, haloOffset..$-haloOffset, haloOffset..$-haloOffset].dup;
       MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbx[0], 0, rbuffer._data.ptr, buflen, mpiType, M.nbx[1], 0, M.comm, &mpiStatus);
-      arr[$ - haloSize .. $, 0..$, 0..$] = rbuffer;
+      arr[$-lur .. $-uur, haloOffset..$-haloOffset, haloOffset..$-haloOffset] = rbuffer;
 
       // Send to positive y
-      buflen = nxH * nzH;
-      rbuffer = multidimArray!T(nxH, haloSize, nzH);
-      sbuffer = arr[0..$, $-2*haloSize-1..$ - haloSize-1, 0..$].dup;
+      buflen = (nx + 2*haloSize) * (nz + 2*haloSize) * haloSize;
+      rbuffer = multidimArray!T((nx + 2*haloSize), haloSize, (nz + 2*haloSize));
+      sbuffer = arr[haloOffset..$-haloOffset, $-lus..$-uus, haloOffset..$-haloOffset].dup;
       MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nby[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nby[0], 0, M.comm, &mpiStatus);
-      arr[0..$, 0..haloSize, 0..$] = rbuffer;
+      arr[haloOffset..$-haloOffset, llr..ulr, haloOffset..$-haloOffset] = rbuffer;
       // Send to negative y
-      rbuffer = arr[0..$, 1..1+haloSize, 0..$].dup;
+      sbuffer = arr[haloOffset..$-haloOffset, lls..uls, haloOffset..$-haloOffset].dup;
       MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nby[0], 0, rbuffer._data.ptr, buflen, mpiType, M.nby[1], 0, M.comm, &mpiStatus);
-      arr[0..$, $ - haloSize .. $, 0..$] = rbuffer;
+      arr[haloOffset..$-haloOffset, $-lur..$-uur, haloOffset..$-haloOffset] = rbuffer;
 
       // Send to positive z
-      buflen = nxH * nyH;
-      rbuffer = multidimArray!T(nxH, nyH, haloSize);
-      sbuffer = arr[0..$, 0..$, $-2*haloSize-1..$ - haloSize-1].dup;
+      buflen = (nx + 2*haloSize) * (ny + 2*haloSize) * haloSize;
+      rbuffer = multidimArray!T((nx + 2*haloSize), (ny + 2*haloSize), haloSize);
+      sbuffer = arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, $-lus..$-uus].dup;
       MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, M.comm, &mpiStatus);
-      arr[0..$, 0..$, 0..haloSize] = rbuffer;
+      arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, llr..ulr] = rbuffer;
       // Send to negative z
-      rbuffer = arr[0..$, 0..$, 1..1+haloSize].dup;
+      sbuffer = arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, lls..uls].dup;
       MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, rbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, M.comm, &mpiStatus);
-      arr[0..$, 0..$, $ - haloSize .. $] = rbuffer;
+      arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, $-lur..$-uur] = rbuffer;
     }
   }
 
