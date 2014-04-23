@@ -55,7 +55,7 @@ struct Lattice(uint dim) {
 
     red = Field!(double, dim, 19)(lengths, P.haloSize);
     blue = Field!(double, dim, 19)(lengths, P.haloSize);
-    index = Field!(int, dim)(lengths, P.haloSize);
+    index = Field!(int, dim)(lengths, 1);
   }
 
   void exchangeHalo() {

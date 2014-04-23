@@ -65,10 +65,19 @@ int main(string[] args ) {
   L.blue[] = M.rank;
   L.index[] = M.rank;
 
-  L.red.initRandom();
-  L.blue.initRandom();
+  // L.red.initRandom();
+  // L.blue.initRandom();
 
   L.index.exchangeHalo(1);
+  L.index.show!(VL.Debug, LRF.Root);
+  L.index.exchangeHalo();
+  L.index.show!(VL.Debug, LRF.Root);
+
+  L.blue.exchangeHalo(1);
+  L.blue.show!(VL.Debug, LRF.Root);
+  L.blue.exchangeHalo();
+  L.blue.show!(VL.Debug, LRF.Root);
+
 
   // L.red.exchangeHalo();
   // L.blue.exchangeHalo();
@@ -80,10 +89,6 @@ int main(string[] args ) {
   //   el = z * 100 + y * 10 + x;
   // }
 
-  L.index.show!(VL.Debug, LRF.Root);
-
-  L.index.exchangeHalo();
-  L.index.show!(VL.Debug, LRF.Root);
 
   // foreach(z, y, x, ref el; L.index) {
   //   writeLogRD("%d %d %d %d", el, z, y, x);
