@@ -197,18 +197,38 @@ struct Field(T, uint dim, uint veclen = 1) {
       return 0;
 
     RepeatTuple!(arr.dimensions, size_t) indices = haloSize;
-    indices[$ - 1] = -1 + haloSize;
+    static if ( veclen > 1 ) {
+      indices[$ - 1] = -1;
+    }
+    else {
+      indices[$ - 1] = -1 + haloSize;
+    }
 
     for(;;)
       {
         foreach_reverse(const plane, ref index; indices)
           {
-            if(++index < arr.lengths[plane] - haloSize)
-              break;
-            else if(plane)
-              index = haloSize;
-            else
-              return 0;
+	    static if ( veclen > 1 ) {
+	      uint offset = 0;
+	      if( plane != arr.dimensions - 1 ){
+		offset = haloSize;
+	      }
+
+	      if(++index < arr.lengths[plane] - offset)
+		break;
+	      else if(plane)
+		index = offset;
+	      else
+		return 0;
+	    }
+	    else {
+	      if(++index < arr.lengths[plane] - haloSize)
+		break;
+	      else if(plane)
+		index = haloSize;
+	      else
+		return 0;
+	    }
           }
 
         if(const res = dg(indices, arr._data[getOffset(indices)]))
