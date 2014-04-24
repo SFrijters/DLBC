@@ -68,16 +68,15 @@ int main(string[] args ) {
   // L.red.initRandom();
   // L.blue.initRandom();
 
-  L.index.exchangeHalo(1);
-  L.index.show!(VL.Debug, LRF.Root);
-  L.index.exchangeHalo();
-  L.index.show!(VL.Debug, LRF.Root);
+  // L.index.exchangeHalo(1);
+  // L.index.show!(VL.Debug, LRF.Root);
+  // L.index.exchangeHalo();
+  // L.index.show!(VL.Debug, LRF.Root);
 
-  L.blue.exchangeHalo(1);
-  L.blue.show!(VL.Debug, LRF.Root);
-  L.blue.exchangeHalo();
-  L.blue.show!(VL.Debug, LRF.Root);
-
+  // L.blue.exchangeHalo(1);
+  // L.blue.show!(VL.Debug, LRF.Root);
+  // L.blue.exchangeHalo();
+  // L.blue.show!(VL.Debug, LRF.Root);
 
   // L.red.exchangeHalo();
   // L.blue.exchangeHalo();
@@ -85,17 +84,30 @@ int main(string[] args ) {
   // L.red.show!(VL.Debug, LRF.Root);
   // L.blue.show!(VL.Debug, LRF.Root);
 
-  // foreach(v, z, y, x, ref el; L.red) { // using opApply
-  //   el = z * 100 + y * 10 + x;
+  // foreach( x, y, z, ref el; L.index) {
+  //   writeLogRD("%d %d %d %d", el, x, y, z);
   // }
 
-
-  // foreach(z, y, x, ref el; L.index) {
-  //   writeLogRD("%d %d %d %d", el, z, y, x);
+  // foreach( x, y, z, ref el; L.index.arr) {
+  //   writeLogRD("%d %d %d %d", el, x, y, z);
   // }
 
-  // foreach(z, y, x, ref el; L.index.arr) {
-  //   writeLogRD("%d %d %d %d", el, z, y, x);
+  // foreach(v, x, y, z, ref el; L.red) { // using opApply
+  //   writeLogRD("%d %d %d %d", v, x, y, z);
+  // }
+
+  // foreach(v, x, y, z, ref el; L.red.arr) {
+  //   writeLogRD("%d %d %d %d", v, x, y, z);
+  // }
+
+  // foreach(x, y, z, ref el; L.red) {
+  //   // Loops over physical sites of scalar field only.
+  //   assert(is(typeof(el) == double[19]) );
+  //   writeLogRD("%s %d %d %d", el, x, y, z);
+  // }
+
+  // foreach( z, y, x, ref el; L.red.arr) {
+  //   writeLogRD("%s %d %d %d", el, z, y, x);
   // }
 
   // L.index.show!(VL.Debug, LRF.Root);

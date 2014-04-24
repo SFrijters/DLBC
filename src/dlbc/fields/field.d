@@ -176,19 +176,47 @@ struct Field(T, uint dim, uint veclen = 1) {
   }
 
   /**
-     This variant of opApply loops over the physical part of the lattice only
+     These variants of opApply loop over the physical part of the lattice only
      and overloads the opApply of the underlying multidimArray.
      If the foreach loop is supplied with a reference to the array directly
      it will loop over all lattice sites instead (including the halo).
 
      Example:
      ----
-     foreach(z, y, x, ref el; field) {
-       // Loops over physical sites only.
+     foreach(x, y, z, ref el; sfield) {
+       // Loops over physical sites of scalar field only.
      }
 
-     foreach(z, y, x, ref el; field.arr) {
-       // Loops over all lattice sites.
+     foreach(x, y, z, ref el; sfield.arr) {
+       // Loops over all lattice sites of scalar field.
+     }
+     ---
+     If $(D field) is a vector field, a fourth index is required.
+
+     Example:
+     ----
+     foreach(v, x, y, z, ref el; vfield) {
+       // Loops over physical sites of scalar field only.
+     }
+
+     foreach(v, x, y, z, ref el; vfield.arr) {
+       // Loops over all lattice sites of scalar field.
+     }
+     ---
+     Alternatively, one can forego the fourth index, in which
+     case another opApply is used, returning the vector component as
+     a fixed-length array.
+
+     Example:
+     ----
+     foreach(x, y, z, ref el; vfield) {
+       assert(is(typeof(el) == T[veclen]) );
+       // Loops over physical sites of scalar field only.
+     }
+
+     foreach(x, y, z, ref el; vfield.arr) {
+       // Does not compile - underlying array does not have this
+       // version of opApply.
      }
      ---
   */
@@ -204,36 +232,64 @@ struct Field(T, uint dim, uint veclen = 1) {
       indices[$ - 1] = -1 + haloSize;
     }
 
-    for(;;)
-      {
-        foreach_reverse(const plane, ref index; indices)
-          {
-	    static if ( veclen > 1 ) {
-	      uint offset = 0;
-	      if( plane != arr.dimensions - 1 ){
-		offset = haloSize;
-	      }
+    for(;;) {
+      foreach_reverse(const plane, ref index; indices) {
+	static if ( veclen > 1 ) {
+	  uint offset = 0;
+	  if( plane != arr.dimensions - 1 ){
+	    offset = haloSize;
+	  }
 
-	      if(++index < arr.lengths[plane] - offset)
-		break;
-	      else if(plane)
-		index = offset;
-	      else
-		return 0;
-	    }
-	    else {
-	      if(++index < arr.lengths[plane] - haloSize)
-		break;
-	      else if(plane)
-		index = haloSize;
-	      else
-		return 0;
-	    }
-          }
-
-        if(const res = dg(indices, arr._data[getOffset(indices)]))
-          return res;
+	  if(++index < arr.lengths[plane] - offset)
+	    break;
+	  else if(plane)
+	    index = offset;
+	  else
+	    return 0;
+	}
+	else {
+	  if(++index < arr.lengths[plane] - haloSize)
+	    break;
+	  else if(plane)
+	    index = haloSize;
+	  else
+	    return 0;
+	}
       }
+
+      if(const res = dg(indices, arr._data[getOffset(indices)]))
+	return res;
+    }
+  }
+
+  static if ( veclen > 1 ) {
+    /// Returns T[veclen].
+    int opApply(int delegate(RepeatTuple!(arr.dimensions-1, size_t), ref T[veclen]) dg) {
+      if(!elements)
+	return 0;
+
+      RepeatTuple!(arr.dimensions, size_t) indices = haloSize;
+      indices[$ - 2] = -1 + haloSize;
+
+      for(;;) {
+	foreach_reverse(const plane, ref index; indices[0..$-1]) {
+	  if(++index < arr.lengths[plane] - haloSize)
+	    break;
+	  else if(plane)
+	    index = haloSize;
+	  else
+	    return 0;
+	}
+	
+	auto sindices = indices;
+	sindices[$-1] = 0;
+	auto findices = indices;
+	findices[$-1] = veclen;
+	T[veclen] retvec = arr._data[getOffset(sindices)..getOffset(findices)];
+	if(const res = dg(indices[0..$-1], retvec))
+	  return res;
+      }
+    }
   }
 
   /**
