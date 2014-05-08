@@ -6,6 +6,7 @@ import dlbc.lattice;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.parameters;
+import dlbc.parparse;
 import dlbc.random;
 import dlbc.timers;
 import dlbc.versions;
@@ -38,7 +39,7 @@ int main(string[] args ) {
 
   // No cartesian grid yet, but the root can read stuff
   if (M.isRoot) {
-    readParameterSetFromCliFiles();
+    dlbc.parameters.readParameterSetFromCliFiles();
   }
 
   // Get the parameters to all CPUs
@@ -119,6 +120,16 @@ int main(string[] args ) {
   // writeLog(VL.Information, LRF.Root, "This is another Root log test from rank %d.\n",M.rank);
   // writeLog(VL.Information, LRF.Any, "This is another Any log test from rank %d.\n",M.rank);
   // writeLog(VL.Information, LRF.Ordered, "This is another Ordered log test from rank %d.\n",M.rank);
+
+
+
+  if (M.isRoot) {
+    import std.stdio: writeln;
+    writeln(createParameterMixins());
+    dlbc.parparse.readParameterSetFromCliFiles();
+  }
+
+
 
   T.main.stop!(VL.Information, LRF.Ordered);
 
