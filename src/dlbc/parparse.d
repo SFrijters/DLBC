@@ -10,16 +10,15 @@ import std.file;
 import std.stream;
 import std.string;
 
+import dlbc.parallel;
 
 // import std.stdio;
 
 import dlbc.parameters;
 
-bool[string] paramIsSet;
+private string[] setParams;
 
 auto createParameterMixins() {
-  //  string[] parameterList;
-
   string mixinStringParser;
   string mixinStringShow;
   string mixinStringBcast;
@@ -27,10 +26,10 @@ auto createParameterMixins() {
   mixinStringParser ~= "void parse(const string keyString, const string valueString, const size_t ln) {\n";
   mixinStringParser ~= "switch(keyString) {\n\n";
 
-  mixinStringShow ~= "void show(VL vl, LRF logRankFormat)() {\n";
+  mixinStringShow ~= "void show(VL vl, LRF logRankFormat)() {\n  import std.algorithm;\n";
   mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"Current parameter set:\");";
 
-  //mixinStringShow ~= "vl = VL.Notification; logRankFormat = LRF.Root;";
+  mixinStringBcast ~= "void broadcastParameters() {\n";
 
   foreach(e ; __traits(derivedMembers, dlbc.parameters)) {
     mixin(`
@@ -39,29 +38,38 @@ auto createParameterMixins() {
           auto fullName = "dlbc.parameters." ~ e;
 
           mixinStringParser ~= "case \"`~e~`\":\n";
-          static if ( isMutable!(typeof(`~e~`)) ) {
+          static if ( isMutable!(typeof(dlbc.parameters.`~e~`)) ) {
             mixinStringParser ~= "  try {\n";
             mixinStringParser ~= "    " ~ fullName ~ " = to!(typeof(" ~ fullName ~ "))( valueString );\n";
             mixinStringParser ~= "  }\n";
             mixinStringParser ~= "  catch (ConvException e) { writeLogE(\"  ConvException at line %d of the input file.\",ln); throw e; }\n";
-            mixinStringParser ~= "  paramIsSet[\""~fullName~"\"] = true;\n  break;\n";
+            mixinStringParser ~= "  setParams ~= \""~fullName~"\"; break;\n";
           }
           else {
             mixinStringParser ~= "  writeLogRW(\"Parameter '`~e~`' is not mutable.\");\n";
           }
           mixinStringParser ~= "\n";
 
-          static if ( isMutable!(typeof(`~e~`)) ) {
-            mixinStringShow ~= "  if ( ! (\""~fullName~"\" in paramIsSet ) ) { \n";
-            mixinStringShow ~= "    writeLog!(VL.Warning, logRankFormat)(\"NOT SET %20s = %s\",\"`~e~`\",to!string(`~e~`));\n";
+          static if ( isMutable!(typeof(dlbc.parameters.`~e~`)) ) {
+            mixinStringShow ~= "  if ( ! ( setParams.canFind(\""~fullName~"\") ) ) { \n";
+            mixinStringShow ~= "    writeLog!(VL.Warning, logRankFormat)(\"NOT SET %20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
             mixinStringShow ~= "  }\n  else {\n";
-            mixinStringShow ~= "    writeLog!(vl, logRankFormat)(\"        %20s = %s\",\"`~e~`\",to!string(`~e~`));\n";
+            mixinStringShow ~= "    writeLog!(vl, logRankFormat)(\"        %20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
             mixinStringShow ~= "  }\n";
           }
           else {
-            mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"FIXED   %20s = %s\",\"`~e~`\",to!string(`~e~`));\n";
+            mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"FIXED   %20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
           }
           mixinStringShow ~= "\n";
+
+          static if ( isMutable!(typeof(dlbc.parameters.`~e~`)) ) {
+            static if ( is( typeof(dlbc.parameters.`~e~`) == string) ) {
+              mixinStringBcast ~= "  MpiBcastString("~fullName~");\n";
+            }
+            else {
+              mixinStringBcast ~= "  MPI_Bcast(&" ~ fullName ~ ", 1, mpiTypeof!(typeof(" ~ fullName ~")), M.root, M.comm);\n";
+            }
+          }
 
           break;
         }
@@ -73,26 +81,11 @@ auto createParameterMixins() {
 
   mixinStringShow ~= "}\n";
 
-  return mixinStringParser ~ "\n" ~ mixinStringShow;
+  mixinStringBcast ~= "}\n";
+
+  return mixinStringParser ~ "\n" ~ mixinStringShow ~ "\n" ~ mixinStringBcast;
 
 }
-
-// /// Generates Mixin to list the values of P
-// auto createParameterSetShow() {
-//   string mixinString;
-//   foreach( member ; __traits(allMembers, parameterTypes)) {
-//     string type = mixin("parameterTypes." ~ member);
-//     // Add a warning 'NOT SET' for variables which are still equal to their default init.
-//     mixinString ~= "if ( !paramIsSet[" ~ member ~ "]) { \n";
-//     // Actual print statement
-//     mixinString ~= "writeLog!(VL.Warning, logRankFormat)(\"NOT SET %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~ "));\n";
-//     mixinString ~= "}\nelse {\n";
-//     mixinString ~= "writeLog!(vl, logRankFormat)(\"        %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~ "));\n";
-//     mixinString ~= "}\n";
-//   }
-//   return mixinString;
-// }
-
 
 mixin(createParameterMixins());
 

@@ -178,3 +178,17 @@ MPI_Datatype mpiTypeof(T)() {
   }
 }
 
+auto MpiBcastString(ref string str) {
+  import std.conv;
+  int retval;
+  uint strlen = to!int(str.length);
+  MpiString strbuf;
+  strbuf[0..strlen] = str;
+  MPI_Bcast(&strlen, 1, MPI_INT, M.root, M.comm);
+  retval = MPI_Bcast(&strbuf, strlen, MPI_CHAR, M.root, M.comm);
+  if ( ! M.isRoot ) { 
+    str = to!string(strbuf[0..strlen]);
+  }
+  return retval;
+}
+

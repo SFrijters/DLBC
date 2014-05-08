@@ -127,7 +127,12 @@ int main(string[] args ) {
     import std.stdio: writeln;
     writeln(createParameterMixins());
     dlbc.parparse.readParameterSetFromCliFiles();
+    stest4 = "a121frtgbe55";
   }
+
+  dlbc.parparse.show!(VL.Information, LRF.Ordered);
+  dlbc.parparse.broadcastParameters();
+  dlbc.parparse.show!(VL.Information, LRF.Ordered);
 
 
 

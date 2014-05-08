@@ -11,13 +11,12 @@ import dlbc.parallel;
 
 string[] parameterFileNames;
 
-
 const int test = 1;
 @("param") immutable int test2 = 2;
 @("param") int test3 = 3;
 @("param") const string stest = "1";
 immutable string stest2 = "2";
-@("param") string stest3 = "3";
+@("param") immutable string stest3 = "3";
 @("param") string stest4 = "4";
 
 /** This enum will be translated into various components through mixins.
