@@ -18,6 +18,8 @@ import dlbc.parameters;
 
 private string[] setParams;
 
+immutable string parameterUDA = "param";
+
 auto createParameterMixins() {
   string mixinStringParser;
   string mixinStringShow;
@@ -31,14 +33,18 @@ auto createParameterMixins() {
 
   mixinStringBcast ~= "void broadcastParameters() {\n";
 
+  immutable string fullModuleName = "dlbc.parameters";
+  immutable string qualModuleName = "parameters";
+
   foreach(e ; __traits(derivedMembers, dlbc.parameters)) {
     mixin(`
-      foreach( t; __traits(getAttributes, dlbc.parameters.`~e~`)) {
-        if ( t == "param" ) {
-          auto fullName = "dlbc.parameters." ~ e;
+      foreach( t; __traits(getAttributes, `~fullModuleName~`.`~e~`)) {
+        if ( t == "`~parameterUDA~`" ) {
+          auto fullName = "`~fullModuleName~`." ~ e;
+          auto qualName = "`~qualModuleName~`." ~ e;
 
-          mixinStringParser ~= "case \"`~e~`\":\n";
-          static if ( isMutable!(typeof(dlbc.parameters.`~e~`)) ) {
+          mixinStringParser ~= "case \""~qualName~"\":\n";
+          static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
             mixinStringParser ~= "  try {\n";
             mixinStringParser ~= "    " ~ fullName ~ " = to!(typeof(" ~ fullName ~ "))( valueString );\n";
             mixinStringParser ~= "  }\n";
@@ -46,11 +52,11 @@ auto createParameterMixins() {
             mixinStringParser ~= "  setParams ~= \""~fullName~"\"; break;\n";
           }
           else {
-            mixinStringParser ~= "  writeLogRW(\"Parameter '`~e~`' is not mutable.\");\n";
+            mixinStringParser ~= "  writeLogRW(\"Parameter '"~qualName~"' is not mutable.\");\n";
           }
           mixinStringParser ~= "\n";
 
-          static if ( isMutable!(typeof(dlbc.parameters.`~e~`)) ) {
+          static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
             mixinStringShow ~= "  if ( ! ( setParams.canFind(\""~fullName~"\") ) ) { \n";
             mixinStringShow ~= "    writeLog!(VL.Warning, logRankFormat)(\"NOT SET %20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
             mixinStringShow ~= "  }\n  else {\n";
@@ -62,8 +68,8 @@ auto createParameterMixins() {
           }
           mixinStringShow ~= "\n";
 
-          static if ( isMutable!(typeof(dlbc.parameters.`~e~`)) ) {
-            static if ( is( typeof(dlbc.parameters.`~e~`) == string) ) {
+          static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
+            static if ( is( typeof(`~fullModuleName~`.`~e~`) == string) ) {
               mixinStringBcast ~= "  MpiBcastString("~fullName~");\n";
             }
             else {
