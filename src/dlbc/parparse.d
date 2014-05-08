@@ -96,7 +96,7 @@ auto createParameterMixins() {
 mixin(createParameterMixins());
 
 /// Parses a single line of the parameter file
-void parseParameter(char[] line, const size_t ln) {
+void parseParameter(char[] line, const size_t ln, ref string currentSection) {
   char[] keyString, valueString;
 
   enum vl = VL.Notification;
@@ -106,14 +106,27 @@ void parseParameter(char[] line, const size_t ln) {
   if (commentPos >= 0) {
     line = line[0 .. commentPos];
   }
- 
+
   auto assignmentPos = indexOf(line, "=");
   if (assignmentPos > 0) {
     keyString = strip(line[0 .. assignmentPos]);
     valueString = strip(line[(assignmentPos+1) .. $]);
     // This mixin creates cases for all members of the parameterTypes struct
     //mixin(makeParameterCase());
-    parse(to!string(keyString), to!string(valueString), ln);
+    if ( currentSection != "" ) {
+      parse(currentSection~"."~to!string(keyString), to!string(valueString), ln);
+    }
+    else {
+      parse(to!string(keyString), to!string(valueString), ln);
+    }
+  }
+  else {
+    import std.regex;
+    auto r = regex(r"\[(.*?)\]", "g");
+    foreach(c; match(line, r)) {
+      currentSection = to!string(c.captures[1]);
+      writeLogRD("Entering section %s.", currentSection);
+    }
   }
 }
 
@@ -130,6 +143,7 @@ void readParameterSetFromCliFiles() {
 }
 
 void readParameterSetFromFile(const string fileName) {
+  string currentSection;
   File f;
   writeLogRI("Reading parameters from file '%s'.",fileName);
 
@@ -142,7 +156,7 @@ void readParameterSetFromFile(const string fileName) {
 
   size_t ln = 0;
   while(!f.eof()) {
-    parseParameter(f.readLine(),++ln);
+    parseParameter(f.readLine(),++ln,currentSection);
   }
   f.close();
 }

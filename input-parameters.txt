@@ -11,10 +11,12 @@ nz = 8    // Lattice size z-direction
 
 haloSize = 2
 
-parameters.test = 41
-parameters.test2 = 42
-parameters.test3 = 43
-parameters.stest = blah
-parameters.stest2 = blah2 blah blah
-parameters.stest3 = blah3 blah blah
+[parameters]
+
+test = 41
+test2 = 42
+test3 = 43
+stest = blah
+stest2 = blah2 blah blah
+stest3 = blah3 blah blah
 
