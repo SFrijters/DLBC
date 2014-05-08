@@ -315,9 +315,11 @@ private string makeLogString(VL vl, LRF logRankFormat, T...)(T args) {
   }
 
   // Move any leading newlines in front of the tags.
-  while (args[0][0..1] == "\n") {
-    preTag ~= args[0][0..1];
-    args[0] = args[0][1..$];
+  if ( args[0].length > 0 ) {
+    while (args[0][0..1] == "\n") {
+      preTag ~= args[0][0..1];
+      args[0] = args[0][1..$];
+    }
   }
 
   args[0] = preTag ~ vlTag ~ rankTag ~ args[0];
