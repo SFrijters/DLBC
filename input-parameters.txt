@@ -5,14 +5,14 @@
 
 vl = 5     // Verbosity level
 
+haloSize = 2
+
+[lattice]
 nx = 32    // Lattice size x-direction
 ny = 16    // Lattice size y-direction
 nz = 8    // Lattice size z-direction
 
-haloSize = 2
-
 [parameters]
-
 test = 41
 test2 = 42
 test3 = 43

@@ -12,13 +12,16 @@ import std.string;
 
 import dlbc.parallel;
 
-// import std.stdio;
-
 import dlbc.parameters;
 
 private string[] setParams;
 
+string[] parameterFileNames;
+
 immutable string parameterUDA = "param";
+
+// Ideally this should be a template parameter to the createParameterMixins function, maybe?
+private alias TypeTuple!("dlbc.parameters","dlbc.lattice") parameterSourceModules;
 
 auto createParameterMixins() {
   string mixinStringParser;
@@ -33,11 +36,11 @@ auto createParameterMixins() {
 
   mixinStringBcast ~= "void broadcastParameters() {\n";
 
-  immutable string fullModuleName = "dlbc.parameters";
-  immutable string qualModuleName = "parameters";
+  foreach(fullModuleName ; parameterSourceModules) {
+    immutable string qualModuleName = fullModuleName.split(".")[1..$].join();
 
-  foreach(e ; __traits(derivedMembers, dlbc.parameters)) {
-    mixin(`
+    foreach(e ; __traits(derivedMembers, mixin(fullModuleName))) {
+      mixin(`
       foreach( t; __traits(getAttributes, `~fullModuleName~`.`~e~`)) {
         if ( t == "`~parameterUDA~`" ) {
           auto fullName = "`~fullModuleName~`." ~ e;
@@ -79,8 +82,8 @@ auto createParameterMixins() {
 
           break;
         }
-  }`);
-
+      }`);
+    }
   }
   mixinStringParser ~= "default:\n  writeLogRW(\"Unknown key at line %d: '%s'.\", ln, keyString);\n}\n\n";
   mixinStringParser ~= "}\n";

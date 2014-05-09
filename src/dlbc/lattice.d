@@ -5,6 +5,10 @@ import dlbc.logging;
 import dlbc.parameters;
 import dlbc.parallel;
 
+@("param") int nx;
+@("param") int ny;
+@("param") int nz;
+
 struct Lattice(uint dim) {
   private uint _dimensions = dim;
   private uint[dim] _lengths;
