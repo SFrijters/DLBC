@@ -4,11 +4,10 @@ public import dlbc.mpi;
 
 import dlbc.logging;
 import dlbc.mixinhelper; // For itoa template
-import dlbc.parameters;
 
-@("param") int cnx;
-@("param") int cny;
-@("param") int cnz;
+@("param") int ncx;
+@("param") int ncy;
+@("param") int ncz;
 
 immutable uint D = 3; // Dimensionality of the MPI grid.
 
@@ -111,11 +110,11 @@ void reorderMpi() {
   int srcRank, destRank;
   MPI_Comm comm;
 
-  writeLogRD("Creating MPI dims from suggestion %d x %d x %d.", P.ncx, P.ncy, P.ncz);
+  writeLogRD("Creating MPI dims from suggestion %d x %d x %d.", .ncx, .ncy, .ncz);
 
-  dims[0] = P.ncx;
-  dims[1] = P.ncy;
-  dims[2] = P.ncz;
+  dims[0] = .ncx;
+  dims[1] = .ncy;
+  dims[2] = .ncz;
 
   // Create cartesian grid of dimensions ( ncx * ncy * ncz )
 

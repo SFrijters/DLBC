@@ -19,7 +19,6 @@ Macros:
 module dlbc.fields.field;
 
 import dlbc.logging;
-import dlbc.parameters;
 import dlbc.parallel;
 
 import unstd.multidimarray;
@@ -157,7 +156,7 @@ struct Field(T, uint dim, uint veclen = 1) {
        haloSize = size of the halo region
   */
   this (const uint[dim] lengths, const uint haloSize) {
-    writeLogRD("Initializing %s local field of type '%s' with halo of thickness %d.", lengths.makeLengthsString, T.stringof, P.haloSize);
+    writeLogRD("Initializing %s local field of type '%s' with halo of thickness %d.", lengths.makeLengthsString, T.stringof, haloSize);
 
     this._lengths = lengths;
     this._haloSize = haloSize;

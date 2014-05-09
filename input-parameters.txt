@@ -8,12 +8,12 @@ vl = 5     // Verbosity level
 haloSize = 2
 
 [parallel]
-cnx = 2
+ncy = 2
 
 [lattice]
-nx = 32    // Lattice size x-direction
-ny = 16    // Lattice size y-direction
-nz = 8    // Lattice size z-direction
+gnx = 32    // Lattice size x-direction
+gny = 16    // Lattice size y-direction
+gnz = 8    // Lattice size z-direction
 
 [parameters]
 test = 41
@@ -23,3 +23,5 @@ stest = blah
 stest2 = blah2 blah blah
 stest3 = blah3 blah blah
 
+[random]
+seed = 42

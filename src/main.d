@@ -5,7 +5,6 @@ import dlbc.io;
 import dlbc.lattice;
 import dlbc.logging;
 import dlbc.parallel;
-import dlbc.parameters;
 import dlbc.parparse;
 import dlbc.random;
 import dlbc.timers;
@@ -33,22 +32,15 @@ int main(string[] args ) {
 
   debug(showMixins) { dbgShowMixins(); }
 
-  // Create an MPI type for the ParameterSet struct
-  setupParameterSetMpiType();
-  setupParameterSetDefaultMpiType();
-
-  // No cartesian grid yet, but the root can read stuff
   if (M.isRoot) {
-    dlbc.parameters.readParameterSetFromCliFiles();
+    readParameterSetFromCliFiles();
   }
-
-  // Get the parameters to all CPUs
-  distributeParameterSet();
+  broadcastParameters();
+  // dlbc.parparse.show!(VL.Information, LRF.Ordered);
+  dlbc.parparse.show!(VL.Information, LRF.Root);
 
   // Set secondary values based on parameters
   processParameters();
-
-  P.show!(VL.Information, LRF.Root);
 
   // Make cartesian grid now that we have values ncx, ncy, ncz everywhere
   reorderMpi();
@@ -58,7 +50,7 @@ int main(string[] args ) {
   initRNG();
 
   // Try and create the local lattice structure
-  auto L = new Lattice!(3)(M, P);
+  auto L = new Lattice!(3)(M);
 
   L.exchangeHalo();
 
@@ -140,13 +132,6 @@ int main(string[] args ) {
 
   //   //  }
   // }
-
-  if (M.isRoot) {
-    dlbc.parparse.readParameterSetFromCliFiles();
-  }
-  dlbc.parparse.broadcastParameters();
-  // dlbc.parparse.show!(VL.Information, LRF.Ordered);
-  dlbc.parparse.show!(VL.Information, LRF.Root);
 
   T.main.stop!(VL.Information, LRF.Ordered);
 

@@ -21,8 +21,6 @@ module dlbc.io;
 import dlbc.hdf5;
 import dlbc.lattice;
 import dlbc.logging;
-import dlbc.parallel;
-import dlbc.parameters;
 
 void dumpFieldHDF5(T)(const Field!T f, const string name) {
 
@@ -64,7 +62,7 @@ void dumpFieldHDF5(T)(const Field!T f, const string name) {
   //   call MPI_Info_set(info, "IBM_largeblock_io", "true", err)
   // end if
 
-  hsize_t[3] dimsg = [ P.nx, P.ny, P.nz ];
+  hsize_t[3] dimsg = [ gnx, gny, gnz ];
 
   // dimsf  = (/tnx, tny, tnz/)
   hsize_t[3] dimsl = [ f.nx, f.ny, f.nz ];

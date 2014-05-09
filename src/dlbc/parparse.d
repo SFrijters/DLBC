@@ -14,9 +14,10 @@ immutable string parameterUDA = "param";
 
 // Ideally this should be a template parameter to the createParameterMixins function, maybe?
 private alias TypeTuple!(
+			 "dlbc.lattice",
 			 "dlbc.parallel",
 			 "dlbc.parameters",
-			 "dlbc.lattice",
+			 "dlbc.random",
 			 ) parameterSourceModules;
 
 private string[] setParams;
@@ -165,4 +166,10 @@ void readParameterSetFromFile(const string fileName) {
   }
   f.close();
 }
+
+/// Processes parameters
+void processParameters() pure nothrow @safe {
+
+}
+
 

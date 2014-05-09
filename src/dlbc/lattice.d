@@ -2,12 +2,11 @@ module dlbc.lattice;
 
 import dlbc.fields.field;
 import dlbc.logging;
-import dlbc.parameters;
 import dlbc.parallel;
 
-@("param") int nx;
-@("param") int ny;
-@("param") int nz;
+@("param") int gnx;
+@("param") int gny;
+@("param") int gnz;
 
 struct Lattice(uint dim) {
   private uint _dimensions = dim;
@@ -37,28 +36,23 @@ struct Lattice(uint dim) {
   Field!(double, dim, 19) blue;
   Field!(int, dim) index;
 
-  this ( MpiParams M, ParameterSet P ) {
+  this ( MpiParams M ) {
     // Check if we can reconcile global lattice size with CPU grid
-    if (P.nx % M.ncx != 0 || P.ny % M.ncy != 0 || P.nz % M.ncz != 0) {
-      writeLogF("Cannot divide lattice %d x %d x %d  evenly over %d x %d x %d grid of processes.", P.nx, P.ny, P.nz, M.ncx, M.ncy, M.ncz);
+    if (gnx % M.ncx != 0 || gny % M.ncy != 0 || gnz % M.ncz != 0) {
+      writeLogF("Cannot divide lattice %d x %d x %d  evenly over %d x %d x %d grid of processes.", gnx, gny, gnz, M.ncx, M.ncy, M.ncz);
     }
 
     // Calculate local lattice size
-    int nx = cast(int) (P.nx / M.ncx);
-    int ny = cast(int) (P.ny / M.ncy);
-    int nz = cast(int) (P.nz / M.ncz);
+    int nx = cast(int) (gnx / M.ncx);
+    int ny = cast(int) (gny / M.ncy);
+    int nz = cast(int) (gnz / M.ncz);
 
     this._lengths[0] = nx;
     this._lengths[1] = ny;
     this._lengths[2] = nz;
 
-    // Check for bogus halo
-    if (P.haloSize < 1) {
-      writeLogF("Halo size < 1 not allowed.");
-    }
-
-    red = Field!(double, dim, 19)(lengths, P.haloSize);
-    blue = Field!(double, dim, 19)(lengths, P.haloSize);
+    red = Field!(double, dim, 19)(lengths, 2);
+    blue = Field!(double, dim, 19)(lengths, 2);
     index = Field!(int, dim)(lengths, 1);
   }
 
