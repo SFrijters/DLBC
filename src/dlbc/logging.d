@@ -138,6 +138,10 @@ void writeLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
 	    }
 	    break;
 	  }
+	  else {
+	    writeln();
+	    break;
+	  }
 	}
 	// not a string, or not a formatted string
 	writeln(args);
@@ -327,11 +331,13 @@ private string makeLogString(VL vl, LRF logRankFormat, T...)(T args) {
   }
 
   // Move any leading newlines in front of the tags.
-  if ( args[0].length > 0 ) {
-    while (args[0][0..1] == "\n") {
-      preTag ~= args[0][0..1];
-      args[0] = args[0][1..$];
-    }
+  while (args[0].length > 0 && args[0][0..1] == "\n") {
+    preTag ~= args[0][0..1];
+    args[0] = args[0][1..$];
+  }
+
+  if (args[0].length == 0 ) {
+    return "";
   }
 
   args[0] = preTag ~ vlTag ~ rankTag ~ args[0];
