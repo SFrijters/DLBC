@@ -35,9 +35,8 @@ int main(string[] args ) {
   if (M.isRoot) {
     readParameterSetFromCliFiles();
   }
-  broadcastParameters();
-  // dlbc.paramters.show!(VL.Information, LRF.Ordered);
-  dlbc.parameters.show!(VL.Information, LRF.Root);
+  bcastParameters();
+  showParameters!(VL.Information, LRF.Root);
 
   // Set secondary values based on parameters
   processParameters();
