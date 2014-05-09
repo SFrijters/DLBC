@@ -121,20 +121,32 @@ int main(string[] args ) {
   // writeLog(VL.Information, LRF.Any, "This is another Any log test from rank %d.\n",M.rank);
   // writeLog(VL.Information, LRF.Ordered, "This is another Ordered log test from rank %d.\n",M.rank);
 
+  // import dlbc.revision;
+  // // auto mods = [ dlbc.revision ];
+  // // foreach(m ; mods) {
+  // foreach(e ; __traits(derivedMembers, dlbc.lattice)) {
+  //   writeLogRD(e);
+  //   pragma(msg, e);
+  // //   mixin(`
+  // //     foreach( t; __traits(getAttributes, dlbc.lattice.`~e~`)) {
+  // //   pragma(msg, t); writeLogRD(t);
+  // // }`);
+  // //   mixin(`
+  // //     foreach( t; __traits(parent, dlbc.lattice.`~e~`)) {
+  // //   pragma(msg, t); writeLogRD(t);
+  // // }`);
+  // }
 
+
+  //   //  }
+  // }
 
   if (M.isRoot) {
-    import std.stdio: writeln;
-    writeln(createParameterMixins());
     dlbc.parparse.readParameterSetFromCliFiles();
-    stest4 = "a121frtgbe55";
   }
-
-  dlbc.parparse.show!(VL.Information, LRF.Ordered);
   dlbc.parparse.broadcastParameters();
-  dlbc.parparse.show!(VL.Information, LRF.Ordered);
-
-
+  // dlbc.parparse.show!(VL.Information, LRF.Ordered);
+  dlbc.parparse.show!(VL.Information, LRF.Root);
 
   T.main.stop!(VL.Information, LRF.Ordered);
 

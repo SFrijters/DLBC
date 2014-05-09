@@ -1,27 +1,25 @@
 module dlbc.parparse;
 
-import dlbc.logging;
-
+import std.conv;
+import std.string;
 import std.traits;
 import std.typecons;
 
-import std.conv;
-import std.file;
-import std.stream;
-import std.string;
-
+import dlbc.logging;
 import dlbc.parallel;
-
-import dlbc.parameters;
-
-private string[] setParams;
 
 string[] parameterFileNames;
 
 immutable string parameterUDA = "param";
 
 // Ideally this should be a template parameter to the createParameterMixins function, maybe?
-private alias TypeTuple!("dlbc.parameters","dlbc.lattice") parameterSourceModules;
+private alias TypeTuple!(
+			 "dlbc.parallel",
+			 "dlbc.parameters",
+			 "dlbc.lattice",
+			 ) parameterSourceModules;
+
+private string[] setParams;
 
 auto createParameterMixins() {
   string mixinStringParser;
@@ -35,52 +33,55 @@ auto createParameterMixins() {
   mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"Current parameter set:\");";
 
   mixinStringBcast ~= "void broadcastParameters() {\n";
+  mixinStringBcast ~= "  writeLogRI(\"Distributing parameter set through MPI_Bcast.\");";
 
   foreach(fullModuleName ; parameterSourceModules) {
     immutable string qualModuleName = fullModuleName.split(".")[1..$].join();
+    mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"\n[%s]\",\""~qualModuleName~"\");";
 
     foreach(e ; __traits(derivedMembers, mixin(fullModuleName))) {
       mixin(`
-      foreach( t; __traits(getAttributes, `~fullModuleName~`.`~e~`)) {
-        if ( t == "`~parameterUDA~`" ) {
-          auto fullName = "`~fullModuleName~`." ~ e;
-          auto qualName = "`~qualModuleName~`." ~ e;
+      static if ( __traits(compiles, __traits(getAttributes, `~fullModuleName~`.`~e~`))) {
+        foreach( t; __traits(getAttributes, `~fullModuleName~`.`~e~`)) {
+          if ( t == "`~parameterUDA~`" ) {
+            auto fullName = "`~fullModuleName~`." ~ e;
+            auto qualName = "`~qualModuleName~`." ~ e;
 
-          mixinStringParser ~= "case \""~qualName~"\":\n";
-          static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
-            mixinStringParser ~= "  try {\n";
-            mixinStringParser ~= "    " ~ fullName ~ " = to!(typeof(" ~ fullName ~ "))( valueString );\n";
-            mixinStringParser ~= "  }\n";
-            mixinStringParser ~= "  catch (ConvException e) { writeLogE(\"  ConvException at line %d of the input file.\",ln); throw e; }\n";
-            mixinStringParser ~= "  setParams ~= \""~fullName~"\"; break;\n";
-          }
-          else {
-            mixinStringParser ~= "  writeLogRW(\"Parameter '"~qualName~"' is not mutable.\");\n";
-          }
-          mixinStringParser ~= "\n";
-
-          static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
-            mixinStringShow ~= "  if ( ! ( setParams.canFind(\""~fullName~"\") ) ) { \n";
-            mixinStringShow ~= "    writeLog!(VL.Warning, logRankFormat)(\"NOT SET %20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
-            mixinStringShow ~= "  }\n  else {\n";
-            mixinStringShow ~= "    writeLog!(vl, logRankFormat)(\"        %20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
-            mixinStringShow ~= "  }\n";
-          }
-          else {
-            mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"FIXED   %20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
-          }
-          mixinStringShow ~= "\n";
-
-          static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
-            static if ( is( typeof(`~fullModuleName~`.`~e~`) == string) ) {
-              mixinStringBcast ~= "  MpiBcastString("~fullName~");\n";
+            mixinStringParser ~= "case \""~qualName~"\":\n";
+            static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
+              mixinStringParser ~= "  try {\n";
+              mixinStringParser ~= "    " ~ fullName ~ " = to!(typeof(" ~ fullName ~ "))( valueString );\n";
+              mixinStringParser ~= "  }\n";
+              mixinStringParser ~= "  catch (ConvException e) { writeLogE(\"  ConvException at line %d of the input file.\",ln); throw e; }\n";
+              mixinStringParser ~= "  setParams ~= \""~fullName~"\"; break;\n";
             }
             else {
-              mixinStringBcast ~= "  MPI_Bcast(&" ~ fullName ~ ", 1, mpiTypeof!(typeof(" ~ fullName ~")), M.root, M.comm);\n";
+              mixinStringParser ~= "  writeLogRW(\"Parameter '"~qualName~"' is not mutable.\");\n";
             }
-          }
+            mixinStringParser ~= "\n";
 
+            static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
+              mixinStringShow ~= "  if ( ! ( setParams.canFind(\""~fullName~"\") ) ) { \n";
+              mixinStringShow ~= "    writeLog!(VL.Warning, logRankFormat)(\"! %-20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
+              mixinStringShow ~= "  }\n  else {\n";
+              mixinStringShow ~= "    writeLog!(vl, logRankFormat)(\"  %-20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
+              mixinStringShow ~= "  }\n";
+            }
+            else {
+              mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"x %-20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
+            }
+            mixinStringShow ~= "\n";
+
+            static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
+              static if ( is( typeof(`~fullModuleName~`.`~e~`) == string) ) {
+                mixinStringBcast ~= "  MpiBcastString("~fullName~");\n";
+              }
+              else {
+                mixinStringBcast ~= "  MPI_Bcast(&" ~ fullName ~ ", 1, mpiTypeof!(typeof(" ~ fullName ~")), M.root, M.comm);\n";
+              }
+            }
           break;
+          }
         }
       }`);
     }
@@ -88,7 +89,7 @@ auto createParameterMixins() {
   mixinStringParser ~= "default:\n  writeLogRW(\"Unknown key at line %d: '%s'.\", ln, keyString);\n}\n\n";
   mixinStringParser ~= "}\n";
 
-  mixinStringShow ~= "}\n";
+  mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"\n\");\n}\n";
 
   mixinStringBcast ~= "}\n";
 
@@ -141,11 +142,12 @@ void readParameterSetFromCliFiles() {
   foreach( fileName; parameterFileNames) {
     readParameterSetFromFile(fileName);
   }
-
-  show!(VL.Information, LRF.Root);
 }
 
 void readParameterSetFromFile(const string fileName) {
+  import std.file;
+  import std.stream;
+
   string currentSection;
   File f;
   writeLogRI("Reading parameters from file '%s'.",fileName);

@@ -6,6 +6,10 @@ import dlbc.logging;
 import dlbc.mixinhelper; // For itoa template
 import dlbc.parameters;
 
+@("param") int cnx;
+@("param") int cny;
+@("param") int cnz;
+
 immutable uint D = 3; // Dimensionality of the MPI grid.
 
 MPI_Datatype parameterSetMpiType;

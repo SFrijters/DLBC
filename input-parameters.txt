@@ -7,6 +7,9 @@ vl = 5     // Verbosity level
 
 haloSize = 2
 
+[parallel]
+cnx = 2
+
 [lattice]
 nx = 32    // Lattice size x-direction
 ny = 16    // Lattice size y-direction
