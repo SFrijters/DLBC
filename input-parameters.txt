@@ -3,10 +3,6 @@
 // Empty lines are ignored, as is anything beyond '//' on a line.
 // Multiline comments are *not* supported.
 
-vl = 5     // Verbosity level
-
-haloSize = 2
-
 [parallel]
 ncy = 2
 
@@ -15,13 +11,6 @@ gnx = 32    // Lattice size x-direction
 gny = 16    // Lattice size y-direction
 gnz = 8    // Lattice size z-direction
 
-[parameters]
-test = 41
-test2 = 42
-test3 = 43
-stest = blah
-stest2 = blah2 blah blah
-stest3 = blah3 blah blah
-
 [random]
 seed = 42
+

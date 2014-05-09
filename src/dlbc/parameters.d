@@ -1,245 +1,136 @@
-// Written in the D programming language.
 module dlbc.parameters;
 
 import std.conv;
-import std.file;
-import std.stream;
 import std.string;
+import std.traits;
+import std.typecons;
 
 import dlbc.logging;
 import dlbc.parallel;
 
 string[] parameterFileNames;
 
-const int test = 1;
-@("param") immutable int test2 = 2;
-@("param") int test3 = 3;
-@("param") const string stest = "1";
-immutable string stest2 = "2";
-@("param") immutable string stest3 = "3";
-@("param") string stest4 = "4";
+immutable string parameterUDA = "param";
 
-/** This enum will be translated into various components through mixins.
-    It contains pairs of variable names and their type value, as defined
-    through the $(D parameterDataTypes) enum.
-*/
-enum parameterTypes : string {
-  nx = PDT.Ulong,
-  ny = PDT.Ulong,
-  nz = PDT.Ulong,
-  ncx = PDT.Int,
-  ncy = PDT.Int,
-  ncz = PDT.Int,
-  seed = PDT.Int,
-  haloSize = PDT.Int,
-  ok = PDT.Bool,
-  name = PDT.String,
-  G = PDT.Double
-};
+// Ideally this should be a template parameter to the createParameterMixins function, maybe?
+private alias TypeTuple!(
+			 "dlbc.lattice",
+			 "dlbc.parallel",
+			 "dlbc.random",
+			 ) parameterSourceModules;
 
-/// Enum containing strings of datatypes
-alias parameterDataTypes PDT;
-/// Ditto
-enum parameterDataTypes : string {
-  Ulong  = "ulong",
-  Bool   = "bool",
-  Double = "double",
-  Int    = "int",
-  String = MpiStringType()
-};
+private string[] setParams;
 
-/// This struct will be constructed from the parameterTypes enum
-struct ParameterSet {
-  mixin(makeParameterSetMembers());
+auto createParameterMixins() {
+  string mixinStringParser;
+  string mixinStringShow;
+  string mixinStringBcast;
 
-  void show(VL vl, LRF logRankFormat)() {
-    writeLog!(vl, logRankFormat)("Current parameter set:");
-    mixin(makeParameterSetShow());
-  }
-}
+  mixinStringParser ~= "void parse(const string keyString, const string valueString, const size_t ln) {\n";
+  mixinStringParser ~= "switch(keyString) {\n\n";
 
-/// This struct will be constructed from the parameterTypes enum
-struct ParameterSetDefault {
-  mixin(makeParameterSetDefaultMembers());
-}
+  mixinStringShow ~= "void show(VL vl, LRF logRankFormat)() {\n  import std.algorithm;\n";
+  mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"Current parameter set:\");";
 
-ParameterSet P;
-ParameterSetDefault PD;
+  mixinStringBcast ~= "void broadcastParameters() {\n";
+  mixinStringBcast ~= "  writeLogRI(\"Distributing parameter set through MPI_Bcast.\");";
 
-/// Generates Mixin to create the ParameterSetDefault struct
-string makeParameterSetDefaultMembers() pure nothrow @safe {
-  string mixinString;
-  foreach( member ; __traits(allMembers, parameterTypes)) {
-    mixinString ~= "bool " ~ member ~ " = true;\n";
-  }
-  return mixinString;
-}
+  foreach(fullModuleName ; parameterSourceModules) {
+    immutable string qualModuleName = fullModuleName.split(".")[1..$].join();
+    mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"\n[%s]\",\""~qualModuleName~"\");";
 
-/// Generates Mixin to create the ParameterSet struct
-string makeParameterSetMembers() /* pure */  nothrow @safe { // GDC bug?
-  string mixinString, type;
-  foreach( member ; __traits(allMembers, parameterTypes)) {
-    type = mixin("parameterTypes." ~ member);
-    // If we have a string, we have to set it to blank so we don't send trash through MPI
-    if (type == MpiStringType()) {
-      mixinString ~= type ~ " " ~ member ~ " = \"\";\n";
-    }
-    else {
-      mixinString ~= type ~ " " ~ member ~ ";\n";
-    }
-  }
-  return mixinString;
-}
+    foreach(e ; __traits(derivedMembers, mixin(fullModuleName))) {
+      mixin(`
+      static if ( __traits(compiles, __traits(getAttributes, `~fullModuleName~`.`~e~`))) {
+        foreach( t; __traits(getAttributes, `~fullModuleName~`.`~e~`)) {
+          if ( t == "`~parameterUDA~`" ) {
+            auto fullName = "`~fullModuleName~`." ~ e;
+            auto qualName = "`~qualModuleName~`." ~ e;
 
-/// Generates Mixin to list the values of P
-string makeParameterSetShow() pure nothrow @safe {
-  string mixinString;
-  foreach( member ; __traits(allMembers, parameterTypes)) {
-    string type = mixin("parameterTypes." ~ member);
-    // Add a warning 'NOT SET' for variables which are still equal to their default init.
-    mixinString ~= "if ( PD." ~ member ~ ") { \n";
-    // Actual print statement
-    mixinString ~= "writeLog!(VL.Warning, logRankFormat)(\"NOT SET %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~ "));\n";
-    mixinString ~= "}\nelse {\n";
-    mixinString ~= "writeLog!(vl, logRankFormat)(\"        %20s = %s\",\"" ~ member ~ "\",to!string(P." ~ member ~ "));\n";
-    mixinString ~= "}\n";
-  }
-  return mixinString;
-}
+            mixinStringParser ~= "case \""~qualName~"\":\n";
+            static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
+              mixinStringParser ~= "  try {\n";
+              mixinStringParser ~= "    " ~ fullName ~ " = to!(typeof(" ~ fullName ~ "))( valueString );\n";
+              mixinStringParser ~= "  }\n";
+              mixinStringParser ~= "  catch (ConvException e) { writeLogE(\"  ConvException at line %d of the input file.\",ln); throw e; }\n";
+              mixinStringParser ~= "  setParams ~= \""~fullName~"\"; break;\n";
+            }
+            else {
+              mixinStringParser ~= "  writeLogRW(\"Parameter '"~qualName~"' is not mutable.\");\n";
+            }
+            mixinStringParser ~= "\n";
 
-/// Generates Mixin to create the cases for the parser
-string makeParameterCase() /* pure */ nothrow @safe { // GDC bug?
-  string mixinString;
-  // Fill all char[256] with spaces.
-  foreach( member ; __traits(allMembers, parameterTypes)) {
-    string type = mixin("parameterTypes." ~ member);
-    if (type == MpiStringType()) {
-      mixinString ~= "for(size_t i = 0; i < MpiStringLength; i++) { P." ~ member ~ "[i] = ' '; }";
+            static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
+              mixinStringShow ~= "  if ( ! ( setParams.canFind(\""~fullName~"\") ) ) { \n";
+              mixinStringShow ~= "    writeLog!(VL.Warning, logRankFormat)(\"! %-20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
+              mixinStringShow ~= "  }\n  else {\n";
+              mixinStringShow ~= "    writeLog!(vl, logRankFormat)(\"  %-20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
+              mixinStringShow ~= "  }\n";
+            }
+            else {
+              mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"x %-20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
+            }
+            mixinStringShow ~= "\n";
+
+            static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
+              static if ( is( typeof(`~fullModuleName~`.`~e~`) == string) ) {
+                mixinStringBcast ~= "  MpiBcastString("~fullName~");\n";
+              }
+              else {
+                mixinStringBcast ~= "  MPI_Bcast(&" ~ fullName ~ ", 1, mpiTypeof!(typeof(" ~ fullName ~")), M.root, M.comm);\n";
+              }
+            }
+          break;
+          }
+        }
+      }`);
     }
   }
-  // Create the switch statement.
-  mixinString ~= "switch(keyString) {\n";
-  foreach( member ; __traits(allMembers, parameterTypes)) {
-    string type = mixin("parameterTypes." ~ member);
-    mixinString ~= "case \"" ~ member ~ "\":\n";
-    mixinString ~= "try {";
-    if (type == MpiStringType()) {
-      mixinString ~= "P." ~ member ~ "[0 .. valueString.length] = valueString;";
-    }
-    else {
-      mixinString ~= "P." ~ member ~ " = to!" ~ type ~ "(valueString);";
-    }
-    mixinString ~= " }\n";
-    mixinString ~= "catch (ConvException e) { writeLogE(\"  ConvException at line %d of the input file.\",ln); throw e; }\n";
-    mixinString ~= "PD." ~ member ~ " = false;";
-    mixinString ~= "break;\n";
-  }
-  mixinString ~= "default:\nwriteLogRW(\"Unknown key at line %d: '%s'.\", ln, keyString); }";
-  return mixinString;
+  mixinStringParser ~= "default:\n  writeLogRW(\"Unknown key at line %d: '%s'.\", ln, keyString);\n}\n\n";
+  mixinStringParser ~= "}\n";
+
+  mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"\n\");\n}\n";
+
+  mixinStringBcast ~= "}\n";
+
+  return mixinStringParser ~ "\n" ~ mixinStringShow ~ "\n" ~ mixinStringBcast;
+
 }
 
-/// Generates Mixin to generate MPI Type for P
-string makeParameterSetMpiType() pure @safe {
-  string mixinString, mainString, prefixString, postfixString, dispString;
-  string type, mpiTypeString, lenString;
-  int count;
-
-  foreach( s ; __traits(allMembers, parameterTypes)) {
-    type = mixin("parameterTypes." ~ s);
-    final switch(type) {
-    case PDT.Bool:   mpiTypeString = "MPI_BYTE";          lenString = "1"; break;
-    case PDT.String: mpiTypeString = "MPI_CHAR";          lenString = to!string(MpiStringLength); break;
-    case PDT.Double: mpiTypeString = "MPI_DOUBLE";        lenString = "1"; break;
-    case PDT.Int:    mpiTypeString = "MPI_INT";           lenString = "1"; break;
-    case PDT.Ulong:  mpiTypeString = "MPI_UNSIGNED_LONG"; lenString = "1"; break;
-    }
-    mainString ~= "lens[" ~ to!string(count) ~ "] = " ~ lenString ~ ";\n";
-    mainString ~= "types[" ~ to!string(count) ~ "] = " ~ mpiTypeString ~ ";\n";
-    mainString ~= "MPI_Address(&P." ~ s ~ ",&addrs[" ~ to!string(count+1) ~ "]);\n";
-    count++;
-  }
-
-  for (uint i = 1; i <= count; i++) {
-    dispString ~= "disps[" ~ to!string(i-1) ~ "] = addrs[" ~ to!string(i) ~ "] - addrs[0];\n";
-  }
-
-  prefixString   = "int[" ~ to!string(count) ~ "] lens;\n";
-  prefixString  ~= "MPI_Aint[" ~ to!string(count) ~ "] disps;\n";
-  prefixString  ~= "MPI_Aint[" ~ to!string(count+1) ~ "] addrs;\n";
-  prefixString  ~= "MPI_Datatype[" ~ to!string(count) ~ "] types;\n";
-  prefixString  ~= "MPI_Address(&P,&addrs[0]);\n";
-  postfixString  = "MPI_Type_create_struct( " ~ to!string(count) ~ ", lens.ptr, disps.ptr, types.ptr, &parameterSetMpiType );\n";
-  postfixString ~= "MPI_Type_commit(&parameterSetMpiType);\n";
-
-  mixinString = prefixString ~ mainString ~ dispString ~ postfixString;
-  return mixinString;
-}
-
-/// Creates an MPI datatype for the parameter struct using a mixin
-void setupParameterSetMpiType() {
-  writeLogRI("Setting up MPI type for parameter struct.");
-  mixin(makeParameterSetMpiType());
-}
-
-/// Generates Mixin to generate MPI Type for PD
-string makeParameterSetDefaultMpiType() pure @safe {
-  string mixinString, mainString, prefixString, postfixString, dispString;
-  string type, mpiTypeString, lenString;
-  int count = 0;
-
-  foreach( s ; __traits(allMembers, parameterTypes)) {
-    mainString ~= "lens[" ~ to!string(count) ~ "] = 1;\n";
-    mainString ~= "types[" ~ to!string(count) ~ "] = MPI_BYTE;\n";
-    mainString ~= "MPI_Address(&PD." ~ s ~ ",&addrs[" ~ to!string(count+1) ~ "]);\n";
-    count++;
-  }
-
-  for (uint i = 1; i <= count; i++) {
-    dispString ~= "disps[" ~ to!string(i-1) ~ "] = addrs[" ~ to!string(i) ~ "] - addrs[0];\n";
-  }
-
-  prefixString   = "int[" ~ to!string(count) ~ "] lens;\n";
-  prefixString  ~= "MPI_Aint[" ~ to!string(count) ~ "] disps;\n";
-  prefixString  ~= "MPI_Aint[" ~ to!string(count+1) ~ "] addrs;\n";
-  prefixString  ~= "MPI_Datatype[" ~ to!string(count) ~ "] types;\n";
-  prefixString  ~= "MPI_Address(&PD,&addrs[0]);\n";
-  postfixString  = "MPI_Type_create_struct( " ~ to!string(count) ~ ", lens.ptr, disps.ptr, types.ptr, &parameterSetDefaultMpiType );\n";
-  postfixString ~= "MPI_Type_commit(&parameterSetDefaultMpiType);\n";
-
-  mixinString = prefixString ~ mainString ~ dispString ~ postfixString;
-  return mixinString;
-}
-
-/// Creates an MPI datatype for the parameter default struct using a mixin
-void setupParameterSetDefaultMpiType() {
-  writeLogRI("Setting up MPI type for parameter default struct.");
-  mixin(makeParameterSetDefaultMpiType());
-}
-
-/// Sends and receives the parameter struct over MPI
-void distributeParameterSet() {
-  immutable int mpiCount = 1;
-  writeLogRI("Distributing parameter set through MPI_Bcast.");
-  MPI_Bcast(&P, mpiCount, parameterSetMpiType, M.root, M.comm);
-  writeLogRI("Distributing parameter set default through MPI_Bcast.");
-  MPI_Bcast(&PD, mpiCount, parameterSetDefaultMpiType, M.root, M.comm);
-}
+mixin(createParameterMixins());
 
 /// Parses a single line of the parameter file
-void parseParameter(char[] line, const size_t ln) {
+void parseParameter(char[] line, const size_t ln, ref string currentSection) {
   char[] keyString, valueString;
+
+  enum vl = VL.Notification;
+  enum logRankFormat = LRF.Root;
 
   auto commentPos = indexOf(line, "//");
   if (commentPos >= 0) {
     line = line[0 .. commentPos];
   }
- 
+
   auto assignmentPos = indexOf(line, "=");
   if (assignmentPos > 0) {
     keyString = strip(line[0 .. assignmentPos]);
     valueString = strip(line[(assignmentPos+1) .. $]);
     // This mixin creates cases for all members of the parameterTypes struct
-    mixin(makeParameterCase());
+    //mixin(makeParameterCase());
+    if ( currentSection != "" ) {
+      parse(currentSection~"."~to!string(keyString), to!string(valueString), ln);
+    }
+    else {
+      parse(to!string(keyString), to!string(valueString), ln);
+    }
+  }
+  else {
+    import std.regex;
+    auto r = regex(r"\[(.*?)\]", "g");
+    foreach(c; match(line, r)) {
+      currentSection = to!string(c.captures[1]);
+      writeLogRD("Entering section %s.", currentSection);
+    }
   }
 }
 
@@ -254,6 +145,10 @@ void readParameterSetFromCliFiles() {
 }
 
 void readParameterSetFromFile(const string fileName) {
+  import std.file;
+  import std.stream;
+
+  string currentSection;
   File f;
   writeLogRI("Reading parameters from file '%s'.",fileName);
 
@@ -266,7 +161,7 @@ void readParameterSetFromFile(const string fileName) {
 
   size_t ln = 0;
   while(!f.eof()) {
-    parseParameter(f.readLine(),++ln);
+    parseParameter(f.readLine(),++ln,currentSection);
   }
   f.close();
 }
@@ -276,36 +171,4 @@ void processParameters() pure nothrow @safe {
 
 }
 
-debug(showMixins) {
-
-  import std.stdio: writeln;
-
-  void dbgShowMixins() {
-
-    setGlobalVerbosityLevel(VL.Debug);
-    writeLogRD("--- START makeParameterSetMembers() mixin ---\n");
-    if (M.isRoot() ) writeln(makeParameterSetMembers());
-    writeLogRD("--- END makeParameterSetMembers() mixin ---\n");
-
-    writeLogRD("--- START makeParameterSetDefaultMembers() mixin ---\n");
-    if (M.isRoot() ) writeln(makeParameterSetDefaultMembers());
-    writeLogRD("--- END makeParameterSetDefaultMembers() mixin ---\n");
-
-    writeLogRD("--- START makeParameterSetShow() mixin ---\n");
-    if (M.isRoot() ) writeln(makeParameterSetShow());
-    writeLogRD("--- END makeParameterSetShow() mixin ---\n");
-
-    writeLogRD("--- START makeParameterSetMpiType() mixin ---\n");
-    if (M.isRoot() ) writeln(makeParameterSetMpiType());
-    writeLogRD("--- END makeParameterSetMpiType() mixin ---\n");
-
-    writeLogRD("--- START makeParameterSetDefaultMpiType() mixin ---\n");
-    if (M.isRoot() ) writeln(makeParameterSetDefaultMpiType());
-    writeLogRD("--- END makeParameterSetDefaultMpiType() mixin ---\n");
-
-    writeLogRD("--- START makeParameterCase() mixin ---\n");
-    if (M.isRoot() ) writeln(makeParameterCase());
-    writeLogRD("--- END makeParameterCase() mixin ---\n");
-  }
-}
 

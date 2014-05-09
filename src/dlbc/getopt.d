@@ -1,9 +1,9 @@
 module dlbc.getopt;
 
-import dlbc.logging;
-import dlbc.parparse;
-
 import std.getopt;
+
+import dlbc.logging;
+import dlbc.parameters: parameterFileNames;
 
 /// Process CLI
 void processCLI(string[] args) {

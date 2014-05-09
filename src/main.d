@@ -5,7 +5,7 @@ import dlbc.io;
 import dlbc.lattice;
 import dlbc.logging;
 import dlbc.parallel;
-import dlbc.parparse;
+import dlbc.parameters;
 import dlbc.random;
 import dlbc.timers;
 import dlbc.versions;
@@ -36,8 +36,8 @@ int main(string[] args ) {
     readParameterSetFromCliFiles();
   }
   broadcastParameters();
-  // dlbc.parparse.show!(VL.Information, LRF.Ordered);
-  dlbc.parparse.show!(VL.Information, LRF.Root);
+  // dlbc.paramters.show!(VL.Information, LRF.Ordered);
+  dlbc.parameters.show!(VL.Information, LRF.Root);
 
   // Set secondary values based on parameters
   processParameters();
