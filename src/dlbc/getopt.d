@@ -11,7 +11,8 @@ void processCLI(string[] args) {
   VL verbosityLevel = getGlobalVerbosityLevel();
   getopt( args,
           "p|parameterfile", &parameterFileNames,
-          "v|verbose", &verbosityLevel
+          "v|verbose", &verbosityLevel,
+          "W", &warningsAreFatal,
           );
   setGlobalVerbosityLevel(verbosityLevel);
 }
