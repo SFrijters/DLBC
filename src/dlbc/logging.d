@@ -386,31 +386,40 @@ string makeCurrTimeString() {
 }
 
 /**
-Creates a string with $(D content) centered in a header line.
+   Creates a string with formatted $(D args) centered in a header line.
 
-Params:
-  content = string to make into a header
+   Params:
+     args = data to make into a header
 
-Returns: a string with $(D content) centered in a header line.
-
+   Returns: a string with formatted $(D args) centered in a header line.
 */
-string makeHeaderString(const string content) pure nothrow {
+string makeHeaderString(T...)(const T args) pure {
+  import std.algorithm: canFind;
   import std.array: replicate;
 
   static assert(headerDash.length == 1, "headerDash should be a single character." ); // Assumption for the code below.
 
-  if (content.length >= headerLength - 4) {
-    return content;
+  // Format the string if required.
+  string formatted;
+  if (canFind(args[0], "%")) {
+    formatted = format(args);
+  }
+  else {
+    formatted = args[0];
   }
 
-  size_t dashLength = headerLength - content.length - 2;
+  if (formatted.length >= headerLength - 4) {
+    return formatted;
+  }
+
+  size_t dashLength = headerLength - formatted.length - 2;
   size_t preLength = dashLength/2 + dashLength%2;
   size_t sufLength = dashLength/2;
 
   string preDash = replicate(headerDash, preLength);
   string sufDash = replicate(headerDash, sufLength);
-  
-  return "\n" ~ preDash ~ " " ~ content ~ " " ~ sufDash ~ "\n";
+
+  return "\n" ~ preDash ~ " " ~ formatted ~ " " ~ sufDash ~ "\n";
 }
 
 /**
