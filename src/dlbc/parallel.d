@@ -16,7 +16,7 @@ MPI_Datatype parameterSetDefaultMpiType;
 
 /// Need to define a charlength to easily transmit strings over MPI.
 /// One needs to change only this value, everything else should use it.
-immutable size_t MpiStringLength = 256;
+static immutable size_t MpiStringLength = 256;
 
 /// This will return the MPI string type as a string.
 string MpiStringType() /* pure */ nothrow @safe { // GDC bug?

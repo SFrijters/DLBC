@@ -58,7 +58,7 @@ Macros:
 
 module dlbc.revision;
 
-immutable {
+static immutable {
 
 /**
   Full hash of the git revision: \$(D git rev-parse HEAD).

@@ -29,15 +29,15 @@ bool warningsAreFatal = false;
 /**
 String to append to truncated messages.
 */
-private immutable string truncationSuffix = "[T]...";
+private shared immutable string truncationSuffix = "[T]...";
 /**
 Length of a header line.
 */
-private immutable size_t headerLength = 80;
+private shared immutable size_t headerLength = 80;
 /**
 Character to fill the header line with.
 */
-private immutable string headerDash = "=";
+private shared immutable string headerDash = "=";
 
 /**
 Specifies which processes should do the logging when passed as a (template) argument to various logging functions.

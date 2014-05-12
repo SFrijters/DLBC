@@ -87,7 +87,7 @@ string[] parameterFileNames;
 /**
    The UDA to be used to denote a parameter variable.
 */
-immutable string parameterUDA = "param";
+static immutable string parameterUDA = "param";
 
 /**
    A list of modules that have to be scanned for parameters.
