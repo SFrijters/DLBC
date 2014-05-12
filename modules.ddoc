@@ -13,6 +13,7 @@ MODULES =
 	$(MODULE dlbc.parallel, "Helper functions for parallelisation.")
 	$(MODULE dlbc.parameters, "Helper functions for reading, storage and communication of simulation parameters.")
 	$(MODULE dlbc.random, "Random number generation.")
+	$(MODULE dlbc.revision, "Git revision information.")
 	$(MODULE dlbc.timers, "Timers for performance measurement.")
 	$(MODULE dlbc.versions, "Functions that show information on compiler versions and code revision.")
 
