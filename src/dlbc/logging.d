@@ -31,9 +31,17 @@ bool warningsAreFatal = false;
 */
 private shared immutable string truncationSuffix = "[T]...";
 /**
+   Maximum width of the terminal output.
+*/
+private shared immutable size_t columnWidth = 120;
+/**
+   Indent for wrapped lines.
+*/
+private shared immutable string indent = "  > ";
+/**
    Length of a header line.
 */
-private shared immutable size_t headerLength = 80;
+private shared immutable size_t headerLength = columnWidth - indent.length;
 /**
    Character to fill the header line with.
 */
@@ -131,6 +139,8 @@ VL getGlobalVerbosityLevel() {
      args = data to write
 */
 void writeLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
+  import std.algorithm: canFind;
+
   final switch(logRankFormat) {
   case LRF.None:
     break;
@@ -159,6 +169,9 @@ void writeLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
 		writefln(stripRight(outString));
 	      }
 	      else {
+		if ( ! outString.canFind("\n") ) {
+		  outString = stripRight(wrap(outString, columnWidth, null, indent));
+		}
 		writefln(strip(outString));
 	      }
 	    }
