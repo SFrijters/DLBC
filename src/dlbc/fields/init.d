@@ -2,15 +2,37 @@ module dlbc.fields.init;
 
 import dlbc.fields.field;
 import dlbc.logging;
+import dlbc.parallel;
 import dlbc.random;
 
+import dlbc.range;
+
+import std.traits;
+
 import std.random;
-import std.stdio;
+
+void initRank(T)(ref T field) {
+  foreach( ref e; field.byElementForward) {
+    static if ( isIterable!(typeof(e))) {
+      foreach( ref c; e ) {
+	c = M.rank;
+      }
+    }
+    else {
+      e = M.rank;
+    }
+  }
+}
 
 void initRandom(T)(ref T field) {
   foreach( ref e; field.byElementForward) {
-    foreach( ref c; e ) {
-      c = uniform(0.0, 1.0, rng);
+    static if ( isIterable!(typeof(e))) {
+      foreach( ref c; e ) {
+	c = uniform(0.0, 1.0, rng);
+      }
+    }
+    else {
+      e = uniform(0.0, 1.0, rng);
     }
   }
 }
