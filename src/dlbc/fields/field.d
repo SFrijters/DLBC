@@ -25,39 +25,20 @@ import unstd.multidimarray;
 import unstd.generictuple;
 
 /**
-The $(D Field) struct is designed as a template to hold scalars of vectors of
-arbitrary type on a lattice of arbitrary dimension (this will normally match
-the dimensionality of the underlying $(D Lattice) struct).
+   The $(D Field) struct is designed as a template to hold scalars or vectors of
+   arbitrary type on a lattice of arbitrary dimension (this will normally match
+   the dimensionality of the underlying $(D Lattice) struct).
 
-Params:
-  T = datatype to be held
-  dim = dimensionality of the field
-  veclen = length of the vector to be stored at every point; a value of 1
-    corresponds to a scalar and is treated as a special case
-
+   Params:
+     T = datatype to be held
+     dim = dimensionality of the field
+     hs = size of the halo region
 */
 struct Field(T, uint dim, uint hs) {
   static assert(dim > 1, "1D fields are not supported.");
   static assert(dim == 3, "Non-3D fields not yet implemented.");
-  // static assert(veclen >= 1, "Vector length of field must be 1 or larger.");
 
-  // static if ( veclen > 1 ) {
-  //   /**
-  //   Data of the field, which necessitates an extra dimension of the underlying array if it's a vector.
-  //   */
-  //   MultidimArray!(T, dim + 1) arr;
-  //   /**
-  //   MPI send buffer for data of the field, which necessitates an extra dimension of the underlying array if it's a vector.
-  //   */
-  //   MultidimArray!(T, dim + 1) sbuffer;
-  //   /**
-  //   MPI receive buffer for data of the field, which necessitates an extra dimension of the underlying array if it's a vector.
-  //   */
-  //   MultidimArray!(T, dim + 1) rbuffer;
-  // }
-  // else {
   MultidimArray!(T, dim) arr, sbuffer, rbuffer;
-  // }
 
   private uint _dimensions = dim;
   private uint[dim] _lengths;
@@ -154,7 +135,6 @@ struct Field(T, uint dim, uint hs) {
 
      Params:
        lengths = lengths of the dimensions of the physical domain
-       haloSize = size of the halo region
   */
   this (const uint[dim] lengths) {
     writeLogRD("Initializing %s local field of type '%s' with halo of thickness %d.", lengths.makeLengthsString, T.stringof, haloSize);
@@ -165,17 +145,11 @@ struct Field(T, uint dim, uint hs) {
     this._lengthsH[1] = lengths[1] + (2* hs);
     this._lengthsH[2] = lengths[2] + (2* hs);
 
-    // static if ( veclen > 1 ) {
-    //   arr = multidimArray!T(nxH, nyH, nzH, veclen);
-    // }
-    // else {
-    //   // Special case for scalars.
-      arr = multidimArray!T(nxH, nyH, nzH);
-    // }
+    arr = multidimArray!T(nxH, nyH, nzH);
   }
 
   /**
-     These variants of opApply loop over the physical part of the lattice only
+     This variant of opApply loops over the physical part of the lattice only
      and overloads the opApply of the underlying multidimArray.
      If the foreach loop is supplied with a reference to the array directly
      it will loop over all lattice sites instead (including the halo).
@@ -190,106 +164,28 @@ struct Field(T, uint dim, uint hs) {
        // Loops over all lattice sites of scalar field.
      }
      ---
-     If $(D field) is a vector field, a fourth index is required.
-
-     Example:
-     ----
-     foreach(v, x, y, z, ref el; vfield) {
-       // Loops over physical sites of scalar field only.
-     }
-
-     foreach(v, x, y, z, ref el; vfield.arr) {
-       // Loops over all lattice sites of scalar field.
-     }
-     ---
-     Alternatively, one can forego the fourth index, in which
-     case another opApply is used, returning the vector component as
-     a fixed-length array.
-
-     Example:
-     ----
-     foreach(x, y, z, ref el; vfield) {
-       assert(is(typeof(el) == T[veclen]) );
-       // Loops over physical sites of scalar field only.
-     }
-
-     foreach(x, y, z, ref el; vfield.arr) {
-       // Does not compile - underlying array does not have this
-       // version of opApply.
-     }
-     ---
   */
   int opApply(int delegate(RepeatTuple!(arr.dimensions, size_t), ref T) dg) {
     if(!elements)
       return 0;
 
     RepeatTuple!(arr.dimensions, size_t) indices = haloSize;
-    // static if ( veclen > 1 ) {
-    //   indices[$ - 1] = -1;
-    // }
-    // else {
-      indices[$ - 1] = -1 + haloSize;
-    // }
+    indices[$ - 1] = -1 + haloSize;
 
     for(;;) {
       foreach_reverse(const plane, ref index; indices) {
-	// static if ( veclen > 1 ) {
-	//   uint offset = 0;
-	//   if( plane != arr.dimensions - 1 ){
-	//     offset = haloSize;
-	//   }
-
-	//   if(++index < arr.lengths[plane] - offset)
-	//     break;
-	//   else if(plane)
-	//     index = offset;
-	//   else
-	//     return 0;
-	// }
-	// else {
-	  if(++index < arr.lengths[plane] - haloSize)
-	    break;
-	  else if(plane)
-	    index = haloSize;
-	  else
-	    return 0;
-	// }
+	if(++index < arr.lengths[plane] - haloSize)
+	  break;
+	else if(plane)
+	  index = haloSize;
+	else
+	  return 0;
       }
 
       if(const res = dg(indices, arr._data[getOffset(indices)]))
 	return res;
     }
   }
-
-  // static if ( veclen > 1 ) {
-  //   /// Returns T[veclen].
-  //   int opApply(int delegate(RepeatTuple!(arr.dimensions-1, size_t), ref T[veclen]) dg) {
-  //     if(!elements)
-  // 	return 0;
-
-  //     RepeatTuple!(arr.dimensions, size_t) indices = haloSize;
-  //     indices[$ - 2] = -1 + haloSize;
-
-  //     for(;;) {
-  // 	foreach_reverse(const plane, ref index; indices[0..$-1]) {
-  // 	  if(++index < arr.lengths[plane] - haloSize)
-  // 	    break;
-  // 	  else if(plane)
-  // 	    index = haloSize;
-  // 	  else
-  // 	    return 0;
-  // 	}
-	
-  // 	auto sindices = indices;
-  // 	sindices[$-1] = 0;
-  // 	auto findices = indices;
-  // 	findices[$-1] = veclen;
-  // 	T[veclen] retvec = arr._data[getOffset(sindices)..getOffset(findices)];
-  // 	if(const res = dg(indices[0..$-1], retvec))
-  // 	  return res;
-  //     }
-  //   }
-  // }
 
   /**
      The halo of the field is exchanged with all 6 neighbours, according to 
@@ -299,15 +195,9 @@ struct Field(T, uint dim, uint hs) {
      identical fashion on all processes, we can easily put the data in the
      correct spot in the main array.
 
-     A special case exists for scalar data, because the underlying
-     $(D multidimArray) lacks a fourth dimension.
-
      Params:
        haloSize = width of the halo to be exchanged; this can be smaller than
                   the halo that is held in memory
-
-     Bugs: this is broken after changing the vector field implementation to be
-           an array of arrays instead of one 4D array.
   */
   void exchangeHalo(uint haloSize = hs)() {
     static assert( haloSize <= hs, "Requested size of halo exchange cannot be larger than halo size of field.");
