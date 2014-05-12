@@ -36,28 +36,28 @@ Params:
     corresponds to a scalar and is treated as a special case
 
 */
-struct Field(T, uint dim, uint veclen = 1) {
+struct Field(T, uint dim) {
   static assert(dim > 1, "1D fields are not supported.");
   static assert(dim == 3, "Non-3D fields not yet implemented.");
-  static assert(veclen >= 1, "Vector length of field must be 1 or larger.");
+  // static assert(veclen >= 1, "Vector length of field must be 1 or larger.");
 
-  static if ( veclen > 1 ) {
-    /**
-    Data of the field, which necessitates an extra dimension of the underlying array if it's a vector.
-    */
-    MultidimArray!(T, dim + 1) arr;
-    /**
-    MPI send buffer for data of the field, which necessitates an extra dimension of the underlying array if it's a vector.
-    */
-    MultidimArray!(T, dim + 1) sbuffer;
-    /**
-    MPI receive buffer for data of the field, which necessitates an extra dimension of the underlying array if it's a vector.
-    */
-    MultidimArray!(T, dim + 1) rbuffer;
-  }
-  else {
+  // static if ( veclen > 1 ) {
+  //   /**
+  //   Data of the field, which necessitates an extra dimension of the underlying array if it's a vector.
+  //   */
+  //   MultidimArray!(T, dim + 1) arr;
+  //   /**
+  //   MPI send buffer for data of the field, which necessitates an extra dimension of the underlying array if it's a vector.
+  //   */
+  //   MultidimArray!(T, dim + 1) sbuffer;
+  //   /**
+  //   MPI receive buffer for data of the field, which necessitates an extra dimension of the underlying array if it's a vector.
+  //   */
+  //   MultidimArray!(T, dim + 1) rbuffer;
+  // }
+  // else {
     MultidimArray!(T, dim) arr, sbuffer, rbuffer;
-  }
+  // }
 
   private uint _dimensions = dim;
   private uint[dim] _lengths;
@@ -165,13 +165,13 @@ struct Field(T, uint dim, uint veclen = 1) {
     this._lengthsH[1] = lengths[1] + (2* haloSize);
     this._lengthsH[2] = lengths[2] + (2* haloSize);
 
-    static if ( veclen > 1 ) {
-      arr = multidimArray!T(nxH, nyH, nzH, veclen);
-    }
-    else {
-      // Special case for scalars.
+    // static if ( veclen > 1 ) {
+    //   arr = multidimArray!T(nxH, nyH, nzH, veclen);
+    // }
+    // else {
+    //   // Special case for scalars.
       arr = multidimArray!T(nxH, nyH, nzH);
-    }
+    // }
   }
 
   /**
@@ -224,36 +224,36 @@ struct Field(T, uint dim, uint veclen = 1) {
       return 0;
 
     RepeatTuple!(arr.dimensions, size_t) indices = haloSize;
-    static if ( veclen > 1 ) {
-      indices[$ - 1] = -1;
-    }
-    else {
+    // static if ( veclen > 1 ) {
+    //   indices[$ - 1] = -1;
+    // }
+    // else {
       indices[$ - 1] = -1 + haloSize;
-    }
+    // }
 
     for(;;) {
       foreach_reverse(const plane, ref index; indices) {
-	static if ( veclen > 1 ) {
-	  uint offset = 0;
-	  if( plane != arr.dimensions - 1 ){
-	    offset = haloSize;
-	  }
+	// static if ( veclen > 1 ) {
+	//   uint offset = 0;
+	//   if( plane != arr.dimensions - 1 ){
+	//     offset = haloSize;
+	//   }
 
-	  if(++index < arr.lengths[plane] - offset)
-	    break;
-	  else if(plane)
-	    index = offset;
-	  else
-	    return 0;
-	}
-	else {
+	//   if(++index < arr.lengths[plane] - offset)
+	//     break;
+	//   else if(plane)
+	//     index = offset;
+	//   else
+	//     return 0;
+	// }
+	// else {
 	  if(++index < arr.lengths[plane] - haloSize)
 	    break;
 	  else if(plane)
 	    index = haloSize;
 	  else
 	    return 0;
-	}
+	// }
       }
 
       if(const res = dg(indices, arr._data[getOffset(indices)]))
@@ -261,35 +261,35 @@ struct Field(T, uint dim, uint veclen = 1) {
     }
   }
 
-  static if ( veclen > 1 ) {
-    /// Returns T[veclen].
-    int opApply(int delegate(RepeatTuple!(arr.dimensions-1, size_t), ref T[veclen]) dg) {
-      if(!elements)
-	return 0;
+  // static if ( veclen > 1 ) {
+  //   /// Returns T[veclen].
+  //   int opApply(int delegate(RepeatTuple!(arr.dimensions-1, size_t), ref T[veclen]) dg) {
+  //     if(!elements)
+  // 	return 0;
 
-      RepeatTuple!(arr.dimensions, size_t) indices = haloSize;
-      indices[$ - 2] = -1 + haloSize;
+  //     RepeatTuple!(arr.dimensions, size_t) indices = haloSize;
+  //     indices[$ - 2] = -1 + haloSize;
 
-      for(;;) {
-	foreach_reverse(const plane, ref index; indices[0..$-1]) {
-	  if(++index < arr.lengths[plane] - haloSize)
-	    break;
-	  else if(plane)
-	    index = haloSize;
-	  else
-	    return 0;
-	}
+  //     for(;;) {
+  // 	foreach_reverse(const plane, ref index; indices[0..$-1]) {
+  // 	  if(++index < arr.lengths[plane] - haloSize)
+  // 	    break;
+  // 	  else if(plane)
+  // 	    index = haloSize;
+  // 	  else
+  // 	    return 0;
+  // 	}
 	
-	auto sindices = indices;
-	sindices[$-1] = 0;
-	auto findices = indices;
-	findices[$-1] = veclen;
-	T[veclen] retvec = arr._data[getOffset(sindices)..getOffset(findices)];
-	if(const res = dg(indices[0..$-1], retvec))
-	  return res;
-      }
-    }
-  }
+  // 	auto sindices = indices;
+  // 	sindices[$-1] = 0;
+  // 	auto findices = indices;
+  // 	findices[$-1] = veclen;
+  // 	T[veclen] retvec = arr._data[getOffset(sindices)..getOffset(findices)];
+  // 	if(const res = dg(indices[0..$-1], retvec))
+  // 	  return res;
+  //     }
+  //   }
+  // }
 
   /**
      The halo of the field is exchanged with all 6 neighbours, according to 
@@ -305,6 +305,9 @@ struct Field(T, uint dim, uint veclen = 1) {
      Params:
        haloSize = width of the halo to be exchanged; this can be smaller than
                   the halo that is held in memory
+
+     Bugs: this is broken after changing the vector field implementation to be
+           an array of arrays instead of one 4D array.
   */
   void exchangeHalo() {
     exchangeHalo(this._haloSize);
@@ -332,41 +335,41 @@ struct Field(T, uint dim, uint veclen = 1) {
     uint llr = haloOffset;
     uint ulr = haloOffset + haloSize;
 
-    static if ( veclen > 1 ) {
-      // Send to positive x
-      buflen = (ny + 2*haloSize) * (nz + 2*haloSize) * haloSize * veclen;
-      rbuffer = multidimArray!T(haloSize, (ny + 2*haloSize), (nz + 2*haloSize), veclen);
-      sbuffer = arr[$-lus .. $-uus, haloOffset..$-haloOffset, haloOffset..$-haloOffset, 0..$].dup;
-      MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbx[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nbx[0], 0, M.comm, &mpiStatus);
-      arr[llr..ulr, haloOffset..$-haloOffset, haloOffset..$-haloOffset, 0..$] = rbuffer;
-      // Send to negative x
-      sbuffer = arr[lls..uls, haloOffset..$-haloOffset, haloOffset..$-haloOffset, 0..$].dup;
-      MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbx[0], 0, rbuffer._data.ptr, buflen, mpiType, M.nbx[1], 0, M.comm, &mpiStatus);
-      arr[$-lur .. $-uur, haloOffset..$-haloOffset, haloOffset..$-haloOffset, 0..$] = rbuffer;
+    // static if ( veclen > 1 ) {
+    //   // Send to positive x
+    //   buflen = (ny + 2*haloSize) * (nz + 2*haloSize) * haloSize * veclen;
+    //   rbuffer = multidimArray!T(haloSize, (ny + 2*haloSize), (nz + 2*haloSize), veclen);
+    //   sbuffer = arr[$-lus .. $-uus, haloOffset..$-haloOffset, haloOffset..$-haloOffset, 0..$].dup;
+    //   MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbx[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nbx[0], 0, M.comm, &mpiStatus);
+    //   arr[llr..ulr, haloOffset..$-haloOffset, haloOffset..$-haloOffset, 0..$] = rbuffer;
+    //   // Send to negative x
+    //   sbuffer = arr[lls..uls, haloOffset..$-haloOffset, haloOffset..$-haloOffset, 0..$].dup;
+    //   MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbx[0], 0, rbuffer._data.ptr, buflen, mpiType, M.nbx[1], 0, M.comm, &mpiStatus);
+    //   arr[$-lur .. $-uur, haloOffset..$-haloOffset, haloOffset..$-haloOffset, 0..$] = rbuffer;
 
-      // Send to positive y
-      buflen = (nx + 2*haloSize) * (nz + 2*haloSize) * haloSize * veclen;
-      rbuffer = multidimArray!T((nx + 2*haloSize), haloSize, (nz + 2*haloSize), veclen);
-      sbuffer = arr[haloOffset..$-haloOffset, $-lus..$-uus, haloOffset..$-haloOffset, 0..$].dup;
-      MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nby[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nby[0], 0, M.comm, &mpiStatus);
-      arr[haloOffset..$-haloOffset, llr..ulr, haloOffset..$-haloOffset, 0..$] = rbuffer;
-      // Send to negative y
-      sbuffer = arr[haloOffset..$-haloOffset, lls..uls, haloOffset..$-haloOffset, 0..$].dup;
-      MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nby[0], 0, rbuffer._data.ptr, buflen, mpiType, M.nby[1], 0, M.comm, &mpiStatus);
-      arr[haloOffset..$-haloOffset, $-lur..$-uur, haloOffset..$-haloOffset, 0..$] = rbuffer;
+    //   // Send to positive y
+    //   buflen = (nx + 2*haloSize) * (nz + 2*haloSize) * haloSize * veclen;
+    //   rbuffer = multidimArray!T((nx + 2*haloSize), haloSize, (nz + 2*haloSize), veclen);
+    //   sbuffer = arr[haloOffset..$-haloOffset, $-lus..$-uus, haloOffset..$-haloOffset, 0..$].dup;
+    //   MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nby[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nby[0], 0, M.comm, &mpiStatus);
+    //   arr[haloOffset..$-haloOffset, llr..ulr, haloOffset..$-haloOffset, 0..$] = rbuffer;
+    //   // Send to negative y
+    //   sbuffer = arr[haloOffset..$-haloOffset, lls..uls, haloOffset..$-haloOffset, 0..$].dup;
+    //   MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nby[0], 0, rbuffer._data.ptr, buflen, mpiType, M.nby[1], 0, M.comm, &mpiStatus);
+    //   arr[haloOffset..$-haloOffset, $-lur..$-uur, haloOffset..$-haloOffset, 0..$] = rbuffer;
 
-      // Send to positive z
-      buflen = (nx + 2*haloSize) * (ny + 2*haloSize) * haloSize * veclen;
-      rbuffer = multidimArray!T((nx + 2*haloSize), (ny + 2*haloSize), haloSize, veclen);
-      sbuffer = arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, $-lus..$-uus, 0..$].dup;
-      MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, M.comm, &mpiStatus);
-      arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, llr..ulr, 0..$] = rbuffer;
-      // Send to negative z
-      sbuffer = arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, lls..uls, 0..$].dup;
-      MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, rbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, M.comm, &mpiStatus);
-      arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, $-lur..$-uur, 0..$] = rbuffer;
-    }
-    else {
+    //   // Send to positive z
+    //   buflen = (nx + 2*haloSize) * (ny + 2*haloSize) * haloSize * veclen;
+    //   rbuffer = multidimArray!T((nx + 2*haloSize), (ny + 2*haloSize), haloSize, veclen);
+    //   sbuffer = arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, $-lus..$-uus, 0..$].dup;
+    //   MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, rbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, M.comm, &mpiStatus);
+    //   arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, llr..ulr, 0..$] = rbuffer;
+    //   // Send to negative z
+    //   sbuffer = arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, lls..uls, 0..$].dup;
+    //   MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, rbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, M.comm, &mpiStatus);
+    //   arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, $-lur..$-uur, 0..$] = rbuffer;
+    // }
+    // else {
       // Send to positive x
       buflen = (ny + 2*haloSize) * (nz + 2*haloSize) * haloSize;
       rbuffer = multidimArray!T(haloSize, (ny + 2*haloSize), (nz + 2*haloSize));
@@ -399,7 +402,7 @@ struct Field(T, uint dim, uint veclen = 1) {
       sbuffer = arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, lls..uls].dup;
       MPI_Sendrecv(sbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, rbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, M.comm, &mpiStatus);
       arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, $-lur..$-uur] = rbuffer;
-    }
+    // }
   }
 
   /**
@@ -411,7 +414,7 @@ struct Field(T, uint dim, uint veclen = 1) {
        logRankFormat = which processes should write
   */
   void show(VL vl, LRF logRankFormat)() {
-    immutable uint vdim = dim + ( veclen > 1 );
+    immutable uint vdim = dim; // + ( veclen > 1 );
     static assert( vdim <= 4, "Show vector array not yet implemented for dim + (veclen > 1) > 4.");
 
     static if ( vdim <= 3 ) {

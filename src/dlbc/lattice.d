@@ -32,8 +32,8 @@ struct Lattice(uint dim) {
     return _lengths[2];
   }
 
-  Field!(double, dim, 19) red;
-  Field!(double, dim, 19) blue;
+  Field!(double[19], dim) red;
+  Field!(double[19], dim) blue;
   Field!(int, dim) index;
 
   this ( MpiParams M ) {
@@ -51,8 +51,8 @@ struct Lattice(uint dim) {
     this._lengths[1] = ny;
     this._lengths[2] = nz;
 
-    red = Field!(double, dim, 19)(lengths, 2);
-    blue = Field!(double, dim, 19)(lengths, 2);
+    red = Field!(double[19], dim)(lengths, 2);
+    blue = Field!(double[19], dim)(lengths, 2);
     index = Field!(int, dim)(lengths, 1);
   }
 

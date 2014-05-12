@@ -9,7 +9,9 @@ import std.stdio;
 
 void initRandom(T)(ref T field) {
   foreach( ref e; field.byElementForward) {
-    e = uniform(0.0, 1.0, rng);
+    foreach( ref c; e ) {
+      c = uniform(0.0, 1.0, rng);
+    }
   }
 }
 

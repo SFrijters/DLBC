@@ -53,12 +53,14 @@ int main(string[] args ) {
 
   L.exchangeHalo();
 
-  L.red[] = M.rank;
-  L.blue[] = M.rank;
-  L.index[] = M.rank;
+  double[19] test = M.rank;
 
-  // L.red.initRandom();
-  // L.blue.initRandom();
+  L.red[] = test;
+  // L.blue[] = M.rank;
+  // L.index[] = M.rank;
+
+  L.red.initRandom();
+  L.blue.initRandom();
 
   // L.index.exchangeHalo(1);
   // L.index.show!(VL.Debug, LRF.Root);
@@ -84,13 +86,14 @@ int main(string[] args ) {
   //   writeLogRD("%d %d %d %d", el, x, y, z);
   // }
 
-  // foreach(v, x, y, z, ref el; L.red) { // using opApply
-  //   writeLogRD("%d %d %d %d", v, x, y, z);
+  // foreach(x, y, z, ref el; L.red.arr) { // using opApply
+  //   writeLogRD("%d %d %d %s", x, y, z, el);
+  //   el = M.rank;
   // }
 
-  // foreach(v, x, y, z, ref el; L.red.arr) {
-  //   writeLogRD("%d %d %d %d", v, x, y, z);
-  // }
+  foreach(x, y, z, ref el; L.red) {
+    writeLogD("%d %d %d %s", x, y, z, el);
+  }
 
   // foreach(x, y, z, ref el; L.red) {
   //   // Loops over physical sites of scalar field only.

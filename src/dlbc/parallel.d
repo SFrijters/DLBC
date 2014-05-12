@@ -170,14 +170,31 @@ int MpiBarrier() {
 }
 
 MPI_Datatype mpiTypeof(T)() {
-  static if ( is(T == int) ) {
-    return MPI_INT;
-  }
-  else static if ( is(T == double) ) {
-    return MPI_DOUBLE;
+  import dlbc.range;
+  import std.traits;
+  static if ( isArray!T ) {
+    return mpiTypeof!(BaseElementType!T);
   }
   else {
-    static assert(0, "Datatype not implemented for MPI.");
+    static if ( is(T == int) ) {
+      return MPI_INT;
+    }
+    else static if ( is(T == double) ) {
+      return MPI_DOUBLE;
+    }
+    else {
+      static assert(0, "Datatype not implemented for MPI.");
+    }
+  }
+}
+
+size_t mpiLengthof(T)() {
+  import std.traits;
+  static if ( hasLength!T) {
+    return T.length;
+  }
+  else {
+    return 1;
   }
 }
 
