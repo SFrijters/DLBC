@@ -60,9 +60,11 @@ int main(string[] args ) {
   // L.index[] = M.rank;
 
   L.red.initRandom();
-  L.blue.initRandom();
+  L.blue.initRank();
+  L.index.initRank();
 
   L.index.exchangeHalo!(1);
+  L.blue.exchangeHalo;
   // L.index.show!(VL.Debug, LRF.Root);
   // L.index.exchangeHalo();
   // L.index.show!(VL.Debug, LRF.Root);
@@ -91,24 +93,34 @@ int main(string[] args ) {
   //   el = M.rank;
   // }
 
-  foreach(x, y, z, ref el; L.red) {
-    writeLogD("%d %d %d %s", x, y, z, el);
-  }
-
   // foreach(x, y, z, ref el; L.red) {
-  //   // Loops over physical sites of scalar field only.
-  //   assert(is(typeof(el) == double[19]) );
-  //   writeLogRD("%s %d %d %d", el, x, y, z);
+  //   writeLogD("%d %d %d %s", x, y, z, el);
   // }
+
+  // foreach(x, y, z, v, ref el; L.red.arr) {
+  //   // Loops over physical sites of scalar field only.
+  //   // assert(is(typeof(el) == double[19]) );
+  //   el = x*1000+y*10+z;
+  //   // writeLogRD("%d %d %d %s", x, y, z, el);
+  // }
+  // L.red.show!(VL.Debug, LRF.Root);
+  // L.red.exchangeHalo();
+  // // L.red.show!(VL.Debug, LRF.Root);
+  // writeLogRD(L.red.arr[0..$,0..$,2,1].toString);
+  // auto buffer = L.red.arr[0..$-1,0..$,0..$, 1];
+  // writeLogRD(buffer.toString);
+  // L.red.arr[1..$,0..$,0..$,1] = buffer;
+  // // L.red.show!(VL.Debug, LRF.Root);
+
+  // // writeLogRD(L.red.arr[0..$,0..$,0..$,1].toString);
+  // writeLogRD(L.red.arr[0..$,0..$,2,1].toString);
 
   // foreach( z, y, x, ref el; L.red.arr) {
   //   writeLogRD("%s %d %d %d", el, z, y, x);
   // }
 
-  // L.index.show!(VL.Debug, LRF.Root);
-
-
-  // L.blue.show!(VL.Debug, LRF.Root);
+  L.index.show!(VL.Debug, LRF.Any);
+  L.blue.show!(VL.Debug, LRF.Any);
 
   // writeLog(VL.Information, LRF.None, "This is another None log test from rank %d.\n",M.rank);
   // writeLog(VL.Information, LRF.Root, "This is another Root log test from rank %d.\n",M.rank);

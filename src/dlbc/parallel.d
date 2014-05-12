@@ -189,7 +189,7 @@ MPI_Datatype mpiTypeof(T)() {
 }
 
 size_t mpiLengthof(T)() {
-  import std.traits;
+  import std.range;
   static if ( hasLength!T) {
     return T.length;
   }
