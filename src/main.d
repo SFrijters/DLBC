@@ -62,7 +62,7 @@ int main(string[] args ) {
   L.red.initRandom();
   L.blue.initRandom();
 
-  // L.index.exchangeHalo(1);
+  L.index.exchangeHalo!(1);
   // L.index.show!(VL.Debug, LRF.Root);
   // L.index.exchangeHalo();
   // L.index.show!(VL.Debug, LRF.Root);

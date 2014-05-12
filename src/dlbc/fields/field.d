@@ -36,7 +36,7 @@ Params:
     corresponds to a scalar and is treated as a special case
 
 */
-struct Field(T, uint dim) {
+struct Field(T, uint dim, uint hs) {
   static assert(dim > 1, "1D fields are not supported.");
   static assert(dim == 3, "Non-3D fields not yet implemented.");
   // static assert(veclen >= 1, "Vector length of field must be 1 or larger.");
@@ -56,12 +56,12 @@ struct Field(T, uint dim) {
   //   MultidimArray!(T, dim + 1) rbuffer;
   // }
   // else {
-    MultidimArray!(T, dim) arr, sbuffer, rbuffer;
+  MultidimArray!(T, dim) arr, sbuffer, rbuffer;
   // }
 
   private uint _dimensions = dim;
   private uint[dim] _lengths;
-  private uint _haloSize;
+  private uint _haloSize = hs;
   private uint[dim] _lengthsH;
 
   /**
@@ -155,15 +155,14 @@ struct Field(T, uint dim) {
        lengths = lengths of the dimensions of the physical domain
        haloSize = size of the halo region
   */
-  this (const uint[dim] lengths, const uint haloSize) {
+  this (const uint[dim] lengths) {
     writeLogRD("Initializing %s local field of type '%s' with halo of thickness %d.", lengths.makeLengthsString, T.stringof, haloSize);
 
     this._lengths = lengths;
-    this._haloSize = haloSize;
     // Why doesn't scalar addition work?
-    this._lengthsH[0] = lengths[0] + (2* haloSize);
-    this._lengthsH[1] = lengths[1] + (2* haloSize);
-    this._lengthsH[2] = lengths[2] + (2* haloSize);
+    this._lengthsH[0] = lengths[0] + (2* hs);
+    this._lengthsH[1] = lengths[1] + (2* hs);
+    this._lengthsH[2] = lengths[2] + (2* hs);
 
     // static if ( veclen > 1 ) {
     //   arr = multidimArray!T(nxH, nyH, nzH, veclen);
@@ -309,14 +308,8 @@ struct Field(T, uint dim) {
      Bugs: this is broken after changing the vector field implementation to be
            an array of arrays instead of one 4D array.
   */
-  void exchangeHalo() {
-    exchangeHalo(this._haloSize);
-  }
-  /// Ditto
-  void exchangeHalo(uint haloSize) {
-    if ( haloSize > this._haloSize) {
-      writeLogF("Requested size %d of halo exchange cannot be larger than halo size %d.", haloSize, this._haloSize);
-    }
+  void exchangeHalo(uint haloSize = hs)() {
+    static assert( haloSize <= hs, "Requested size of halo exchange cannot be larger than halo size of field.");
 
     writeLogRD("Performing halo exchange of size %d.", haloSize);
 

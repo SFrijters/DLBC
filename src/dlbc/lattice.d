@@ -32,9 +32,9 @@ struct Lattice(uint dim) {
     return _lengths[2];
   }
 
-  Field!(double[19], dim) red;
-  Field!(double[19], dim) blue;
-  Field!(int, dim) index;
+  Field!(double[19], dim, 2) red;
+  Field!(double[19], dim, 2) blue;
+  Field!(int, dim, 1) index;
 
   this ( MpiParams M ) {
     // Check if we can reconcile global lattice size with CPU grid
@@ -51,15 +51,15 @@ struct Lattice(uint dim) {
     this._lengths[1] = ny;
     this._lengths[2] = nz;
 
-    red = Field!(double[19], dim)(lengths, 2);
-    blue = Field!(double[19], dim)(lengths, 2);
-    index = Field!(int, dim)(lengths, 1);
+    red = Field!(double[19], dim, 2)(lengths);
+    blue = Field!(double[19], dim, 2)(lengths);
+    index = Field!(int, dim, 1)(lengths);
   }
 
   void exchangeHalo() {
     import std.algorithm: startsWith;
     foreach(e ; __traits(derivedMembers, Lattice)) {
-      mixin(`static if(typeof(Lattice.`~e~`).stringof.startsWith("Field!")) { `~e~`.exchangeHalo();};`);
+      mixin(`static if(typeof(Lattice.`~e~`).stringof.startsWith("Field!")) { `~e~`.exchangeHalo!()();};`);
     }
   }
 }
