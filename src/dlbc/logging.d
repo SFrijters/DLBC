@@ -27,45 +27,74 @@ import dlbc.parallel;
 bool warningsAreFatal = false;
 
 /**
-String to append to truncated messages.
+   String to append to truncated messages.
 */
 private shared immutable string truncationSuffix = "[T]...";
 /**
-Length of a header line.
+   Length of a header line.
 */
 private shared immutable size_t headerLength = 80;
 /**
-Character to fill the header line with.
+   Character to fill the header line with.
 */
 private shared immutable string headerDash = "=";
 
 /**
-Specifies which processes should do the logging when passed as a (template) argument to various logging functions.
-
-None: no output.
-Root: only root will write output.
-Any: any process will write output.
-Ordered: all processes will send their output to the root process, which will display all output in order of process rank.
+   Specifies which processes should do the logging when passed as a (template) argument to various logging functions.
 */
 enum LogRankFormat {
+  /**
+     No output.
+  */
   None    = 0,
+  /**
+     Only the root process will write output.
+  */
   Root    = 1,
+  /**
+     Any process will write output.
+  */
   Any     = 2,
+  /**
+     All processes will send their output to the root process, 
+     which will display all output in order of process rank.
+  */
   Ordered = 3,
 };
 /// Ditto
 alias LogRankFormat LRF;
 
 /**
-Specifies at which verbosity level the logging should be executed when passed as a (template) argument to various logging functions.
+   Specifies at which verbosity level the logging should be executed when passed as a (template) argument to various logging functions.
 */
 enum VerbosityLevel {
+  /**
+     No output.
+  */
   Off          = 0,
+  /**
+     Log fatal errors only.
+  */
   Fatal        = 1,
+  /**
+     Log errors and above only.
+  */
   Error        = 2,
+  /**
+     Log warnings and above only.
+  */
   Warning      = 3,
+  /**
+     Log notifications and above only.
+  */
   Notification = 4,
+  /**
+     Log informational messages and above only.
+  */
   Information  = 5,
+  /**
+     Log all output.
+  */
   Debug        = 6,
 };
 /// Ditto
@@ -74,11 +103,10 @@ alias VerbosityLevel VL;
 private VL globalVerbosityLevel = VL.Debug;
 
 /**
-Setter function for the global verbosity level.
+   Setter function for the global verbosity level.
 
-Params:
-  newVL = new verbosity level
-
+   Params:
+     newVL = new verbosity level
 */
 void setGlobalVerbosityLevel(const VL newVL) {
   writeLogRN("Setting globalVerbosityLevel to %d ('%s').", newVL, to!string(newVL));
@@ -86,23 +114,21 @@ void setGlobalVerbosityLevel(const VL newVL) {
 }
 
 /**
-Getter function for the global verbosity level.
+   Getter function for the global verbosity level.
 
-Returns: the current global verbosity level
-
+   Returns: the current global verbosity level
 */
 VL getGlobalVerbosityLevel() {
   return globalVerbosityLevel;
 }
 
 /**
-Write output to stdout, depending on the verbosity level and which processes are allowed to write.
-
-Params:
-  vl = verbosity level to write at
-  logRankFormat = which processes should write
-  args = data to write
-
+   Write output to stdout, depending on the verbosity level and which processes are allowed to write.
+   
+   Params:
+     vl = verbosity level to write at
+     logRankFormat = which processes should write
+     args = data to write
 */
 void writeLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
   final switch(logRankFormat) {
@@ -172,13 +198,13 @@ void writeLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
 }
 
 /**
-Shorthand for various logging templates based on $(D writeLog).
+   Shorthand for various logging templates based on $(D writeLog).
 
-The last letter of the function name corresponds to the first of the verbosity level enum member that is passed into the template.
-The optional 'R' passes $(D LRF.Root), otherwise $(D LRF.Any) is passed.
+   The last letter of the function name corresponds to the first of the verbosity level enum member that is passed into the template.
+   The optional 'R' passes $(D LRF.Root), otherwise $(D LRF.Any) is passed.
 
-Params:
-  args = data to write
+   Params:
+     args = data to write
 
 */
 void writeLogRF(T...)(const T args) { writeLog!(VL.Fatal       , LRF.Root)(args); }
@@ -207,14 +233,13 @@ void writeLogI(T...)(const T args)  { writeLog!(VL.Information , LRF.Any )(args)
 void writeLogD(T...)(const T args)  { writeLog!(VL.Debug       , LRF.Any )(args); }
 
 /**
-Write output to stdout from all processes, gathered by the root process and ordered by process rank.
+   Write output to stdout from all processes, gathered by the root process and ordered by process rank.
 
-Params:
-  vl = verbosity level to write at
-  args = data to write
+   Params:
+     vl = verbosity level to write at
+     args = data to write
 
-Bugs: Possible memory issues causing corrupted data or hanging processes.
-
+   Bugs: Possible memory issues causing corrupted data or hanging processes.
 */
 void owriteLog(VL vl, T...)(const T args) {
   //return;
@@ -267,13 +292,12 @@ void owriteLog(VL vl, T...)(const T args) {
 }
 
 /**
-Shorthand for various ordered logging templates based on $(D owriteLog).
+   Shorthand for various ordered logging templates based on $(D owriteLog).
 
-The last letter of the function name corresponds to the first of the verbosity level enum member that is passed into the template.
+   The last letter of the function name corresponds to the first of the verbosity level enum member that is passed into the template.
 
-Params:
-  args = data to write
-
+   Params:
+     args = data to write
 */
 void owriteLogF(T...)(const T args) { owriteLog(VL.Fatal       , args); }
 /// Ditto
@@ -288,17 +312,16 @@ void owriteLogI(T...)(const T args) { owriteLog(VL.Information , args); }
 void owriteLogD(T...)(const T args) { owriteLog(VL.Debug       , args); }
 
 /**
-Creates a string with a text marker for verbosity level prepended to $(D args).
+   Creates a string with a text marker for verbosity level prepended to $(D args).
 
-This function also takes care of leading newlines, which should create completely blank lines before the actual content is shown with the proper tag.
+   This function also takes care of leading newlines, which should create completely blank lines before the actual content is shown with the proper tag.
 
-Params:
-  vl = verbosity level to use for the marker
-  logRankFormat = log type to use for the process prefix
-  args = data to write
+   Params:
+     vl = verbosity level to use for the marker
+     logRankFormat = log type to use for the process prefix
+     args = data to write
 
-Returns: a string with a text marker for verbosity level prepended to $(D args).
-
+   Returns: a string with a text marker for verbosity level prepended to $(D args).
 */
 private string makeLogString(VL vl, LRF logRankFormat, T...)(T args) {
   import std.algorithm: canFind;
@@ -351,13 +374,12 @@ private string makeLogString(VL vl, LRF logRankFormat, T...)(T args) {
 }
 
 /**
-Creates a string prefix containing the current process rank, if applicable.
+   Creates a string prefix containing the current process rank, if applicable.
 
-Params:
-  logRankFormat = log type to use for the rank prefix
+   Params:
+     logRankFormat = log type to use for the rank prefix
 
-Returns: a string prefix containing the current process rank, if applicable.
-
+   Returns: a string prefix containing the current process rank, if applicable.
 */
 private string makeRankString(LogRankFormat logRankFormat)() {
   final switch(logRankFormat) {
@@ -373,10 +395,9 @@ private string makeRankString(LogRankFormat logRankFormat)() {
 }
 
 /**
-Creates a formatted string containing the current time.
+   Creates a formatted string containing the current time.
 
-Returns: a formatted string containing the current time.
-
+   Returns: a formatted string containing the current time.
 */
 string makeCurrTimeString() {
   import std.datetime;
@@ -423,13 +444,12 @@ string makeHeaderString(T...)(const T args) pure {
 }
 
 /**
-Creates a string with the values in $(D lengths) separated by "x" to denote grid size.
+   Creates a string with the values in $(D lengths) separated by "x" to denote grid size.
 
-Params:
-  lengths = array of lengths of arbitrary dimension
+   Params:
+     lengths = array of lengths of arbitrary dimension
 
-Returns: a string with the values in $(D lengths) separated by "x" to denote grid size.
-
+   Returns: a string with the values in $(D lengths) separated by "x" to denote grid size.
 */
 string makeLengthsString(const uint[] lengths) pure {
   string str;
