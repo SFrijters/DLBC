@@ -189,7 +189,8 @@ int main(string[] args ) {
     MpiBarrier();
   }
 
-  L.red.initRank();
+  L.red.initConst(0.01);
+  L.red.initRandom();
   // L.red.exchangeHalo();
   // L.red.show!(VL.Debug, LRF.Root);
 
@@ -199,12 +200,17 @@ int main(string[] args ) {
   T.coll = MultiStopWatch("Collision");
 
   //writeLogRD("%s", d3q19.weights);
-  for ( uint t = 0; t < 100; t++ ) {
+  for ( uint t = 1; t <= 100; ++t ) {
     writeLogRI("Starting timestep %d", t);
-    T.adv.start();
+    // writeLogRI("Density = %f", L.red.localMass());
+    writeLogRI("Mass before advection = %f", L.red.globalMass());
+    // writeLogI("Density = %f", L.red.localMass());
     L.red.exchangeHalo();
+    T.adv.start();
     L.red.advectField(L.temp, d3q19);
     T.adv.stop();
+    writeLogRI("Mass after advection = %f", L.red.globalMass());
+    // writeLogI("Density = %f", L.red.localMass());
     // L.red.show!(VL.Debug, LRF.Root);
     T.coll.start();
     L.red.collideField(d3q19);

@@ -267,12 +267,12 @@ struct Field(T, uint dim, uint hs) {
   }
 }
 
-void advectField(T, U)(ref T field, ref T tempField, const ref U conn) {
+void advectField(T, U)(ref T field, ref T tempField, const ref U connectivity) {
   assert(field.dimensions == tempField.dimensions);
-  auto immutable cv = conn.velocities;
-  foreach( z, y, x, ref e; tempField) {
-    assert(e.length == cv.length);
-    foreach( i, ref c; e ) {
+  auto immutable cv = connectivity.velocities;
+  foreach( z, y, x, ref population; tempField) {
+    assert(population.length == cv.length);
+    foreach( i, ref c; population ) {
       // writeLogRD("%d %d %d %d %f", z, y, x, i, c);
       //newField[z+vel[i][2],y+vel[i][1],x+vel[i][0]][i] = c;
       c = field[z-cv[i][2], y-cv[i][1], x-cv[i][0]][i];
@@ -284,7 +284,7 @@ void advectField(T, U)(ref T field, ref T tempField, const ref U conn) {
 }
 
 void collideField(T, U)(ref T field, const ref U conn) {
-  auto omega = 1.0;
+  enum omega = 1.0;
   foreach(ref e; field.byElementForward) {
     auto boltz = eqDist(e, conn);
     // writeLogRD("%s %s", e, boltz);
@@ -298,11 +298,11 @@ auto eqDist(T, U)(const ref T pop, const ref U conn) {
 
   auto immutable cv = conn.velocities;
   auto immutable cw = conn.weights;
-  auto rho0 = pop.density();
-  auto v = pop.velocity(cv);
+  auto immutable rho0 = pop.density();
+  auto immutable v = pop.velocity(cv);
   enum css = 1.0/3.0;
-  
-  auto immutable vdotv = v.dotProduct(v); 
+
+  auto immutable vdotv = v.dotProduct(v);
 
   T dist = 0.0;
   // writeLogRD("%s %s", rho0, v);
@@ -336,5 +336,34 @@ auto densityField(T)(ref T field) {
     density[z,y,x] = pop.density();
   }
   return density;
+}
+
+auto localMass(T)(ref T field) {
+  import std.algorithm;
+  double mass = 0.0;
+  int cnt = 0;
+  foreach(z, y, x, ref e; field) {
+    mass += e.density();
+    cnt++;
+  }
+  writeLogRD("Counted %d lattice sites. Expected %d. ",cnt, field.nx*field.ny*field.nz);
+  return mass;
+}
+
+auto localDensity(T)(ref T field) {
+  auto size = field.nx * field.ny * field.nz;
+  return localMass(field) / size;
+}
+
+auto globalMass(T)(ref T field) {
+  auto localMass = localMass(field);
+  typeof(localMass) globalMass;
+  MPI_Allreduce(&localMass, &globalMass, 1, MPI_DOUBLE, MPI_SUM, M.comm);
+  return globalMass;
+}
+
+auto globalDensity(T)(ref T field) {
+  auto size = field.nx * field.ny * field.nz * M.size;
+  return globalMass(field) / size;
 }
 
