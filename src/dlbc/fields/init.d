@@ -28,7 +28,7 @@ void initRandom(T)(ref T field) {
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
-	c = uniform(0.0, 1.0, rng);
+	c = uniform(0.0, 1.0, rng) / e.length;
       }
     }
     else {
@@ -36,4 +36,18 @@ void initRandom(T)(ref T field) {
     }
   }
 }
+
+void initConst(T, U)(ref T field, const U fill) {
+  foreach( ref e; field.byElementForward) {
+    static if ( isIterable!(typeof(e))) {
+      foreach( ref c; e ) {
+	c = fill;
+      }
+    }
+    else {
+      e = fill;
+    }
+  }
+}
+
 
