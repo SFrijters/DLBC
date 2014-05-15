@@ -135,6 +135,7 @@ int main(string[] args ) {
   //   //  }
   // }
 
+
   // Check advection - make this into a unittest later.
   auto d3q19 = new Connectivity!(3,19);
   if ( M.size == 8 ) {
@@ -189,7 +190,16 @@ int main(string[] args ) {
     MpiBarrier();
   }
 
-  L.red.initConst(0.01);
+  // Check velocity - make this into a unittest later.
+  // double[19] pop = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+  // 		     0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+  // auto den = density(pop);
+  // auto vel = velocity(pop, d3q19);
+  // writeLogRD("%s %s %s", pop, den ,vel);
+  // auto eqPop = eqDist(pop, d3q19);
+  // writeLogRD("%s %s %s", eqPop, density(eqPop), velocity(eqPop, d3q19));
+
+  // L.red.initConst(0.01);
   L.red.initRandom();
   // L.red.exchangeHalo();
   // L.red.show!(VL.Debug, LRF.Root);
@@ -214,6 +224,7 @@ int main(string[] args ) {
     T.coll.start();
     L.red.collideField(d3q19);
     T.coll.stop();
+    writeLogRI("Global momentum = %s", L.red.globalMomentum(d3q19));
     // L.red.show!(VL.Debug, LRF.Root);
   }
   // L.red.show!(VL.Information, LRF.Root);

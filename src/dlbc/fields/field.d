@@ -302,12 +302,19 @@ auto eqDist(T, U)(const ref T population, const ref U conn) {
 
   auto immutable vdotv = v.dotProduct(v);
 
-  T dist = 0.0;
-  // writeLogRD("%s %s", rho0, v);
-  foreach(i, e; population) {
-    auto immutable vdotcv = v.dotProduct(cv[i]);
+  T dist;
+  // writeLogRD("%s %s %s %s", rho0, v, vdotv, css);
+  foreach(i, e; cv) {
+    auto immutable vdotcv = v.dotProduct(e);
     dist[i] = rho0 * cw[i] * ( 1.0 + ( vdotcv / css ) + ( (vdotcv * vdotcv ) / ( 2.0 * css * css ) ) - ( ( vdotv * vdotv ) / ( 2.0 * css) ) );
+    // writeLogRD("%2d %10s %10s %10s %10s", i, cv[i], cw[i], vdotcv, dist[i]);
   }
+  // writeLogRD("%s %s %s", dist, density(dist), velocity(dist, conn));
+  auto den = dist.density();
+  foreach(ref e; dist) {
+    e /= ( den / rho0 );
+  }
+  // writeLogRD("%s %s %s", dist, density(dist), velocity(dist, conn));
   return dist;
 }
 
@@ -380,4 +387,42 @@ auto globalDensity(T)(ref T field) {
   auto size = field.nx * field.ny * field.nz * M.size;
   return globalMass(field) / size;
 }
+
+auto momentum(T, U)(const ref T population, const ref U conn) {
+  auto density = population.density();
+  auto velocity = velocity(population, density, conn);
+  foreach( ref e; velocity) {
+    e *= density * density;
+  }
+  return velocity;
+}
+
+auto momentumField(T, U)(const ref T population, const ref U conn) {
+  auto momentum = multidimArray!double[field.dimensions](field.nxH, field.nyH, field.nzH);
+  foreach(z,y,x, ref population; field.arr) {
+    momentum[z,y,x] = population.momentum(conn);
+  }
+  return momentum;
+}
+
+auto localMomentum(T, U)(ref T field, const ref U conn) {
+  double[3] momentum = 0.0;
+  foreach(z, y, x, ref e; field) {
+    auto mom = e.momentum(conn);
+    momentum[0] += mom[0];
+    momentum[1] += mom[1];
+    momentum[2] += mom[2];
+  }
+  return momentum;
+}
+
+auto globalMomentum(T, U)(ref T field, const ref U conn) {
+  auto localMomentum = field.localMomentum(conn);
+  typeof(localMomentum) globalMomentum;
+  MPI_Allreduce(&localMomentum, &globalMomentum, field.dimensions, MPI_DOUBLE, MPI_SUM, M.comm);
+  return globalMomentum;
+}
+
+
+
 
