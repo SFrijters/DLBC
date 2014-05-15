@@ -16,7 +16,15 @@ Macros:
 	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
-module connectivity;
+module dlbc.connectivity;
+
+
+struct Connectivity(uint d, uint q) {
+  int[d][q] velocities = generateVelocities!(d, q);
+  int[q] bounce = generateBounce(generateVelocities!(d, q));
+  double[q] weights = generateWeights(generateVelocities!(d, q));
+}
+
 
 /**
    D3Q1 connectivity, i.e. the rest vector [0, 0, 0].
@@ -31,6 +39,53 @@ static immutable auto d3q7 = generateD3Q7();
    plus connecting vectors of length sqrt(2).
 */
 static immutable auto d3q19 = generateD3Q19();
+
+static immutable auto d3q19bounce = generateBounce(d3q19);
+
+private auto generateBounce(T)(const T velocities) {
+  size_t[velocities.length] bounce;
+  int[velocities[0].length] diff;
+  foreach(i, e1 ; velocities) {
+    foreach(j, e2; velocities ) {
+      diff[] = e1[] + e2[];
+      if ( diff == [0,0,0] ) {
+	bounce[i] = j;
+	break;
+      }
+    }
+  }
+  return bounce;
+}
+
+private auto generateWeights(T)(const T velocities) {
+  import std.algorithm: reduce;
+  double[velocities.length] weights;
+  weights[0] = 1.0/3.0;
+  weights[1..7] = 1.0/18.0;
+  weights[7..$] = 1.0/36.0;
+  return weights;
+}
+
+private auto generateVelocities(uint d, uint q)() {
+  static if ( d == 3 ) {
+    static if ( q == 1) {
+      return generateD3Q1();
+    }
+    else static if ( q == 7 ) {
+      return generateD3Q7();
+    }
+    else static if ( q == 19 ) {
+      return generateD3Q19();
+    }
+    else {
+      static assert(0);
+    }
+  }
+  else {
+    static assert(0);
+  }
+}
+
 
 private auto generateD3Q1() pure @safe nothrow {
   int[3][1] d3q1;
