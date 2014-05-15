@@ -28,6 +28,8 @@ Container for multiple timers.
 */
 struct Timers {
   static MSW main;
+  static MSW adv;
+  static MSW coll;
 }
 /// Ditto
 alias Timers T;
@@ -89,6 +91,19 @@ struct MultiStopWatch {
   }
 
   /**
+  Write the current status of the $(D MultiStopWatch) to stdout, depending on the verbosity level and which processes are allowed to write.
+
+  Params:
+    vl = verbosity level to write at
+    logRankFormat = which processes should write
+
+  */
+  void showFinal(VL vl, LRF logRankFormat)() {
+    import std.conv: to;
+    writeLog!(vl, logRankFormat)("Timer '%s' was run %d times. Total runtime %dms, average runtime %fms.", name, count, multi.peek().msecs, to!double(multi.peek().msecs) / count);
+  }
+
+  /**
   Start the $(D MultiStopWatch) and write the current status to stdout, depending on the verbosity level and which processes are allowed to write.
 
   Params:
@@ -96,7 +111,7 @@ struct MultiStopWatch {
     logRankFormat = which processes should write
 
   */
-  void start(VL vl, LRF logRankFormat)() {
+  void start(VL vl = VL.Debug, LRF logRankFormat = LRF.None)() {
     single.reset();
     single.start();
     multi.start();
@@ -112,7 +127,7 @@ struct MultiStopWatch {
     logRankFormat = which processes should write
 
   */
-  void stop(VL vl, LRF logRankFormat)() {
+  void stop(VL vl = VL.Debug, LRF logRankFormat = LRF.None)() {
     single.stop();
     multi.stop();
     writeLog!(vl, logRankFormat)("Timer '%s' finished run %d in %dms. Total runtime %dms.", name, count, single.peek().msecs, multi.peek().msecs);
