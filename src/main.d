@@ -199,9 +199,8 @@ int main(string[] args ) {
   T.adv = MultiStopWatch("Advection");
   T.coll = MultiStopWatch("Collision");
 
-  //writeLogRD("%s", d3q19.weights);
   for ( uint t = 1; t <= 100; ++t ) {
-    writeLogRI("Starting timestep %d", t);
+    writeLogRN("Starting timestep %d", t);
     // writeLogRI("Density = %f", L.red.localMass());
     writeLogRI("Mass before advection = %f", L.red.globalMass());
     // writeLogI("Density = %f", L.red.localMass());
