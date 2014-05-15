@@ -95,5 +95,27 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype, int 
                  int sendtag, void *recvbuf, int recvcount, MPI_Datatype recvtype,
                  int source, int recvtag, MPI_Comm comm, MPI_Status *status);
 
+int MPI_Allreduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype,
+                  MPI_Op op, MPI_Comm comm);
+
 int MPI_Barrier(MPI_Comm);
+
+/* Collective operations */
+alias int MPI_Op;
+
+immutable MPI_Op MPI_MAX     = cast(MPI_Op)(0x58000001);
+immutable MPI_Op MPI_MIN     = cast(MPI_Op)(0x58000002);
+immutable MPI_Op MPI_SUM     = cast(MPI_Op)(0x58000003);
+immutable MPI_Op MPI_PROD    = cast(MPI_Op)(0x58000004);
+immutable MPI_Op MPI_LAND    = cast(MPI_Op)(0x58000005);
+immutable MPI_Op MPI_BAND    = cast(MPI_Op)(0x58000006);
+immutable MPI_Op MPI_LOR     = cast(MPI_Op)(0x58000007);
+immutable MPI_Op MPI_BOR     = cast(MPI_Op)(0x58000008);
+immutable MPI_Op MPI_LXOR    = cast(MPI_Op)(0x58000009);
+immutable MPI_Op MPI_BXOR    = cast(MPI_Op)(0x5800000a);
+immutable MPI_Op MPI_MINLOC  = cast(MPI_Op)(0x5800000b);
+immutable MPI_Op MPI_MAXLOC  = cast(MPI_Op)(0x5800000c);
+immutable MPI_Op MPI_REPLACE = cast(MPI_Op)(0x5800000d);
+immutable MPI_Op MPI_NO_OP   = cast(MPI_Op)(0x5800000e);
+
 
