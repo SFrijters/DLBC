@@ -1,5 +1,7 @@
+import dlbc.connectivity;
 import dlbc.getopt;
 import dlbc.hdf5;
+import dlbc.fields.field;
 import dlbc.fields.init;
 import dlbc.io;
 import dlbc.lattice;
@@ -51,18 +53,6 @@ int main(string[] args ) {
 
   L.exchangeHalo();
 
-  double[19] test = M.rank;
-
-  L.red[] = test;
-  // L.blue[] = M.rank;
-  // L.index[] = M.rank;
-
-  L.red.initRandom();
-  L.blue.initRank();
-  L.index.initRank();
-
-  L.index.exchangeHalo!(1);
-  L.blue.exchangeHalo;
   // L.index.show!(VL.Debug, LRF.Root);
   // L.index.exchangeHalo();
   // L.index.show!(VL.Debug, LRF.Root);
@@ -117,8 +107,8 @@ int main(string[] args ) {
   //   writeLogRD("%s %d %d %d", el, z, y, x);
   // }
 
-  L.index.show!(VL.Debug, LRF.Any);
-  L.blue.show!(VL.Debug, LRF.Any);
+  // L.index.show!(VL.Debug, LRF.Any);
+  // L.blue.show!(VL.Debug, LRF.Any);
 
   // writeLog(VL.Information, LRF.None, "This is another None log test from rank %d.\n",M.rank);
   // writeLog(VL.Information, LRF.Root, "This is another Root log test from rank %d.\n",M.rank);
@@ -145,7 +135,92 @@ int main(string[] args ) {
   //   //  }
   // }
 
-  T.main.stop!(VL.Information, LRF.Ordered);
+  // Check advection - make this into a unittest later.
+  auto d3q19 = new Connectivity!(3,19);
+  if ( M.size == 8 ) {
+    L.red.initConst(0);
+    if ( M.isRoot ) {
+      L.red[2,2,2] = [42, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 ,15, 16 ,17 ,18];
+    }
+    L.red.exchangeHalo();
+
+    L.red.advectField(L.temp, d3q19);
+    
+    if ( M.rank == 0 ) {
+      writeLogI("[2,2,2][0] = %f",L.red[2,2,2][0]);
+
+      writeLogI("[2,2,3][1] = %f",L.red[2,2,3][1]);
+      writeLogI("[2,3,2][3] = %f",L.red[2,3,2][3]);
+      writeLogI("[3,2,2][5] = %f",L.red[3,2,2][5]);
+
+      writeLogI("[2,3,3][7] = %f",L.red[2,3,3][7]);
+      writeLogI("[3,3,2][9] = %f",L.red[3,3,2][9]);
+      writeLogI("[3,2,3][11] = %f",L.red[3,2,3][11]);
+    }
+
+    else if ( M.rank == 1 ) {
+      writeLogI("[2,2,17][2] = %f",L.red[2,2,17][2]);
+      writeLogI("[2,3,17][8] = %f",L.red[2,3,17][8]);
+    }
+
+    else if ( M.rank == 2 ) {
+      writeLogI("[2,17,2][4] = %f",L.red[2,17,2][4]);
+      writeLogI("[3,17,2][10] = %f",L.red[3,17,2][10]);
+      writeLogI("[2,17,3][13] = %f",L.red[2,17,3][13]);
+    }
+
+    else if ( M.rank == 3 ) {
+      writeLogI("[2,17,17][14] = %f",L.red[2,17,17][14]);
+    }
+
+    else if ( M.rank == 4 ) {
+      writeLogI("[17,2,2][6] = %f",L.red[17,2,2][6]);
+      writeLogI("[17,2,3][12] = %f",L.red[17,2,3][12]);
+      writeLogI("[17,3,2][15] = %f",L.red[17,3,2][15]);
+    }
+
+    else if ( M.rank == 5) {
+      writeLogI("[17,2,17][18] = %f",L.red[17,2,17][18]);
+    }
+
+    else if ( M.rank == 6) {
+      writeLogI("[17,17,2][16] = %f",L.red[17,17,2][16]);
+    }
+    MpiBarrier();
+  }
+
+  L.red.initRank();
+  // L.red.exchangeHalo();
+  // L.red.show!(VL.Debug, LRF.Root);
+
+  // writeLogI(L.red.densityField().toString());
+
+  T.adv = MultiStopWatch("Advection");
+  T.coll = MultiStopWatch("Collision");
+
+  //writeLogRD("%s", d3q19.weights);
+  for ( uint t = 0; t < 100; t++ ) {
+    writeLogRI("Starting timestep %d", t);
+    T.adv.start();
+    L.red.exchangeHalo();
+    L.red.advectField(L.temp, d3q19);
+    T.adv.stop();
+    // L.red.show!(VL.Debug, LRF.Root);
+    T.coll.start();
+    L.red.collideField(d3q19);
+    T.coll.stop();
+    // L.red.show!(VL.Debug, LRF.Root);
+  }
+  // L.red.show!(VL.Information, LRF.Root);
+
+  // writeLogRD("%f", [1.0, 3.0, 0.5].dot([0.0,3.0,2.0]));
+
+  T.adv.showFinal!(VL.Information, LRF.Ordered);
+  T.coll.showFinal!(VL.Information, LRF.Ordered);
+  T.main.stop();
+  T.main.showFinal!(VL.Information, LRF.Ordered);
+
+  // writeLogI(L.red.densityField().toString());
 
   // endHDF5();
   endMpi();

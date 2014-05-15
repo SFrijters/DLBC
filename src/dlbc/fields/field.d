@@ -18,6 +18,7 @@ Macros:
 
 module dlbc.fields.field;
 
+import dlbc.connectivity;
 import dlbc.logging;
 import dlbc.parallel;
 
@@ -264,6 +265,76 @@ struct Field(T, uint dim, uint hs) {
   void show(VL vl, LRF logRankFormat)() {
     writeLog!(vl, logRankFormat)(this.toString());
   }
+}
 
+void advectField(T, U)(ref T field, ref T tempField, const ref U conn) {
+  assert(field.dimensions == tempField.dimensions);
+  auto immutable cv = conn.velocities;
+  foreach( z, y, x, ref e; tempField) {
+    assert(e.length == cv.length);
+    foreach( i, ref c; e ) {
+      // writeLogRD("%d %d %d %d %f", z, y, x, i, c);
+      //newField[z+vel[i][2],y+vel[i][1],x+vel[i][0]][i] = c;
+      c = field[z-cv[i][2], y-cv[i][1], x-cv[i][0]][i];
+    }
+  }
+  // newField.show!(VL.Debug, LRF.Root);
+  import std.algorithm: swap;
+  swap(field, tempField);
+}
+
+void collideField(T, U)(ref T field, const ref U conn) {
+  auto omega = 1.0;
+  foreach(ref e; field.byElementForward) {
+    auto boltz = eqDist(e, conn);
+    // writeLogRD("%s %s", e, boltz);
+    e[] -= omega * ( e[] - boltz[]);
+    // writeLogRD("%s", e);
+  }
+}
+
+auto eqDist(T, U)(const ref T pop, const ref U conn) {
+  import std.numeric: dotProduct;
+
+  auto immutable cv = conn.velocities;
+  auto immutable cw = conn.weights;
+  auto rho0 = pop.density();
+  auto v = pop.velocity(cv);
+  enum css = 1.0/3.0;
+  
+  auto immutable vdotv = v.dotProduct(v); 
+
+  T dist = 0.0;
+  // writeLogRD("%s %s", rho0, v);
+  foreach(i, e; pop) {
+    auto immutable vdotcv = v.dotProduct(cv[i]);
+    dist[i] = 1.0 * cw[i] * ( 1.0 + ( vdotcv / css ) + ( (vdotcv * vdotcv ) / ( 2.0 * css * css ) ) - ( vdotv * vdotv / ( 2.0* css) ) );
+  }
+  return dist;
+}
+
+auto velocity(T, U)(const ref T pop, const ref U cv) {
+  double[3] vel = 0.0;
+  auto immutable rho0 = pop.density();
+  foreach(i, e; pop) {
+    vel[0] += e * cv[i][0] / rho0;
+    vel[1] += e * cv[i][1] / rho0;
+    vel[2] += e * cv[i][2] / rho0;
+  }
+  return vel;
+}
+
+auto density(T)(const ref T pop) {
+  import std.algorithm;
+  return sum(pop[]);
+}
+
+auto densityField(T)(ref T field) {
+  auto density = multidimArray!double(field.nxH, field.nyH, field.nzH);
+  foreach(z,y,x, ref pop; field.arr) {
+    // writeLogRI("%s",e);
+    density[z,y,x] = pop.density();
+  }
+  return density;
 }
 
