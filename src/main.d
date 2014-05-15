@@ -30,8 +30,6 @@ int main(string[] args ) {
   T.main = MultiStopWatch("Main");
   T.main.start!(VL.Debug, LRF.None);
 
-  debug(showMixins) { dbgShowMixins(); }
-
   if (M.isRoot) {
     readParameterSetFromCliFiles();
   }
