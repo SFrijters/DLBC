@@ -306,20 +306,37 @@ auto eqDist(T, U)(const ref T population, const ref U conn) {
   // writeLogRD("%s %s", rho0, v);
   foreach(i, e; population) {
     auto immutable vdotcv = v.dotProduct(cv[i]);
-    dist[i] = 1.0 * cw[i] * ( 1.0 + ( vdotcv / css ) + ( (vdotcv * vdotcv ) / ( 2.0 * css * css ) ) - ( vdotv * vdotv / ( 2.0* css) ) );
+    dist[i] = rho0 * cw[i] * ( 1.0 + ( vdotcv / css ) + ( (vdotcv * vdotcv ) / ( 2.0 * css * css ) ) - ( ( vdotv * vdotv ) / ( 2.0 * css) ) );
   }
   return dist;
 }
 
-auto velocity(T, U)(const ref T pop, const ref U cv) {
+auto velocity(T, U)(const ref T population, const double density, const ref U cv) {
+  assert(population.length == cv.length);
+
   double[3] vel = 0.0;
-  auto immutable rho0 = pop.density();
-  foreach(i, e; pop) {
-    vel[0] += e * cv[i][0] / rho0;
-    vel[1] += e * cv[i][1] / rho0;
-    vel[2] += e * cv[i][2] / rho0;
+  foreach(i, e; population) {
+    vel[0] += e * cv[i][0];
+    vel[1] += e * cv[i][1];
+    vel[2] += e * cv[i][2];
   }
+  vel[0] /= density;
+  vel[1] /= density;
+  vel[2] /= density;
   return vel;
+}
+
+auto velocity(T, U)(const ref T population, const ref U cv) {
+  auto immutable density = population.density();
+  return velocity(population, density, cv);
+}
+
+auto velocityField(T, U)(ref T field, const ref U cv) {
+  auto velocity = multidimArray!double[field.dimensions](field.nxH, field.nyH, field.nzH);
+  foreach(z,y,x, ref pop; field.arr) {
+    velocity[z,y,x] = pop.velocity(cv);
+  }
+  return velocity;
 }
 
 auto density(T)(const ref T pop) {
