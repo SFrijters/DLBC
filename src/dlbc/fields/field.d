@@ -267,11 +267,11 @@ struct Field(T, uint dim, uint hs) {
   }
 }
 
-void advectField(T, U)(ref T field, ref T tempField, const ref U connectivity) {
+void advectField(T, U)(ref T field, ref T tempField, const ref U conn) {
   import std.algorithm: swap;
 
   assert(field.dimensions == tempField.dimensions);
-  auto immutable cv = connectivity.velocities;
+  auto immutable cv = conn.velocities;
   foreach( z, y, x, ref population; tempField) {
     assert(population.length == cv.length);
     foreach( i, ref c; population ) {
@@ -297,7 +297,7 @@ auto eqDist(T, U)(const ref T population, const ref U conn) {
   auto immutable cv = conn.velocities;
   auto immutable cw = conn.weights;
   auto immutable rho0 = population.density();
-  auto immutable v = population.velocity(rho0, cv);
+  auto immutable v = population.velocity(rho0, conn);
   enum css = 1.0/3.0;
 
   auto immutable vdotv = v.dotProduct(v);
@@ -311,7 +311,8 @@ auto eqDist(T, U)(const ref T population, const ref U conn) {
   return dist;
 }
 
-auto velocity(T, U)(const ref T population, const double density, const ref U cv) {
+auto velocity(T, U)(const ref T population, const double density, const ref U conn) {
+  auto immutable cv = conn.velocities;
   assert(population.length == cv.length);
 
   double[3] vel = 0.0;
@@ -326,15 +327,15 @@ auto velocity(T, U)(const ref T population, const double density, const ref U cv
   return vel;
 }
 
-auto velocity(T, U)(const ref T population, const ref U cv) {
+auto velocity(T, U)(const ref T population, const ref U conn) {
   auto immutable density = population.density();
-  return velocity(population, density, cv);
+  return velocity(population, density, conn);
 }
 
-auto velocityField(T, U)(ref T field, const ref U cv) {
+auto velocityField(T, U)(ref T field, const ref U conn) {
   auto velocity = multidimArray!double[field.dimensions](field.nxH, field.nyH, field.nzH);
   foreach(z,y,x, ref pop; field.arr) {
-    velocity[z,y,x] = pop.velocity(cv);
+    velocity[z,y,x] = pop.velocity(conn);
   }
   return velocity;
 }
