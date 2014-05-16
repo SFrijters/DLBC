@@ -8,14 +8,14 @@ doc: revision *ddoc
 src/dlbc/revision.d: .git/HEAD .git/index
 	./get-revision.sh > $@
 
-src/unstd/generictuple.o:
+src/unstd/generictuple.o: src/unstd/generictuple.d
 	dmd src/unstd/generictuple.d -I./src -c -ofsrc/unstd/generictuple.o
 
-src/unstd/multidimarray.o: src/unstd/generictuple.o
+src/unstd/multidimarray.o: src/unstd/generictuple.o src/unstd/multidimarray.d
 	dmd src/unstd/multidimarray.d -I./src -c -ofsrc/unstd/multidimarray.o
 
 dlbc-dmd: revision src/unstd/multidimarray.o
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/unstd/multidimarray.o -ofdlbc -I./src
+	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/unstd/multidimarray.o -ofdlbc -I./src -w
 
 test-dmd: revision src/unstd/multidimarray.o
 	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/unstd/multidimarray.o src/unstd/generictuple.o -ofdlbc -I./src -unittest -cov -g -w
@@ -34,3 +34,4 @@ clean:
 	rm -f src/unstd/*.o
 	rm -f dlbc
 	rm -f *.lst
+
