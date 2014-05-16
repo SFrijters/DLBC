@@ -488,10 +488,8 @@ void advectField(T, U)(ref T field, ref T tempField, const ref U conn) {
 unittest {
   import dlbc.fields.init;
 
-  globalVerbosityLevel = VL.Off;
   startMpi([]);
   reorderMpi();
-  globalVerbosityLevel = VL.Debug;
 
   if ( M.size == 8 ) {
     auto d3q19 = new Connectivity!(3,19);
@@ -505,15 +503,8 @@ unittest {
     }
     field.exchangeHalo();
     field.advectField(temp, d3q19);
-    
+
     if ( M.rank == 0 ) {
-      // writeLogI("[2,2,2][0] = %f",field[2,2,2][0]);
-      // writeLogI("[2,2,3][1] = %f",field[2,2,3][1]);
-      // writeLogI("[2,3,2][3] = %f",field[2,3,2][3]);
-      // writeLogI("[3,2,2][5] = %f",field[3,2,2][5]);
-      // writeLogI("[2,3,3][7] = %f",field[2,3,3][7]);
-      // writeLogI("[3,3,2][9] = %f",field[3,3,2][9]);
-      // writeLogI("[3,2,3][11] = %f",field[3,2,3][11]);
       assert(field[2,2,2][0] == 42);
       assert(field[2,2,3][1] == 1);
       assert(field[2,3,2][3] == 3);
@@ -523,42 +514,31 @@ unittest {
       assert(field[3,2,3][11] == 11);
     }
     else if ( M.rank == 1 ) {
-      // writeLogI("[2,2,17][2] = %f",field[2,2,17][2]);
-      // writeLogI("[2,3,17][8] = %f",field[2,3,17][8]);
       assert(field[2,2,17][2] == 2);
       assert(field[2,3,17][8] == 8);
     }
     else if ( M.rank == 2 ) {
-      // writeLogI("[2,17,2][4] = %f",field[2,17,2][4]);
-      // writeLogI("[3,17,2][10] = %f",field[3,17,2][10]);
-      // writeLogI("[2,17,3][13] = %f",field[2,17,3][13]);
       assert(field[2,17,2][4] == 4);
       assert(field[3,17,2][10] == 10);
       assert(field[2,17,3][13] == 13);
     }
     else if ( M.rank == 3 ) {
-      // writeLogI("[2,17,17][14] = %f",field[2,17,17][14]);
       assert(field[2,17,17][14] == 14);
     }
     else if ( M.rank == 4 ) {
-      // writeLogI("[17,2,2][6] = %f",field[17,2,2][6]);
-      // writeLogI("[17,2,3][12] = %f",field[17,2,3][12]);
-      // writeLogI("[17,3,2][15] = %f",field[17,3,2][15]);
       assert(field[17,2,2][6] == 6);
       assert(field[17,2,3][12] == 12);
       assert(field[17,3,2][15] == 15);
     }
     else if ( M.rank == 5) {
-      // writeLogI("[17,2,17][18] = %f",field[17,2,17][18]);
       assert(field[17,2,17][18] == 18);
     }
     else if ( M.rank == 6) {
-      // writeLogI("[17,17,2][16] = %f",field[17,17,2][16]);
       assert(field[17,17,2][16] == 16);
     }
   }
   else {
-    writeLogRW("Unittest for advection requires M.size == 8.");
+    writeLogURW("Unittest for advection requires M.size == 8.");
   }
 }
   

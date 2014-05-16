@@ -13,6 +13,9 @@ import dlbc.timers;
 import dlbc.versions;
 
 int main(string[] args ) {
+  version(unittest) {
+    globalVerbosityLevel = VL.Debug;
+  }
 
   // Any output before startMpi() has been called will be very spammy, so better avoid it.
   startMpi(args);

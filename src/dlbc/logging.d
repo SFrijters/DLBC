@@ -109,7 +109,7 @@ enum VerbosityLevel {
 alias VerbosityLevel VL;
 
 version(unittest) {
-  VL globalVerbosityLevel = VL.Debug;
+  VL globalVerbosityLevel = VL.Off;
 }
 else {
   private VL globalVerbosityLevel = VL.Debug;
@@ -480,5 +480,13 @@ string makeLengthsString(const uint[] lengths) pure {
     str ~= format("%d",l);
   }
   return str;
+}
+
+version(unittest) {
+  void writeLogURW(T...)(const T args) { 
+    globalVerbosityLevel = VL.Debug;
+    writeLog!(VL.Warning, LRF.Root)(args); 
+    globalVerbosityLevel = VL.Off;
+  }
 }
 
