@@ -165,6 +165,8 @@ struct Field(T, uint dim, uint hs) {
        // Loops over all lattice sites of scalar field.
      }
      ---
+
+     Todo: add unittest
   */
   int opApply(int delegate(RepeatTuple!(arr.dimensions, size_t), ref T) dg) {
     if(!elements)
@@ -199,6 +201,8 @@ struct Field(T, uint dim, uint hs) {
      Params:
        haloSize = width of the halo to be exchanged; this can be smaller than
                   the halo that is held in memory
+
+     Todo: add unittest
   */
   void exchangeHalo(uint haloSize = hs)() {
     static assert( haloSize <= hs, "Requested size of halo exchange cannot be larger than halo size of field.");
@@ -267,6 +271,9 @@ struct Field(T, uint dim, uint hs) {
   }
 }
 
+/**
+   Todo: document this
+*/
 void collideField(T, U)(ref T field, const ref U conn) {
   enum omega = 1.0;
   foreach(ref population; field.byElementForward) {
@@ -277,6 +284,11 @@ void collideField(T, U)(ref T field, const ref U conn) {
   }
 }
 
+/**
+   Todo: document this
+
+   Bugs: mass is not conserved
+*/
 auto eqDist(T, U)(const ref T population, const ref U conn) {
   import std.numeric: dotProduct;
 
@@ -355,12 +367,59 @@ unittest {
   assert(vel == [-0.2,-0.2,0.2]);
 }
 
+/**
+   Calculates the velocity at every site of a field and stores it either in a pre-allocated field, or returns a new one.
+
+   Params:
+     field = field of population vectors
+     velocity = pre-allocated velocity field
+
+   Returns:
+     velocity field
+*/
 auto velocityField(T, U)(ref T field, const ref U conn) {
-  auto velocity = multidimArray!double[field.dimensions](field.nxH, field.nyH, field.nzH);
+  auto velocity = multidimArray!(double[3])(field.nxH, field.nyH, field.nzH);
   foreach(z,y,x, ref pop; field.arr) {
     velocity[z,y,x] = pop.velocity(conn);
   }
   return velocity;
+}
+
+/// Ditto
+void velocityField(T, U, V)(ref T field, ref U velocity, const ref V conn) {
+  assert(field.dimensions == velocity.dimensions);
+  assert(field.lengths == velocity.lengths);
+  foreach(z,y,x, ref pop; field.arr) {
+    velocity[z,y,x] = pop.velocity(conn);
+  }
+}
+
+///
+unittest {
+  import dlbc.fields.init;
+  import std.math: isNaN;
+
+  auto d3q19 = new Connectivity!(3,19);
+  uint[3] lengths = [ 4, 4 ,4 ];
+  auto field = Field!(double[19], 3, 2)(lengths);
+
+  double[19] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
+  		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
+
+  field.initConst(0);
+  field[1,2,3] = pop1;
+  
+  auto velocity1 = velocityField(field,d3q19);
+  assert(velocity1[1,2,3] == [-0.2,-0.2, 0.2]);
+  assert(isNaN(velocity1[0,1,3][0]));
+  assert(isNaN(velocity1[0,1,3][1]));
+  assert(isNaN(velocity1[0,1,3][2]));
+
+  auto velocity2 = Field!(double[3], 3, 2)(lengths);
+  velocityField(field, velocity2, d3q19);
+  assert(isNaN(velocity2[0,1,3][0]));
+  assert(isNaN(velocity2[0,1,3][1]));
+  assert(isNaN(velocity2[0,1,3][2]));
 }
 
 /**
@@ -411,6 +470,7 @@ auto densityField(T)(ref T field) {
 /// Ditto
 void densityField(T, U)(ref T field, ref U density) {
   assert(field.dimensions == density.dimensions);
+  assert(field.lengths == density.lengths);
   foreach(z,y,x, ref pop; field.arr) {
     density[z,y,x] = pop.density();
   }
@@ -569,6 +629,9 @@ unittest {
   assert(approxEqual(density,19*0.1));
 }
 
+/**
+   Todo: document this
+*/
 auto momentum(T, U)(const ref T population, const ref U conn) {
   auto density = population.density();
   auto velocity = velocity(population, density, conn);
@@ -578,6 +641,9 @@ auto momentum(T, U)(const ref T population, const ref U conn) {
   return velocity;
 }
 
+/**
+   Todo: document this
+*/
 auto momentumField(T, U)(const ref T population, const ref U conn) {
   auto momentum = multidimArray!double[field.dimensions](field.nxH, field.nyH, field.nzH);
   foreach(z,y,x, ref population; field.arr) {
@@ -585,6 +651,10 @@ auto momentumField(T, U)(const ref T population, const ref U conn) {
   }
   return momentum;
 }
+
+/**
+   Todo: document this
+*/
 
 auto localMomentum(T, U)(ref T field, const ref U conn) {
   double[3] momentum = 0.0;
@@ -596,6 +666,10 @@ auto localMomentum(T, U)(ref T field, const ref U conn) {
   }
   return momentum;
 }
+
+/**
+   Todo: document this
+*/
 
 auto globalMomentum(T, U)(ref T field, const ref U conn) {
   auto localMomentum = field.localMomentum(conn);
