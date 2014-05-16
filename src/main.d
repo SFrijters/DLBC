@@ -46,7 +46,6 @@ int main(string[] args ) {
 
   // Make cartesian grid now that we have values ncx, ncy, ncz everywhere
   reorderMpi();
-  M.show!(VL.Debug, LRF.Ordered);
 
   // Init random number generator.
   initRNG();

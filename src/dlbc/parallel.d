@@ -9,6 +9,8 @@ import dlbc.mixinhelper; // For itoa template
 @("param") int ncy;
 @("param") int ncz;
 
+@("param") bool showTopology;
+
 immutable uint D = 3; // Dimensionality of the MPI grid.
 
 MPI_Datatype parameterSetMpiType;
@@ -164,7 +166,9 @@ void reorderMpi() {
   M.nbz[1] = destRank;
 
   writeLogRD("Finished reordering MPI communicator.");
-
+  if (showTopology) {
+    M.show!(VL.Information, LRF.Ordered);
+  }
 }
 
 void endMpi() {
@@ -188,6 +192,9 @@ MPI_Datatype mpiTypeof(T)() {
     }
     else static if ( is(T == double) ) {
       return MPI_DOUBLE;
+    }
+    else static if ( is(T == bool) ) {
+      return MPI_BYTE;
     }
     else {
       static assert(0, "Datatype not implemented for MPI.");
