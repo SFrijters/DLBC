@@ -293,7 +293,9 @@ auto eqDist(T, U)(const ref T population, const ref U conn) {
   import std.numeric: dotProduct;
 
   auto immutable cv = conn.velocities;
+  assert(population.length == cv.length);
   auto immutable cw = conn.weights;
+  assert(population.length == cw.length);
   auto immutable rho0 = population.density();
   auto immutable v = population.velocity(rho0, conn);
   enum css = 1.0/3.0;

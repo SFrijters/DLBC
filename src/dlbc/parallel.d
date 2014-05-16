@@ -21,9 +21,6 @@ import dlbc.mixinhelper; // For itoa template
 
 immutable uint D = 3; // Dimensionality of the MPI grid.
 
-MPI_Datatype parameterSetMpiType;
-MPI_Datatype parameterSetDefaultMpiType;
-
 /// Need to define a charlength to easily transmit strings over MPI.
 /// One needs to change only this value, everything else should use it.
 static immutable size_t MpiStringLength = 256;
