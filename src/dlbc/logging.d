@@ -24,6 +24,8 @@ import std.string;
 
 import dlbc.parallel;
 
+@("param") bool showTime;
+
 bool warningsAreFatal = false;
 
 /**
@@ -371,6 +373,10 @@ private string makeLogString(VL vl, LRF logRankFormat, T...)(T args) {
   case VL.Debug:
     vlTag = "[D] ";
     break;
+  }
+
+  if ( showTime ) {
+    vlTag = makeCurrTimeString() ~ " " ~ vlTag;
   }
 
   // Move any leading newlines in front of the tags.

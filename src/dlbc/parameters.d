@@ -97,6 +97,7 @@ static immutable string parameterUDA = "param";
 */
 private alias TypeTuple!(
 			 "dlbc.lattice",
+			 "dlbc.logging",
 			 "dlbc.parallel",
 			 "dlbc.random",
 			 ) parameterSourceModules;

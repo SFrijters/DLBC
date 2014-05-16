@@ -2,15 +2,19 @@
 //
 // Empty lines are ignored, as is anything beyond '//' on a line.
 // Multiline comments are *not* supported.
+// Section headers (corresponding to modules) are enclosed in square brackets.
 
 [parallel]
 ncy = 2
 
 [lattice]
 gnx = 32    // Lattice size x-direction
-gny = 16    // Lattice size y-direction
-gnz = 8    // Lattice size z-direction
+gny = 32    // Lattice size y-direction
+gnz = 32    // Lattice size z-direction
 
 [random]
 seed = 42
+
+[logging]
+showTime = true
 
