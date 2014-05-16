@@ -1,4 +1,6 @@
-all: clean dlbc-dmd
+all: dlbc-dmd
+
+test: test-dmd
 
 revision: src/dlbc/revision.d
 
@@ -15,7 +17,7 @@ src/unstd/multidimarray.o: src/unstd/generictuple.o src/unstd/multidimarray.d
 	dmd src/unstd/multidimarray.d -I./src -c -ofsrc/unstd/multidimarray.o
 
 dlbc-dmd: revision src/unstd/multidimarray.o
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/unstd/multidimarray.o -ofdlbc -I./src -w
+	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/unstd/multidimarray.o -ofdlbc -I./src -w -O
 
 test-dmd: revision src/unstd/multidimarray.o
 	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/unstd/multidimarray.o src/unstd/generictuple.o -ofdlbc -I./src -unittest -cov -g -w
@@ -33,5 +35,6 @@ clean:
 	rm -f src/dlbc/field/*~
 	rm -f src/unstd/*.o
 	rm -f dlbc
+	rm -f dlbc.o
 	rm -f *.lst
 
