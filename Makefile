@@ -3,7 +3,7 @@ all: clean dlbc-dmd
 revision: src/dlbc/revision.d
 
 doc: revision *ddoc
-	rdmd bootDoc/generate.d ./src --output=./doc/
+	rdmd bootDoc/generate.d ./src --output=./doc/ --bootdoc=.
 
 src/dlbc/revision.d: .git/HEAD .git/index
 	./get-revision.sh > $@
