@@ -1,0 +1,218 @@
+diff --git a/unstd/multidimarray.d b/unstd/multidimarray.d
+index 4106345..07b1bc3 100644
+--- a/unstd/multidimarray.d
++++ b/unstd/multidimarray.d
+@@ -51,15 +51,15 @@ Something like FORTRAN's one.
+ */
+ struct MultidimArray(T, size_t n) if(n >= 1)
+ {
+-	/// Dimentions of this array.
+-	alias dimentions = n;
++	/// Dimensions of this array.
++	alias dimensions = n;
+ 
+ 	private
+ 	{
+ 		size_t[n] _lengths = void;
+ 		size_t[n] _strides = void;
+-		T[] _data; // _strides[0] * _lengths[0] <= _data.length
+ 	}
++	T[] _data; // _strides[0] * _lengths[0] <= _data.length
+ 
+ 	private this(in size_t[n] lengths, in size_t[n] strides, inout T[] data) inout @safe pure nothrow
+ 	in
+@@ -103,14 +103,14 @@ struct MultidimArray(T, size_t n) if(n >= 1)
+ 
+ 	this(in size_t[n] lengths...) @safe pure nothrow
+ 	{
+-		this(lengths, null);
++	  cast(void) this(lengths, null);
+ 	}
+ 
+ 	this(inout T[] data, in size_t[n] lengths...) inout @safe pure nothrow
+ 	in { assert(data, "data must be non-null."); }
+ 	body
+ 	{
+-		this(lengths, data);
++	  cast(void) this(lengths, data);
+ 	}
+ 
+ 	/// Returns the read only view at its lengths array.
+@@ -308,7 +308,7 @@ struct MultidimArray(T, size_t n) if(n >= 1)
+ 	}
+ 
+ 	/// Returns a finite random-access range for iteration over the top dimension.
+-	/// It has mutable elements iff $(D dimentions) is 1.
++	/// It has mutable elements iff $(D dimensions) is 1.
+ 	@property byTopDimension() @safe pure nothrow
+ 	{
+ 		static struct Result
+@@ -749,7 +749,7 @@ $(TABLE
+ 		/**
+ 		Conversion to string function for debugging purposes.
+ 
+-		Implemented for $(D dimentions <= 3).
++		Implemented for $(D dimensions <= 3).
+ 		*/
+ 		string toString()
+ 		{ return toStringImpl(0); }
+@@ -791,8 +791,6 @@ $(TABLE
+ 		}
+ 	}
+ 
+-private:
+-
+ 	size_t getOffset(in size_t[n] indices...) const @safe pure nothrow
+ 	in
+ 	{
+@@ -989,7 +987,7 @@ pure nothrow unittest // multidimArray
+ 
+ 		static assert(isBidirectionalRange!(typeof(matrix.byTopDimension)));
+ 		static assert(isRandomAccessRange!(typeof(matrix.byTopDimension)));
+-		static assert(hasAssignableElements!(typeof(matrix.byTopDimension)) == (T.dimentions == 1));
++		static assert(hasAssignableElements!(typeof(matrix.byTopDimension)) == (T.dimensions == 1));
+ 		static assert(hasLength!(typeof(matrix.byTopDimension)));
+ 		with(matrix)
+ 		{
+@@ -1022,13 +1020,13 @@ pure nothrow unittest // multidimArray
+ 	test234matrix(matrix41);
+ }
+ 
+-@safe pure nothrow unittest // MultidimArray properties: dimentions, lengths, elements, packedDimensions
++@safe pure nothrow unittest // MultidimArray properties: dimensions, lengths, elements, packedDimensions
+ {
+ 	auto marr3 = multidimArray!int(3, 4, 5);
+ 
+ 	with(marr3)
+ 	{
+-		static assert(dimentions == 3);
++		static assert(dimensions == 3);
+ 		assert(lengths == [3, 4, 5]);
+ 		assert(elements == 60);
+ 		assert(packedDimensions == 3);
+@@ -1037,7 +1035,7 @@ pure nothrow unittest // multidimArray
+ 	auto marr3s = marr3[0..$, 0..$, 0..$];
+ 	with(marr3)
+ 	{
+-		static assert(dimentions == 3);
++		static assert(dimensions == 3);
+ 		assert(lengths == [3, 4, 5]);
+ 		assert(elements == 60);
+ 		assert(packedDimensions == 3);
+@@ -1046,7 +1044,7 @@ pure nothrow unittest // multidimArray
+ 	marr3s = marr3[0..2, 0..$, 0..$];
+ 	with(marr3s)
+ 	{
+-		static assert(dimentions == 3);
++		static assert(dimensions == 3);
+ 		assert(lengths == [2, 4, 5]);
+ 		assert(elements == 40);
+ 		assert(packedDimensions == 3);
+@@ -1055,7 +1053,7 @@ pure nothrow unittest // multidimArray
+ 	marr3s = marr3[0..1, 0..$, 0..$];
+ 	with(marr3s)
+ 	{
+-		static assert(dimentions == 3);
++		static assert(dimensions == 3);
+ 		assert(lengths == [1, 4, 5]);
+ 		assert(elements == 20);
+ 		assert(packedDimensions == 3);
+@@ -1066,7 +1064,7 @@ pure nothrow unittest // multidimArray
+ 		marr3s = marr3[0..$, 0..i, 0..$];
+ 		with(marr3s)
+ 		{
+-			static assert(dimentions == 3);
++			static assert(dimensions == 3);
+ 			assert(lengths == [3, i, 5]);
+ 			assert(elements == 15 * i);
+ 			assert(packedDimensions == 2);
+@@ -1078,7 +1076,7 @@ pure nothrow unittest // multidimArray
+ 		marr3s = marr3[0..$, 0..$, 0..i];
+ 		with(marr3s)
+ 		{
+-			static assert(dimentions == 3);
++			static assert(dimensions == 3);
+ 			assert(lengths == [3, 4, i]);
+ 			assert(elements == 12 * i);
+ 			assert(packedDimensions == 1);
+@@ -1088,7 +1086,7 @@ pure nothrow unittest // multidimArray
+ 	auto marr2 = marr3[1, 0..$, 0..$];
+ 	with(marr2)
+ 	{
+-		static assert(dimentions == 2);
++		static assert(dimensions == 2);
+ 		assert(lengths == [4, 5]);
+ 		assert(elements == 20);
+ 		assert(packedDimensions == 2);
+@@ -1097,7 +1095,7 @@ pure nothrow unittest // multidimArray
+ 	marr2 = marr3[0..$, 1, 0..$];
+ 	with(marr2)
+ 	{
+-		static assert(dimentions == 2);
++		static assert(dimensions == 2);
+ 		assert(lengths == [3, 5]);
+ 		assert(elements == 15);
+ 		assert(packedDimensions == 1);
+@@ -1106,7 +1104,7 @@ pure nothrow unittest // multidimArray
+ 	marr2 = marr3[0..$, 0..$, 1];
+ 	with(marr2)
+ 	{
+-		static assert(dimentions == 2);
++		static assert(dimensions == 2);
+ 		assert(lengths == [3, 4]);
+ 		assert(elements == 12);
+ 		assert(packedDimensions == 0);
+@@ -1172,7 +1170,7 @@ unittest // MultidimArray iterations: byElementForward, byElementRandomAccess, b
+ 
+ 		darr[] = -1;
+ 		c = 0;
+-		static if(matrix.dimentions == 3)
++		static if(matrix.dimensions == 3)
+ 			foreach(x, y, z, ref el; matrix)
+ 			{
+ 				el = c;
+@@ -1180,7 +1178,7 @@ unittest // MultidimArray iterations: byElementForward, byElementRandomAccess, b
+ 				assert(darr[c] == c && el == c && &el == &darr[c]);
+ 				++c;
+ 			}
+-		else static if(matrix.dimentions == 2)
++		else static if(matrix.dimensions == 2)
+ 			foreach(x, y, ref el; matrix)
+ 			{
+ 				el = c;
+@@ -1191,7 +1189,7 @@ unittest // MultidimArray iterations: byElementForward, byElementRandomAccess, b
+ 
+ 		darr[] = -1;
+ 		c = 0;
+-		static if(matrix.dimentions == 3)
++		static if(matrix.dimensions == 3)
+ 			foreach(subMatrix; matrix.byTopDimension)
+ 				foreach(row; subMatrix.byTopDimension)
+ 					foreach(ref el; row.byTopDimension)
+@@ -1200,7 +1198,7 @@ unittest // MultidimArray iterations: byElementForward, byElementRandomAccess, b
+ 						assert(darr[c] == c && el == c && &el == &darr[c]);
+ 						++c;
+ 					}
+-		else static if(matrix.dimentions == 2)
++		else static if(matrix.dimensions == 2)
+ 			foreach(row; matrix.byTopDimension)
+ 				foreach(ref el; row.byTopDimension)
+ 				{
+@@ -1208,7 +1206,7 @@ unittest // MultidimArray iterations: byElementForward, byElementRandomAccess, b
+ 					assert(darr[c] == c && el == c && &el == &darr[c]);
+ 					++c;
+ 				}
+-		else static if(matrix.dimentions == 1)
++		else static if(matrix.dimensions == 1)
+ 			foreach(ref el; matrix.byTopDimension)
+ 			{
+ 				el = c;
+@@ -1218,7 +1216,7 @@ unittest // MultidimArray iterations: byElementForward, byElementRandomAccess, b
+ 
+ 		/*darr[] = -1;
+ 		c = 0;
+-		foreach(size_t[matrix.dimentions] indices, ref el; matrix)
++		foreach(size_t[matrix.dimensions] indices, ref el; matrix)
+ 		{
+ 			el = c;
+ 			assert(darr[c] == c && el == c && &el == &darr[c]);
