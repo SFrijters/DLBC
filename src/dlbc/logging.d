@@ -108,7 +108,12 @@ enum VerbosityLevel {
 /// Ditto
 alias VerbosityLevel VL;
 
-private VL globalVerbosityLevel = VL.Debug;
+version(unittest) {
+  VL globalVerbosityLevel = VL.Debug;
+}
+else {
+  private VL globalVerbosityLevel = VL.Debug;
+}
 
 /**
    Setter function for the global verbosity level.
