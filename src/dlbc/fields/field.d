@@ -304,6 +304,17 @@ auto eqDist(T, U)(const ref T population, const ref U conn) {
   return dist;
 }
 
+/**
+   Calculates the local velocity of a population \(\vec{n}\): \(\vec{u}(\vec{n}) = \frac{\sum_r n_r \vec{c}__r}{\rho_0(\vec{n})}\).
+
+   Params:
+     population = population vector \(\vec{n}\)
+     density = if the density \(\rho_0\) has been pre-calculated, it can be passed directly
+     conn = connectivity
+
+   Returns:
+     local velocity \(\vec{u}(\vec{n})\)
+*/
 auto velocity(T, U)(const ref T population, const double density, const ref U conn) {
   auto immutable cv = conn.velocities;
   assert(population.length == cv.length);
@@ -320,9 +331,28 @@ auto velocity(T, U)(const ref T population, const double density, const ref U co
   return vel;
 }
 
+/// Ditto
 auto velocity(T, U)(const ref T population, const ref U conn) {
   auto immutable density = population.density();
   return velocity(population, density, conn);
+}
+
+///
+unittest {
+  auto d3q19 = new Connectivity!(3,19);
+  double[19] pop = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+  		     0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+  auto den = density(pop);
+  auto vel = velocity(pop, d3q19);
+  assert(vel == [1,1,0]);
+
+  pop = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
+  		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
+
+  den = density(pop);
+  vel = velocity(pop, den, d3q19);
+  assert(den == 0.5);
+  assert(vel == [-0.2,-0.2,0.2]);
 }
 
 auto velocityField(T, U)(ref T field, const ref U conn) {
@@ -333,9 +363,31 @@ auto velocityField(T, U)(ref T field, const ref U conn) {
   return velocity;
 }
 
-auto density(T)(const ref T pop) {
+/**
+   Calculates the local density of a population \(\vec{n}\): \(\rho_0(\vec{n}) = \sum_r n_r\).
+
+   Params:
+     population = population vector \(\vec{n}\)
+
+   Returns:
+     local density \(\rho_0(\vec{n})\)
+*/
+auto density(T)(const ref T population) {
   import std.algorithm;
-  return sum(pop[]);
+  return sum(population[]);
+}
+
+///
+unittest {
+  double[19] pop = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+  		     0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+  auto den = density(pop);
+  assert(den == 0.1);
+
+  pop = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
+  		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
+  den = density(pop);
+  assert(den == 0.5);
 }
 
 auto densityField(T)(ref T field) {

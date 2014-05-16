@@ -137,58 +137,7 @@ int main(string[] args ) {
 
 
   // Check advection - make this into a unittest later.
-  auto d3q19 = new Connectivity!(3,19);
-  if ( M.size == 8 ) {
-    L.red.initConst(0);
-    if ( M.isRoot ) {
-      L.red[2,2,2] = [42, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 ,15, 16 ,17 ,18];
-    }
-    L.red.exchangeHalo();
 
-    L.red.advectField(L.temp, d3q19);
-    
-    if ( M.rank == 0 ) {
-      writeLogI("[2,2,2][0] = %f",L.red[2,2,2][0]);
-
-      writeLogI("[2,2,3][1] = %f",L.red[2,2,3][1]);
-      writeLogI("[2,3,2][3] = %f",L.red[2,3,2][3]);
-      writeLogI("[3,2,2][5] = %f",L.red[3,2,2][5]);
-
-      writeLogI("[2,3,3][7] = %f",L.red[2,3,3][7]);
-      writeLogI("[3,3,2][9] = %f",L.red[3,3,2][9]);
-      writeLogI("[3,2,3][11] = %f",L.red[3,2,3][11]);
-    }
-
-    else if ( M.rank == 1 ) {
-      writeLogI("[2,2,17][2] = %f",L.red[2,2,17][2]);
-      writeLogI("[2,3,17][8] = %f",L.red[2,3,17][8]);
-    }
-
-    else if ( M.rank == 2 ) {
-      writeLogI("[2,17,2][4] = %f",L.red[2,17,2][4]);
-      writeLogI("[3,17,2][10] = %f",L.red[3,17,2][10]);
-      writeLogI("[2,17,3][13] = %f",L.red[2,17,3][13]);
-    }
-
-    else if ( M.rank == 3 ) {
-      writeLogI("[2,17,17][14] = %f",L.red[2,17,17][14]);
-    }
-
-    else if ( M.rank == 4 ) {
-      writeLogI("[17,2,2][6] = %f",L.red[17,2,2][6]);
-      writeLogI("[17,2,3][12] = %f",L.red[17,2,3][12]);
-      writeLogI("[17,3,2][15] = %f",L.red[17,3,2][15]);
-    }
-
-    else if ( M.rank == 5) {
-      writeLogI("[17,2,17][18] = %f",L.red[17,2,17][18]);
-    }
-
-    else if ( M.rank == 6) {
-      writeLogI("[17,17,2][16] = %f",L.red[17,17,2][16]);
-    }
-    MpiBarrier();
-  }
 
   // Check velocity - make this into a unittest later.
   // double[19] pop = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -208,6 +157,8 @@ int main(string[] args ) {
 
   T.adv = MultiStopWatch("Advection");
   T.coll = MultiStopWatch("Collision");
+
+  auto d3q19 = new Connectivity!(3,19);
 
   for ( uint t = 1; t <= 100; ++t ) {
     writeLogRN("Starting timestep %d", t);
