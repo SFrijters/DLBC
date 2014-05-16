@@ -56,6 +56,8 @@ struct MpiParams {
   // Hostname
   string hostname;
 
+  bool hasStarted = false;
+
   bool isRoot() @property {
     return ( rank == root );
   }
@@ -72,6 +74,10 @@ struct MpiParams {
 /// Initializes barebones MPI communicator
 void startMpi(const string[] args) {
   import std.conv, std.string, std.algorithm, std.array;
+
+  if ( M.hasStarted ) {
+    return;
+  }
 
   int rank, size;
   MPI_Comm commWorld = MPI_COMM_WORLD;
@@ -97,6 +103,7 @@ void startMpi(const string[] args) {
   MPI_Get_processor_name( pname.ptr, &pnlen );
   M.hostname = to!string(pname[0..pnlen]);
 
+  M.hasStarted = true;
   writeLogRN("\nInitialized MPI v%d.%d on %d CPUs.", M.ver, M.subver, M.size);
 }
 
