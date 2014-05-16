@@ -113,44 +113,6 @@ int main(string[] args ) {
   // L.index.show!(VL.Debug, LRF.Any);
   // L.blue.show!(VL.Debug, LRF.Any);
 
-  // writeLog(VL.Information, LRF.None, "This is another None log test from rank %d.\n",M.rank);
-  // writeLog(VL.Information, LRF.Root, "This is another Root log test from rank %d.\n",M.rank);
-  // writeLog(VL.Information, LRF.Any, "This is another Any log test from rank %d.\n",M.rank);
-  // writeLog(VL.Information, LRF.Ordered, "This is another Ordered log test from rank %d.\n",M.rank);
-
-  // import dlbc.revision;
-  // // auto mods = [ dlbc.revision ];
-  // // foreach(m ; mods) {
-  // foreach(e ; __traits(derivedMembers, dlbc.lattice)) {
-  //   writeLogRD(e);
-  //   pragma(msg, e);
-  // //   mixin(`
-  // //     foreach( t; __traits(getAttributes, dlbc.lattice.`~e~`)) {
-  // //   pragma(msg, t); writeLogRD(t);
-  // // }`);
-  // //   mixin(`
-  // //     foreach( t; __traits(parent, dlbc.lattice.`~e~`)) {
-  // //   pragma(msg, t); writeLogRD(t);
-  // // }`);
-  // }
-
-
-  //   //  }
-  // }
-
-
-  // Check advection - make this into a unittest later.
-
-
-  // Check velocity - make this into a unittest later.
-  // double[19] pop = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-  // 		     0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-  // auto den = density(pop);
-  // auto vel = velocity(pop, d3q19);
-  // writeLogRD("%s %s %s", pop, den ,vel);
-  // auto eqPop = eqDist(pop, d3q19);
-  // writeLogRD("%s %s %s", eqPop, density(eqPop), velocity(eqPop, d3q19));
-
   // L.red.initConst(0.01);
   L.red.initRandom();
   // L.red.exchangeHalo();
