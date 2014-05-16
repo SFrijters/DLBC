@@ -59,7 +59,7 @@ struct Lattice(uint dim) {
   void exchangeHalo() {
     import std.algorithm: startsWith;
     foreach(e ; __traits(derivedMembers, Lattice)) {
-      mixin(`static if(typeof(Lattice.`~e~`).stringof.startsWith("Field!")) { `~e~`.exchangeHalo!()();};`);
+      mixin(`static if(typeof(Lattice.`~e~`).stringof.startsWith("Field!")) { `~e~`.exchangeHalo!()();}`);
     }
   }
 }

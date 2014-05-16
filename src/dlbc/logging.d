@@ -182,8 +182,10 @@ void writeLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
 	    break;
 	  }
 	}
-	// not a string, or not a formatted string
-	writeln(args);
+	else {
+	  // not a string, or not a formatted string
+	  writeln(args);
+	}
       }
     }
     break;
