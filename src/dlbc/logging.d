@@ -489,9 +489,18 @@ string makeLengthsString(const uint[] lengths) pure {
 }
 
 version(unittest) {
-  void writeLogURW(T...)(const T args) { 
+  /**
+     Logging templates used for unittesting - temporarily removes the squelch.
+
+     The last letter of the function name corresponds to the first of the verbosity level enum member that is passed into the template.
+     The optional 'R' passes $(D LRF.Root), otherwise $(D LRF.Any) is passed.
+
+     Params:
+       args = data to write
+  */
+  void writeLogURW(T...)(const T args) {
     globalVerbosityLevel = VL.Debug;
-    writeLog!(VL.Warning, LRF.Root)(args); 
+    writeLog!(VL.Warning, LRF.Root)(args);
     globalVerbosityLevel = VL.Off;
   }
 }
