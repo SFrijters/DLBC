@@ -24,6 +24,9 @@ import std.string;
 
 import dlbc.parallel;
 
+/**
+   Show the current time in the various writeLog functions.
+*/
 @("param") bool showTime;
 
 bool warningsAreFatal = false;

@@ -5,10 +5,18 @@ public import dlbc.mpi;
 import dlbc.logging;
 import dlbc.mixinhelper; // For itoa template
 
+/**
+   Number of processes in the cardinal directions.
+*/
 @("param") int ncx;
+/// Ditto
 @("param") int ncy;
+/// Ditto
 @("param") int ncz;
 
+/**
+   Show the topology after reordering the MPI communicator.
+*/
 @("param") bool showTopology;
 
 immutable uint D = 3; // Dimensionality of the MPI grid.
