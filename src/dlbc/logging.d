@@ -163,21 +163,21 @@ void writeLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
 	  if (outString.length != 0) {
 	    if (outString[$-1..$] == "\n" ) {
 	      if (outString[0..1] == "\n" ) {
-		writefln(outString);
+		writeln(outString);
 	      }
 	      else {
-		writefln(stripLeft(outString));
+		writeln(stripLeft(outString));
 	      }
 	    }
 	    else {
-	      if (outString[0..1] == "\n" ) {	      
-		writefln(stripRight(outString));
+	      if (outString[0..1] == "\n" ) {
+		writeln(stripRight(outString));
 	      }
 	      else {
-		if ( ! outString.canFind("\n") ) {
+		if ( (!outString.canFind("\n") ) && ( outString.length > columnWidth) ) {
 		  outString = stripRight(wrap(outString, columnWidth, null, indent));
 		}
-		writefln(strip(outString));
+		writeln(strip(outString));
 	      }
 	    }
 	    break;
