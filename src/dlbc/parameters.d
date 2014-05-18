@@ -96,10 +96,11 @@ static immutable string parameterUDA = "param";
      Ideally this should be a template parameter to the createParameterMixins function, maybe?
 */
 private alias TypeTuple!(
-			 "dlbc.lattice",
-			 "dlbc.logging",
-			 "dlbc.parallel",
-			 "dlbc.random",
+                         "dlbc.io.io",
+                         "dlbc.lattice",
+                         "dlbc.logging",
+                         "dlbc.parallel",
+                         "dlbc.random",
 			 ) parameterSourceModules;
 /**
    List of parameters that have been set in the input files.
@@ -242,7 +243,7 @@ private auto createParameterMixins() {
   mixinStringBcast ~= "  writeLogRI(\"Distributing parameter set through MPI_Bcast.\");";
 
   foreach(fullModuleName ; parameterSourceModules) {
-    immutable string qualModuleName = fullModuleName.split(".")[1..$].join();
+    immutable string qualModuleName = makeQualModuleName(fullModuleName);
     mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"\n[%s]\",\""~qualModuleName~"\");";
 
     foreach(e ; __traits(derivedMembers, mixin(fullModuleName))) {
@@ -304,6 +305,14 @@ private auto createParameterMixins() {
 
   return mixinStringParser ~ "\n" ~ mixinStringShow ~ "\n" ~ mixinStringBcast;
 
+}
+
+private auto makeQualModuleName(const string fullModuleName) {
+  auto splitModuleName = fullModuleName.split(".")[1..$];
+  while ( (splitModuleName.length > 1) && (splitModuleName[$-1] == splitModuleName[$-2] ) ) {
+    splitModuleName = splitModuleName[0..$-1];
+  }
+  return splitModuleName.join(".");
 }
 
 /**
