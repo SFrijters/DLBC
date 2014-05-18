@@ -23,7 +23,7 @@ import dlbc.logging;
 
 public import hdf5.hdf5;
 
-bool hdf5HasStarted = false;
+private bool hdf5HasStarted = false;
 
 /**
    This function wraps a call to $(D H5open()) to start up HDF5 and reports the version of the HDF5 library.
@@ -57,5 +57,47 @@ void endHDF5() {
   herr_t e;
   e = H5close();
   writeLogRN("Closed HDF5.");
+}
+
+/**
+   This template function returns an HDF5 data type identifier based on the type T.
+   If T is an array, the base type is returned.
+
+   Params:
+     T = a type
+
+   Returns: the corresponding HDF5 data type identifier
+*/
+hid_t hdf5Typeof(T)() {
+  import dlbc.range;
+  import std.traits;
+  static if ( isArray!T ) {
+    return mpiTypeof!(BaseElementType!T);
+  }
+  else {
+    static if ( is(T == int) ) {
+      return H5T_NATIVE_INT;
+    }
+    else static if ( is(T == double) ) {
+      return H5T_NATIVE_DOUBLE;
+    }
+    else {
+      static assert(0, "Datatype not implemented for HDF5.");
+    }
+  }
+}
+
+/**
+   This template function returns the length of a static array of type T or 1 if
+   the type is not an array.
+
+   Params:
+     T = a type
+
+   Returns: the corresponding length
+*/
+size_t hdf5Lengthof(T)() {
+  import dlbc.range;
+  return LengthOf!T;
 }
 

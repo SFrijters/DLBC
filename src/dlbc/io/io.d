@@ -318,17 +318,4 @@ void dumpFieldHDF5(T)(T f, const string name) {
 
 // end subroutine dump_scalar_phdf5
 }
-            
 
-hid_t hdf5Typeof(T)() {
-  static if ( is(T == int) ) {
-    return H5T_NATIVE_INT;
-  }
-  else static if ( is(T == double) ) {
-    return H5T_NATIVE_DOUBLE;
-  }
-  else {
-    static assert(0, "Datatype not implemented for HDF5.");
-  }
-}
-         

@@ -24,3 +24,12 @@ template BaseElementType(T) {
   }
 }
 
+size_t LengthOf(T)() {
+  static if ( hasLength!T) {
+    return T.length;
+  }
+  else {
+    return 1;
+  }
+}
+

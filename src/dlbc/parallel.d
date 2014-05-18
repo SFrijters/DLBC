@@ -207,14 +207,9 @@ MPI_Datatype mpiTypeof(T)() {
   }
 }
 
-size_t mpiLengthof(T)() {
-  import std.range;
-  static if ( hasLength!T) {
-    return T.length;
-  }
-  else {
-    return 1;
-  }
+auto mpiLengthof(T)() {
+  import dlbc.range;
+  return LengthOf!T;
 }
 
 auto MpiBcastString(ref string str) {
