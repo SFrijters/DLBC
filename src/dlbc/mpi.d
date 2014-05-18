@@ -9,6 +9,8 @@ alias int  MPI_Comm;
 alias int  MPI_Datatype;
 alias int  MPI_Info;
 
+immutable MPI_Info MPI_INFO_NULL = cast(MPI_Info) 0x1c000000;
+
 /* Communicators */
 immutable MPI_Comm MPI_COMM_WORLD = 0x44000000;
 

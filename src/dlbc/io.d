@@ -21,8 +21,48 @@ module dlbc.io;
 import dlbc.hdf5;
 import dlbc.lattice;
 import dlbc.logging;
+import dlbc.fields.field;
+import dlbc.parallel;
 
-void dumpFieldHDF5(T)(const Field!T f, const string name) {
+void testHDF() {
+   hid_t       file_id, dataset_id, dataspace_id;  /* identifiers */
+   hsize_t     dims[2];
+   herr_t      status;
+
+   int dset1_data[3][3];
+
+   /* Initialize the first dataset. */
+   for (int i = 0; i < 3; i++)
+      for (int j = 0; j < 3; j++)
+         dset1_data[i][j] = j + 1;
+
+
+   /* Create a new file using default properties. */
+   file_id = H5Fcreate("test.h5", H5F_ACC_TRUNC, 0, 0);
+
+   /* Create the data space for the dataset. */
+   dims[0] = 3; 
+   dims[1] = 3; 
+   dataspace_id = H5Screate_simple(2, dims.ptr, null);
+
+   /* Create the dataset. */
+   dataset_id = H5Dcreate2(file_id, "/dset", H5T_STD_I32BE_g, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+   /* Write the first dataset. */
+   status = H5Dwrite(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                     dset1_data.ptr);
+
+   /* End access to the dataset and release resources used by it. */
+   status = H5Dclose(dataset_id);
+
+   // /* Terminate access to the data space. */ 
+   // status = H5Sclose(dataspace_id);
+
+   /* Close the file. */
+   status = H5Fclose(file_id);
+}
+
+void dumpFieldHDF5(T)(T f, const string name) {
 
   // character(len=*), intent(in) :: name
   // character(len=1024) :: filename
@@ -30,12 +70,14 @@ void dumpFieldHDF5(T)(const Field!T f, const string name) {
 
   // character(len=8), parameter :: dsetname = 'OutArray' !Dataset name
 
+  enum ndim = 3;
+
   hid_t file_id;   // File identifier
   hid_t dset_id;   // Dataset identifier
   hid_t filespace; // Dataspace identifier in file
   hid_t memspace;  // Dataspace identifier in memory
   hid_t plist_id;  // Property list identifier
-  hid_t type_id = hdf5Typeof!T;   // Datatype id for array (real or double)
+  hid_t type_id = hdf5Typeof!int;   // Datatype id for array (real or double)
 
   herr_t e;
 
@@ -54,7 +96,7 @@ void dumpFieldHDF5(T)(const Field!T f, const string name) {
 
   writeLogRI("HDF attempting to write to file '%s'.", name);
 
-  // info = MPI_INFO_NULL
+  info = MPI_INFO_NULL;
 
   // if (hdf_use_ibm_largeblock_io) then
   //   if (dbg_report_hdf5) call log_msg("HDF using IBM_largeblock_io")
@@ -62,14 +104,33 @@ void dumpFieldHDF5(T)(const Field!T f, const string name) {
   //   call MPI_Info_set(info, "IBM_largeblock_io", "true", err)
   // end if
 
-  hsize_t[3] dimsg = [ gnx, gny, gnz ];
+  hsize_t[ndim] dimsg = [ gnx, gny, gnz ];
+  hsize_t[ndim] dimsl = [ f.nx, f.ny, f.nz ];
+  hsize_t[ndim] count = [ 1, 1, 1 ];
+  hsize_t[ndim] stride = [ 1, 1, 1 ];
+  hsize_t[ndim] block = [ f.nx, f.ny, f.nz ];
+  hsize_t[ndim] start = [ M.cx*f.nx, M.cy*f.ny, M.cz*f.nz ];
 
-  // dimsf  = (/tnx, tny, tnz/)
-  hsize_t[3] dimsl = [ f.nx, f.ny, f.nz ];
-  // dims   = (/nx, ny, nz/)
-  hsize_t[3] count = [ f.nx, f.ny, f.nz ];
-  // count  = (/nx, ny, nz/)
-  //! chunk_dims = (/nx, ny, nz/);
+  int data[];
+  data.length = f.nx * f.ny * f.nz;
+  int i = 0;
+  foreach(z, y, x, e; f) {
+    data[i] = e;
+    i++;
+  }
+
+  // hsize_t[ndim] dimsg = [ 32, 32, 32 ];
+  // hsize_t[ndim] dimsl = [ 16, 32, 32 ];
+  // hsize_t[ndim] count = [ 1, 1, 1 ];
+  // hsize_t[ndim] stride = [ 1, 1, 1 ];
+  // hsize_t[ndim] block = [ 16, 32, 32 ];
+  // hsize_t[ndim] start = [ 16*M.rank, 0, 0 ];
+
+  // writeLogD("%s %s %s %s %s %s", dimsg, dimsl, count, stride, block, start);
+
+  // int data[16*32*32] = M.rank;
+
+
 
   // ! Note: the above is in fact equivalent to the count/stride/block formulation:
   // ! count  = (/1, 1, 1/)
@@ -77,26 +138,20 @@ void dumpFieldHDF5(T)(const Field!T f, const string name) {
   // ! block  = (/nx, ny, nz/)
   // ! (with matching parameters in h5sselect_hyperslab_f
 
-  hssize_t[3] offset = [ M.cx*f.nx, M.cy*f.ny, M.cz*f.nz ];
+
 
   // offset(1) = ccoords(1)*nx
   // offset(2) = ccoords(2)*ny
   // offset(3) = ccoords(3)*nz
   // plist_id = H5Pcreate(150994952);
-  // plist_id = H5Pcreate(H5P_FILE_ACCESS);
-  // import std.stdio;
-  // writeLogD("%d %d", H5P_FILE_ACCESS, plist_id);
-  // return;
-  // e = H5Pset_fapl_mpio(plist_id, M.comm, info);
+  plist_id = H5Pcreate(H5P_FILE_ACCESS);
+  // writeLogD("%s %d %d", H5P_FILE_ACCESS, plist_id, type_id);
+  H5Pset_fapl_mpio(plist_id, M.comm, info);
   // Create the file collectively.
-  writeLogD("%d", H5F_ACC_TRUNC);
-  // return;
-  if ( M.isRoot ) {
-    e = H5Fcreate("test.h5", H5F_ACC_TRUNC, file_id, plist_id);
-    e = H5Pclose(plist_id);
-  }
+  file_id = H5Fcreate("test.h5", H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
+  H5Pclose(plist_id);
 
-  
+  writeLogD("%s %d %d", file_id, H5F_ACC_TRUNC, H5P_FILE_CREATE);
 
 //   ! Setup file access property list with parallel I/O access.
 //   if (dbg_report_hdf5) call log_msg("HDF creating file")
@@ -108,8 +163,16 @@ void dumpFieldHDF5(T)(const Field!T f, const string name) {
 //   call h5pclose_f(plist_id, err)
 
 //   ! Create the data space for the dataset.
-//   if (dbg_report_hdf5) call log_msg("HDF creating filespace")
-//   call h5screate_simple_f(ndim, dimsf, filespace, err)
+  writeLogD("HDF creating filespace");
+  // hsize_t[2] dtest;
+  // dtest[0] = 4;
+  // dtest[1] = 4;
+  filespace = H5Screate_simple(ndim, dimsg.ptr, null);
+  memspace = H5Screate_simple(ndim, dimsl.ptr, null);
+  writeLogD("HDF created dataspaces");
+
+  // plist_id = H5Pcreate(H5P_DATASET_CREATE);
+  // H5Pset_chunk(plist_id, 3, dimsl);
 
 //   ! Create chunked dataset.
 //   ! This should hopefully be needed nevermore
@@ -123,16 +186,26 @@ void dumpFieldHDF5(T)(const Field!T f, const string name) {
 //   if (dbg_report_hdf5) call log_msg("HDF creating continuous dataset")
 //   call h5dcreate_f(file_id, dsetname, type_id, filespace, dset_id, err)
 
+  auto dataset_id = H5Dcreate2(file_id, "/dset", type_id, filespace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  writeLogD("HDF created dataset");
+
+  H5Sclose(filespace);
+
 //   call h5sclose_f(filespace, err)
 
 //   ! Each process defines dataset in memory and writes it to the hyperslab in the file.
 //   if (dbg_report_hdf5) call log_msg("HDF creating memspace")
 //   call h5screate_simple_f(ndim, dims, memspace, err)
 
+
 //   ! Select hyperslab in the file.
 //   if (dbg_report_hdf5) call log_msg("HDF selecting hyperslab")
 //   call h5dget_space_f(dset_id, filespace, err)
 //   call h5sselect_hyperslab_f (filespace, H5S_SELECT_SET_F, offset, count, err)
+
+  filespace = H5Dget_space(dataset_id);
+  auto status = H5Sselect_hyperslab(filespace, H5S_seloper_t.H5S_SELECT_SET, start.ptr, stride.ptr, count.ptr, block.ptr);
+  writeLogD("HDF selected hyperslab");
 
 //   ! Create property list for collective dataset write
 //   call h5pcreate_f(H5P_DATASET_XFER_F, plist_id, err)
@@ -143,6 +216,10 @@ void dumpFieldHDF5(T)(const Field!T f, const string name) {
 //     if (dbg_report_hdf5) call log_msg("HDF using H5FD_MPIO_COLLECTIVE_F")
 //     call h5pset_dxpl_mpio_f(plist_id, H5FD_MPIO_COLLECTIVE_F, err)
 //   end if
+
+  auto xfer_plist_id = H5Pcreate(H5P_DATASET_XFER);
+  e = H5Pset_dxpl_mpio(xfer_plist_id, H5FD_mpio_xfer_t.H5FD_MPIO_COLLECTIVE);
+  writeLogD("HDF set xfer properties");
 
 //   if (dbg_report_hdf5_timing) then
 //     t_init_f = MPI_Wtime()
@@ -158,6 +235,8 @@ void dumpFieldHDF5(T)(const Field!T f, const string name) {
 //     if (dbg_report_hdf5) call log_msg("HDF writing single data")
 //     call h5dwrite_f(dset_id, type_id, real(scalar,4), dims, err, file_space_id = filespace, mem_space_id = memspace, xfer_prp = plist_id)
 //   end if
+
+  H5Dwrite(dataset_id, type_id, memspace, filespace, xfer_plist_id, data.ptr);
 
 //   if (dbg_report_hdf5_timing) then
 //     t_write_f = MPI_Wtime()
@@ -243,10 +322,10 @@ void dumpFieldHDF5(T)(const Field!T f, const string name) {
 
 hid_t hdf5Typeof(T)() {
   static if ( is(T == int) ) {
-    return H5T_NATIVE_INT_g;
+    return H5T_NATIVE_INT;
   }
   else static if ( is(T == double) ) {
-    return H5T_NATIVE_DOUBLE_g;
+    return H5T_NATIVE_DOUBLE;
   }
   else {
     static assert(0, "Datatype not implemented for HDF5.");

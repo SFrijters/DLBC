@@ -29,7 +29,7 @@ int main(string[] args ) {
   showCompilerInfo!(VL.Information, LRF.Root);
   showRevisionInfo!(VL.Information, LRF.Root);
 
-  // startHDF5();
+  startHDF5();
 
   // Start Main timer
   T.main = MultiStopWatch("Main");
@@ -54,6 +54,11 @@ int main(string[] args ) {
   auto L = new Lattice!(3)(M);
 
   L.exchangeHalo();
+
+  testHDF();
+  L.index.initRank();
+  L.index.dumpFieldHDF5("test");
+
 
   // L.index.show!(VL.Debug, LRF.Root);
   // L.index.exchangeHalo();
@@ -124,7 +129,7 @@ int main(string[] args ) {
 
   auto d3q19 = new Connectivity!(3,19);
 
-  for ( uint t = 1; t <= 100; ++t ) {
+  for ( uint t = 1; t <= 0; ++t ) {
     writeLogRN("Starting timestep %d", t);
     // writeLogRI("Density = %f", L.red.localMass());
     writeLogRI("Mass before advection = %f", L.red.globalMass());
@@ -153,7 +158,7 @@ int main(string[] args ) {
 
   // writeLogI(L.red.densityField().toString());
 
-  // endHDF5();
+  endHDF5();
   endMpi();
 
   writeLogRN(makeHeaderString("Finished DLBC run."));
