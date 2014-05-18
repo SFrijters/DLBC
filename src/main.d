@@ -1,9 +1,9 @@
 import dlbc.connectivity;
-import dlbc.getopt;
-import dlbc.hdf5;
 import dlbc.fields.field;
 import dlbc.fields.init;
-import dlbc.io;
+import dlbc.getopt;
+import dlbc.io.io;
+import dlbc.io.hdf5;
 import dlbc.lattice;
 import dlbc.logging;
 import dlbc.parallel;

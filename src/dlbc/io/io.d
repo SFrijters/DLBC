@@ -16,9 +16,9 @@ Macros:
 	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
-module dlbc.io;
+module dlbc.io.io;
 
-import dlbc.hdf5;
+import dlbc.io.hdf5;
 import dlbc.lattice;
 import dlbc.logging;
 import dlbc.fields.field;
