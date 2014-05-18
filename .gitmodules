@@ -4,3 +4,6 @@
 [submodule "unstd"]
 	path = unstd
 	url = https://bitbucket.org/denis-sh/unstandard.git
+[submodule "hdf5-d"]
+	path = hdf5-d
+	url = https://github.com/SFrijters/hdf5-d.git
