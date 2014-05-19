@@ -22,16 +22,16 @@ int main(string[] args ) {
 
   writeLogRN(makeHeaderString("Starting DLBC on %d CPUs.", M.size));
 
-  // Process the CLI parameters
+  // Process the CLI parameters.
   processCLI(args);
 
-  // Show build-related information
+  // Show build-related information.
   showCompilerInfo!(VL.Information, LRF.Root);
   showRevisionInfo!(VL.Information, LRF.Root);
 
   startHDF5();
 
-  // Start Main timer
+  // Start Main timer.
   T.main = MultiStopWatch("Main");
   T.main.start!(VL.Debug, LRF.None);
 
@@ -41,16 +41,19 @@ int main(string[] args ) {
   bcastParameters();
   showParameters!(VL.Information, LRF.Root);
 
-  // Set secondary values based on parameters
+  // Show name and id of the current simulation.
+  showSimulationName();
+
+  // Set secondary values based on parameters.
   processParameters();
 
-  // Make cartesian grid now that we have values ncx, ncy, ncz everywhere
+  // Make cartesian grid now that we have values ncx, ncy, ncz everywhere.
   reorderMpi();
 
   // Init random number generator.
   initRNG();
 
-  // Try and create the local lattice structure
+  // Try and create the local lattice structure.
   auto L = new Lattice!(3)(M);
 
   L.exchangeHalo();

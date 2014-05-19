@@ -18,6 +18,27 @@ Macros:
 
 module dlbc.io.io;
 
+import std.datetime;
+
+import dlbc.logging;
 import dlbc.io.hdf5;
+
+@("param") FileFormat outputFormat;
+@("param") string simulationName;
+
+immutable string simulationId;
+
+enum FileFormat {
+  Ascii,
+  HDF5,
+}
+
+static this() {
+  simulationId = Clock.currTime().toISOString();
+}
+
+void showSimulationName() {
+  writeLogRI("The name of the simulation is `%s' and its id is `%s'.", simulationName, simulationId);
+}
 
 
