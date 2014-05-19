@@ -28,6 +28,11 @@ import dlbc.logging;
 import dlbc.parallel;
 import dlbc.range;
 
+/**
+   Use chunked HDF5. This is normally not recommended.
+*/
+@("param") bool writeChunked = false;
+
 private bool hdf5HasStarted = false;
 
 private immutable auto defaultDatasetName = "/OutArray";
@@ -108,6 +113,16 @@ size_t hdf5Lengthof(T)() {
   return LengthOf!T;
 }
 
+/**
+   Write a field to disk using HDF5.
+
+   Params:
+     field = field to be written
+     name = name of the field, to be used in the file name
+
+   Todo: Add support for vector fields.
+   Todo: Add support for attributes.
+*/
 void dumpFieldHDF5(T)(T field, const string name) {
 
   immutable auto type_id = hdf5Typeof!(T.type);
@@ -147,20 +162,19 @@ void dumpFieldHDF5(T)(T field, const string name) {
   auto filespace = H5Screate_simple(ndim, dimsg.ptr, null);
   auto memspace = H5Screate_simple(ndim, dimsl.ptr, null);
 
-  // plist_id = H5Pcreate(H5P_DATASET_CREATE);
-  // H5Pset_chunk(plist_id, 3, dimsl);
-
-  // ! Create chunked dataset.
-  // ! This should hopefully be needed nevermore
-  // if (dbg_report_hdf5) call log_msg("HDF creating chunked dataset")
-  // call h5pcreate_f(H5P_DATASET_CREATE_F, plist_id, err)
-  // call h5pset_chunk_f(plist_id, ndim, chunk_dims, err)
-  // call h5dcreate_f(file_id, dsetname, type_id, filespace, dset_id, err, plist_id)
-  // call h5pclose_f(plist_id, err)
+  hid_t dcpl_id;
+  if ( writeChunked ) {
+    dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
+    H5Pset_chunk(dcpl_id, ndim, block.ptr);
+  }
+  else {
+    dcpl_id = H5P_DEFAULT;
+  }
 
   auto datasetName = defaultDatasetName.toStringz();
-  auto dataset_id = H5Dcreate2(file_id, datasetName, type_id, filespace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  auto dataset_id = H5Dcreate2(file_id, datasetName, type_id, filespace, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
   H5Sclose(filespace);
+  H5Pclose(dcpl_id);
 
   filespace = H5Dget_space(dataset_id);
   // In the filespace, we have an offset to make sure we write in the correct chunk.

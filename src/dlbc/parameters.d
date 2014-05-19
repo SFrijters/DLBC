@@ -96,6 +96,7 @@ static immutable string parameterUDA = "param";
      Ideally this should be a template parameter to the createParameterMixins function, maybe?
 */
 private alias TypeTuple!(
+                         "dlbc.io.hdf5",
                          "dlbc.io.io",
                          "dlbc.lattice",
                          "dlbc.logging",
