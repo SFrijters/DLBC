@@ -73,7 +73,7 @@ hid_t hdf5Typeof(T)() {
   import dlbc.range;
   import std.traits;
   static if ( isArray!T ) {
-    return mpiTypeof!(BaseElementType!T);
+    return hdf5Typeof!(BaseElementType!T);
   }
   else {
     static if ( is(T == int) ) {

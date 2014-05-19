@@ -46,6 +46,8 @@ struct Field(T, uint dim, uint hs) {
   private uint _haloSize = hs;
   private uint[dim] _lengthsH;
 
+  alias T type;
+
   /**
      Number of dimensions of the field.
   */
@@ -119,12 +121,6 @@ struct Field(T, uint dim, uint hs) {
       return _lengthsH[2];
     }
   }
-
-  /**
-     MPI datatype corresponding to type $(D T).
-  */
-  private MPI_Datatype mpiType = mpiTypeof!T;
-  private uint mpiLength = mpiLengthof!T;
 
   /**
      Allows to access the underlying multidimensional array correctly.
@@ -210,6 +206,13 @@ struct Field(T, uint dim, uint hs) {
     writeLogRD("Performing halo exchange of size %d.", haloSize);
 
     uint buflen;
+
+    /**
+       MPI datatype corresponding to type $(D T).
+    */
+    auto mpiType = mpiTypeof!type;
+    auto mpiLength = mpiLengthof!type;
+
     MPI_Status mpiStatus;
 
     uint haloOffset = this._haloSize - haloSize;

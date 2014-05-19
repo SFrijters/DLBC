@@ -208,8 +208,9 @@ MPI_Datatype mpiTypeof(T)() {
 }
 
 auto mpiLengthof(T)() {
+  import std.conv: to;
   import dlbc.range;
-  return LengthOf!T;
+  return to!uint(LengthOf!T);
 }
 
 auto MpiBcastString(ref string str) {
