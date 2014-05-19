@@ -23,16 +23,38 @@ import std.datetime;
 import dlbc.logging;
 import dlbc.io.hdf5;
 
+/**
+   File format of the output.
+*/
 @("param") FileFormat outputFormat;
+/**
+   Name of the simulation, to be used in file names for the output.
+*/
 @("param") string simulationName;
-
+/**
+   Id of the simulation, based on the time it was started.
+   Initialized in the static constructor of the module.
+   To be used in file names for the output.
+*/
 immutable string simulationId;
 
+/**
+   Possible file format options.
+*/
 enum FileFormat {
+  /**
+     Plain text ascii.
+  */
   Ascii,
+  /**
+     (Parallel) HDF5.
+  */
   HDF5,
 }
 
+/**
+   The module constructor sets the unique id before main() is run.
+*/
 static this() {
   simulationId = Clock.currTime().toISOString();
 }
