@@ -22,6 +22,7 @@ import std.datetime;
 
 import dlbc.logging;
 import dlbc.io.hdf5;
+import dlbc.timers;
 
 /**
    File format of the output.
@@ -128,5 +129,26 @@ string makeFilenameOutput(FileFormat fileFormat)(const string name) {
     static assert(0, "File name extension not specified for this file format.");
   }
   return format("%s/%s-%s-%s.%s", outputPath, name, simulationName, simulationId, ext);
+}
+
+/**
+   Wrapper function to write a field to disk using HDF5.
+   Depending on the value of $(D outputFormat) the matching
+   output function will be called.
+
+   Params:
+     field = field to be written
+     name = name of the field, to be used in the file name
+*/
+void dumpField(T)(ref T field, const string name) {
+  Timers.io.start();
+  final switch(outputFormat) {
+  case FileFormat.Ascii:
+    assert(0, "Ascii dumping of fields not yet implemented.");
+  case FileFormat.HDF5:
+    dumpFieldHDF5(field, name);
+    break;
+  }
+  Timers.io.stop();
 }
 

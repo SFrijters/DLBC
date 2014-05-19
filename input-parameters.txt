@@ -4,13 +4,18 @@
 // Multiline comments are *not* supported.
 // Section headers (corresponding to modules) are enclosed in square brackets.
 
+[io]
+outputFormat = HDF5 
+simulationName = foobar
+outputPath = output
+
 [parallel]
 ncy = 2
 
 [lattice]
-gnx = 32    // Lattice size x-direction
+gnx = 16    // Lattice size x-direction
 gny = 32    // Lattice size y-direction
-gnz = 32    // Lattice size z-direction
+gnz = 64    // Lattice size z-direction
 
 [random]
 seed = 42

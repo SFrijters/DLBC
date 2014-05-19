@@ -33,6 +33,7 @@ int main(string[] args ) {
 
   // Start Main timer.
   T.main = MultiStopWatch("Main");
+  T.io = MultiStopWatch("IO");
   T.main.start!(VL.Debug, LRF.None);
 
   if (M.isRoot) {
@@ -60,7 +61,7 @@ int main(string[] args ) {
 
   L.index.initRank();
   L.exchangeHalo();
-  L.index.dumpFieldHDF5("index");
+  L.index.dumpField("index");
 
 
   // L.index.show!(VL.Debug, LRF.Root);
@@ -122,6 +123,8 @@ int main(string[] args ) {
 
   // L.red.initConst(0.01);
   L.red.initRandom();
+  L.red.exchangeHalo();
+  L.red.dumpField("red");
   // L.red.exchangeHalo();
   // L.red.show!(VL.Debug, LRF.Root);
 
@@ -154,6 +157,7 @@ int main(string[] args ) {
 
   // writeLogRD("%f", [1.0, 3.0, 0.5].dot([0.0,3.0,2.0]));
 
+  T.io.showFinal!(VL.Information, LRF.Ordered);
   T.adv.showFinal!(VL.Information, LRF.Ordered);
   T.coll.showFinal!(VL.Information, LRF.Ordered);
   T.main.stop();

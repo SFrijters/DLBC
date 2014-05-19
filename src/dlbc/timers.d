@@ -30,6 +30,7 @@ struct Timers {
   static MSW main;
   static MSW adv;
   static MSW coll;
+  static MSW io;
 }
 /// Ditto
 alias Timers T;
