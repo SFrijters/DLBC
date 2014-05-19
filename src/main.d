@@ -58,9 +58,8 @@ int main(string[] args ) {
   // Try and create the local lattice structure.
   auto L = new Lattice!(3)(M);
 
-  L.exchangeHalo();
-
   L.index.initRank();
+  L.exchangeHalo();
   L.index.dumpFieldHDF5("index");
 
 
