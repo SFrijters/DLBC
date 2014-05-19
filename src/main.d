@@ -157,11 +157,11 @@ int main(string[] args ) {
 
   // writeLogRD("%f", [1.0, 3.0, 0.5].dot([0.0,3.0,2.0]));
 
-  T.io.showFinal!(VL.Information, LRF.Ordered);
-  T.adv.showFinal!(VL.Information, LRF.Ordered);
-  T.coll.showFinal!(VL.Information, LRF.Ordered);
+  T.io.showFinal!(VL.Information, LRF.Root);
+  T.adv.showFinal!(VL.Information, LRF.Root);
+  T.coll.showFinal!(VL.Information, LRF.Root);
   T.main.stop();
-  T.main.showFinal!(VL.Information, LRF.Ordered);
+  T.main.showFinal!(VL.Information, LRF.Root);
 
   // writeLogI(L.red.densityField().toString());
 
