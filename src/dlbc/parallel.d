@@ -192,7 +192,7 @@ MPI_Datatype mpiTypeof(T)() {
     return mpiTypeof!(BaseElementType!T);
   }
   else {
-    static if ( is(T == int) ) {
+    static if ( is(T : int) ) { // this now also accepts enum
       return MPI_INT;
     }
     else static if ( is(T == double) ) {
