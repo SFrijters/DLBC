@@ -32,11 +32,15 @@ import dlbc.io.hdf5;
 */
 @("param") string simulationName;
 /**
+   Relative path to create output files at.
+*/
+@("param") string outputPath = ".";
+/**
    Id of the simulation, based on the time it was started.
    Initialized in the static constructor of the module.
    To be used in file names for the output.
 */
-immutable string simulationId;
+string simulationId;
 
 /**
    Possible file format options.
@@ -59,8 +63,42 @@ static this() {
   simulationId = Clock.currTime().toISOString();
 }
 
-void showSimulationName() {
-  writeLogRI("The name of the simulation is `%s' and its id is `%s'.", simulationName, simulationId);
+void broadcastSimulationId() {
+  import dlbc.parallel: MpiBcastString;
+  MpiBcastString(simulationId);
+  writeLogI("The name of the simulation is `%s' and its id is `%s'.", simulationName, simulationId);
 }
 
+void checkPaths() {
+  outputPath.isValidPath();
+}
+
+bool isValidPath(const string path) {
+  import std.file;
+  if ( path.exists() ) {
+    if (! isDir(path) ){
+      writeLogW("Path `%s' is not a directory. I/O will probably fail.", path);
+      return false;
+    }
+  }
+  else {
+    writeLogW("Path `%s' does not exist. I/O will probably fail.", path);
+    return false;
+  }
+  return true;
+}
+
+string makeFilenameOutput(FileFormat fileFormat)(const string name) {
+  import std.string;
+  static if ( fileFormat == FileFormat.Ascii ) {
+    immutable string ext = "asc";
+  }
+  else static if ( fileFormat == FileFormat.HDF5 ) {
+    immutable string ext = "h5";
+  }
+  else {
+    static assert(0, "File name extension not specified for this file format.");
+  }
+  return format("%s/%s-%s-%s.%s", outputPath, name, simulationName, simulationId, ext);
+}
 

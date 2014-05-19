@@ -42,7 +42,9 @@ int main(string[] args ) {
   showParameters!(VL.Information, LRF.Root);
 
   // Show name and id of the current simulation.
-  showSimulationName();
+  broadcastSimulationId();
+
+  checkPaths();
 
   // Set secondary values based on parameters.
   processParameters();
