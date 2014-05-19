@@ -60,9 +60,8 @@ int main(string[] args ) {
 
   L.exchangeHalo();
 
-  testHDF();
   L.index.initRank();
-  L.index.dumpFieldHDF5("test");
+  L.index.dumpFieldHDF5("index");
 
 
   // L.index.show!(VL.Debug, LRF.Root);

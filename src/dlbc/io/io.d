@@ -66,7 +66,7 @@ static this() {
 void broadcastSimulationId() {
   import dlbc.parallel: MpiBcastString;
   MpiBcastString(simulationId);
-  writeLogI("The name of the simulation is `%s' and its id is `%s'.", simulationName, simulationId);
+  writeLogRI("The name of the simulation is `%s' and its id is `%s'.", simulationName, simulationId);
 }
 
 void checkPaths() {
