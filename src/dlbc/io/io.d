@@ -42,6 +42,8 @@ import dlbc.io.hdf5;
 */
 string simulationId;
 
+private bool simulationIdIsBcast = false;
+
 /**
    Possible file format options.
 */
@@ -63,16 +65,31 @@ static this() {
   simulationId = Clock.currTime().toISOString();
 }
 
+/**
+   Ensure that the simulationId is globally the same, by broadcasting the value
+   from the root process. This function should be called early in the simulation,
+   but definitely before any IO has been performed.
+*/
 void broadcastSimulationId() {
   import dlbc.parallel: MpiBcastString;
   MpiBcastString(simulationId);
   writeLogRI("The name of the simulation is `%s' and its id is `%s'.", simulationName, simulationId);
+  simulationIdIsBcast = true;
 }
 
+/**
+   Give early warnings about problems with various paths that may be used later.
+*/
 void checkPaths() {
   outputPath.isValidPath();
 }
 
+/**
+   Check whether a string represents a valid path: it should exist and be a directory.
+
+   Params:
+     path = path to check
+*/
 bool isValidPath(const string path) {
   import std.file;
   if ( path.exists() ) {
@@ -88,8 +105,19 @@ bool isValidPath(const string path) {
   return true;
 }
 
+/**
+   Creates a filename based on the file format (which determines the extension),
+   the global parameters $(D outputPath) and $(D simulationName) and the automatically
+   generated $(D simulationId). A custom name can be supplied, which will be prepended.
+
+   Params:
+     name = name of the field, to be prepended to the file name
+*/
 string makeFilenameOutput(FileFormat fileFormat)(const string name) {
   import std.string;
+
+  assert( simulationIdIsBcast, "Do not attempt to create a file name without first calling broadcastSimulationId() once.");
+
   static if ( fileFormat == FileFormat.Ascii ) {
     immutable string ext = "asc";
   }
