@@ -24,11 +24,10 @@ import dlbc.lb.density;
 import dlbc.lb.velocity;
 
 /**
-   Calculates the local momentum of a population \(\vec{n}\): \(\vec{p}(\vec{n}) = \frac{\sum_r n_r \vec{c}__r}\).
+   Calculates the local momentum of a population \(\vec{n}\): \(\vec{p}(\vec{n}) = \sum_r n_r \vec{c}__r\).
 
    Params:
      population = population vector \(\vec{n}\)
-     density = if the density \(\rho_0\) has been pre-calculated, it can be passed directly
      conn = connectivity
 
    Returns:
