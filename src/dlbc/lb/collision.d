@@ -20,6 +20,7 @@
 module dlbc.lb.collision;
 
 import dlbc.fields.field;
+import dlbc.lb.connectivity;
 import dlbc.lb.density;
 import dlbc.lb.velocity;
 
@@ -30,10 +31,10 @@ import dlbc.lb.velocity;
      field = field of populations
      conn = connectivity
 */
-void collideField(T, U)(ref T field, const ref U conn) {
+void collideField(alias conn, T)(ref T field) {
   enum omega = 1.0;
   foreach(ref population; field.byElementForward) { // this includes the halo
-    population[] -= omega * ( population[] - eqDist(population, conn)[]);
+    population[] -= omega * ( population[] - (eqDist!conn(population))[]);
   }
 }
 
@@ -47,15 +48,16 @@ void collideField(T, U)(ref T field, const ref U conn) {
    Returns:
      equilibrium distribution \(\vec{n}^{\mathrm{eq}}\)
 */
-auto eqDist(T, U)(const ref T population, const ref U conn) {
+auto eqDist(alias conn, T)(const ref T population) {
   import std.numeric: dotProduct;
 
   auto immutable cv = conn.velocities;
-  assert(population.length == cv.length);
   auto immutable cw = conn.weights;
-  assert(population.length == cw.length);
+  static assert(population.length == cv.length);
+  static assert(population.length == cw.length);
+
   auto immutable rho0 = population.density();
-  auto immutable v = population.velocity(rho0, conn);
+  auto immutable v = population.velocity!(conn)(rho0);
   enum css = 1.0/3.0;
 
   auto immutable vdotv = v.dotProduct(v);
@@ -70,17 +72,15 @@ auto eqDist(T, U)(const ref T population, const ref U conn) {
 
 ///
 unittest {
-  import dlbc.connectivity;
   import dlbc.random;
   import std.math: approxEqual;
-  immutable auto d3q19 = new Connectivity!(3,19);
-  double[19] population, eq;
+  double[d3q19.nvelocities] population, eq;
   population[] = 0.0;
   for ( int i = 0; i < population.length; i++ ){
     population[i] = uniform(0.0, 1.0, rng);
-    eq = eqDist(population, d3q19);
-    assert(approxEqual(eq.density(), population.density()));                // Mass conservation
-    assert(approxEqual(eq.velocity(d3q19)[],population.velocity(d3q19)[])); // Momentum conservation
+    eq = eqDist!d3q19(population);
+    assert(approxEqual(eq.density(), population.density()));                  // Mass conservation
+    assert(approxEqual(eq.velocity!(d3q19)[],population.velocity!(d3q19)[])); // Momentum conservation
   }
 }
 

@@ -30,10 +30,10 @@ import dlbc.fields.field;
      tempField = temporary field of the same size and type as $(D field)
      conn = connectivity
 */
-void advectField(T, U)(ref T field, ref T tempField, const ref U conn) {
+void advectField(alias conn, T)(ref T field, ref T tempField) {
   import std.algorithm: swap;
 
-  assert(field.dimensions == tempField.dimensions);
+  static assert(field.dimensions == tempField.dimensions);
   auto immutable cv = conn.velocities;
   foreach( z, y, x, ref population; tempField) {
     assert(population.length == cv.length);
@@ -46,7 +46,6 @@ void advectField(T, U)(ref T field, ref T tempField, const ref U conn) {
 
 ///
 unittest {
-  import dlbc.connectivity;
   import dlbc.fields.init;
   import dlbc.logging;
   import dlbc.parallel;
@@ -55,17 +54,16 @@ unittest {
   reorderMpi();
 
   if ( M.size == 8 ) {
-    auto d3q19 = new Connectivity!(3,19);
-    uint[3] lengths = [ 16, 16 ,16 ];
-    auto field = Field!(double[19], 3, 2)(lengths);
-    auto temp = Field!(double[19], 3, 2)(lengths);
+    uint[d3q19.dimensions] lengths = [ 16, 16 ,16 ];
+    auto field = Field!(double[19], d3q19.dimensions, 2)(lengths);
+    auto temp = Field!(double[19], d3q19.dimensions, 2)(lengths);
 
     field.initConst(0);
     if ( M.isRoot ) {
       field[2,2,2] = [42, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 ,15, 16 ,17 ,18];
     }
     field.exchangeHalo();
-    field.advectField(temp, d3q19);
+    field.advectField!d3q19(temp);
 
     if ( M.rank == 0 ) {
       assert(field[2,2,2][0] == 42);

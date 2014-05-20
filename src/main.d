@@ -67,7 +67,6 @@ int main(string[] args ) {
   L.exchangeHalo();
   L.index.dumpField("index");
 
-
   // L.index.show!(VL.Debug, LRF.Root);
   // L.index.exchangeHalo();
   // L.index.show!(VL.Debug, LRF.Root);
@@ -127,7 +126,7 @@ int main(string[] args ) {
 
   // L.red.initConst(0.01);
   L.red.initRandom();
-  auto d3q19 = new Connectivity!(3,19);
+  // auto d3q19 = new Connectivity!(3,19);
   L.red.exchangeHalo();
   L.red.dumpField("red");
   // L.red.exchangeHalo();
@@ -145,22 +144,26 @@ int main(string[] args ) {
     // writeLogI("Density = %f", L.red.localMass());
     L.red.exchangeHalo();
     T.adv.start();
-    L.red.advectField(L.temp, d3q19);
+    L.red.advectField!d3q19(L.temp);
     T.adv.stop();
     writeLogRI("Mass after advection = %f", L.red.globalMass());
     // writeLogI("Density = %f", L.red.localMass());
     // L.red.show!(VL.Debug, LRF.Root);
     T.coll.start();
-    L.red.collideField(d3q19);
+    L.red.collideField!d3q19();
     T.coll.stop();
     writeLogRI("Global momentum = %s", L.red.globalMomentum(d3q19));
     // L.red.show!(VL.Debug, LRF.Root);
+
+    L.red.velocityField!d3q19();
+
     densityField(L.red, L.density);
     L.density.dumpField("red", t);
   }
   // L.red.show!(VL.Information, LRF.Root);
 
   // writeLogRD("%f", [1.0, 3.0, 0.5].dot([0.0,3.0,2.0]));
+
 
   T.io.showFinal!(VL.Information, LRF.Root);
   T.adv.showFinal!(VL.Information, LRF.Root);

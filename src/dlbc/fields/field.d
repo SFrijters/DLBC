@@ -40,19 +40,12 @@ struct Field(T, uint dim, uint hs) {
 
   MultidimArray!(T, dim) arr, sbuffer, rbuffer;
 
-  private uint _dimensions = dim;
+  enum uint dimensions = dim;
+  enum uint haloSize = hs;
   private uint[dim] _lengths;
-  private uint _haloSize = hs;
   private uint[dim] _lengthsH;
 
   alias T type;
-
-  /**
-     Number of dimensions of the field.
-  */
-  @property auto dimensions() {
-    return _dimensions;
-  }
 
   /**
      Lengths of the physical dimensions of the field.
@@ -82,13 +75,6 @@ struct Field(T, uint dim, uint hs) {
     @property auto nz() {
       return _lengths[2];
     }
-  }
-
-  /**
-     Size of the halo (on each side).
-  */
-  @property auto haloSize() {
-    return _haloSize;
   }
 
   /**
@@ -222,12 +208,12 @@ struct Field(T, uint dim, uint hs) {
 
     MPI_Status mpiStatus;
 
-    uint haloOffset = this._haloSize - haloSize;
+    uint haloOffset = this.haloSize - haloSize;
 
-    uint lus = this._haloSize + haloOffset + haloSize;
-    uint uus = this._haloSize + haloOffset;
-    uint lls = this._haloSize + haloOffset;
-    uint uls = this._haloSize + haloOffset + haloSize;
+    uint lus = this.haloSize + haloOffset + haloSize;
+    uint uus = this.haloSize + haloOffset;
+    uint lls = this.haloSize + haloOffset;
+    uint uls = this.haloSize + haloOffset + haloSize;
 
     uint lur = haloOffset + haloSize;
     uint uur = haloOffset;

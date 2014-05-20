@@ -18,30 +18,19 @@
 
 module dlbc.lb.connectivity;
 
-struct Connectivity(uint d, uint q) {
-  int dimensions = d;
-  int nvelocities = q;
-  int[d][q] velocities = generateVelocities!(d, q);
-  int[q] bounce = generateBounce(generateVelocities!(d, q));
-  double[q] weights = generateWeights(generateVelocities!(d, q));
+immutable struct Connectivity(uint d, uint q) {
+  enum int dimensions = d;
+  enum int nvelocities = q;
+  enum int[d][q] velocities = generateVelocities!(d, q);
+  enum int[q] bounce = generateBounce(generateVelocities!(d, q));
+  enum double[q] weights = generateWeights(generateVelocities!(d, q));
 }
 
-
-/**
-   D3Q1 connectivity, i.e. the rest vector [0, 0, 0].
-*/
-static immutable auto d3q1 = generateD3Q1();
-/**
-   D3Q7 connectivity, i.e. the rest vector, plus connecting vectors of length 1.
-*/
-static immutable auto d3q7 = generateD3Q7();
 /**
    D3Q19 connectivity, i.e. the rest vector, plus connecting vectors of length 1,
    plus connecting vectors of length sqrt(2).
 */
-static immutable auto d3q19 = generateD3Q19();
-
-static immutable auto d3q19bounce = generateBounce(d3q19);
+auto d3q19 = new immutable Connectivity!(3,19);
 
 private auto generateBounce(T)(const T velocities) {
   size_t[velocities.length] bounce;

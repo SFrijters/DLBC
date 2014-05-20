@@ -58,7 +58,7 @@ unittest {
      density field
 */
 auto densityField(T)(ref T field) {
-  auto density = Field!(double, 3, 2)([field.nxH, field.nyH, field.nzH]);
+  auto density = Field!(double, field.dimensions, field.haloSize)([field.nxH, field.nyH, field.nzH]);
   foreach(z,y,x, ref pop; field.arr) {
     density[z,y,x] = pop.density();
   }
@@ -67,7 +67,7 @@ auto densityField(T)(ref T field) {
 
 /// Ditto
 void densityField(T, U)(ref T field, ref U density) {
-  assert(field.dimensions == density.dimensions);
+  static assert(field.dimensions == density.dimensions);
   assert(field.lengths == density.lengths);
   foreach(z,y,x, ref pop; field.arr) {
     density[z,y,x] = pop.density();
@@ -85,7 +85,6 @@ unittest {
   		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
   double[19] pop2 = [ 1.0, 0.0, -0.1, 0.0, 0.0, 0.0, 0.0,
   		     0.1, 0.0, 0.0, 0.8, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
-
 
   field.initConst(0);
   field[1,2,3] = pop1;
