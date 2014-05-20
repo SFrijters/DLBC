@@ -18,8 +18,9 @@
 
 module dlbc.connectivity;
 
-
 struct Connectivity(uint d, uint q) {
+  int dimensions = d;
+  int nvelocities = q;
   int[d][q] velocities = generateVelocities!(d, q);
   int[q] bounce = generateBounce(generateVelocities!(d, q));
   double[q] weights = generateWeights(generateVelocities!(d, q));

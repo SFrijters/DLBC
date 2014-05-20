@@ -20,6 +20,8 @@
 module dlbc.lb.collision;
 
 import dlbc.fields.field;
+import dlbc.lb.density;
+import dlbc.lb.velocity;
 
 /**
    Let the populations of the field collide.
@@ -68,6 +70,7 @@ auto eqDist(T, U)(const ref T population, const ref U conn) {
 
 ///
 unittest {
+  import dlbc.connectivity;
   import dlbc.random;
   import std.math: approxEqual;
   immutable auto d3q19 = new Connectivity!(3,19);

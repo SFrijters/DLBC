@@ -7,6 +7,8 @@ import dlbc.io.hdf5;
 import dlbc.lattice;
 import dlbc.lb.advection;
 import dlbc.lb.collision;
+import dlbc.lb.density;
+import dlbc.lb.velocity;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.parameters;

@@ -45,7 +45,10 @@ void advectField(T, U)(ref T field, ref T tempField, const ref U conn) {
 
 ///
 unittest {
+  import dlbc.connectivity;
   import dlbc.fields.init;
+  import dlbc.logging;
+  import dlbc.parallel;
 
   startMpi([]);
   reorderMpi();
