@@ -324,17 +324,17 @@ void owriteLog(VL vl, T...)(const T args) {
    Params:
      args = data to write
 */
-void owriteLogF(T...)(const T args) { owriteLog(VL.Fatal       , args); }
+void owriteLogF(T...)(const T args) { owriteLog!(VL.Fatal)(args); }
 /// Ditto
-void owriteLogE(T...)(const T args) { owriteLog(VL.Error       , args); }
+void owriteLogE(T...)(const T args) { owriteLog!(VL.Error)(args); }
 /// Ditto
-void owriteLogW(T...)(const T args) { owriteLog(VL.Warning     , args); }
+void owriteLogW(T...)(const T args) { owriteLog!(VL.Warning)(args); }
 /// Ditto
-void owriteLogN(T...)(const T args) { owriteLog(VL.Notification, args); }
+void owriteLogN(T...)(const T args) { owriteLog!(VL.Notification)(args); }
 /// Ditto
-void owriteLogI(T...)(const T args) { owriteLog(VL.Information , args); }
+void owriteLogI(T...)(const T args) { owriteLog!(VL.Information)(args); }
 /// Ditto
-void owriteLogD(T...)(const T args) { owriteLog(VL.Debug       , args); }
+void owriteLogD(T...)(const T args) { owriteLog!(VL.Debug)(args); }
 
 /**
    Creates a string with a text marker for verbosity level prepended to $(D args).
