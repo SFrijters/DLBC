@@ -16,7 +16,7 @@
 	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
-module dlbc.connectivity;
+module dlbc.lb.connectivity;
 
 struct Connectivity(uint d, uint q) {
   int dimensions = d;

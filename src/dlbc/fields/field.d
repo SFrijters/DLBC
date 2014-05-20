@@ -18,7 +18,6 @@
 
 module dlbc.fields.field;
 
-import dlbc.connectivity;
 import dlbc.logging;
 import dlbc.parallel;
 

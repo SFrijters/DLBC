@@ -1,6 +1,5 @@
 MODULES =
 	$(MODULE main, "D Lattice Boltzmann code")
-	$(MODULE dlbc.connectivity, "Pre-calculated connectivity options")
 	$(MODULE dlbc.fields.field, "Implementation of scalar and vector fields.")
 	$(MODULE dlbc.fields.init, "Initialization of fields.")
 	$(MODULE dlbc.getopt, "Process command line arguments.")
@@ -9,6 +8,7 @@ MODULES =
 	$(MODULE dlbc.lattice, "Implementation of lattice structure.")
 	$(MODULE dlbc.lb.advection, "LB advection.")
 	$(MODULE dlbc.lb.collision, "LB collision.")
+	$(MODULE dlbc.lb.connectivity, "Pre-calculated connectivity options")
 	$(MODULE dlbc.lb.density, "LB densities.")
 	$(MODULE dlbc.lb.velocity, "LB velocities.")
 	$(MODULE dlbc.logging, "Functions that handle (parallel) output to stdout.")
