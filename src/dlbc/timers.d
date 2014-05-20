@@ -1,15 +1,15 @@
 // Written in the D programming language.
 
 /**
-Timers for performance measurement.
+   Timers for performance measurement.
 
-Copyright: Stefan Frijters 2011-2014
+   Copyright: Stefan Frijters 2011-2014
 
-License: $(HTTP http://www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License, version 3 (GPL-3.0)).
+   License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License, version 3 (GPL-3.0)).
 
-Authors: Stefan Frijters
+   Authors: Stefan Frijters
 
-Macros:
+   Macros:
 	TR = <tr>$0</tr>
 	TH = <th>$0</th>
 	TD = <td>$0</td>
@@ -24,7 +24,7 @@ import std.string;
 import dlbc.logging;
 
 /**
-Container for multiple timers.
+   Container for multiple timers.
 */
 struct Timers {
   static MSW main;
@@ -36,68 +36,64 @@ struct Timers {
 alias Timers T;
 
 /**
-Based on $(D StopWatch), a $(D MultiStopWatch) can be started and stopped multiple times, keeping track of how often it has been called.
+   Based on $(D StopWatch), a $(D MultiStopWatch) can be started and stopped multiple times, keeping track of how often it has been called.
 */
 struct MultiStopWatch {
   private StopWatch single, multi;
   /**
-  How many times the $(D MultiStopWatch) has been started.
+     How many times the $(D MultiStopWatch) has been started.
   */
   int count;
   /**
-  Name of the $(D MultiStopWatch).
+     Name of the $(D MultiStopWatch).
   */
   string name;
 
   /**
-  $(D MultiStopWatch) is constructed with a name.
+     $(D MultiStopWatch) is constructed with a name.
 
-  Params:
-    n = name of the $(D MultiStopWatch)
+     Params:
+       n = name of the $(D MultiStopWatch)
   */
   this (string n) {
     name = n;
   }
 
   /**
-  Peek into the embedded single run $(D StopWatch).
+     Peek into the embedded single run $(D StopWatch).
 
-  Returns: a $(D TickDuration) struct.
-
+     Returns: a $(D TickDuration) struct.
   */
   auto peekSingle() {
     return single.peek();
   }
 
   /**
-  Peek into the embedded multiple run $(D StopWatch).
+     Peek into the embedded multiple run $(D StopWatch).
 
-  Returns: a $(D TickDuration) struct.
-
+     Returns: a $(D TickDuration) struct.
   */
   auto peekMulti() {
     return multi.peek();
   }
 
   /**
-  Write the current status of the $(D MultiStopWatch) to stdout, depending on the verbosity level and which processes are allowed to write.
+     Write the current status of the $(D MultiStopWatch) to stdout, depending on the verbosity level and which processes are allowed to write.
 
-  Params:
-    vl = verbosity level to write at
-    logRankFormat = which processes should write
-
+     Params:
+       vl = verbosity level to write at
+       logRankFormat = which processes should write
   */
   void show(VL vl, LRF logRankFormat)() {
     writeLog!(vl, logRankFormat)("Timer '%s' measuring run %d for %dms. Total runtime %dms.", name, count, single.peek().msecs, multi.peek().msecs);
   }
 
   /**
-  Write the current status of the $(D MultiStopWatch) to stdout, depending on the verbosity level and which processes are allowed to write.
+     Write the current status of the $(D MultiStopWatch) to stdout, depending on the verbosity level and which processes are allowed to write.
 
-  Params:
-    vl = verbosity level to write at
-    logRankFormat = which processes should write
-
+     Params:
+       vl = verbosity level to write at
+       logRankFormat = which processes should write
   */
   void showFinal(VL vl, LRF logRankFormat)() {
     import std.conv: to;
@@ -105,12 +101,11 @@ struct MultiStopWatch {
   }
 
   /**
-  Start the $(D MultiStopWatch) and write the current status to stdout, depending on the verbosity level and which processes are allowed to write.
+     Start the $(D MultiStopWatch) and write the current status to stdout, depending on the verbosity level and which processes are allowed to write.
 
-  Params:
-    vl = verbosity level to write at
-    logRankFormat = which processes should write
-
+     Params:
+       vl = verbosity level to write at
+       logRankFormat = which processes should write
   */
   void start(VL vl = VL.Debug, LRF logRankFormat = LRF.None)() {
     single.reset();
@@ -121,12 +116,11 @@ struct MultiStopWatch {
   }
 
   /**
-  Stop the $(D MultiStopWatch) and write the current status to stdout, depending on the verbosity level and which processes are allowed to write.
+     Stop the $(D MultiStopWatch) and write the current status to stdout, depending on the verbosity level and which processes are allowed to write.
 
-  Params:
-    vl = verbosity level to write at
-    logRankFormat = which processes should write
-
+     Params:
+       vl = verbosity level to write at
+       logRankFormat = which processes should write
   */
   void stop(VL vl = VL.Debug, LRF logRankFormat = LRF.None)() {
     single.stop();
