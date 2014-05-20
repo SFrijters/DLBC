@@ -5,7 +5,7 @@
 
    Copyright: Stefan Frijters 2011-2014
 
-   License: $(HTTP boost.org/LICENSE_1_0.txt, Boost License 1.0).
+   License: $(HTTP http://www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License, version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
 

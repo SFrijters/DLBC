@@ -1,15 +1,15 @@
 // Written in the D programming language.
 
 /**
-Functions that handle (parallel) IO to disk via HDF5.
+   Functions that handle (parallel) IO to disk via HDF5.
 
-Copyright: Stefan Frijters 2011-2014
+   Copyright: Stefan Frijters 2011-2014
 
-License: $(HTTP boost.org/LICENSE_1_0.txt, Boost License 1.0).
+   License: $(HTTP http://www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License, version 3 (GPL-3.0)).
 
-Authors: Stefan Frijters
+   Authors: Stefan Frijters
 
-Macros:
+   Macros:
 	TR = <tr>$0</tr>
 	TH = <th>$0</th>
 	TD = <td>$0</td>
