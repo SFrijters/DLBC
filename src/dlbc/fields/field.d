@@ -199,6 +199,14 @@ struct Field(T, uint dim, uint hs) {
                   the halo that is held in memory
 
      Todo: add unittest
+
+     Bugs: when compiling in -release mode, the buffers are somehow not
+     allocated properly, or optimized away.
+     ---
+     Fatal error in MPI_Sendrecv: Invalid buffer pointer, error stack:
+     MPI_Sendrecv(215): MPI_Sendrecv(sbuf=(nil), scount=27360, MPI_DOUBLE, dest=5, stag=0, rbuf=(nil), rcount=27360, MPI_DOUBLE, src=5, rtag=0, comm=0x84000002, status=0x7fff71bb1410) failed
+     MPI_Sendrecv(149): Null buffer pointer
+     ---
   */
   void exchangeHalo(uint haloSize = hs)() {
     static assert( haloSize <= hs, "Requested size of halo exchange cannot be larger than halo size of field.");
