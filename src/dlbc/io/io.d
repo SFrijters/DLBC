@@ -114,7 +114,7 @@ bool isValidPath(const string path) {
    Params:
      name = name of the field, to be prepended to the file name
 */
-string makeFilenameOutput(FileFormat fileFormat)(const string name) {
+string makeFilenameOutput(FileFormat fileFormat)(const string name, const uint time) {
   import std.string;
 
   assert( simulationIdIsBcast, "Do not attempt to create a file name without first calling broadcastSimulationId() once.");
@@ -128,7 +128,7 @@ string makeFilenameOutput(FileFormat fileFormat)(const string name) {
   else {
     static assert(0, "File name extension not specified for this file format.");
   }
-  return format("%s/%s-%s-%s.%s", outputPath, name, simulationName, simulationId, ext);
+  return format("%s/%s-%s-t%08d-%s.%s", outputPath, name, simulationName, time, simulationId, ext);
 }
 
 /**
@@ -140,13 +140,13 @@ string makeFilenameOutput(FileFormat fileFormat)(const string name) {
      field = field to be written
      name = name of the field, to be used in the file name
 */
-void dumpField(T)(ref T field, const string name) {
+void dumpField(T)(ref T field, const string name, const uint time = 0) {
   Timers.io.start();
   final switch(outputFormat) {
   case FileFormat.Ascii:
     assert(0, "Ascii dumping of fields not yet implemented.");
   case FileFormat.HDF5:
-    dumpFieldHDF5(field, name);
+    dumpFieldHDF5(field, name, time);
     break;
   }
   Timers.io.stop();

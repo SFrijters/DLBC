@@ -1,4 +1,3 @@
-import dlbc.connectivity;
 import dlbc.fields.field;
 import dlbc.fields.init;
 import dlbc.getopt;
@@ -7,6 +6,7 @@ import dlbc.io.hdf5;
 import dlbc.lattice;
 import dlbc.lb.advection;
 import dlbc.lb.collision;
+import dlbc.lb.connectivity;
 import dlbc.lb.density;
 import dlbc.lb.velocity;
 import dlbc.logging;
@@ -127,6 +127,7 @@ int main(string[] args ) {
 
   // L.red.initConst(0.01);
   L.red.initRandom();
+  auto d3q19 = new Connectivity!(3,19);
   L.red.exchangeHalo();
   L.red.dumpField("red");
   // L.red.exchangeHalo();
@@ -137,9 +138,7 @@ int main(string[] args ) {
   T.adv = MultiStopWatch("Advection");
   T.coll = MultiStopWatch("Collision");
 
-  auto d3q19 = new Connectivity!(3,19);
-
-  for ( uint t = 1; t <= 0; ++t ) {
+  for ( uint t = 1; t <= 10; ++t ) {
     writeLogRN("Starting timestep %d", t);
     // writeLogRI("Density = %f", L.red.localMass());
     writeLogRI("Mass before advection = %f", L.red.globalMass());
@@ -156,6 +155,8 @@ int main(string[] args ) {
     T.coll.stop();
     writeLogRI("Global momentum = %s", L.red.globalMomentum(d3q19));
     // L.red.show!(VL.Debug, LRF.Root);
+    densityField(L.red, L.density);
+    L.density.dumpField("red", t);
   }
   // L.red.show!(VL.Information, LRF.Root);
 

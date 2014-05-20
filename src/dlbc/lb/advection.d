@@ -18,6 +18,7 @@
 
 module dlbc.lb.advection;
 
+import dlbc.lb.connectivity;
 import dlbc.fields.field;
 
 /**

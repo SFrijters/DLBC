@@ -122,7 +122,7 @@ size_t hdf5Lengthof(T)() {
 
    Todo: Add support for attributes.
 */
-void dumpFieldHDF5(T)(ref T field, const string name) {
+void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0) {
   herr_t e;
 
   hsize_t[] dimsg;
@@ -159,10 +159,10 @@ void dumpFieldHDF5(T)(ref T field, const string name) {
     start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz ];
     arrstart = [ field.haloSize, field.haloSize, field.haloSize ];
   }
- 
+
   MPI_Info info = MPI_INFO_NULL;
 
-  auto fileNameString = makeFilenameOutput!(FileFormat.HDF5)(name);
+  auto fileNameString = makeFilenameOutput!(FileFormat.HDF5)(name, time);
   auto fileName = fileNameString.toStringz();
 
   writeLogRI("HDF attempting to write to file '%s'.", fileNameString);

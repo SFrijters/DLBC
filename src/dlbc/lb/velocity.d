@@ -18,8 +18,8 @@
 
 module dlbc.lb.velocity;
 
-import dlbc.connectivity;
 import dlbc.fields.field;
+import dlbc.lb.connectivity;
 import dlbc.lb.density;
 
 /**

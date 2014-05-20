@@ -35,6 +35,7 @@ struct Lattice(uint dim) {
   Field!(double[19], dim, 2) red;
   Field!(double[19], dim, 2) temp;
   Field!(int, dim, 1) index;
+  Field!(double, dim, 2) density;
 
   this ( MpiParams M ) {
     // Check if we can reconcile global lattice size with CPU grid
@@ -54,6 +55,7 @@ struct Lattice(uint dim) {
     red = Field!(double[19], dim, 2)(lengths);
     temp = Field!(double[19], dim, 2)(lengths);
     index = Field!(int, dim, 1)(lengths);
+    density = Field!(double, dim, 2)(lengths);
   }
 
   void exchangeHalo() {
