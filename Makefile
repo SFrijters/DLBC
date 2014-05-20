@@ -4,8 +4,8 @@ test: test-dmd
 
 revision: src/dlbc/revision.d
 
-doc: revision *ddoc
-	rdmd bootDoc/generate.d ./src --output=./doc/ --bootdoc=.
+doc: revision doc/*ddoc
+	cd doc/ ; rdmd bootDoc/generate.d ./../src --output=./html --bootdoc=.
 
 src/dlbc/revision.d: .git/HEAD .git/index
 	./get-revision.sh > $@
@@ -24,7 +24,7 @@ test-dmd: revision src/unstd/multidimarray.o
 
 clean:
 	rm -f src/dlbc/revision.d
-	rm -rf doc
+	rm -rf doc/html
 	rm -f *.gcda
 	rm -f *.gcno
 	rm -f src/*.o
