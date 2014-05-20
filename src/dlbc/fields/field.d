@@ -288,9 +288,14 @@ void collideField(T, U)(ref T field, const ref U conn) {
 }
 
 /**
-   Todo: document this
+   Generate the third order equilibrium distribution population \(\vec{n}^{\mathrm{eq}}\) of a population \(\vec{n}\). This follows the equation \(n_i^\mathrm{eq} = \rho_0 \omega_i \left( 1 + \frac{\vec{u} \cdot \vec{c}__i}{c_s^2} + \frac{ ( \vec{u} \cdot \vec{c}__i )^2}{2 c_s^4} - \frac{\vec{u} \cdot \vec{u}}{2 c_s^2} \right) \), with \(\omega_i\) and \(\vec{c}__i\) the weights and velocity vectors of the connectivity, respectively, and \(c_s^2 = 1/3\) the lattice speed of sound squared. The mass and momentum are conserved.
 
-   Bugs: mass is not conserved
+   Params:
+     population = population vector \(\vec{n}\)
+     conn = connectivity
+
+   Returns:
+     equilibrium distribution \(\vec{n}^{\mathrm{eq}}\)
 */
 auto eqDist(T, U)(const ref T population, const ref U conn) {
   import std.numeric: dotProduct;
@@ -306,19 +311,26 @@ auto eqDist(T, U)(const ref T population, const ref U conn) {
   auto immutable vdotv = v.dotProduct(v);
 
   T dist;
-  // writeLogRD("%s %s %s %s", rho0, v, vdotv, css);
   foreach(i, e; cv) {
-    auto immutable vdotcv = v.dotProduct(e);
-    dist[i] = rho0 * cw[i] * ( 1.0 + ( vdotcv / css ) + ( (vdotcv * vdotcv ) / ( 2.0 * css * css ) ) - ( ( vdotv * vdotv ) / ( 2.0 * css) ) );
-    // writeLogRD("%2d %10s %10s %10s %10s", i, cv[i], cw[i], vdotcv, dist[i]);
+    immutable auto vdotcv = v.dotProduct(e);
+    dist[i] = rho0 * cw[i] * ( 1.0 + ( vdotcv / css ) + ( (vdotcv * vdotcv ) / ( 2.0 * css * css ) ) - ( ( vdotv ) / ( 2.0 * css) ) );
   }
-  // writeLogRD("%s %s %s", dist, density(dist), velocity(dist, conn));
-  auto den = dist.density();
-  foreach(ref e; dist) {
-    e /= ( den / rho0 );
-  }
-  // writeLogRD("%s %s %s", dist, density(dist), velocity(dist, conn));
   return dist;
+}
+
+///
+unittest {
+  import dlbc.random;
+  import std.math: approxEqual;
+  immutable auto d3q19 = new Connectivity!(3,19);
+  double[19] population, eq;
+  population[] = 0.0;
+  for ( int i = 0; i < population.length; i++ ){
+    population[i] = uniform(0.0, 1.0, rng);
+    eq = eqDist(population, d3q19);
+    assert(approxEqual(eq.density(), population.density()));                // Mass conservation
+    assert(approxEqual(eq.velocity(d3q19)[],population.velocity(d3q19)[])); // Momentum conservation
+  }
 }
 
 /**
