@@ -1,7 +1,7 @@
 // Written in the D programming language.
 
 /**
-   Velocity and momentum properties of population fields.
+   Velocity properties of population fields.
 
    Copyright: Stefan Frijters 2011-2014
 

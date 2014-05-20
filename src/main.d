@@ -8,6 +8,7 @@ import dlbc.lb.advection;
 import dlbc.lb.collision;
 import dlbc.lb.connectivity;
 import dlbc.lb.density;
+import dlbc.lb.momentum;
 import dlbc.lb.velocity;
 import dlbc.logging;
 import dlbc.parallel;
@@ -152,7 +153,7 @@ int main(string[] args ) {
     T.coll.start();
     L.red.collideField!d3q19();
     T.coll.stop();
-    writeLogRI("Global momentum = %s", L.red.globalMomentum(d3q19));
+    writeLogRI("Global momentum = %s", L.red.globalMomentum!d3q19());
     // L.red.show!(VL.Debug, LRF.Root);
 
     L.red.velocityField!d3q19();
