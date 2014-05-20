@@ -21,7 +21,7 @@ module dlbc.random;
 import dlbc.logging;
 import dlbc.parallel;
 
-import std.random;
+public import std.random;
 
 /**
   The seed for the PRNG to be used. Depending on the initialisation this value

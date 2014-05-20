@@ -9,8 +9,6 @@ import dlbc.range;
 
 import std.traits;
 
-import std.random;
-
 void initRank(T)(ref T field) {
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
