@@ -309,6 +309,21 @@ private auto createParameterMixins() {
 
 }
 
+/**
+   Creates an string to set a parameter without having to repeat the module name
+   if it is the same as the previous name in the module structure.
+
+   Params:
+     fullModuleName = full name of the module, including duplication
+
+   Returns: name of the module without duplication
+
+   Example:
+   ---
+   [io]
+   outputFormat = HDF5 // This is actually io.io.outputFormat
+   ---
+*/
 private auto makeQualModuleName(const string fullModuleName) {
   auto splitModuleName = fullModuleName.split(".")[1..$];
   while ( (splitModuleName.length > 1) && (splitModuleName[$-1] == splitModuleName[$-2] ) ) {

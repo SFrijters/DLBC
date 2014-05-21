@@ -32,6 +32,8 @@ import dlbc.lb.density;
 
    Returns:
      local velocity \(\vec{u}(\vec{n})\)
+
+   Todo: remove explicit velocity components.
 */
 auto velocity(alias conn, T)(const ref T population, const double density) {
   auto immutable cv = conn.velocities;
