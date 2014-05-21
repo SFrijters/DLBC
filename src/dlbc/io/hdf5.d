@@ -87,7 +87,7 @@ hid_t hdf5Typeof(T)() {
     return hdf5Typeof!(BaseElementType!T);
   }
   else {
-    static if ( is(T == int) ) {
+    static if ( is(T : int) ) {
       return H5T_NATIVE_INT;
     }
     else static if ( is(T == double) ) {
