@@ -42,9 +42,10 @@ void collideField(alias conn, T, U)(ref T field, ref U mask) {
   Timers.coll.start();
 
   enum omega = 1.0;
+  auto dv = [0.0, 0.0, 0.0];
   foreach(x, y, z, ref population; field.arr) { // this includes the halo
     if ( isCollidable(mask[x,y,z]) ) {
-      population[] -= omega * ( population[] - (eqDist!conn(population))[]);
+      population[] -= omega * ( population[] - (eqDist!conn(population, dv))[]);
     }
   }
 
@@ -61,7 +62,7 @@ void collideField(alias conn, T, U)(ref T field, ref U mask) {
    Returns:
      equilibrium distribution \(\vec{n}^{\mathrm{eq}}\)
 */
-auto eqDist(alias conn, T)(const ref T population) {
+auto eqDist(alias conn, T)(const ref T population, const double[] dv) {
   import std.numeric: dotProduct;
 
   auto immutable cv = conn.velocities;
@@ -69,8 +70,9 @@ auto eqDist(alias conn, T)(const ref T population) {
   static assert(population.length == cv.length);
   static assert(population.length == cw.length);
 
-  auto immutable rho0 = population.density();
-  auto immutable v = population.velocity!(conn)(rho0);
+  immutable auto rho0 = population.density();
+  immutable auto pv = population.velocity!(conn)(rho0);
+  double[conn.dimensions] v = dv[] + pv[];
   enum css = 1.0/3.0;
 
   auto immutable vdotv = v.dotProduct(v);
@@ -88,10 +90,11 @@ unittest {
   import dlbc.random;
   import std.math: approxEqual;
   double[d3q19.nvelocities] population, eq;
+  double[d3q19.dimensions] dv = 0.0;
   population[] = 0.0;
   for ( int i = 0; i < population.length; i++ ){
     population[i] = uniform(0.0, 1.0, rng);
-    eq = eqDist!d3q19(population);
+    eq = eqDist!d3q19(population, dv);
     assert(approxEqual(eq.density(), population.density()));                  // Mass conservation
     assert(approxEqual(eq.velocity!(d3q19)[],population.velocity!(d3q19)[])); // Momentum conservation
   }
