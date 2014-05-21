@@ -5,13 +5,7 @@ import dlbc.getopt;
 import dlbc.io.io;
 import dlbc.io.hdf5;
 import dlbc.lattice;
-import dlbc.lb.advection;
-import dlbc.lb.bc;
-import dlbc.lb.collision;
-import dlbc.lb.connectivity;
-import dlbc.lb.density;
-import dlbc.lb.momentum;
-import dlbc.lb.velocity;
+import dlbc.lb.lb;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.parameters;
@@ -143,7 +137,7 @@ int main(string[] args ) {
   T.adv = MultiStopWatch("Advection");
   T.coll = MultiStopWatch("Collision");
 
-  for ( uint t = 1; t <= 10; ++t ) {
+  for ( uint t = 1; t <= timesteps; ++t ) {
     writeLogRN("Starting timestep %d", t);
     // writeLogRI("Density = %f", L.red.localMass());
     writeLogRI("Mass before advection = %f", L.red.globalMass());

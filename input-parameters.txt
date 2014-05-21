@@ -9,6 +9,9 @@ outputFormat = HDF5
 simulationName = foobar
 outputPath = output
 
+[lb]
+timesteps = 0
+
 [parallel]
 ncy = 2
 
