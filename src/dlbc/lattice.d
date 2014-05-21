@@ -36,7 +36,7 @@ struct Lattice(uint dim) {
 
   Field!(double[19], dim, 2) red;
   typeof(red) advection;
-  Field!(int, dim, 1) index;
+  // Field!(int, dim, 1) index;
   Field!(double, dim, 2) density;
   Field!(BoundaryCondition, dim, 1) bc;
 
@@ -57,7 +57,7 @@ struct Lattice(uint dim) {
 
     red = typeof(red)(lengths);
     advection = typeof(advection)(lengths);
-    index = typeof(index)(lengths);
+    // index = typeof(index)(lengths);
     density = typeof(density)(lengths);
     bc = typeof(bc)(lengths);
   }
