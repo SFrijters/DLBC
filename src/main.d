@@ -60,7 +60,8 @@ int main(string[] args ) {
   // Try and create the local lattice structure.
   auto L = new Lattice!(3)(M);
 
-  L.red.initRandom();
+  //L.red.initRandom();
+  L.red.initEquilibriumDensity!d3q19(0.5);
   L.red.exchangeHalo();
   L.red.dumpField("red");
 
