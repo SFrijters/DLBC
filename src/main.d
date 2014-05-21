@@ -6,6 +6,7 @@ import dlbc.io.io;
 import dlbc.io.hdf5;
 import dlbc.lattice;
 import dlbc.lb.advection;
+import dlbc.lb.bc;
 import dlbc.lb.collision;
 import dlbc.lb.connectivity;
 import dlbc.lb.density;
@@ -131,6 +132,9 @@ int main(string[] args ) {
   // auto d3q19 = new Connectivity!(3,19);
   L.red.exchangeHalo();
   L.red.dumpField("red");
+
+  L.bc.initTubeZ();
+  L.bc.dumpField("bc");
   // L.red.exchangeHalo();
   // L.red.show!(VL.Debug, LRF.Root);
 
@@ -146,7 +150,7 @@ int main(string[] args ) {
     // writeLogI("Density = %f", L.red.localMass());
     L.red.exchangeHalo();
     T.adv.start();
-    L.red.advectField!d3q19(L.temp);
+    L.red.advectField!d3q19(L.advection);
     T.adv.stop();
     writeLogRI("Mass after advection = %f", L.red.globalMass());
     // writeLogI("Density = %f", L.red.localMass());

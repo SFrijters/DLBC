@@ -144,6 +144,10 @@ struct Field(T, uint dim, uint hs) {
      foreach(x, y, z, ref el; sfield.arr) {
        // Loops over all lattice sites of scalar field.
      }
+
+     foreach(ref el; sfield.byElementForward) {
+       // Loops over all lattice sites of scalar field.
+     }
      ---
 
      Todo: add unittest
