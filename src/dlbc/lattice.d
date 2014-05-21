@@ -2,7 +2,7 @@ module dlbc.lattice;
 
 import dlbc.fields.field;
 import dlbc.fields.parallel;
-import dlbc.lb.bc;
+import dlbc.lb.mask;
 import dlbc.logging;
 import dlbc.parallel;
 
@@ -38,7 +38,7 @@ struct Lattice(size_t dim) {
   typeof(red) advection;
   // Field!(int, dim, 1) index;
   Field!(double, dim, 2) density;
-  Field!(BoundaryCondition, dim, 2) mask;
+  Field!(Mask, dim, 2) mask;
 
   this ( MpiParams M ) {
     // Check if we can reconcile global lattice size with CPU grid

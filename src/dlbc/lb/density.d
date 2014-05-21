@@ -19,7 +19,7 @@
 module dlbc.lb.density;
 
 import dlbc.fields.field;
-import dlbc.lb.bc;
+import dlbc.lb.mask;
 
 version(unittest) {
   import dlbc.lb.connectivity;
@@ -67,7 +67,7 @@ unittest {
      density field
 */
 auto densityField(T, U)(ref T field, ref U mask) {
-  static assert(is(U.type == BoundaryCondition ) );
+  static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
 
@@ -85,7 +85,7 @@ auto densityField(T, U)(ref T field, ref U mask) {
 
 /// Ditto
 void densityField(T, U, V)(ref T field, ref U mask, ref V density) {
-  static assert(is(U.type == BoundaryCondition ) );
+  static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   static assert(field.dimensions == density.dimensions);
   assert(field.lengthsH == mask.lengthsH);
@@ -105,8 +105,8 @@ void densityField(T, U, V)(ref T field, ref U mask, ref V density) {
 unittest {
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
-  auto mask = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
-  mask.initConst(BC.None);
+  auto mask = Field!(Mask, d3q19.dimensions, 2)(lengths);
+  mask.initConst(Mask.None);
 
   double[19] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
   		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
@@ -140,7 +140,7 @@ unittest {
      total mass of the field on the local process
 */
 auto localMass(T, U)(ref T field, ref U mask) {
-  static assert(is(U.type == BoundaryCondition ) );
+  static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
 
@@ -159,8 +159,8 @@ unittest {
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
-  mask.initConst(BC.None);
+  auto mask = Field!(Mask, d3q19.dimensions, 2)(lengths);
+  mask.initConst(Mask.None);
 
   auto mass = localMass(field, mask);
 
@@ -178,7 +178,7 @@ unittest {
      global mass of the field
 */
 auto globalMass(T, U)(ref T field, ref U mask) {
-  static assert(is(U.type == BoundaryCondition ) );
+  static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
 
@@ -197,8 +197,8 @@ unittest {
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], d3q19.dimensions, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
-  mask.initConst(BC.None);
+  auto mask = Field!(Mask, d3q19.dimensions, 2)(lengths);
+  mask.initConst(Mask.None);
 
   auto mass = globalMass(field, mask);
 
@@ -216,7 +216,7 @@ unittest {
      average density of the field on the local process
 */
 auto localDensity(T, U)(ref T field, ref U mask) {
-  static assert(is(U.type == BoundaryCondition ) );
+  static assert(is(U.type == Mask ) );
   auto size = field.nx * field.ny * field.nz;
   return localMass(field, mask) / size;
 }
@@ -226,8 +226,8 @@ unittest {
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], d3q19.dimensions, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
-  mask.initConst(BC.None);
+  auto mask = Field!(Mask, d3q19.dimensions, 2)(lengths);
+  mask.initConst(Mask.None);
 
   auto density = localDensity(field, mask);
 
@@ -245,7 +245,7 @@ unittest {
      global average density of the field
 */
 auto globalDensity(T, U)(ref T field, ref U mask) {
-  static assert(is(U.type == BoundaryCondition ) );
+  static assert(is(U.type == Mask ) );
   import dlbc.parallel;
   auto size = field.nx * field.ny * field.nz * M.size;
   return globalMass(field, mask) / size;
@@ -259,8 +259,8 @@ unittest {
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
-  mask.initConst(BC.None);
+  auto mask = Field!(Mask, d3q19.dimensions, 2)(lengths);
+  mask.initConst(Mask.None);
 
   auto density = globalDensity(field, mask);
 

@@ -18,8 +18,8 @@
 
 module dlbc.lb.advection;
 
-import dlbc.lb.bc;
 import dlbc.lb.connectivity;
+import dlbc.lb.mask;
 import dlbc.fields.field;
 import dlbc.timers;
 
@@ -36,7 +36,7 @@ import dlbc.timers;
 void advectField(alias conn, T, U)(ref T field, ref U mask, ref T tempField) {
   import std.algorithm: swap;
 
-  static assert(is(U.type == BoundaryCondition ) );
+  static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   static assert(field.dimensions == tempField.dimensions);
   assert(mask.lengthsH == field.lengthsH, "mask and advected field need to have the same size");
@@ -83,14 +83,14 @@ unittest {
     size_t[d3q19.dimensions] lengths = [ 16, 16 ,16 ];
     auto field = Field!(double[19], d3q19.dimensions, 2)(lengths);
     auto temp = Field!(double[19], d3q19.dimensions, 2)(lengths);
-    auto mask = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
+    auto mask = Field!(Mask, d3q19.dimensions, 2)(lengths);
 
     field.initConst(0);
     if ( M.isRoot ) {
       field[2,2,2] = [42, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 ,15, 16 ,17 ,18];
     }
     field.exchangeHalo();
-    mask.initConst(BC.None);
+    mask.initConst(Mask.None);
     mask.exchangeHalo();
     field.advectField!d3q19(mask, temp);
 

@@ -1,7 +1,7 @@
 module dlbc.fields.init;
 
 import dlbc.fields.field;
-import dlbc.lb.bc;
+import dlbc.lb.mask;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.random;
@@ -51,7 +51,7 @@ void initConst(T, U)(ref T field, const U fill) {
 
 
 void initTubeZ(T)(ref T field) {
-  static assert( is (T.type == BoundaryCondition ) );
+  static assert( is (T.type == Mask ) );
 
   foreach( x,y,z, ref e; field.arr) {
     auto gx = x + M.cx * field.nx - field.haloSize;
@@ -59,10 +59,10 @@ void initTubeZ(T)(ref T field) {
     auto gz = z + M.cz * field.nz - field.haloSize;
 
     if ( gx == 0 || gx == (field.nx * M.ncx - 1) || gy == 0 || gy == (field.ny * M.ncy - 1 ) ) {
-      e = BC.Solid;
+      e = Mask.Solid;
     }
     else {
-      e = BC.None;
+      e = Mask.None;
     }
   }
 }

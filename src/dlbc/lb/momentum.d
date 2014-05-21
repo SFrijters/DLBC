@@ -19,9 +19,9 @@
 module dlbc.lb.momentum;
 
 import dlbc.fields.field;
-import dlbc.lb.bc;
 import dlbc.lb.connectivity;
 import dlbc.lb.density;
+import dlbc.lb.mask;
 import dlbc.lb.velocity;
 
 /**
@@ -60,7 +60,7 @@ auto momentum(alias conn, T)(const ref T population) {
      momentum field
 */
 auto momentumField(alias conn, T, U)(ref T field, ref U mask) {
-  static assert(is(U.type == BoundaryCondition ) );
+  static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
 
@@ -78,7 +78,7 @@ auto momentumField(alias conn, T, U)(ref T field, ref U mask) {
 
 /// Ditto
 void momentumField(alias conn, T, U, V)(ref T field, ref U mask, ref V momentum) {
-  static assert(is(U.type == BoundaryCondition ) );
+  static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   static assert(field.dimensions == momentum.dimensions);
   assert(field.lengthsH == mask.lengthsH);
@@ -105,7 +105,7 @@ void momentumField(alias conn, T, U, V)(ref T field, ref U mask, ref V momentum)
      total momentum of the field on the local process
 */
 auto localMomentum(alias conn, T, U)(ref T field, ref U mask) {
-  static assert(is(U.type == BoundaryCondition ) );
+  static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
 
@@ -129,7 +129,7 @@ auto localMomentum(alias conn, T, U)(ref T field, ref U mask) {
      global momentum of the field
 */
 auto globalMomentum(alias conn, T, U)(ref T field, ref U mask) {
-  static assert(is(U.type == BoundaryCondition ) );
+  static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
 

@@ -19,9 +19,9 @@
 module dlbc.lb.velocity;
 
 import dlbc.fields.field;
-import dlbc.lb.bc;
 import dlbc.lb.connectivity;
 import dlbc.lb.density;
+import dlbc.lb.mask;
 
 /**
    Calculates the local velocity of a population \(\vec{n}\): \(\vec{u}(\vec{n}) = \frac{\sum_r n_r \vec{c}__r}{\rho_0(\vec{n})}\).
@@ -85,7 +85,7 @@ unittest {
      velocity field
 */
 auto velocityField(alias conn, T, U)(ref T field, ref U mask) {
-  static assert(is(U.type == BoundaryCondition ) );
+  static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
 
@@ -103,7 +103,7 @@ auto velocityField(alias conn, T, U)(ref T field, ref U mask) {
 
 /// Ditto
 void velocityField(alias conn, T, U, V)(ref T field, ref U mask, ref V velocity) {
-  static assert(is(U.type == BoundaryCondition ) );
+  static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   static assert(field.dimensions == velocity.dimensions);
   assert(field.lengthsH == mask.lengthsH);
@@ -126,8 +126,8 @@ unittest {
 
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
-  auto mask = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
-  mask.initConst(BC.None);
+  auto mask = Field!(Mask, d3q19.dimensions, 2)(lengths);
+  mask.initConst(Mask.None);
 
   double[19] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
   		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];

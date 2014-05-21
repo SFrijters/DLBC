@@ -19,10 +19,10 @@
 module dlbc.lb.lb;
 
 public import dlbc.lb.advection;
-public import dlbc.lb.bc;
 public import dlbc.lb.collision;
 public import dlbc.lb.connectivity;
 public import dlbc.lb.density;
+public import dlbc.lb.mask;
 public import dlbc.lb.momentum;
 public import dlbc.lb.velocity;
 

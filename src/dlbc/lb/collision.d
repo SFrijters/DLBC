@@ -20,9 +20,9 @@
 module dlbc.lb.collision;
 
 import dlbc.fields.field;
-import dlbc.lb.bc;
 import dlbc.lb.connectivity;
 import dlbc.lb.density;
+import dlbc.lb.mask;
 import dlbc.lb.velocity;
 import dlbc.timers;
 
@@ -35,7 +35,7 @@ import dlbc.timers;
      conn = connectivity
 */
 void collideField(alias conn, T, U)(ref T field, ref U mask) {
-  static assert(is(U.type == BoundaryCondition ) );
+  static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(mask.lengthsH == field.lengthsH, "mask and collided field need to have the same size");
 
