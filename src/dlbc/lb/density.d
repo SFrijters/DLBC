@@ -19,6 +19,14 @@
 module dlbc.lb.density;
 
 import dlbc.fields.field;
+import dlbc.lb.bc;
+
+version(unittest) {
+  import dlbc.lb.connectivity;
+  import dlbc.fields.init;
+  import dlbc.parallel;
+  import std.math: approxEqual;
+}
 
 /**
    Calculates the local density of a population \(\vec{n}\): \(\rho_0(\vec{n}) = \sum_r n_r\).
@@ -57,29 +65,38 @@ unittest {
    Returns:
      density field
 */
-auto densityField(T)(ref T field) {
-  auto density = Field!(double, field.dimensions, field.haloSize)([field.nxH, field.nyH, field.nzH]);
-  foreach(z,y,x, ref pop; field.arr) {
-    density[z,y,x] = pop.density();
+auto densityField(T, U)(ref T field, ref U bcField) {
+  static assert(is(U.type == BoundaryCondition ) );
+  auto density = Field!(double, field.dimensions, field.haloSize)(field.lengthsH);
+  foreach(x,y,z, ref pop; field.arr) {
+    if ( isFluid(bcField[x,y,z]) ) {
+      density[x,y,z] = pop.density();
+    }
+    else {
+      density[x,y,z] = 0.0;
+    }
   }
   return density;
 }
 
 /// Ditto
-void densityField(T, U)(ref T field, ref U density) {
+void densityField(T, U, V)(ref T field, ref U bcField, ref V density) {
+  static assert(is(U.type == BoundaryCondition ) );
+  static assert(field.dimensions == bcField.dimensions);
   static assert(field.dimensions == density.dimensions);
-  assert(field.lengths == density.lengths);
-  foreach(z,y,x, ref pop; field.arr) {
-    density[z,y,x] = pop.density();
+  assert(field.lengthsH == bcField.lengthsH);
+  assert(field.lengthsH == density.lengthsH);
+  foreach(x,y,z, ref pop; field.arr) {
+    density[x,y,z] = pop.density();
   }
 }
 
 ///
 unittest {
-  import dlbc.fields.init;
-
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
+  auto bc = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
+  bc.initConst(BC.None);
 
   double[19] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
   		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
@@ -89,14 +106,14 @@ unittest {
   field.initConst(0);
   field[1,2,3] = pop1;
   field[2,0,1] = pop2;
-  
-  auto density1 = densityField(field);
+
+  auto density1 = densityField(field, bc);
   assert(density1[1,2,3] == 0.5);
   assert(density1[2,0,1] == 1.9);
   assert(density1[0,1,3] == 0.0);
 
   auto density2 = Field!(double, 3, 2)(lengths);
-  densityField(field, density2);
+  densityField(field, bc, density2);
   assert(density2[1,2,3] == 0.5);
   assert(density2[2,0,1] == 1.9);
   assert(density2[0,1,3] == 0.0);
@@ -111,25 +128,27 @@ unittest {
    Returns:
      total mass of the field on the local process
 */
-auto localMass(T)(ref T field) {
+auto localMass(T, U)(ref T field, ref U bcField) {
+  static assert(is(U.type == BoundaryCondition ) );
   double mass = 0.0;
   // This loops over the physical field only.
-  foreach(z, y, x, ref e; field) {
-    mass += e.density();
+  foreach(x, y, z, ref e; field) {
+    if ( isFluid(bcField[x,y,z])) {
+      mass += e.density();
+    }
   }
   return mass;
 }
 
 ///
 unittest {
-  import dlbc.fields.init;
-  import std.math: approxEqual;
-
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
   field.initConst(0.1);
+  auto bc = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
+  bc.initConst(BC.None);
 
-  auto mass = localMass(field);
+  auto mass = localMass(field, bc);
 
   assert(approxEqual(mass,19*4*4*4*0.1));
 }
@@ -143,9 +162,9 @@ unittest {
    Returns:
      global mass of the field
 */
-auto globalMass(T)(ref T field) {
-  import dlbc.parallel;
-  auto localMass = localMass(field);
+auto globalMass(T, U)(ref T field, ref U bcField) {
+  static assert(is(U.type == BoundaryCondition ) );
+  auto localMass = localMass(field, bcField);
   typeof(localMass) globalMass;
   MPI_Allreduce(&localMass, &globalMass, 1, MPI_DOUBLE, MPI_SUM, M.comm);
   return globalMass;
@@ -153,18 +172,16 @@ auto globalMass(T)(ref T field) {
 
 ///
 unittest {
-  import dlbc.fields.init;
-  import dlbc.parallel;
-  import std.math: approxEqual;
-
   startMpi([]);
   reorderMpi();
 
   size_t[3] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[19], 3, 2)(lengths);
+  auto field = Field!(double[19], d3q19.dimensions, 2)(lengths);
   field.initConst(0.1);
+  auto bc = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
+  bc.initConst(BC.None);
 
-  auto mass = globalMass(field);
+  auto mass = globalMass(field, bc);
 
   assert(approxEqual(mass,M.size*19*4*4*4*0.1));
 }
@@ -178,21 +195,21 @@ unittest {
    Returns:
      average density of the field on the local process
 */
-auto localDensity(T)(ref T field) {
+auto localDensity(T, U)(ref T field, ref U bcField) {
+  static assert(is(U.type == BoundaryCondition ) );
   auto size = field.nx * field.ny * field.nz;
-  return localMass(field) / size;
+  return localMass(field, bcField) / size;
 }
 
 ///
 unittest {
-  import dlbc.fields.init;
-  import std.math: approxEqual;
-
   size_t[3] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[19], 3, 2)(lengths);
+  auto field = Field!(double[19], d3q19.dimensions, 2)(lengths);
   field.initConst(0.1);
+  auto bc = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
+  bc.initConst(BC.None);
 
-  auto density = localDensity(field);
+  auto density = localDensity(field, bc);
 
   assert(approxEqual(density,19*0.1));
 }
@@ -206,28 +223,34 @@ unittest {
    Returns:
      global average density of the field
 */
-auto globalDensity(T)(ref T field) {
+auto globalDensity(T, U)(ref T field, ref U bcField) {
+  static assert(is(U.type == BoundaryCondition ) );
   import dlbc.parallel;
   auto size = field.nx * field.ny * field.nz * M.size;
-  return globalMass(field) / size;
+  return globalMass(field, bcField) / size;
 }
 
 ///
 unittest {
-  import dlbc.fields.init;
-  import dlbc.parallel;
-  import std.math: approxEqual;
-
   startMpi([]);
   reorderMpi();
 
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
   field.initConst(0.1);
+  auto bc = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
+  bc.initConst(BC.None);
 
-  auto density = globalDensity(field);
+  auto density = globalDensity(field, bc);
 
   assert(approxEqual(density,19*0.1));
 }
 
-
+bool isFluid(BoundaryCondition bc) {
+  final switch(bc) {
+  case BC.None:
+    return true;
+  case BC.Solid:
+    return false;
+  }
+}

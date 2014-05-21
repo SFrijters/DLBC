@@ -73,25 +73,20 @@ int main(string[] args ) {
 
   for ( uint t = 1; t <= timesteps; ++t ) {
     writeLogRN("Starting timestep %d", t);
-    // writeLogRI("Density = %f", L.red.localMass());
-    writeLogRI("Mass before advection = %f", L.red.globalMass());
-    // writeLogI("Density = %f", L.red.localMass());
     L.red.exchangeHalo();
     T.adv.start();
     L.red.advectField!d3q19(L.bc, L.advection);
     T.adv.stop();
-    writeLogRI("Mass after advection = %f", L.red.globalMass());
-    // writeLogI("Density = %f", L.red.localMass());
-    // L.red.show!(VL.Debug, LRF.Root);
     T.coll.start();
     L.red.collideField!d3q19();
     T.coll.stop();
+    writeLogRI("Global mass = %f", L.red.globalMass(L.bc));
     writeLogRI("Global momentum = %s", L.red.globalMomentum!d3q19());
     // L.red.show!(VL.Debug, LRF.Root);
 
     L.red.velocityField!d3q19();
 
-    densityField(L.red, L.density);
+    densityField(L.red, L.bc, L.density);
     L.density.dumpField("red", t);
   }
 
