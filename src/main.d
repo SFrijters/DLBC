@@ -64,7 +64,7 @@ int main(string[] args ) {
   L.red.exchangeHalo();
   L.red.dumpField("red");
 
-  L.mask.initTubeZ();
+  L.mask.initWallsX();
   L.mask.exchangeHalo();
   L.mask.dumpField("mask");
 
