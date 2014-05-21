@@ -33,9 +33,9 @@ int main(string[] args ) {
   startHDF5();
 
   // Start Main timer.
-  T.main = MultiStopWatch("Main");
-  T.io = MultiStopWatch("IO");
-  T.main.start!(VL.Debug, LRF.None);
+  Timers.main = MultiStopWatch("Main");
+  Timers.io = MultiStopWatch("IO");
+  Timers.main.start!(VL.Debug, LRF.None);
 
   if (M.isRoot) {
     readParameterSetFromCliFiles();
@@ -68,33 +68,30 @@ int main(string[] args ) {
   L.bc.exchangeHalo();
   L.bc.dumpField("bc");
 
-  T.adv = MultiStopWatch("Advection");
-  T.coll = MultiStopWatch("Collision");
+  Timers.adv = MultiStopWatch("Advection");
+  Timers.coll = MultiStopWatch("Collision");
 
   for ( uint t = 1; t <= timesteps; ++t ) {
     writeLogRN("Starting timestep %d", t);
     L.red.exchangeHalo();
-    T.adv.start();
     L.red.advectField!d3q19(L.bc, L.advection);
-    T.adv.stop();
-    T.coll.start();
     L.red.collideField!d3q19(L.bc);
-    T.coll.stop();
     writeLogRI("Global mass = %f", L.red.globalMass(L.bc));
     writeLogRI("Global momentum = %s", L.red.globalMomentum!(d3q19)(L.bc));
 
-    L.red.velocityField!d3q19(L.bc);
-    densityField(L.red, L.bc, L.density);
     if ( t % 100 == 0 ) {
+      L.red.densityField(L.bc, L.density);
       L.density.dumpField("red", t);
+      //L.red.velocityField!d3q19(L.bc);
     }
   }
 
-  T.io.showFinal!(VL.Information, LRF.Root);
-  T.adv.showFinal!(VL.Information, LRF.Root);
-  T.coll.showFinal!(VL.Information, LRF.Root);
-  T.main.stop();
-  T.main.showFinal!(VL.Information, LRF.Root);
+  Timers.main.stop();
+
+  Timers.io.showFinal!(VL.Information, LRF.Root);
+  Timers.adv.showFinal!(VL.Information, LRF.Root);
+  Timers.coll.showFinal!(VL.Information, LRF.Root);
+  Timers.main.showFinal!(VL.Information, LRF.Root);
 
   endHDF5();
   endMpi();

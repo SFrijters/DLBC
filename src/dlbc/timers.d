@@ -32,8 +32,6 @@ struct Timers {
   static MSW coll;
   static MSW io;
 }
-/// Ditto
-alias Timers T;
 
 /**
    Based on $(D StopWatch), a $(D MultiStopWatch) can be started and stopped multiple times, keeping track of how often it has been called.

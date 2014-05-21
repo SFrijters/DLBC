@@ -21,6 +21,7 @@ module dlbc.lb.advection;
 import dlbc.lb.bc;
 import dlbc.lb.connectivity;
 import dlbc.fields.field;
+import dlbc.timers;
 
 /**
    Advect a population field over one time step. The advected values are first
@@ -39,6 +40,8 @@ void advectField(alias conn, T, U)(ref T field, ref U bcField, ref T tempField) 
   static assert(field.dimensions == tempField.dimensions);
   assert(bcField.lengthsH == field.lengthsH, "bcField and advected field need to have the same size");
   assert(tempField.lengthsH == field.lengthsH, "tempField and advected field need to have the same size");
+
+  Timers.adv.start();
 
   auto immutable cv = conn.velocities;
   foreach( x, y, z, ref population; tempField) {
@@ -61,6 +64,8 @@ void advectField(alias conn, T, U)(ref T field, ref U bcField, ref T tempField) 
     }
   }
   swap(field, tempField);
+
+  Timers.adv.stop();
 }
 
 ///

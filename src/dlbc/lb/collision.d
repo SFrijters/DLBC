@@ -24,6 +24,7 @@ import dlbc.lb.bc;
 import dlbc.lb.connectivity;
 import dlbc.lb.density;
 import dlbc.lb.velocity;
+import dlbc.timers;
 
 /**
    Let the populations of the field collide.
@@ -37,12 +38,16 @@ void collideField(alias conn, T, U)(ref T field, ref U bcField) {
   static assert(field.dimensions == bcField.dimensions);
   assert(bcField.lengthsH == field.lengthsH, "bcField and collided field need to have the same size");
 
+  Timers.coll.start();
+
   enum omega = 1.0;
   foreach(x, y, z, ref population; field.arr) { // this includes the halo
     if ( isCollidable(bcField[x,y,z]) ) {
       population[] -= omega * ( population[] - (eqDist!conn(population))[]);
     }
   }
+
+  Timers.coll.stop();
 }
 
 /**
