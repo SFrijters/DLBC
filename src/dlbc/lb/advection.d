@@ -55,7 +55,7 @@ unittest {
   reorderMpi();
 
   if ( M.size == 8 ) {
-    uint[d3q19.dimensions] lengths = [ 16, 16 ,16 ];
+    size_t[d3q19.dimensions] lengths = [ 16, 16 ,16 ];
     auto field = Field!(double[19], d3q19.dimensions, 2)(lengths);
     auto temp = Field!(double[19], d3q19.dimensions, 2)(lengths);
 

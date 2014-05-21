@@ -37,8 +37,7 @@ auto velocity(alias conn, T)(const ref T population, const double density) {
   auto immutable cv = conn.velocities;
   static assert(population.length == cv.length);
 
-  double[conn.dimensions] vel;
-  vel[] = 0.0;
+  double[conn.dimensions] vel = 0.0;
   foreach(i, e; population) {
     vel[0] += e * cv[i][0];
     vel[1] += e * cv[i][1];
@@ -105,7 +104,7 @@ unittest {
   import dlbc.fields.init;
   import std.math: isNaN;
 
-  uint[3] lengths = [ 4, 4 ,4 ];
+  size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
 
   double[19] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,

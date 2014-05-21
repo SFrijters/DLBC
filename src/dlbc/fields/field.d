@@ -41,8 +41,8 @@ struct Field(T, uint dim, uint hs) {
 
   enum uint dimensions = dim;
   enum uint haloSize = hs;
-  private uint[dim] _lengths;
-  private uint[dim] _lengthsH;
+  private size_t[dim] _lengths;
+  private size_t[dim] _lengthsH;
 
   alias T type;
 
@@ -117,16 +117,11 @@ struct Field(T, uint dim, uint hs) {
      Params:
        lengths = lengths of the dimensions of the physical domain
   */
-  this (const uint[dim] lengths) {
+  this (const size_t[dim] lengths) {
     writeLogRD("Initializing %s local field of type '%s' with halo of thickness %d.", lengths.makeLengthsString, T.stringof, haloSize);
-
     this._lengths = lengths;
-    // Why doesn't scalar addition work?
-    this._lengthsH[0] = lengths[0] + (2* hs);
-    this._lengthsH[1] = lengths[1] + (2* hs);
-    this._lengthsH[2] = lengths[2] + (2* hs);
-
-    arr = multidimArray!T(nxH, nyH, nzH);
+    this._lengthsH[] = lengths[] + (2 * hs);
+    arr = multidimArray!T(lengthsH);
   }
 
   /**
@@ -173,7 +168,6 @@ struct Field(T, uint dim, uint hs) {
 	return res;
     }
   }
-
 
   /**
      Wrapper for toString that takes care of verbosity and rank.

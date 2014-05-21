@@ -78,7 +78,7 @@ void densityField(T, U)(ref T field, ref U density) {
 unittest {
   import dlbc.fields.init;
 
-  uint[3] lengths = [ 4, 4 ,4 ];
+  size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
 
   double[19] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
@@ -125,7 +125,7 @@ unittest {
   import dlbc.fields.init;
   import std.math: approxEqual;
 
-  uint[3] lengths = [ 4, 4 ,4 ];
+  size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
   field.initConst(0.1);
 
@@ -160,7 +160,7 @@ unittest {
   startMpi([]);
   reorderMpi();
 
-  uint[3] lengths = [ 4, 4 ,4 ];
+  size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
   field.initConst(0.1);
 
@@ -188,7 +188,7 @@ unittest {
   import dlbc.fields.init;
   import std.math: approxEqual;
 
-  uint[3] lengths = [ 4, 4 ,4 ];
+  size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
   field.initConst(0.1);
 
@@ -221,7 +221,7 @@ unittest {
   startMpi([]);
   reorderMpi();
 
-  uint[3] lengths = [ 4, 4 ,4 ];
+  size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
   field.initConst(0.1);
 

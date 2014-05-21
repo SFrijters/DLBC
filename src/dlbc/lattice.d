@@ -10,9 +10,9 @@ import dlbc.parallel;
 @("param") int gny;
 @("param") int gnz;
 
-struct Lattice(uint dim) {
-  private uint _dimensions = dim;
-  private uint[dim] _lengths;
+struct Lattice(size_t dim) {
+  private size_t _dimensions = dim;
+  private size_t[dim] _lengths;
 
   @property auto dimensions() {
     return _dimensions;
