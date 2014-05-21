@@ -64,9 +64,9 @@ int main(string[] args ) {
   L.red.exchangeHalo();
   L.red.dumpField("red");
 
-  L.bc.initTubeZ();
-  L.bc.exchangeHalo();
-  L.bc.dumpField("bc");
+  L.mask.initTubeZ();
+  L.mask.exchangeHalo();
+  L.mask.dumpField("mask");
 
   Timers.adv = MultiStopWatch("Advection");
   Timers.coll = MultiStopWatch("Collision");
@@ -74,15 +74,15 @@ int main(string[] args ) {
   for ( uint t = 1; t <= timesteps; ++t ) {
     writeLogRN("Starting timestep %d", t);
     L.red.exchangeHalo();
-    L.red.advectField!d3q19(L.bc, L.advection);
-    L.red.collideField!d3q19(L.bc);
-    writeLogRI("Global mass = %f", L.red.globalMass(L.bc));
-    writeLogRI("Global momentum = %s", L.red.globalMomentum!(d3q19)(L.bc));
+    L.red.advectField!d3q19(L.mask, L.advection);
+    L.red.collideField!d3q19(L.mask);
+    writeLogRI("Global mass = %f", L.red.globalMass(L.mask));
+    writeLogRI("Global momentum = %s", L.red.globalMomentum!(d3q19)(L.mask));
 
     if ( t % 100 == 0 ) {
-      L.red.densityField(L.bc, L.density);
+      L.red.densityField(L.mask, L.density);
       L.density.dumpField("red", t);
-      //L.red.velocityField!d3q19(L.bc);
+      //L.red.velocityField!d3q19(L.mask);
     }
   }
 

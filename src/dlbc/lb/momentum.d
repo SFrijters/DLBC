@@ -53,19 +53,20 @@ auto momentum(alias conn, T)(const ref T population) {
 
    Params:
      field = field of population vectors
+     mask = mask field
      momentum = pre-allocated momentum field
 
    Returns:
      momentum field
 */
-auto momentumField(alias conn, T, U)(ref T field, ref U bcField) {
+auto momentumField(alias conn, T, U)(ref T field, ref U mask) {
   static assert(is(U.type == BoundaryCondition ) );
-  static assert(field.dimensions == bcField.dimensions);
-  assert(field.lengthsH == bcField.lengthsH);
+  static assert(field.dimensions == mask.dimensions);
+  assert(field.lengthsH == mask.lengthsH);
 
   auto momentum = Field!(double[conn.dimensions], field.dimensions, field.haloSize)(field.lengthsH);
   foreach(x,y,z, ref population; field.arr) {
-    if ( isFluid(bcField[x,y,z]) ) {
+    if ( isFluid(mask[x,y,z]) ) {
       momentum[x,y,z] = population.momentum!conn();
     }
     else {
@@ -76,15 +77,15 @@ auto momentumField(alias conn, T, U)(ref T field, ref U bcField) {
 }
 
 /// Ditto
-void momentumField(alias conn, T, U, V)(ref T field, ref U bcField, ref V momentum) {
+void momentumField(alias conn, T, U, V)(ref T field, ref U mask, ref V momentum) {
   static assert(is(U.type == BoundaryCondition ) );
-  static assert(field.dimensions == bcField.dimensions);
+  static assert(field.dimensions == mask.dimensions);
   static assert(field.dimensions == momentum.dimensions);
-  assert(field.lengthsH == bcField.lengthsH);
+  assert(field.lengthsH == mask.lengthsH);
   assert(field.lengthsH == momentum.lengthsH);
 
   foreach(x,y,z, ref population; field.arr) {
-    if ( isFluid(bcField[x,y,z]) ) {
+    if ( isFluid(mask[x,y,z]) ) {
       momentum[x,y,z] = population.momentum!conn();
     }
     else {
@@ -95,21 +96,22 @@ void momentumField(alias conn, T, U, V)(ref T field, ref U bcField, ref V moment
 
 /**
    Calculates the total momentum of a population field on the local process only.
-   
+
    Params:
      field = population field
+     mask = mask field
 
    Returns:
      total momentum of the field on the local process
 */
-auto localMomentum(alias conn, T, U)(ref T field, ref U bcField) {
+auto localMomentum(alias conn, T, U)(ref T field, ref U mask) {
   static assert(is(U.type == BoundaryCondition ) );
-  static assert(field.dimensions == bcField.dimensions);
-  assert(field.lengthsH == bcField.lengthsH);
+  static assert(field.dimensions == mask.dimensions);
+  assert(field.lengthsH == mask.lengthsH);
 
   double[conn.dimensions] momentum = 0.0;
   foreach(x, y, z, ref e; field) {
-    if ( isFluid(bcField[x,y,z]) ) {
+    if ( isFluid(mask[x,y,z]) ) {
       momentum[] += e.momentum!conn()[];
     }
   }
@@ -121,17 +123,18 @@ auto localMomentum(alias conn, T, U)(ref T field, ref U bcField) {
 
    Params:
      field = population field
+     mask = mask field
 
    Returns:
      global momentum of the field
 */
-auto globalMomentum(alias conn, T, U)(ref T field, ref U bcField) {
+auto globalMomentum(alias conn, T, U)(ref T field, ref U mask) {
   static assert(is(U.type == BoundaryCondition ) );
-  static assert(field.dimensions == bcField.dimensions);
-  assert(field.lengthsH == bcField.lengthsH);
+  static assert(field.dimensions == mask.dimensions);
+  assert(field.lengthsH == mask.lengthsH);
 
   import dlbc.parallel;
-  auto localMomentum = field.localMomentum!conn(bcField);
+  auto localMomentum = field.localMomentum!conn(mask);
   typeof(localMomentum) globalMomentum;
   MPI_Allreduce(&localMomentum, &globalMomentum, conn.dimensions, MPI_DOUBLE, MPI_SUM, M.comm);
   return globalMomentum;

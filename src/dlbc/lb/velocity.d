@@ -78,19 +78,20 @@ unittest {
 
    Params:
      field = field of population vectors
+     mask = mask field
      velocity = pre-allocated velocity field
 
    Returns:
      velocity field
 */
-auto velocityField(alias conn, T, U)(ref T field, ref U bcField) {
+auto velocityField(alias conn, T, U)(ref T field, ref U mask) {
   static assert(is(U.type == BoundaryCondition ) );
-  static assert(field.dimensions == bcField.dimensions);
-  assert(field.lengthsH == bcField.lengthsH);
+  static assert(field.dimensions == mask.dimensions);
+  assert(field.lengthsH == mask.lengthsH);
 
   auto velocity = Field!(double[conn.dimensions], field.dimensions, field.haloSize)(field.lengthsH);
   foreach(x,y,z, ref pop; field.arr) {
-    if ( isFluid(bcField[x,y,z]) ) {
+    if ( isFluid(mask[x,y,z]) ) {
       velocity[x,y,z] = pop.velocity!conn();
     }
     else {
@@ -101,15 +102,15 @@ auto velocityField(alias conn, T, U)(ref T field, ref U bcField) {
 }
 
 /// Ditto
-void velocityField(alias conn, T, U, V)(ref T field, ref U bcField, ref V velocity) {
+void velocityField(alias conn, T, U, V)(ref T field, ref U mask, ref V velocity) {
   static assert(is(U.type == BoundaryCondition ) );
-  static assert(field.dimensions == bcField.dimensions);
+  static assert(field.dimensions == mask.dimensions);
   static assert(field.dimensions == velocity.dimensions);
-  assert(field.lengthsH == bcField.lengthsH);
+  assert(field.lengthsH == mask.lengthsH);
   assert(field.lengthsH == velocity.lengthsH);
 
   foreach(x,y,z, ref population; field.arr) {
-    if ( isFluid(bcField[x,y,z] ) ) {
+    if ( isFluid(mask[x,y,z] ) ) {
       velocity[x,y,z] = population.velocity!conn;
     }
     else {
@@ -125,8 +126,8 @@ unittest {
 
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
-  auto bc = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
-  bc.initConst(BC.None);
+  auto mask = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
+  mask.initConst(BC.None);
 
   double[19] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
   		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
@@ -134,14 +135,14 @@ unittest {
   field.initConst(0);
   field[1,2,3] = pop1;
 
-  auto velocity1 = velocityField!d3q19(field, bc);
+  auto velocity1 = velocityField!d3q19(field, mask);
   assert(velocity1[1,2,3] == [-0.2,-0.2, 0.2]);
   assert(isNaN(velocity1[0,1,3][0]));
   assert(isNaN(velocity1[0,1,3][1]));
   assert(isNaN(velocity1[0,1,3][2]));
 
   auto velocity2 = Field!(double[3], 3, 2)(lengths);
-  velocityField!d3q19(field, bc, velocity2);
+  velocityField!d3q19(field, mask, velocity2);
   assert(isNaN(velocity2[0,1,3][0]));
   assert(isNaN(velocity2[0,1,3][1]));
   assert(isNaN(velocity2[0,1,3][2]));

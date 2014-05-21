@@ -60,19 +60,20 @@ unittest {
 
    Params:
      field = field of population vectors
+     mask = mask field
      density = pre-allocated density field
 
    Returns:
      density field
 */
-auto densityField(T, U)(ref T field, ref U bcField) {
+auto densityField(T, U)(ref T field, ref U mask) {
   static assert(is(U.type == BoundaryCondition ) );
-  static assert(field.dimensions == bcField.dimensions);
-  assert(field.lengthsH == bcField.lengthsH);
+  static assert(field.dimensions == mask.dimensions);
+  assert(field.lengthsH == mask.lengthsH);
 
   auto density = Field!(double, field.dimensions, field.haloSize)(field.lengthsH);
   foreach(x,y,z, ref pop; field.arr) {
-    if ( isFluid(bcField[x,y,z]) ) {
+    if ( isFluid(mask[x,y,z]) ) {
       density[x,y,z] = pop.density();
     }
     else {
@@ -83,15 +84,15 @@ auto densityField(T, U)(ref T field, ref U bcField) {
 }
 
 /// Ditto
-void densityField(T, U, V)(ref T field, ref U bcField, ref V density) {
+void densityField(T, U, V)(ref T field, ref U mask, ref V density) {
   static assert(is(U.type == BoundaryCondition ) );
-  static assert(field.dimensions == bcField.dimensions);
+  static assert(field.dimensions == mask.dimensions);
   static assert(field.dimensions == density.dimensions);
-  assert(field.lengthsH == bcField.lengthsH);
+  assert(field.lengthsH == mask.lengthsH);
   assert(field.lengthsH == density.lengthsH);
 
   foreach(x,y,z, ref pop; field.arr) {
-    if ( isFluid(bcField[x,y,z]) ) {
+    if ( isFluid(mask[x,y,z]) ) {
       density[x,y,z] = pop.density();
     }
     else {
@@ -104,8 +105,8 @@ void densityField(T, U, V)(ref T field, ref U bcField, ref V density) {
 unittest {
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
-  auto bc = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
-  bc.initConst(BC.None);
+  auto mask = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
+  mask.initConst(BC.None);
 
   double[19] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
   		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
@@ -116,13 +117,13 @@ unittest {
   field[1,2,3] = pop1;
   field[2,0,1] = pop2;
 
-  auto density1 = densityField(field, bc);
+  auto density1 = densityField(field, mask);
   assert(density1[1,2,3] == 0.5);
   assert(density1[2,0,1] == 1.9);
   assert(density1[0,1,3] == 0.0);
 
   auto density2 = Field!(double, 3, 2)(lengths);
-  densityField(field, bc, density2);
+  densityField(field, mask, density2);
   assert(density2[1,2,3] == 0.5);
   assert(density2[2,0,1] == 1.9);
   assert(density2[0,1,3] == 0.0);
@@ -130,22 +131,23 @@ unittest {
 
 /**
    Calculates the total mass of a population field on the local process only.
-   
+
    Params:
      field = population field
+     mask = mask field
 
    Returns:
      total mass of the field on the local process
 */
-auto localMass(T, U)(ref T field, ref U bcField) {
+auto localMass(T, U)(ref T field, ref U mask) {
   static assert(is(U.type == BoundaryCondition ) );
-  static assert(field.dimensions == bcField.dimensions);
-  assert(field.lengthsH == bcField.lengthsH);
+  static assert(field.dimensions == mask.dimensions);
+  assert(field.lengthsH == mask.lengthsH);
 
   double mass = 0.0;
   // This loops over the physical field only.
   foreach(x, y, z, ref e; field) {
-    if ( isFluid(bcField[x,y,z])) {
+    if ( isFluid(mask[x,y,z])) {
       mass += e.density();
     }
   }
@@ -157,10 +159,10 @@ unittest {
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
   field.initConst(0.1);
-  auto bc = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
-  bc.initConst(BC.None);
+  auto mask = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
+  mask.initConst(BC.None);
 
-  auto mass = localMass(field, bc);
+  auto mass = localMass(field, mask);
 
   assert(approxEqual(mass,19*4*4*4*0.1));
 }
@@ -170,17 +172,18 @@ unittest {
 
    Params:
      field = population field
+     mask = mask field
 
    Returns:
      global mass of the field
 */
-auto globalMass(T, U)(ref T field, ref U bcField) {
+auto globalMass(T, U)(ref T field, ref U mask) {
   static assert(is(U.type == BoundaryCondition ) );
-  static assert(field.dimensions == bcField.dimensions);
-  assert(field.lengthsH == bcField.lengthsH);
+  static assert(field.dimensions == mask.dimensions);
+  assert(field.lengthsH == mask.lengthsH);
 
   import dlbc.parallel;
-  auto localMass = localMass(field, bcField);
+  auto localMass = localMass(field, mask);
   typeof(localMass) globalMass;
   MPI_Allreduce(&localMass, &globalMass, 1, MPI_DOUBLE, MPI_SUM, M.comm);
   return globalMass;
@@ -194,27 +197,28 @@ unittest {
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], d3q19.dimensions, 2)(lengths);
   field.initConst(0.1);
-  auto bc = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
-  bc.initConst(BC.None);
+  auto mask = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
+  mask.initConst(BC.None);
 
-  auto mass = globalMass(field, bc);
+  auto mass = globalMass(field, mask);
 
   assert(approxEqual(mass,M.size*19*4*4*4*0.1));
 }
 
 /**
    Calculates the average density of a population field on the local process only.
-   
+
    Params:
      field = population field
+     mask = mask field
 
    Returns:
      average density of the field on the local process
 */
-auto localDensity(T, U)(ref T field, ref U bcField) {
+auto localDensity(T, U)(ref T field, ref U mask) {
   static assert(is(U.type == BoundaryCondition ) );
   auto size = field.nx * field.ny * field.nz;
-  return localMass(field, bcField) / size;
+  return localMass(field, mask) / size;
 }
 
 ///
@@ -222,10 +226,10 @@ unittest {
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], d3q19.dimensions, 2)(lengths);
   field.initConst(0.1);
-  auto bc = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
-  bc.initConst(BC.None);
+  auto mask = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
+  mask.initConst(BC.None);
 
-  auto density = localDensity(field, bc);
+  auto density = localDensity(field, mask);
 
   assert(approxEqual(density,19*0.1));
 }
@@ -235,15 +239,16 @@ unittest {
 
    Params:
      field = population field
+     mask = mask field
 
    Returns:
      global average density of the field
 */
-auto globalDensity(T, U)(ref T field, ref U bcField) {
+auto globalDensity(T, U)(ref T field, ref U mask) {
   static assert(is(U.type == BoundaryCondition ) );
   import dlbc.parallel;
   auto size = field.nx * field.ny * field.nz * M.size;
-  return globalMass(field, bcField) / size;
+  return globalMass(field, mask) / size;
 }
 
 ///
@@ -254,10 +259,10 @@ unittest {
   size_t[3] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[19], 3, 2)(lengths);
   field.initConst(0.1);
-  auto bc = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
-  bc.initConst(BC.None);
+  auto mask = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
+  mask.initConst(BC.None);
 
-  auto density = globalDensity(field, bc);
+  auto density = globalDensity(field, mask);
 
   assert(approxEqual(density,19*0.1));
 }

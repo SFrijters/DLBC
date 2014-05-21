@@ -29,29 +29,30 @@ import dlbc.timers;
 
    Params:
      field = field to be advected
+     mask = mask field
      tempField = temporary field of the same size and type as $(D field)
      conn = connectivity
 */
-void advectField(alias conn, T, U)(ref T field, ref U bcField, ref T tempField) {
+void advectField(alias conn, T, U)(ref T field, ref U mask, ref T tempField) {
   import std.algorithm: swap;
 
   static assert(is(U.type == BoundaryCondition ) );
-  static assert(field.dimensions == bcField.dimensions);
+  static assert(field.dimensions == mask.dimensions);
   static assert(field.dimensions == tempField.dimensions);
-  assert(bcField.lengthsH == field.lengthsH, "bcField and advected field need to have the same size");
+  assert(mask.lengthsH == field.lengthsH, "mask and advected field need to have the same size");
   assert(tempField.lengthsH == field.lengthsH, "tempField and advected field need to have the same size");
 
   Timers.adv.start();
 
   auto immutable cv = conn.velocities;
   foreach( x, y, z, ref population; tempField) {
-    if ( isAdvectable(bcField[x,y,z]) ) {
+    if ( isAdvectable(mask[x,y,z]) ) {
       assert(population.length == cv.length);
       foreach( i, ref c; population ) {
 	auto nbx = x-cv[i][0];
 	auto nby = y-cv[i][1];
 	auto nbz = z-cv[i][2];
-	if ( isBounceBack(bcField[nbx,nby,nbz]) ) {
+	if ( isBounceBack(mask[nbx,nby,nbz]) ) {
 	  c = field[x, y, z][conn.bounce[i]];
 	}
 	else {
@@ -82,16 +83,16 @@ unittest {
     size_t[d3q19.dimensions] lengths = [ 16, 16 ,16 ];
     auto field = Field!(double[19], d3q19.dimensions, 2)(lengths);
     auto temp = Field!(double[19], d3q19.dimensions, 2)(lengths);
-    auto bc = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
+    auto mask = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
 
     field.initConst(0);
     if ( M.isRoot ) {
       field[2,2,2] = [42, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 ,15, 16 ,17 ,18];
     }
     field.exchangeHalo();
-    bc.initConst(BC.None);
-    bc.exchangeHalo();
-    field.advectField!d3q19(bc, temp);
+    mask.initConst(BC.None);
+    mask.exchangeHalo();
+    field.advectField!d3q19(mask, temp);
 
     if ( M.rank == 0 ) {
       assert(field[2,2,2][0] == 42);

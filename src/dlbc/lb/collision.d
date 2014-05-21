@@ -31,18 +31,19 @@ import dlbc.timers;
 
    Params:
      field = field of populations
+     mask = mask field
      conn = connectivity
 */
-void collideField(alias conn, T, U)(ref T field, ref U bcField) {
+void collideField(alias conn, T, U)(ref T field, ref U mask) {
   static assert(is(U.type == BoundaryCondition ) );
-  static assert(field.dimensions == bcField.dimensions);
-  assert(bcField.lengthsH == field.lengthsH, "bcField and collided field need to have the same size");
+  static assert(field.dimensions == mask.dimensions);
+  assert(mask.lengthsH == field.lengthsH, "mask and collided field need to have the same size");
 
   Timers.coll.start();
 
   enum omega = 1.0;
   foreach(x, y, z, ref population; field.arr) { // this includes the halo
-    if ( isCollidable(bcField[x,y,z]) ) {
+    if ( isCollidable(mask[x,y,z]) ) {
       population[] -= omega * ( population[] - (eqDist!conn(population))[]);
     }
   }
