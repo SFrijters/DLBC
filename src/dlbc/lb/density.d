@@ -71,7 +71,9 @@ auto densityField(T, U)(ref T field, ref U mask) {
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
 
-  auto density = Field!(double, field.dimensions, field.haloSize)(field.lengthsH);
+  auto density = Field!(double, field.dimensions, field.haloSize)(field.lengths);
+  assert(field.lengthsH == density.lengthsH);
+
   foreach(x,y,z, ref pop; field.arr) {
     if ( isFluid(mask[x,y,z]) ) {
       density[x,y,z] = pop.density();

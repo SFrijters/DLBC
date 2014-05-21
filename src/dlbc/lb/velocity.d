@@ -89,7 +89,9 @@ auto velocityField(alias conn, T, U)(ref T field, ref U mask) {
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
 
-  auto velocity = Field!(double[conn.dimensions], field.dimensions, field.haloSize)(field.lengthsH);
+  auto velocity = Field!(double[conn.dimensions], field.dimensions, field.haloSize)(field.lengths);
+  assert(field.lengthsH == velocity.lengthsH);
+
   foreach(x,y,z, ref pop; field.arr) {
     if ( isFluid(mask[x,y,z]) ) {
       velocity[x,y,z] = pop.velocity!conn();
