@@ -43,9 +43,7 @@ auto velocity(alias conn, T)(const ref T population, const double density) {
     vel[1] += e * cv[i][1];
     vel[2] += e * cv[i][2];
   }
-  vel[0] /= density;
-  vel[1] /= density;
-  vel[2] /= density;
+  vel[] /= density;
   return vel;
 }
 
@@ -83,9 +81,9 @@ unittest {
      velocity field
 */
 auto velocityField(alias conn, T)(ref T field) {
-  auto velocity = Field!(double[conn.dimensions], field.dimensions, field.haloSize)([field.nxH, field.nyH, field.nzH]);
-  foreach(z,y,x, ref pop; field.arr) {
-    velocity[z,y,x] = pop.velocity!conn();
+  auto velocity = Field!(double[conn.dimensions], field.dimensions, field.haloSize)(field.lengthsH);
+  foreach(x,y,z, ref pop; field.arr) {
+    velocity[x,y,z] = pop.velocity!conn();
   }
   return velocity;
 }
@@ -94,8 +92,8 @@ auto velocityField(alias conn, T)(ref T field) {
 void velocityField(alias conn, T, U)(ref T field, ref U velocity) {
   static assert(field.dimensions == velocity.dimensions);
   assert(field.lengths == velocity.lengths);
-  foreach(z,y,x, ref pop; field.arr) {
-    velocity[z,y,x] = pop.velocity!conn;
+  foreach(x,y,z, ref pop; field.arr) {
+    velocity[x,y,z] = pop.velocity!conn;
   }
 }
 
