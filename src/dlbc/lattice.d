@@ -38,7 +38,7 @@ struct Lattice(size_t dim) {
   typeof(red) advection;
   // Field!(int, dim, 1) index;
   Field!(double, dim, 2) density;
-  Field!(BoundaryCondition, dim, 1) bc;
+  Field!(BoundaryCondition, dim, 2) bc;
 
   this ( MpiParams M ) {
     // Check if we can reconcile global lattice size with CPU grid

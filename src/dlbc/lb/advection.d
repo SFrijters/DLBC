@@ -37,6 +37,8 @@ void advectField(alias conn, T, U)(ref T field, ref U bcField, ref T tempField) 
   static assert(is(U.type == BoundaryCondition ) );
   static assert(field.dimensions == bcField.dimensions);
   static assert(field.dimensions == tempField.dimensions);
+  assert(bcField.lengthsH == field.lengthsH, "bcField and advected field need to have the same size");
+  assert(tempField.lengthsH == field.lengthsH, "tempField and advected field need to have the same size");
 
   auto immutable cv = conn.velocities;
   foreach( x, y, z, ref population; tempField) {
@@ -53,6 +55,9 @@ void advectField(alias conn, T, U)(ref T field, ref U bcField, ref T tempField) 
 	  c = field[nbx, nby, nbz][i];
       	}
       }
+    }
+    else {
+      population = field[x, y, z];
     }
   }
   swap(field, tempField);
