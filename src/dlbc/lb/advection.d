@@ -18,6 +18,7 @@
 
 module dlbc.lb.advection;
 
+import dlbc.lb.bc;
 import dlbc.lb.connectivity;
 import dlbc.fields.field;
 
@@ -30,15 +31,28 @@ import dlbc.fields.field;
      tempField = temporary field of the same size and type as $(D field)
      conn = connectivity
 */
-void advectField(alias conn, T)(ref T field, ref T tempField) {
+void advectField(alias conn, T, U)(ref T field, ref U bcField, ref T tempField) {
   import std.algorithm: swap;
 
+  static assert(is(U.type == BoundaryCondition ) );
+  static assert(field.dimensions == bcField.dimensions);
   static assert(field.dimensions == tempField.dimensions);
+
   auto immutable cv = conn.velocities;
-  foreach( z, y, x, ref population; tempField) {
-    assert(population.length == cv.length);
-    foreach( i, ref c; population ) {
-      c = field[z-cv[i][2], y-cv[i][1], x-cv[i][0]][i];
+  foreach( x, y, z, ref population; tempField) {
+    if ( isAdvectable(bcField[x,y,z]) ) {
+      assert(population.length == cv.length);
+      foreach( i, ref c; population ) {
+	auto nbx = x-cv[i][0];
+	auto nby = y-cv[i][1];
+	auto nbz = z-cv[i][2];
+	if ( isBounceBack(bcField[nbx,nby,nbz]) ) {
+	  c = field[x, y, z][conn.bounce[i]];
+	}
+	else {
+	  c = field[nbx, nby, nbz][i];
+      	}
+      }
     }
   }
   swap(field, tempField);
@@ -58,49 +72,71 @@ unittest {
     size_t[d3q19.dimensions] lengths = [ 16, 16 ,16 ];
     auto field = Field!(double[19], d3q19.dimensions, 2)(lengths);
     auto temp = Field!(double[19], d3q19.dimensions, 2)(lengths);
+    auto bc = Field!(BoundaryCondition, d3q19.dimensions, 2)(lengths);
 
     field.initConst(0);
     if ( M.isRoot ) {
       field[2,2,2] = [42, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 ,15, 16 ,17 ,18];
     }
     field.exchangeHalo();
-    field.advectField!d3q19(temp);
+    bc.initConst(BC.None);
+    bc.exchangeHalo();
+    field.advectField!d3q19(bc, temp);
 
     if ( M.rank == 0 ) {
       assert(field[2,2,2][0] == 42);
-      assert(field[2,2,3][1] == 1);
+      assert(field[3,2,2][1] == 1);
       assert(field[2,3,2][3] == 3);
-      assert(field[3,2,2][5] == 5);
-      assert(field[2,3,3][7] == 7);
-      assert(field[3,3,2][9] == 9);
+      assert(field[2,2,3][5] == 5);
+      assert(field[3,3,2][7] == 7);
+      assert(field[2,3,3][9] == 9);
       assert(field[3,2,3][11] == 11);
     }
     else if ( M.rank == 1 ) {
-      assert(field[2,2,17][2] == 2);
-      assert(field[2,3,17][8] == 8);
+      assert(field[2,2,17][6] == 6);
+      assert(field[3,2,17][12] == 12);
+      assert(field[2,3,17][15] == 15);
     }
     else if ( M.rank == 2 ) {
       assert(field[2,17,2][4] == 4);
-      assert(field[3,17,2][10] == 10);
-      assert(field[2,17,3][13] == 13);
+      assert(field[2,17,3][10] == 10);
+      assert(field[3,17,2][13] == 13);
     }
     else if ( M.rank == 3 ) {
-      assert(field[2,17,17][14] == 14);
+      assert(field[2,17,17][16] == 16);
     }
     else if ( M.rank == 4 ) {
-      assert(field[17,2,2][6] == 6);
-      assert(field[17,2,3][12] == 12);
-      assert(field[17,3,2][15] == 15);
+      assert(field[17,2,2][2] == 2);
+      assert(field[17,3,2][8] == 8);
     }
     else if ( M.rank == 5) {
       assert(field[17,2,17][18] == 18);
     }
-    else if ( M.rank == 6) {
-      assert(field[17,17,2][16] == 16);
+    else if ( M.rank == 6 ) {
+      assert(field[17,17,2][14] == 14);
     }
   }
   else {
     writeLogURW("Unittest for advection requires M.size == 8.");
   }
 }
+
+bool isAdvectable(BoundaryCondition bc) {
+  final switch(bc) {
+  case BC.None:
+    return true;
+  case BC.Solid:
+    return false;
+  }
+}
+
+bool isBounceBack(BoundaryCondition bc) {
+  final switch(bc) {
+  case BC.None:
+    return false;
+  case BC.Solid:
+    return true;
+  }
+}
+
 

@@ -78,7 +78,7 @@ int main(string[] args ) {
     // writeLogI("Density = %f", L.red.localMass());
     L.red.exchangeHalo();
     T.adv.start();
-    L.red.advectField!d3q19(L.advection);
+    L.red.advectField!d3q19(L.bc, L.advection);
     T.adv.stop();
     writeLogRI("Mass after advection = %f", L.red.globalMass());
     // writeLogI("Density = %f", L.red.localMass());
