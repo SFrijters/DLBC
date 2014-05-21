@@ -1,5 +1,6 @@
 import dlbc.fields.field;
 import dlbc.fields.init;
+import dlbc.fields.parallel;
 import dlbc.getopt;
 import dlbc.io.io;
 import dlbc.io.hdf5;

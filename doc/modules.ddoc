@@ -2,6 +2,7 @@ MODULES =
 	$(MODULE main, "D Lattice Boltzmann code")
 	$(MODULE dlbc.fields.field, "Implementation of scalar and vector fields.")
 	$(MODULE dlbc.fields.init, "Initialization of fields.")
+	$(MODULE dlbc.fields.parallel, "Parallelization of fields.")
 	$(MODULE dlbc.getopt, "Process command line arguments.")
 	$(MODULE dlbc.io.io, "Functions that wrap calls for IO to disk.")
 	$(MODULE dlbc.io.hdf5, "Functions that handle (parallel) IO to disk via HDF5.")

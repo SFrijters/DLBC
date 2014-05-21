@@ -49,6 +49,7 @@ unittest {
   import dlbc.fields.init;
   import dlbc.logging;
   import dlbc.parallel;
+  import dlbc.fields.parallel;
 
   startMpi([]);
   reorderMpi();

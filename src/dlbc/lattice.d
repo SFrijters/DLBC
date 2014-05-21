@@ -1,6 +1,7 @@
 module dlbc.lattice;
 
 import dlbc.fields.field;
+import dlbc.fields.parallel;
 import dlbc.logging;
 import dlbc.parallel;
 
