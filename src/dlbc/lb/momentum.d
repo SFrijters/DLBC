@@ -63,7 +63,7 @@ auto momentumField(alias conn, T, U)(ref T field, ref U bcField) {
   static assert(field.dimensions == bcField.dimensions);
   assert(field.lengthsH == bcField.lengthsH);
 
-  auto momentum = Field!(double[conn.dimensions], field.dimensions, field.haloSize)([field.nxH, field.nyH, field.nzH]);
+  auto momentum = Field!(double[conn.dimensions], field.dimensions, field.haloSize)(field.lengthsH);
   foreach(x,y,z, ref population; field.arr) {
     if ( isFluid(bcField[x,y,z]) ) {
       momentum[x,y,z] = population.momentum!conn();

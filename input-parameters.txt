@@ -10,10 +10,11 @@ simulationName = foobar
 outputPath = output
 
 [lb]
-timesteps = 0
+timesteps = 100
 
 [parallel]
 ncy = 2
+showTopology = true
 
 [lattice]
 gnx = 16    // Lattice size x-direction
