@@ -20,6 +20,7 @@
 module dlbc.lb.collision;
 
 import dlbc.fields.field;
+import dlbc.lb.bc;
 import dlbc.lb.connectivity;
 import dlbc.lb.density;
 import dlbc.lb.velocity;
@@ -31,10 +32,16 @@ import dlbc.lb.velocity;
      field = field of populations
      conn = connectivity
 */
-void collideField(alias conn, T)(ref T field) {
+void collideField(alias conn, T, U)(ref T field, ref U bcField) {
+  static assert(is(U.type == BoundaryCondition ) );
+  static assert(field.dimensions == bcField.dimensions);
+  assert(bcField.lengthsH == field.lengthsH, "bcField and collided field need to have the same size");
+
   enum omega = 1.0;
-  foreach(ref population; field.byElementForward) { // this includes the halo
-    population[] -= omega * ( population[] - (eqDist!conn(population))[]);
+  foreach(x, y, z, ref population; field.arr) { // this includes the halo
+    if ( isCollidable(bcField[x,y,z]) ) {
+      population[] -= omega * ( population[] - (eqDist!conn(population))[]);
+    }
   }
 }
 

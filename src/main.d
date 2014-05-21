@@ -78,7 +78,7 @@ int main(string[] args ) {
     L.red.advectField!d3q19(L.bc, L.advection);
     T.adv.stop();
     T.coll.start();
-    L.red.collideField!d3q19();
+    L.red.collideField!d3q19(L.bc);
     T.coll.stop();
     writeLogRI("Global mass = %f", L.red.globalMass(L.bc));
     writeLogRI("Global momentum = %s", L.red.globalMomentum!d3q19());
