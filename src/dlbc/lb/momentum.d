@@ -19,6 +19,7 @@
 module dlbc.lb.momentum;
 
 import dlbc.fields.field;
+import dlbc.lb.bc;
 import dlbc.lb.connectivity;
 import dlbc.lb.density;
 import dlbc.lb.velocity;
@@ -57,20 +58,38 @@ auto momentum(alias conn, T)(const ref T population) {
    Returns:
      momentum field
 */
-auto momentumField(alias conn, T)(ref T field) {
+auto momentumField(alias conn, T, U)(ref T field, ref U bcField) {
+  static assert(is(U.type == BoundaryCondition ) );
+  static assert(field.dimensions == bcField.dimensions);
+  assert(field.lengthsH == bcField.lengthsH);
+
   auto momentum = Field!(double[conn.dimensions], field.dimensions, field.haloSize)([field.nxH, field.nyH, field.nzH]);
-  foreach(z,y,x, ref population; field.arr) {
-    momentum[z,y,x] = population.momentum!conn();
+  foreach(x,y,z, ref population; field.arr) {
+    if ( isFluid(bcField[x,y,z]) ) {
+      momentum[x,y,z] = population.momentum!conn();
+    }
+    else {
+      momentum[x,y,z][] = 0.0;
+    }
   }
   return momentum;
 }
 
 /// Ditto
-void momentumField(alias conn, T, U)(ref T field, ref U momentum) {
+void momentumField(alias conn, T, U, V)(ref T field, ref U bcField, ref V momentum) {
+  static assert(is(U.type == BoundaryCondition ) );
+  static assert(field.dimensions == bcField.dimensions);
   static assert(field.dimensions == momentum.dimensions);
-  assert(field.lengths == velocity.lengths);
-  foreach(z,y,x, ref population; field.arr) {
-    momentum[z,y,x] = population.momentum!conn;
+  assert(field.lengthsH == bcField.lengthsH);
+  assert(field.lengthsH == momentum.lengthsH);
+
+  foreach(x,y,z, ref population; field.arr) {
+    if ( isFluid(bcField[x,y,z]) ) {
+      momentum[x,y,z] = population.momentum!conn();
+    }
+    else {
+      momentum[x,y,z][] = 0.0;
+    }
   }
 }
 
@@ -83,13 +102,16 @@ void momentumField(alias conn, T, U)(ref T field, ref U momentum) {
    Returns:
      total momentum of the field on the local process
 */
-auto localMomentum(alias conn, T)(ref T field) {
+auto localMomentum(alias conn, T, U)(ref T field, ref U bcField) {
+  static assert(is(U.type == BoundaryCondition ) );
+  static assert(field.dimensions == bcField.dimensions);
+  assert(field.lengthsH == bcField.lengthsH);
+
   double[conn.dimensions] momentum = 0.0;
-  foreach(z, y, x, ref e; field) {
-    auto p = e.momentum!conn();
-    momentum[0] += p[0];
-    momentum[1] += p[1];
-    momentum[2] += p[2];
+  foreach(x, y, z, ref e; field) {
+    if ( isFluid(bcField[x,y,z]) ) {
+      momentum[] += e.momentum!conn()[];
+    }
   }
   return momentum;
 }
@@ -103,9 +125,13 @@ auto localMomentum(alias conn, T)(ref T field) {
    Returns:
      global momentum of the field
 */
-auto globalMomentum(alias conn, T)(ref T field) {
+auto globalMomentum(alias conn, T, U)(ref T field, ref U bcField) {
+  static assert(is(U.type == BoundaryCondition ) );
+  static assert(field.dimensions == bcField.dimensions);
+  assert(field.lengthsH == bcField.lengthsH);
+
   import dlbc.parallel;
-  auto localMomentum = field.localMomentum!conn();
+  auto localMomentum = field.localMomentum!conn(bcField);
   typeof(localMomentum) globalMomentum;
   MPI_Allreduce(&localMomentum, &globalMomentum, conn.dimensions, MPI_DOUBLE, MPI_SUM, M.comm);
   return globalMomentum;

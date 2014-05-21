@@ -81,11 +81,9 @@ int main(string[] args ) {
     L.red.collideField!d3q19(L.bc);
     T.coll.stop();
     writeLogRI("Global mass = %f", L.red.globalMass(L.bc));
-    writeLogRI("Global momentum = %s", L.red.globalMomentum!d3q19());
-    // L.red.show!(VL.Debug, LRF.Root);
+    writeLogRI("Global momentum = %s", L.red.globalMomentum!(d3q19)(L.bc));
 
     L.red.velocityField!d3q19();
-
     densityField(L.red, L.bc, L.density);
     L.density.dumpField("red", t);
   }

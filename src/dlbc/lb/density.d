@@ -67,6 +67,9 @@ unittest {
 */
 auto densityField(T, U)(ref T field, ref U bcField) {
   static assert(is(U.type == BoundaryCondition ) );
+  static assert(field.dimensions == bcField.dimensions);
+  assert(field.lengthsH == bcField.lengthsH);
+
   auto density = Field!(double, field.dimensions, field.haloSize)(field.lengthsH);
   foreach(x,y,z, ref pop; field.arr) {
     if ( isFluid(bcField[x,y,z]) ) {
@@ -86,8 +89,14 @@ void densityField(T, U, V)(ref T field, ref U bcField, ref V density) {
   static assert(field.dimensions == density.dimensions);
   assert(field.lengthsH == bcField.lengthsH);
   assert(field.lengthsH == density.lengthsH);
+
   foreach(x,y,z, ref pop; field.arr) {
-    density[x,y,z] = pop.density();
+    if ( isFluid(bcField[x,y,z]) ) {
+      density[x,y,z] = pop.density();
+    }
+    else {
+      density[x,y,z] = 0.0;
+    }
   }
 }
 
@@ -130,6 +139,9 @@ unittest {
 */
 auto localMass(T, U)(ref T field, ref U bcField) {
   static assert(is(U.type == BoundaryCondition ) );
+  static assert(field.dimensions == bcField.dimensions);
+  assert(field.lengthsH == bcField.lengthsH);
+
   double mass = 0.0;
   // This loops over the physical field only.
   foreach(x, y, z, ref e; field) {
@@ -164,6 +176,10 @@ unittest {
 */
 auto globalMass(T, U)(ref T field, ref U bcField) {
   static assert(is(U.type == BoundaryCondition ) );
+  static assert(field.dimensions == bcField.dimensions);
+  assert(field.lengthsH == bcField.lengthsH);
+
+  import dlbc.parallel;
   auto localMass = localMass(field, bcField);
   typeof(localMass) globalMass;
   MPI_Allreduce(&localMass, &globalMass, 1, MPI_DOUBLE, MPI_SUM, M.comm);
@@ -246,11 +262,3 @@ unittest {
   assert(approxEqual(density,19*0.1));
 }
 
-bool isFluid(BoundaryCondition bc) {
-  final switch(bc) {
-  case BC.None:
-    return true;
-  case BC.Solid:
-    return false;
-  }
-}
