@@ -263,56 +263,38 @@ void writeLogD(T...)(const T args)  { writeLog!(VL.Debug       , LRF.Any )(args)
    Params:
      vl = verbosity level to write at
      args = data to write
-
-   Bugs: Possible memory issues causing corrupted data or hanging processes.
 */
 void owriteLog(VL vl, T...)(const T args) {
-  //return;
-  string logString;
-  char[17] test1; // WUT?
-  MpiString mpiString;
-  MPI_Status mpiStatus;
-  immutable int mpiTag = 0;
-
+  enum mpiTag = 0;
   if (globalVerbosityLevel >= vl) {
-
-    // Make sure all other stdout is flushed. Performance hog!
-    MpiBarrier();
-
-    // Fill mpiString with spaces
-    for(size_t i = 0; i < MpiStringLength; i++) {
-      mpiString[i] = ' ';
-    }
-
+    MPI_Status mpiStatus;
     // Generate string to send
-    logString = makeLogString!(vl, LRF.Ordered)(args);
+    string logString = makeLogString!(vl, LRF.Ordered)(args);
 
-    // Truncate if needed
-    if (logString.length > MpiStringLength) {
-      logString = logString[0 .. MpiStringLength - truncationSuffix.length] ~ truncationSuffix;
-    }
+    // Fill char buffer
+    char[] strbuf;
+    int strlen = to!int(logString.length);
+    strbuf.length = strlen;
+    strbuf[0..strlen] = logString;
 
-    // Overwrite the first part of mpiString with the actual payload
-    mpiString[0 .. logString.length] = logString;
-
-    // Convert the char[256] to string, strip the spaces, and print it
     if (M.isRoot) {
-      logString = to!string(mpiString);
+      // First show the local log
+      logString = to!string(strbuf[0..strlen]);
       writeln(strip(logString));
       for (int srcRank = 1; srcRank < M.size; srcRank++ ) {
-
-	MPI_Recv(&mpiString, MpiStringLength, MPI_CHAR, srcRank, mpiTag, M.comm, &mpiStatus);
-	logString = to!string(mpiString);
+	// Then receive from each process first a string length...
+	MPI_Recv(&strlen, 1, MPI_INT, srcRank, mpiTag, M.comm, &mpiStatus);
+	// ...and then the char buffer.
+	MPI_Recv(strbuf.ptr, strlen, MPI_CHAR, srcRank, mpiTag, M.comm, &mpiStatus);
+	logString = to!string(strbuf[0..strlen]);
 	writeln(strip(logString));
       }
     }
     else {
       immutable int destRank = M.root;
-      MPI_Send(&mpiString, MpiStringLength, MPI_CHAR, destRank, mpiTag, M.comm);
+      MPI_Send(&strlen, 1, MPI_INT, destRank, mpiTag, M.comm);
+      MPI_Send(strbuf.ptr, strlen, MPI_CHAR, destRank, mpiTag, M.comm);
     }
-
-    // Make sure all ordered output is finished before the program continues. Performance hog!
-    MpiBarrier();
   }
 }
 

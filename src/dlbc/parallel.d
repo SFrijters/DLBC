@@ -21,7 +21,6 @@ module dlbc.parallel;
 public import dlbc.mpi;
 
 import dlbc.logging;
-import dlbc.mixinhelper; // For itoa template
 
 /**
    Number of processes in the cardinal directions.
@@ -37,18 +36,6 @@ import dlbc.mixinhelper; // For itoa template
     Dimensionality of the MPI grid.
 */
 private enum dim = 3;
-
-/// Need to define a charlength to easily transmit strings over MPI.
-/// One needs to change only this value, everything else should use it.
-static immutable size_t MpiStringLength = 256;
-
-/// This will return the MPI string type as a string.
-string MpiStringType() /* pure */ nothrow @safe { // GDC bug?
-  return "char[" ~ itoa!(MpiStringLength) ~ "]";
-}
-
-/// And this will create a nice alias MpiString with the correct length.
-mixin("alias char[" ~ itoa!(MpiStringLength) ~ "] MpiString;");
 
 /**
    Parameters related to MPI are nicely packed into a globally available struct.
@@ -372,21 +359,20 @@ auto mpiLengthof(T)() {
 
    Params:
      str = string to be broadcast
-
-   Returns:
-     The return code of MPI_Bcast.
 */
-auto MpiBcastString(ref string str) {
-  import std.conv;
-  int retval;
-  uint strlen = to!int(str.length);
-  MpiString strbuf;
-  strbuf[0..strlen] = str;
+void MpiBcastString(ref string str) {
+  import std.conv: to;
+
+  char[] strbuf;  
+  int strlen = to!int(str.length);
   MPI_Bcast(&strlen, 1, MPI_INT, M.root, M.comm);
-  retval = MPI_Bcast(&strbuf, strlen, MPI_CHAR, M.root, M.comm);
-  if ( ! M.isRoot ) { 
+  strbuf.length = strlen;
+  if ( M.isRoot() ) {
+    strbuf[0..strlen] = str;
+  }
+  MPI_Bcast(strbuf.ptr, strlen, MPI_CHAR, M.root, M.comm);
+  if ( ! M.isRoot ) {
     str = to!string(strbuf[0..strlen]);
   }
-  return retval;
 }
 
