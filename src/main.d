@@ -66,6 +66,7 @@ import dlbc.versions;
      Zero exit code for success, non-zero exit code for failure.
 */
 int main(string[] args ) {
+  uint t = 0;
   version(unittest) {
     globalVerbosityLevel = VL.Debug;
   }
@@ -116,16 +117,15 @@ int main(string[] args ) {
   // Try and create the local lattice structure.
   auto L = new Lattice!(3)(M);
 
-  //L.red.initRandom();
   L.red.initEquilibriumDensity!d3q19(0.5);
   L.red.exchangeHalo();
-  L.red.dumpField("red");
 
   L.mask.initWallsX();
   L.mask.exchangeHalo();
-  L.mask.dumpField("mask");
 
-  for ( uint t = 1; t <= timesteps; ++t ) {
+  L.dumpData(t);
+
+  for ( t = 1; t <= timesteps; ++t ) {
     writeLogRN("Starting timestep %d", t);
     L.red.exchangeHalo();
     L.red.advectField!d3q19(L.mask, L.advection);
@@ -133,18 +133,7 @@ int main(string[] args ) {
     // writeLogRI("Global mass = %f", L.red.globalMass(L.mask));
     // writeLogRI("Global momentum = %s", L.red.globalMomentum!(d3q19)(L.mask));
 
-    if ( t % 100 == 0 ) {
-      L.red.densityField(L.mask, L.density);
-      L.density.dumpField("red", t);
-      auto v = L.red.velocityField!d3q19(L.mask);
-      v.dumpField("vel",t);
-      foreach(x,y,z,e; v) {
-	if ( z == 2 && y == 8) {
-	  writeLogRD("%d %d %d %d %f", x-v.haloSize, y-v.haloSize, z-v.haloSize, L.mask[x,y,z], e[2]);
-	}
-      }
-
-    }
+    L.dumpData(t);
   }
 
   Timers.main.stop();

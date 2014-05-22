@@ -34,11 +34,10 @@ struct Lattice(size_t dim) {
     return _lengths[2];
   }
 
-  Field!(double[19], dim, 2) red;
+  @("field") Field!(double[19], dim, 2) red;
   typeof(red) advection;
-  // Field!(int, dim, 1) index;
-  Field!(double, dim, 2) density;
-  Field!(Mask, dim, 2) mask;
+  @("field") Field!(double, dim, 2) density;
+  @("field") Field!(Mask, dim, 2) mask;
 
   this ( MpiParams M ) {
     // Check if we can reconcile global lattice size with CPU grid
@@ -57,7 +56,6 @@ struct Lattice(size_t dim) {
 
     red = typeof(red)(lengths);
     advection = typeof(advection)(lengths);
-    // index = typeof(index)(lengths);
     density = typeof(density)(lengths);
     mask = typeof(mask)(lengths);
   }

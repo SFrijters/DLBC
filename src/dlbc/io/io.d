@@ -20,6 +20,9 @@ module dlbc.io.io;
 
 import std.datetime;
 
+import dlbc.lb.connectivity;
+import dlbc.lb.velocity;
+import dlbc.lattice;
 import dlbc.logging;
 import dlbc.io.hdf5;
 import dlbc.timers;
@@ -36,6 +39,20 @@ import dlbc.timers;
    Relative path to create output files at.
 */
 @("param") string outputPath = ".";
+/**
+   From which timestep to start writing files.
+*/
+@("param") int startOutput;
+
+// Automatically add parameters for dumping frequencies of fields of the lattice.
+mixin(makeDumpFreqMixinString());
+
+// Manually add dumping frequencies for derived quantities.
+/**
+   Frequency at which the velocity field should be written to disk.
+*/
+@("param") int velFreq;
+
 /**
    Id of the simulation, based on the time it was started.
    Initialized in the static constructor of the module.
@@ -150,5 +167,84 @@ void dumpField(T)(ref T field, const string name, const uint time = 0) {
     break;
   }
   Timers.io.stop();
+}
+
+/**
+   Dump data to disk, based on the current lattice and the current timestep.
+
+   Params:
+     L = current lattice
+     t = current timestep
+*/
+void dumpData(T)(ref T L, uint t) {
+  if ( t < startOutput ) {
+    return;
+  }
+
+  // Automatically allow lattice quantities to be dumped
+  mixin(makeDumpDataMixinString());
+
+  // Derived quantities
+  if (dumpNow(velFreq,t)) {
+    auto v = L.red.velocityField!d3q19(L.mask);
+    v.dumpField("vel",t);
+  }
+}
+
+/**
+   Data should be dumped if the frequency is larger than zero, and if the
+   current timestep is a multiple of the frequency.
+
+   Params:
+     freq = dumping frequency
+     t = current timestep
+*/
+bool dumpNow(uint freq, uint t) {
+  return ( freq > 0 && ( t % freq == 0 ));
+}
+
+/**
+   Prepare a mixin that creates a frequency variable for all fields of the
+   lattice struct marked with the @("field") UDA.
+*/
+private string makeDumpFreqMixinString() {
+  string mixinString;
+
+  foreach(e ; __traits(derivedMembers, dlbc.lattice.Lattice!(3))) {
+    mixin(`
+      static if ( __traits(compiles, __traits(getAttributes, dlbc.lattice.Lattice!(3).`~e~`))) {
+        foreach( t; __traits(getAttributes, dlbc.lattice.Lattice!(3).`~e~`)) {
+          if ( t == "field" ) {
+            mixinString ~= "/**\n   Frequency at which the `~e~` field should be written to disk.\n*/";
+	    mixinString ~= "@(\"param\") int "~e~"Freq;\n";
+          }
+        }
+      }
+     `);
+  }
+  return mixinString;
+}
+
+/**
+   Prepare a mixin that creates a call to dumpField for all fields of the
+   lattice struct marked with the @("field") UDA.
+*/
+private string makeDumpDataMixinString() {
+  string mixinString;
+
+  foreach(e ; __traits(derivedMembers, dlbc.lattice.Lattice!(3))) {
+    mixin(`
+      static if ( __traits(compiles, __traits(getAttributes, dlbc.lattice.Lattice!(3).`~e~`))) {
+        foreach( t; __traits(getAttributes, dlbc.lattice.Lattice!(3).`~e~`)) {
+          if ( t == "field" ) {
+	    mixinString ~= "if ( dumpNow(`~e~`Freq, t)) {\n";
+	    mixinString ~= "  L.`~e~`.dumpField(\"`~e~`\",t);\n";
+            mixinString ~= "}\n";
+          }
+        }
+      }
+     `);
+  }
+  return mixinString;
 }
 
