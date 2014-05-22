@@ -30,31 +30,33 @@ int main(string[] args ) {
   showCompilerInfo!(VL.Information, LRF.Root);
   showRevisionInfo!(VL.Information, LRF.Root);
 
+  // Prepare for HDF5 output.
   startHDF5();
 
   // Start Main timer.
-  Timers.main = MultiStopWatch("Main");
-  Timers.io = MultiStopWatch("IO");
+  initAllTimers();
   Timers.main.start!(VL.Debug, LRF.None);
 
+  // Read, broadcast, and show parameters.
   if (M.isRoot) {
     readParameterSetFromCliFiles();
   }
   bcastParameters();
   showParameters!(VL.Information, LRF.Root);
 
+  // Set secondary values based on parameters.
+  processParameters();
+
   // Show name and id of the current simulation.
   broadcastSimulationId();
 
+  // Warn if output paths do not exist.
   checkPaths();
-
-  // Set secondary values based on parameters.
-  processParameters();
 
   // Make cartesian grid now that we have values ncx, ncy, ncz everywhere.
   reorderMpi();
 
-  // Init random number generator.
+  // Initialize random number generator.
   initRNG();
 
   // Try and create the local lattice structure.
@@ -69,30 +71,31 @@ int main(string[] args ) {
   L.mask.exchangeHalo();
   L.mask.dumpField("mask");
 
-  Timers.adv = MultiStopWatch("Advection");
-  Timers.coll = MultiStopWatch("Collision");
-
   for ( uint t = 1; t <= timesteps; ++t ) {
     writeLogRN("Starting timestep %d", t);
     L.red.exchangeHalo();
     L.red.advectField!d3q19(L.mask, L.advection);
     L.red.collideField!d3q19(L.mask);
-    writeLogRI("Global mass = %f", L.red.globalMass(L.mask));
-    writeLogRI("Global momentum = %s", L.red.globalMomentum!(d3q19)(L.mask));
+    // writeLogRI("Global mass = %f", L.red.globalMass(L.mask));
+    // writeLogRI("Global momentum = %s", L.red.globalMomentum!(d3q19)(L.mask));
 
     if ( t % 100 == 0 ) {
       L.red.densityField(L.mask, L.density);
       L.density.dumpField("red", t);
-      //L.red.velocityField!d3q19(L.mask);
+      auto v = L.red.velocityField!d3q19(L.mask);
+      v.dumpField("vel",t);
+      foreach(x,y,z,e; v) {
+	if ( z == 2 && y == 8) {
+	  writeLogRD("%d %d %d %d %f", x-v.haloSize, y-v.haloSize, z-v.haloSize, L.mask[x,y,z], e[2]);
+	}
+      }
+
     }
   }
 
   Timers.main.stop();
 
-  Timers.io.showFinal!(VL.Information, LRF.Root);
-  Timers.adv.showFinal!(VL.Information, LRF.Root);
-  Timers.coll.showFinal!(VL.Information, LRF.Root);
-  Timers.main.showFinal!(VL.Information, LRF.Root);
+  showFinalAllTimers!(VL.Information, LRF.Root);
 
   endHDF5();
   endMpi();

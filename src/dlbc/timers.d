@@ -129,3 +129,27 @@ struct MultiStopWatch {
 /// Ditto
 alias MultiStopWatch MSW;
 
+private string createInitAllTimersMixin() {
+  string mixinString;
+  foreach(e ; __traits(allMembers, Timers) ) {
+    mixinString ~= `  Timers.`~e~` = MultiStopWatch("`~e~`");`;
+  }
+  return mixinString;
+}
+
+void initAllTimers() {
+  mixin(createInitAllTimersMixin());
+}
+
+private string createShowFinalAllTimersMixin() {
+  string mixinString;
+  foreach(e ; __traits(allMembers, Timers) ) {
+    mixinString ~= `  Timers.`~e~`.showFinal!(vl, logRankFormat);`;
+  }
+  return mixinString;
+}
+
+void showFinalAllTimers(VL vl, LRF logRankFormat)() {
+  mixin(createShowFinalAllTimersMixin());
+}
+
