@@ -2,6 +2,8 @@ all: dlbc-dmd
 
 test: test-dmd
 
+release: release-dmd
+
 revision: src/dlbc/revision.d
 
 doc: revision doc/*ddoc
@@ -17,7 +19,10 @@ src/unstd/multidimarray.o: src/unstd/generictuple.o src/unstd/multidimarray.d
 	dmd src/unstd/multidimarray.d -I./src -c -ofsrc/unstd/multidimarray.o
 
 dlbc-dmd: revision src/unstd/multidimarray.o
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o -ofdlbc -I./src -O -g -w -inline -noboundscheck
+	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o -ofdlbc -I./src -O -g -w -de
+
+release-dmd: revision src/unstd/multidimarray.o
+	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o -ofdlbc -I./src -unittest -cov -g -w -de -inline -noboundscheck
 
 test-dmd: revision src/unstd/multidimarray.o
 	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o -ofdlbc -I./src -unittest -cov -g -w -de
