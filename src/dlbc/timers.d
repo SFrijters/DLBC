@@ -31,6 +31,7 @@ struct Timers {
   static MSW adv;
   static MSW coll;
   static MSW io;
+  static MSW haloExchange;
 }
 
 /**

@@ -21,6 +21,7 @@ module dlbc.fields.parallel;
 import dlbc.fields.field;
 import dlbc.logging;
 import dlbc.parallel;
+import dlbc.timers;
 
 import unstd.multidimarray;
 
@@ -50,6 +51,8 @@ void exchangeHalo(T)(ref T field, uint haloSize) {
   import std.conv: to;
 
   assert( haloSize <= field.haloSize, "Requested size of halo exchange cannot be larger than halo size of field.");
+
+  Timers.haloExchange.start();
 
   writeLogRD("Performing halo exchange of size %d.", haloSize);
 
@@ -107,6 +110,8 @@ void exchangeHalo(T)(ref T field, uint haloSize) {
   field.sbuffer = field.arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, lls..uls].dup;
   MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, M.comm, &mpiStatus);
   field.arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, $-lur..$-uur] = field.rbuffer;
+
+  Timers.haloExchange.stop();
 }
 
 void exchangeHalo(T)(ref T field) {
