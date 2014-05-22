@@ -480,7 +480,7 @@ string makeHeaderString(T...)(const T args) pure {
 
    Returns: a string with the values in $(D lengths) separated by "x" to denote grid size.
 */
-string makeLengthsString(const size_t[] lengths) pure {
+string makeLengthsString(T : size_t)(const T[] lengths) pure {
   string str;
   foreach( l ; lengths ) {
     if ( str.length > 0 ) {
