@@ -195,6 +195,9 @@ MPI_Datatype mpiTypeof(T)() {
     static if ( is(T : int) ) { // this now also accepts enum
       return MPI_INT;
     }
+    else static if ( is(T : ulong) ) {
+      return MPI_UNSIGNED_LONG;
+    }
     else static if ( is(T == double) ) {
       return MPI_DOUBLE;
     }
