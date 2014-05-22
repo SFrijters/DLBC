@@ -25,13 +25,14 @@ import std.getopt;
 
 import dlbc.logging;
 import dlbc.parameters: parameterFileNames;
+import dlbc.revision;
 
 /**
    Usage help text.
 */
 private auto usage = `
-Parallel implementation of the lattice Boltzmann method for the simulation
-of fluid dynamics.
+DLBC: a parallel implementation of the lattice Boltzmann method
+for the simulation of fluid dynamics.
 
 Usage:
 %s [options]
@@ -39,9 +40,14 @@ Usage:
 Options (defaults in brackets):
   -h                   show this help message and exit
   -p <path>            path to parameter file (can be specified multiple times)
+  -t                   show current time when logging messages
   -v <level>           set verbosity level to one of (Off, Fatal, Error,
                        Warning, Notification, Information, Debug) [%s]
-  -w                   warnings and above are fatal
+  --version            show version and exit
+  -W                   warnings and above are fatal
+
+For more information, visit https://github.com/SFrijters/DLBC, or look
+at the README.md file.
 `;
 
 /**
@@ -52,26 +58,33 @@ Options (defaults in brackets):
 */
 void processCLI(string[] args) {
   bool showHelp = false;
-  auto fileName = args[0];
+  bool showVersion = false;
   if ( args.length <= 1 ) {
     showHelp = true;
   }
-  
-  writeLogRN("Processing command line arguments.");
 
   VL verbosityLevel = getGlobalVerbosityLevel();
 
   getopt( args,
           "h", &showHelp,
           "p|parameterfile", &parameterFileNames,
+	  "t|time", &showTime,
           "v|verbose", &verbosityLevel,
+	  "version", &showVersion,
           "W", &warningsAreFatal,
           );
 
   if ( showHelp ) {
+    import std.stdio: writefln;
     import std.c.stdlib: exit;
-    writeLogRN(makeHeaderString("Usage help:"));
-    writeLogRN(usage, args[0], verbosityLevel);
+    writefln(usage, revisionDesc, args[0], verbosityLevel);
+    exit(0);
+  }
+
+  if ( showVersion ) {
+    import std.stdio: writefln;
+    import std.c.stdlib: exit;
+    writefln("%s", revisionDesc);
     exit(0);
   }
 

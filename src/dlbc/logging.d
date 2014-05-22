@@ -27,7 +27,7 @@ import dlbc.parallel;
 /**
    Show the current time in the various writeLog functions.
 */
-@("param") bool showTime;
+bool showTime;
 
 bool warningsAreFatal = false;
 
@@ -127,7 +127,6 @@ else {
      newVL = new verbosity level
 */
 void setGlobalVerbosityLevel(const VL newVL) {
-  writeLogRN("Setting globalVerbosityLevel to %d ('%s').", newVL, to!string(newVL));
   globalVerbosityLevel = newVL;
 }
 
@@ -141,8 +140,15 @@ VL getGlobalVerbosityLevel() {
 }
 
 /**
+   Report the global verbosity level.
+*/
+void showGlobalVerbosityLevel() {
+  writeLogRN("globalVerbosityLevel is set to %d ('%s').", globalVerbosityLevel, to!string(globalVerbosityLevel));
+}
+
+/**
    Write output to stdout, depending on the verbosity level and which processes are allowed to write.
-   
+
    Params:
      vl = verbosity level to write at
      logRankFormat = which processes should write

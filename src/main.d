@@ -18,13 +18,15 @@ int main(string[] args ) {
     globalVerbosityLevel = VL.Debug;
   }
 
+  // Process the CLI parameters.
+  processCLI(args);
+
   // Any output before startMpi() has been called will be very spammy, so better avoid it.
   startMpi(args);
 
   writeLogRN(makeHeaderString("Starting DLBC on %d CPUs.", M.size));
 
-  // Process the CLI parameters.
-  processCLI(args);
+  showGlobalVerbosityLevel();
 
   // Show build-related information.
   showCompilerInfo!(VL.Information, LRF.Root);

@@ -24,6 +24,3 @@ gnz = 64    // Lattice size z-direction
 [random]
 seed = 42
 
-[logging]
-showTime = true
-
