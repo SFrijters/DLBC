@@ -9,7 +9,7 @@
 
    Authors: Stefan Frijters
 
-Macros:
+   Macros:
 	TR = <tr>$0</tr>
 	TH = <th>$0</th>
 	TD = <td>$0</td>
