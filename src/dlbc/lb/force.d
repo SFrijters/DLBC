@@ -23,7 +23,7 @@ import dlbc.logging;
 
 @("param") double[] globalAcc;
 
-void initForce(alias conn)() {
+void initForce(alias conn, T)(ref T L) {
   if ( globalAcc.length == 0 ) {
     globalAcc.length = conn.dimensions;
     globalAcc[] = 0.0;
@@ -31,9 +31,13 @@ void initForce(alias conn)() {
   else if ( globalAcc.length != conn.dimensions ) {
     writeLogF("Array variable lb.force.globalAcc must have length %d.", conn.dimensions);
   }
+
+  resetForce(L);
 }
 
 void resetForce(T)(ref T L) {
-  L.force[] = 0.0;
+  foreach(ref e; L.force.byElementForward ) {
+    e[] = 0.0;
+  }
 }
 

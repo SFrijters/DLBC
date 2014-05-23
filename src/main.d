@@ -105,8 +105,6 @@ int main(string[] args ) {
   // Show name and id of the current simulation.
   broadcastSimulationId();
 
-  initForce!d3q19();
-
   // Warn if output paths do not exist.
   checkPaths();
 
@@ -118,6 +116,8 @@ int main(string[] args ) {
 
   // Try and create the local lattice structure.
   auto L = new Lattice!(3)(M);
+
+  initForce!d3q19(L);
 
   L.red.initEquilibriumDensity!d3q19(0.5);
   L.red.exchangeHalo();
