@@ -242,7 +242,7 @@ private auto createParameterMixins() {
      Broadcast all parameters from the root process to all other processes.
   */
   `;
-  mixinStringBcast ~= "void bcastParameters() {\n";
+  mixinStringBcast ~= "void bcastParameters() {\n  int arrlen;\n";
   mixinStringBcast ~= "  writeLogRI(\"Distributing parameter set through MPI_Bcast.\");";
 
   foreach(fullModuleName ; parameterSourceModules) {
@@ -291,7 +291,7 @@ private auto createParameterMixins() {
               }
               else {
                 static if ( isArray!(typeof(`~fullModuleName~`.`~e~`))) {
-                  mixinStringBcast ~= "  int arrlen = to!int(" ~ fullName ~".length);\n";
+                  mixinStringBcast ~= "  arrlen = to!int(" ~ fullName ~".length);\n";
                   mixinStringBcast ~= "  MPI_Bcast(&arrlen, 1, mpiTypeof!(typeof(arrlen)), M.root, M.comm);\n";
                   mixinStringBcast ~= "  " ~ fullName ~ ".length = arrlen;\n";
                   mixinStringBcast ~= "  MPI_Bcast(" ~ fullName ~ ".ptr, arrlen, mpiTypeof!(typeof(" ~ fullName ~")), M.root, M.comm);\n";
