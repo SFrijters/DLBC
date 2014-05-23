@@ -293,7 +293,14 @@ private auto createParameterMixins() {
                   mixinStringBcast ~= "  arrlen = to!int(" ~ fullName ~".length);\n";
                   mixinStringBcast ~= "  MPI_Bcast(&arrlen, 1, mpiTypeof!(typeof(arrlen)), M.root, M.comm);\n";
                   mixinStringBcast ~= "  " ~ fullName ~ ".length = arrlen;\n";
-                  mixinStringBcast ~= "  MPI_Bcast(" ~ fullName ~ ".ptr, arrlen, mpiTypeof!(typeof(" ~ fullName ~")), M.root, M.comm);\n";
+                  static if ( is (typeof(`~fullModuleName~`.`~e~`[0]) == string ) ) {
+                    mixinStringBcast ~= "  for ( int i = 0; i < arrlen; i++ ) {\n";
+                    mixinStringBcast ~= "    MpiBcastString("~fullName~"[i]);\n";
+                    mixinStringBcast ~= "}\n";
+                  }
+                  else {
+                    mixinStringBcast ~= "  MPI_Bcast(" ~ fullName ~ ".ptr, arrlen, mpiTypeof!(typeof(" ~ fullName ~")), M.root, M.comm);\n";
+                  }
                 }
                 else {
                   mixinStringBcast ~= "  MPI_Bcast(&" ~ fullName ~ ", 1, mpiTypeof!(typeof(" ~ fullName ~")), M.root, M.comm);\n";
