@@ -269,3 +269,56 @@ unittest {
   assert(approxEqual(density,19*0.1));
 }
 
+/**
+   Calculates the density difference between two fields at every site and stores it either in a pre-allocated field, or returns a new one.
+
+   Params:
+     field1 = field of population vectors
+     field2 = field of population vectors
+     mask = mask field
+     colour = pre-allocated colour field
+
+   Returns:
+     colour field
+*/
+auto colourField(T, U)(ref T field1, ref T field2, ref U mask) {
+  static assert(is(U.type == Mask ) );
+  static assert(field1.dimensions == mask.dimensions);
+  static assert(field2.dimensions == mask.dimensions);
+  assert(field1.lengthsH == mask.lengthsH);
+  assert(field2.lengthsH == mask.lengthsH);
+
+  auto colour = Field!(double, field1.dimensions, field1.haloSize)(field1.lengths);
+  assert(field1.lengthsH == colour.lengthsH);
+
+  foreach(x,y,z, ref pop; field1.arr) {
+    if ( isFluid(mask[x,y,z]) ) {
+      colour[x,y,z] = field1[x,y,z].density() - field2[x,y,z].density();
+    }
+    else {
+      colour[x,y,z] = 0.0;
+    }
+  }
+  return colour;
+}
+
+/// Ditto
+void colourField(T, U, V)(ref T field1, ref T field2, ref U mask, ref V colour) {
+  static assert(is(U.type == Mask ) );
+  static assert(field1.dimensions == field2.dimensions);
+  static assert(field1.dimensions == mask.dimensions);
+  static assert(field1.dimensions == density.dimensions);
+  assert(field1.lengthsH == field2.lengthsH);
+  assert(field1.lengthsH == mask.lengthsH);
+  assert(field1.lengthsH == density.lengthsH);
+
+  foreach(x,y,z, ref pop; field1.arr) {
+    if ( isFluid(mask[x,y,z]) ) {
+      colour[x,y,z] = field1[x,y,z].density() - field2[x,y,z].density();
+    }
+    else {
+      colour[x,y,z] = 0.0;
+    }
+  }
+}
+
