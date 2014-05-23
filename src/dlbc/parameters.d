@@ -99,6 +99,7 @@ private alias TypeTuple!(
                          "dlbc.io.hdf5",
                          "dlbc.io.io",
                          "dlbc.lattice",
+                         "dlbc.lb.force",
                          "dlbc.lb.lb",
                          "dlbc.logging",
                          "dlbc.parallel",

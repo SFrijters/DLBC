@@ -22,6 +22,7 @@ module dlbc.lb.collision;
 import dlbc.fields.field;
 import dlbc.lb.connectivity;
 import dlbc.lb.density;
+import dlbc.lb.force;
 import dlbc.lb.mask;
 import dlbc.lb.velocity;
 import dlbc.timers;
@@ -32,19 +33,25 @@ import dlbc.timers;
    Params:
      field = field of populations
      mask = mask field
+     force = force field
      conn = connectivity
 */
-void collideField(alias conn, T, U)(ref T field, ref U mask) {
-  static assert(is(U.type == Mask ) );
+void collideField(alias conn, T, U, V)(ref T field, ref U mask, ref V force) {
+  static assert(is(U.type == Mask));
+  static assert(field.dimensions == force.dimensions);
   static assert(field.dimensions == mask.dimensions);
+  assert(force.lengthsH == field.lengthsH, "force field and collided field need to have the same size");
   assert(mask.lengthsH == field.lengthsH, "mask and collided field need to have the same size");
+  assert(force.dimensions == conn.dimensions, "force needs to have the same dimension as the connectivity");
+  assert(globalAcc.length == conn.dimensions, "globalAcc needs to have the same dimension as the connectivity");
 
   Timers.coll.start();
 
   enum omega = 1.0;
-  auto dv = [0.0, 0.0, 0.0];
   foreach(x, y, z, ref population; field.arr) { // this includes the halo
     if ( isCollidable(mask[x,y,z]) ) {
+      // We need this temporary variable because direct assignment is not implemented in DMD yet.
+      double[conn.dimensions] dv = globalAcc[] + force[x,y,z][]; 
       population[] -= omega * ( population[] - (eqDist!conn(population, dv))[]);
     }
   }

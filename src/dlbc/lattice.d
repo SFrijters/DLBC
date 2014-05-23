@@ -38,6 +38,7 @@ struct Lattice(size_t dim) {
   typeof(red) advection;
   @("field") Field!(double, dim, 2) density;
   @("field") Field!(Mask, dim, 2) mask;
+  @("field") Field!(double[3], dim, 2) force;
 
   this ( MpiParams M ) {
     // Check if we can reconcile global lattice size with CPU grid
@@ -58,6 +59,7 @@ struct Lattice(size_t dim) {
     advection = typeof(advection)(lengths);
     density = typeof(density)(lengths);
     mask = typeof(mask)(lengths);
+    force = typeof(force)(lengths);
   }
 
   void exchangeHalo() {

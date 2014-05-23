@@ -105,6 +105,8 @@ int main(string[] args ) {
   // Show name and id of the current simulation.
   broadcastSimulationId();
 
+  initForce!d3q19();
+
   // Warn if output paths do not exist.
   checkPaths();
 
@@ -129,7 +131,7 @@ int main(string[] args ) {
     writeLogRN("Starting timestep %d", t);
     L.red.exchangeHalo();
     L.red.advectField!d3q19(L.mask, L.advection);
-    L.red.collideField!d3q19(L.mask);
+    L.red.collideField!d3q19(L.mask, L.force);
     // writeLogRI("Global mass = %f", L.red.globalMass(L.mask));
     // writeLogRI("Global momentum = %s", L.red.globalMomentum!(d3q19)(L.mask));
 
