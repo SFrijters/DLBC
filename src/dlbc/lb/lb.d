@@ -28,4 +28,6 @@ public import dlbc.lb.momentum;
 public import dlbc.lb.velocity;
 
 @("param") int timesteps;
+@("param") int components = 1;
+@("param") string[] fieldNames;
 

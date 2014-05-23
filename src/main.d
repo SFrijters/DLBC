@@ -115,25 +115,34 @@ int main(string[] args ) {
   initRNG();
 
   // Try and create the local lattice structure.
-  auto L = new Lattice!(3)(M);
+  auto L = Lattice!(gconn)(M);
 
-  initForce!d3q19(L);
-
-  L.red.initEquilibriumDensity!d3q19(0.5);
-  L.red.exchangeHalo();
-
+  foreach(ref e; L.fluids) {
+    e.initEquilibriumDensity!gconn(0.5);
+  }
   L.mask.initWallsX();
-  L.mask.exchangeHalo();
-
+  L.force.initConst(0.0);
+  L.exchangeHalo();
   L.dumpData(t);
 
   for ( t = 1; t <= timesteps; ++t ) {
     writeLogRN("Starting timestep %d", t);
-    L.red.exchangeHalo();
-    L.red.advectField!d3q19(L.mask, L.advection);
-    L.red.collideField!d3q19(L.mask, L.force);
+
+    // foreach(ref e; L.fluids) {
+    //   e.exchangeHalo();
+    // }
+    L.exchangeHalo();
+
+    foreach(ref e; L.fluids) {
+      e.advectField!gconn(L.mask, L.advection);
+    }
+
+    foreach(ref e; L.fluids) {
+      e.collideField!gconn(L.mask, L.force);
+    }
+
     // writeLogRI("Global mass = %f", L.red.globalMass(L.mask));
-    // writeLogRI("Global momentum = %s", L.red.globalMomentum!(d3q19)(L.mask));
+    // writeLogRI("Global momentum = %s", L.red.globalMomentum!(gconn)(L.mask));
 
     L.dumpData(t);
   }

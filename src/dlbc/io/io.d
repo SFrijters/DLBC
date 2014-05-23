@@ -20,8 +20,7 @@ module dlbc.io.io;
 
 import std.datetime;
 
-import dlbc.lb.connectivity;
-import dlbc.lb.velocity;
+import dlbc.lb.lb;
 import dlbc.lattice;
 import dlbc.logging;
 import dlbc.io.ascii;
@@ -46,7 +45,7 @@ import dlbc.timers;
 @("param") int startOutput;
 
 // Automatically add parameters for dumping frequencies of fields of the lattice.
-mixin(makeDumpFreqMixinString());
+// mixin(makeDumpFreqMixinString());
 
 // Manually add dumping frequencies for derived quantities.
 /**
@@ -57,6 +56,10 @@ mixin(makeDumpFreqMixinString());
    Frequency at which profiles should be written to disk.
 */
 @("param") int profileFreq;
+/**
+   Frequency at which fluid density fields should be written to disk.
+*/
+@("param") int fluidsFreq;
 
 /**
    Id of the simulation, based on the time it was started.
@@ -187,16 +190,22 @@ void dumpData(T)(ref T L, uint t) {
   }
 
   // Automatically allow lattice quantities to be dumped
-  mixin(makeDumpDataMixinString());
+  // mixin(makeDumpDataMixinString());
 
-  // Derived quantities
-  if (dumpNow(velFreq,t)) {
-    auto v = L.red.velocityField!d3q19(L.mask);
-    v.dumpField("vel",t);
-  }
+  // // Derived quantities
+  // if (dumpNow(velFreq,t)) {
+  //   auto v = L.red.velocityField!gconn(L.mask);
+  //   v.dumpField("vel",t);
+  // }
 
   if (dumpNow(profileFreq,t)) {
     dumpProfiles(L,"profile",t);
+  }
+
+  if (dumpNow(fluidsFreq,t)) {
+    foreach(i, ref e; L.fluids) {
+      e.dumpField(fieldNames[i], t);
+    }
   }
 }
 
@@ -219,10 +228,10 @@ bool dumpNow(uint freq, uint t) {
 private string makeDumpFreqMixinString() {
   string mixinString;
 
-  foreach(e ; __traits(derivedMembers, dlbc.lattice.Lattice!(3))) {
+  foreach(e ; __traits(derivedMembers, dlbc.lattice.Lattice!(gconn))) {
     mixin(`
-      static if ( __traits(compiles, __traits(getAttributes, dlbc.lattice.Lattice!(3).`~e~`))) {
-        foreach( t; __traits(getAttributes, dlbc.lattice.Lattice!(3).`~e~`)) {
+      static if ( __traits(compiles, __traits(getAttributes, dlbc.lattice.Lattice!(gconn).`~e~`))) {
+        foreach( t; __traits(getAttributes, dlbc.lattice.Lattice!(gconn).`~e~`)) {
           if ( t == "field" ) {
             mixinString ~= "/**\n   Frequency at which the `~e~` field should be written to disk.\n*/";
 	    mixinString ~= "@(\"param\") int "~e~"Freq;\n";
@@ -241,10 +250,10 @@ private string makeDumpFreqMixinString() {
 private string makeDumpDataMixinString() {
   string mixinString;
 
-  foreach(e ; __traits(derivedMembers, dlbc.lattice.Lattice!(3))) {
+  foreach(e ; __traits(derivedMembers, dlbc.lattice.Lattice!(gconn))) {
     mixin(`
-      static if ( __traits(compiles, __traits(getAttributes, dlbc.lattice.Lattice!(3).`~e~`))) {
-        foreach( t; __traits(getAttributes, dlbc.lattice.Lattice!(3).`~e~`)) {
+      static if ( __traits(compiles, __traits(getAttributes, dlbc.lattice.Lattice!(gconn).`~e~`))) {
+        foreach( t; __traits(getAttributes, dlbc.lattice.Lattice!(gconn).`~e~`)) {
           if ( t == "field" ) {
 	    mixinString ~= "if ( dumpNow(`~e~`Freq, t)) {\n";
 	    mixinString ~= "  L.`~e~`.dumpField(\"`~e~`\",t);\n";
