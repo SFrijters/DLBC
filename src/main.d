@@ -117,33 +117,46 @@ int main(string[] args ) {
   // Try and create the local lattice structure.
   auto L = Lattice!(gconn)(M);
 
+  initForce!gconn(L);
+
+  // foreach(ref e; L.fluids) {
+  //   e.initEquilibriumDensity!gconn(0.5);
+  // }
+  // L.fluids[0].initEquilibriumDensity!gconn(1.0);
+  // L.fluids[1].initEquilibriumDensity!gconn(0.5);
+
+  // L.fluids[0][2,2,2] = 2.0/gconn.q;
+
   foreach(ref e; L.fluids) {
-    e.initEquilibriumDensity!gconn(0.5);
+    e.initRandomEquilibriumDensity!gconn(0.5);
   }
-  L.mask.initWallsX();
-  L.force.initConst(0.0);
+  
+  //L.mask.initWallsX();
+  L.mask.initConst(Mask.None);
   L.exchangeHalo();
   L.dumpData(t);
 
   for ( t = 1; t <= timesteps; ++t ) {
     writeLogRN("Starting timestep %d", t);
 
-    // foreach(ref e; L.fluids) {
-    //   e.exchangeHalo();
-    // }
-    L.exchangeHalo();
-
     foreach(ref e; L.fluids) {
       e.advectField!gconn(L.mask, L.advection);
     }
+    L.exchangeHalo();
 
-    foreach(ref e; L.fluids) {
-      e.collideField!gconn(L.mask, L.force);
+    L.resetForce();
+    L.addShanChenForce!gconn();
+
+    // L.resetForce();
+    // L.addShanChenForce!gconn();
+
+    foreach(i, ref e; L.fluids) {
+      e.collideField!gconn(L.mask, L.force[i]);
     }
+    L.exchangeHalo(); // Remove one of these?
 
     // writeLogRI("Global mass = %f", L.red.globalMass(L.mask));
     // writeLogRI("Global momentum = %s", L.red.globalMomentum!(gconn)(L.mask));
-
     L.dumpData(t);
   }
 

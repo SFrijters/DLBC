@@ -5,21 +5,32 @@
 // Section headers (corresponding to modules) are enclosed in square brackets.
 
 [io]
-outputFormat = HDF5 
+outputFormat = HDF5
 simulationName = foobar
 outputPath = output
+densityFreq = 100
+velFreq = 100
+fluidsFreq = 100
+forceFreq = 100
 
 [lb]
-timesteps = 100
+timesteps = 10000
+components = 2
+fieldNames = [ "red", "blue" ]
+force.gcc = 0.2
+
+//force.globalAcc = [ 0, 0, 0.0001]
 
 [parallel]
-ncy = 2
+//ncx = 1
+//ncy = 2
 showTopology = true
+//nc = [ 0, 0, 0 ]
 
 [lattice]
-gnx = 16    // Lattice size x-direction
+gnx = 32    // Lattice size x-direction
 gny = 32    // Lattice size y-direction
-gnz = 64    // Lattice size z-direction
+gnz = 32    // Lattice size z-direction
 
 [random]
 seed = 42
