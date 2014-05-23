@@ -60,6 +60,10 @@ import dlbc.timers;
    Frequency at which fluid density fields should be written to disk.
 */
 @("param") int fluidsFreq;
+/**
+   Frequency at which force fields should be written to disk.
+*/
+@("param") int forceFreq;
 
 /**
    Id of the simulation, based on the time it was started.
@@ -204,9 +208,22 @@ void dumpData(T)(ref T L, uint t) {
 
   if (dumpNow(fluidsFreq,t)) {
     foreach(i, ref e; L.fluids) {
-      e.dumpField(fieldNames[i], t);
+      e.densityField(L.mask, L.density);
+      L.density.dumpField(fieldNames[i], t);
     }
   }
+
+  if (dumpNow(forceFreq,t)) {
+    foreach(i, ref e; L.force) {
+      e.dumpField("force"~fieldNames[i], t);
+    }
+  }
+
+  if (dumpNow(fluidsFreq,t)) {
+    auto colour = colourField(L.fluids[0], L.fluids[1], L.mask);
+    colour.dumpField("colour",t);
+  }
+
 }
 
 /**
