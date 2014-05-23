@@ -23,15 +23,15 @@ void initRank(T)(ref T field) {
   }
 }
 
-void initRandom(T)(ref T field) {
+void initRandom(T)(ref T field, const double fill = 1.0) {
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
-	c = uniform(0.0, 1.0, rng) / e.length;
+	c = fill * uniform(0.0, 2.0, rng) / e.length;
       }
     }
     else {
-      e = uniform(0.0, 1.0, rng);
+      e = fill * uniform(0.0, 2.0, rng);
     }
   }
 }
@@ -60,7 +60,18 @@ void initEquilibriumDensity(alias conn, T)(ref T field, const double density) {
     e = pop;
   }
 }
-  
+
+void initRandomEquilibriumDensity(alias conn, T)(ref T field, const double density) {
+  import dlbc.lb.collision;
+  import dlbc.lb.connectivity;
+  double[conn.q] pop0;
+  double[conn.d] dv = 0.0;
+  foreach( ref e; field.byElementForward) {
+    pop0 = [ uniform(0.0, 2.0, rng), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+	     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+    e = density*eqDist!conn(pop0, dv)[];
+  }
+}
 
 void initTubeZ(T)(ref T field) {
   static assert( is (T.type == Mask ) );
