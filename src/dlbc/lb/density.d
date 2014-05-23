@@ -44,7 +44,7 @@ auto density(T)(const ref T population) {
 
 ///
 unittest {
-  double[19] pop = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+  double[gconn.q] pop = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
   		     0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
   auto den = density(pop);
   assert(den == 0.1);
@@ -105,14 +105,14 @@ void densityField(T, U, V)(ref T field, ref U mask, ref V density) {
 
 ///
 unittest {
-  size_t[3] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[19], 3, 2)(lengths);
-  auto mask = Field!(Mask, d3q19.dimensions, 2)(lengths);
+  size_t[gconn.d] lengths = [ 4, 4 ,4 ];
+  auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
+  auto mask = Field!(Mask, gconn.d, 2)(lengths);
   mask.initConst(Mask.None);
 
-  double[19] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
+  double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
   		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
-  double[19] pop2 = [ 1.0, 0.0, -0.1, 0.0, 0.0, 0.0, 0.0,
+  double[gconn.q] pop2 = [ 1.0, 0.0, -0.1, 0.0, 0.0, 0.0, 0.0,
   		     0.1, 0.0, 0.0, 0.8, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
 
   field.initConst(0);
@@ -124,7 +124,7 @@ unittest {
   assert(density1[2,0,1] == 1.9);
   assert(density1[0,1,3] == 0.0);
 
-  auto density2 = Field!(double, 3, 2)(lengths);
+  auto density2 = Field!(double, gconn.d, 2)(lengths);
   densityField(field, mask, density2);
   assert(density2[1,2,3] == 0.5);
   assert(density2[2,0,1] == 1.9);
@@ -159,14 +159,14 @@ auto localMass(T, U)(ref T field, ref U mask) {
 ///
 unittest {
   size_t[3] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[19], 3, 2)(lengths);
+  auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(Mask, d3q19.dimensions, 2)(lengths);
+  auto mask = Field!(Mask, gconn.d, 2)(lengths);
   mask.initConst(Mask.None);
 
   auto mass = localMass(field, mask);
 
-  assert(approxEqual(mass,19*4*4*4*0.1));
+  assert(approxEqual(mass,gconn.q*4*4*4*0.1));
 }
 
 /**
@@ -196,15 +196,15 @@ unittest {
   startMpi([]);
   reorderMpi();
 
-  size_t[3] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[19], d3q19.dimensions, 2)(lengths);
+  size_t[gconn.d] lengths = [ 4, 4 ,4 ];
+  auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(Mask, d3q19.dimensions, 2)(lengths);
+  auto mask = Field!(Mask, gconn.d, 2)(lengths);
   mask.initConst(Mask.None);
 
   auto mass = globalMass(field, mask);
 
-  assert(approxEqual(mass,M.size*19*4*4*4*0.1));
+  assert(approxEqual(mass,M.size*gconn.q*4*4*4*0.1));
 }
 
 /**
@@ -225,15 +225,15 @@ auto localDensity(T, U)(ref T field, ref U mask) {
 
 ///
 unittest {
-  size_t[3] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[19], d3q19.dimensions, 2)(lengths);
+  size_t[gconn.d] lengths = [ 4, 4 ,4 ];
+  auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(Mask, d3q19.dimensions, 2)(lengths);
+  auto mask = Field!(Mask, gconn.d, 2)(lengths);
   mask.initConst(Mask.None);
 
   auto density = localDensity(field, mask);
 
-  assert(approxEqual(density,19*0.1));
+  assert(approxEqual(density,gconn.q*0.1));
 }
 
 /**
@@ -258,10 +258,10 @@ unittest {
   startMpi([]);
   reorderMpi();
 
-  size_t[3] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[19], 3, 2)(lengths);
+  size_t[gconn.d] lengths = [ 4, 4 ,4 ];
+  auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(Mask, d3q19.dimensions, 2)(lengths);
+  auto mask = Field!(Mask, gconn.d, 2)(lengths);
   mask.initConst(Mask.None);
 
   auto density = globalDensity(field, mask);

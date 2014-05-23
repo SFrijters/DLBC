@@ -32,6 +32,11 @@ immutable struct Connectivity(uint _d, uint _q) {
 */
 auto d3q19 = new immutable Connectivity!(3,19);
 
+/**
+   Global connectivity parameter.
+*/
+alias d3q19 gconn;
+
 private auto generateBounce(T)(const T velocities) {
   size_t[velocities.length] bounce;
   int[velocities[0].length] diff;

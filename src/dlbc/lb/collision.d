@@ -97,14 +97,14 @@ auto eqDist(alias conn, T)(const ref T population, const double[] dv) {
 unittest {
   import dlbc.random;
   import std.math: approxEqual;
-  double[d3q19.nvelocities] population, eq;
-  double[d3q19.dimensions] dv = 0.0;
+  double[gconn.q] population, eq;
+  double[gconn.d] dv = 0.0;
   population[] = 0.0;
   for ( int i = 0; i < population.length; i++ ){
     population[i] = uniform(0.0, 1.0, rng);
-    eq = eqDist!d3q19(population, dv);
+    eq = eqDist!gconn(population, dv);
     assert(approxEqual(eq.density(), population.density()));                  // Mass conservation
-    assert(approxEqual(eq.velocity!(d3q19)[],population.velocity!(d3q19)[])); // Momentum conservation
+    assert(approxEqual(eq.velocity!(gconn)[],population.velocity!(gconn)[])); // Momentum conservation
   }
 }
 

@@ -80,10 +80,10 @@ unittest {
   reorderMpi();
 
   if ( M.size == 8 ) {
-    size_t[d3q19.dimensions] lengths = [ 16, 16 ,16 ];
-    auto field = Field!(double[19], d3q19.dimensions, 2)(lengths);
-    auto temp = Field!(double[19], d3q19.dimensions, 2)(lengths);
-    auto mask = Field!(Mask, d3q19.dimensions, 2)(lengths);
+    size_t[gconn.d] lengths = [ 16, 16 ,16 ];
+    auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
+    auto temp = Field!(double[gconn.q], gconn.d, 2)(lengths);
+    auto mask = Field!(Mask, gconn.d, 2)(lengths);
 
     field.initConst(0);
     if ( M.isRoot ) {
@@ -92,7 +92,7 @@ unittest {
     field.exchangeHalo();
     mask.initConst(Mask.None);
     mask.exchangeHalo();
-    field.advectField!d3q19(mask, temp);
+    field.advectField!gconn(mask, temp);
 
     if ( M.rank == 0 ) {
       assert(field[2,2,2][0] == 42);
