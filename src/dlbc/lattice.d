@@ -38,10 +38,11 @@ struct Lattice(alias conn) {
 
   @("field") Field!(double, conn.d, 2) density;
   @("field") Field!(Mask, conn.d, 2) mask;
-  @("field") Field!(double[conn.d], conn.d, 2) force;
 
   @("field") Field!(double[conn.q], conn.d, 2)[] fluids;
   BaseElementType!(typeof(fluids)) advection;
+
+  @("field") Field!(double[conn.d], conn.d, 2)[] force;
 
   this ( MpiParams M ) {
     import std.conv: to;
@@ -60,6 +61,7 @@ struct Lattice(alias conn) {
     this._lengths[2] = nz;
 
     fluids.length = components;
+    force.length = components;
 
     if ( fieldNames.length != components ) {
       writeLogF("Parameter lb.fieldNames needs to have a number of values equal to lb.components.");
@@ -68,10 +70,13 @@ struct Lattice(alias conn) {
     foreach( ref e; fluids ) {
       e = typeof(e)(lengths);
     }
+    foreach( ref e; force ) {
+      e = typeof(e)(lengths);
+    }
     advection = typeof(advection)(lengths);
     density = typeof(density)(lengths);
     mask = typeof(mask)(lengths);
-    force = typeof(force)(lengths);
+
   }
 
   void exchangeHalo() {

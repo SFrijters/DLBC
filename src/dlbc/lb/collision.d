@@ -27,6 +27,8 @@ import dlbc.lb.mask;
 import dlbc.lb.velocity;
 import dlbc.timers;
 
+import dlbc.logging;
+
 /**
    Let the populations of the field collide.
 
@@ -51,7 +53,7 @@ void collideField(alias conn, T, U, V)(ref T field, ref U mask, ref V force) {
   foreach(x, y, z, ref population; field.arr) { // this includes the halo
     if ( isCollidable(mask[x,y,z]) ) {
       // We need this temporary variable because direct assignment is not implemented in DMD yet.
-      double[conn.d] dv = globalAcc[] + force[x,y,z][]; 
+      double[conn.d] dv = globalAcc[] + force[x,y,z][] / population.density(); 
       population[] -= omega * ( population[] - (eqDist!conn(population, dv))[]);
     }
   }
