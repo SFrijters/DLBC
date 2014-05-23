@@ -24,6 +24,7 @@ import dlbc.lb.connectivity;
 import dlbc.lb.velocity;
 import dlbc.lattice;
 import dlbc.logging;
+import dlbc.io.ascii;
 import dlbc.io.hdf5;
 import dlbc.timers;
 
@@ -52,6 +53,10 @@ mixin(makeDumpFreqMixinString());
    Frequency at which the velocity field should be written to disk.
 */
 @("param") int velFreq;
+/**
+   Frequency at which profiles should be written to disk.
+*/
+@("param") int profileFreq;
 
 /**
    Id of the simulation, based on the time it was started.
@@ -188,6 +193,10 @@ void dumpData(T)(ref T L, uint t) {
   if (dumpNow(velFreq,t)) {
     auto v = L.red.velocityField!d3q19(L.mask);
     v.dumpField("vel",t);
+  }
+
+  if (dumpNow(profileFreq,t)) {
+    dumpProfiles(L,"profile",t);
   }
 }
 
