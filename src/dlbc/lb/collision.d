@@ -42,8 +42,8 @@ void collideField(alias conn, T, U, V)(ref T field, ref U mask, ref V force) {
   static assert(field.dimensions == mask.dimensions);
   assert(force.lengthsH == field.lengthsH, "force field and collided field need to have the same size");
   assert(mask.lengthsH == field.lengthsH, "mask and collided field need to have the same size");
-  assert(force.dimensions == conn.dimensions, "force needs to have the same dimension as the connectivity");
-  assert(globalAcc.length == conn.dimensions, "globalAcc needs to have the same dimension as the connectivity");
+  assert(force.dimensions == conn.d, "force needs to have the same dimension as the connectivity");
+  assert(globalAcc.length == conn.d, "globalAcc needs to have the same dimension as the connectivity");
 
   Timers.coll.start();
 
@@ -51,7 +51,7 @@ void collideField(alias conn, T, U, V)(ref T field, ref U mask, ref V force) {
   foreach(x, y, z, ref population; field.arr) { // this includes the halo
     if ( isCollidable(mask[x,y,z]) ) {
       // We need this temporary variable because direct assignment is not implemented in DMD yet.
-      double[conn.dimensions] dv = globalAcc[] + force[x,y,z][]; 
+      double[conn.d] dv = globalAcc[] + force[x,y,z][]; 
       population[] -= omega * ( population[] - (eqDist!conn(population, dv))[]);
     }
   }
@@ -80,7 +80,7 @@ auto eqDist(alias conn, T)(const ref T population, const double[] dv) {
 
   immutable auto rho0 = population.density();
   immutable auto pv = population.velocity!(conn)(rho0);
-  double[conn.dimensions] v = dv[] + pv[];
+  double[conn.d] v = dv[] + pv[];
   enum css = 1.0/3.0;
 
   auto immutable vdotv = v.dotProduct(v);

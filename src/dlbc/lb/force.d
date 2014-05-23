@@ -25,11 +25,11 @@ import dlbc.logging;
 
 void initForce(alias conn, T)(ref T L) {
   if ( globalAcc.length == 0 ) {
-    globalAcc.length = conn.dimensions;
+    globalAcc.length = conn.d;
     globalAcc[] = 0.0;
   }
-  else if ( globalAcc.length != conn.dimensions ) {
-    writeLogF("Array variable lb.force.globalAcc must have length %d.", conn.dimensions);
+  else if ( globalAcc.length != conn.d ) {
+    writeLogF("Array variable lb.force.globalAcc must have length %d.", conn.d);
   }
 
   resetForce(L);

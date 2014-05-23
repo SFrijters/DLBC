@@ -52,9 +52,9 @@ void initConst(T, U)(ref T field, const U fill) {
 void initEquilibriumDensity(alias conn, T)(ref T field, const double density) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
-  double[conn.nvelocities] pop0 = [ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+  double[conn.q] pop0 = [ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 				    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-  double[field.dimensions] dv = 0.0;
+  double[conn.d] dv = 0.0;
   typeof(pop0) pop = density*eqDist!conn(pop0, dv)[];
   foreach( ref e; field.byElementForward) {
     e = pop;

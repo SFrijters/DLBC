@@ -40,7 +40,7 @@ auto velocity(alias conn, T)(const ref T population, const double density) {
   auto immutable cv = conn.velocities;
   static assert(population.length == cv.length);
 
-  double[conn.dimensions] vel = 0.0;
+  double[conn.d] vel = 0.0;
   foreach(i, e; population) {
     vel[0] += e * cv[i][0];
     vel[1] += e * cv[i][1];
@@ -89,7 +89,7 @@ auto velocityField(alias conn, T, U)(ref T field, ref U mask) {
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
 
-  auto velocity = Field!(double[conn.dimensions], field.dimensions, field.haloSize)(field.lengths);
+  auto velocity = Field!(double[conn.d], field.dimensions, field.haloSize)(field.lengths);
   assert(field.lengthsH == velocity.lengthsH);
 
   foreach(x,y,z, ref pop; field.arr) {
