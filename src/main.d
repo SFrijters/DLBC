@@ -145,7 +145,9 @@ int main(string[] args ) {
     L.exchangeHalo();
 
     L.resetForce();
-    L.addShanChenForce!gconn();
+    if ( enableShanChen ) {
+      L.addShanChenForce!gconn();
+    }
 
     // L.resetForce();
     // L.addShanChenForce!gconn();

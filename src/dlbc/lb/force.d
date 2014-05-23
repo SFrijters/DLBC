@@ -28,7 +28,11 @@ import dlbc.lb.lb;
 
 @("param") double[] globalAcc;
 
-@("param") double gcc = 0.0;
+@("param") bool enableShanChen;
+
+@("param") double[] gcc;
+
+double[][] gccm;
 
 void initForce(alias conn, T)(ref T L) {
   if ( globalAcc.length == 0 ) {
@@ -37,6 +41,38 @@ void initForce(alias conn, T)(ref T L) {
   }
   else if ( globalAcc.length != conn.d ) {
     writeLogF("Array variable lb.force.globalAcc must have length %d.", conn.d);
+  }
+
+  if ( enableShanChen ) {
+    if ( gcc.length == 0 ) {
+      gcc.length = components;
+      globalAcc[] = 0.0;
+    }
+    else if ( gcc.length != components * components ) {
+      writeLogRD("%d",gcc.length);
+      writeLogF("Array variable lb.force.gcc must have length %d.", components * components);
+    }
+
+    gccm.length = components;
+    import std.string;
+    string header = "Shan-Chen enabled - interaction matrix:\n\n         ";
+    string lines;
+    for(int i = 0; i < components; i++ ) {
+      header ~= format("%8d ",i);
+      lines ~= format("%8d ",i);
+      gccm[i].length = components;
+      for(int j = 0; j < components; j++ ) {
+        gccm[i][j] = gcc[i+j*components];
+        lines ~= format("%8f ",gccm[i][j]);
+        if ( i > j ) {
+          if ( gccm[i][j] != gccm[j][i] ) {
+            writeLogRW("Shan-Chen interaction not symmetric.");
+          }
+        }
+      }
+      lines ~= "\n";
+    }
+    writeLogRI(header ~ "\n" ~ lines);
   }
 
   L.resetForce();
@@ -54,7 +90,8 @@ void addShanChenForce(alias conn, T)(ref T L) {
   double[conn.d] df;
   for( int nc1 = 0; nc1 < L.fluids.length; nc1++ ) {
     for( int nc2 = 0; nc2 < L.fluids.length; nc2++ ) { // no self-interaction
-      if ( nc1 == nc2 ) continue;
+      auto cc = gccm[nc1][nc2];
+      if ( cc == 0.0 ) continue;
       foreach( x, y, z, ref force ; L.force[nc1] ) {
 	if ( isCollidable(L.mask[x,y,z]) ) {
 	  auto psiden1 = psi(L.fluids[nc1][x,y,z].density());
@@ -64,9 +101,9 @@ void addShanChenForce(alias conn, T)(ref T L) {
 	    auto nbz = z-cv[i][2];
 	    if ( ! isBounceBack(L.mask[nbx,nby,nbz]) ) {
 	      auto psiden2 = psi(L.fluids[nc2][nbx,nby,nbz].density());
-	      force[0] += psiden1 * psiden2 * gcc * cv[i][0]; // minus and minus from inverted cv
-	      force[1] += psiden1 * psiden2 * gcc * cv[i][1];
-	      force[2] += psiden1 * psiden2 * gcc * cv[i][2];
+	      force[0] += psiden1 * psiden2 * cc * cv[i][0]; // minus and minus from inverted cv
+	      force[1] += psiden1 * psiden2 * cc * cv[i][1];
+	      force[2] += psiden1 * psiden2 * cc * cv[i][2];
 	    }
 	  }
 	}
