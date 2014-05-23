@@ -18,23 +18,45 @@
 
 module dlbc.lb.force;
 
-import dlbc.lb.density;
-import dlbc.lb.mask;
+import dlbc.lb.lb;
 import dlbc.fields.init;
 import dlbc.lattice;
 import dlbc.logging;
 
-import dlbc.lb.lb;
-
+/**
+   Global acceleration.
+*/
 @("param") double[] globalAcc;
 
+/**
+   Toggle Shan-Chen style interactions between fluids.
+*/
 @("param") bool enableShanChen;
 
+/**
+   Array of interaction strength parameters for the Shan-Chen model.
+   This array will be transformed into a square array, so the length
+   should be equal to lb.components * lb.components.
+*/
 @("param") double[] gcc;
 
-double[][] gccm;
+/**
+   Shan-Chen interaction strength parameters in matrix form.
+*/
+private double[][] gccm;
 
+/**
+   Initialisation of the force systems. This should be run before the time loop starts.
+   
+   The forces to be applied to the fluids L.fluids are stored in L.force.
+  
+   Params:
+     L = lattice
+     conn = connectivity
+*/
 void initForce(alias conn, T)(ref T L) {
+  // Firstly, the acceleration vector is checked for length, and a default 0 vector
+  // is initialised if necessary.
   if ( globalAcc.length == 0 ) {
     globalAcc.length = conn.d;
     globalAcc[] = 0.0;
@@ -43,16 +65,18 @@ void initForce(alias conn, T)(ref T L) {
     writeLogF("Array variable lb.force.globalAcc must have length %d.", conn.d);
   }
 
+  // If the Shan-Chen model is enabled, some more prep is needed.
   if ( enableShanChen ) {
-    if ( gcc.length == 0 ) {
-      gcc.length = components;
-      globalAcc[] = 0.0;
-    }
-    else if ( gcc.length != components * components ) {
+    // Again, we need to check the length of a vector.
+    // Shan-Chen model with only zero interaction strength is pointless, so there is
+    // no default initialisation for this vector.
+    if ( gcc.length != components * components ) {
       writeLogRD("%d",gcc.length);
       writeLogF("Array variable lb.force.gcc must have length %d.", components * components);
     }
 
+    // It's convenient to store the interaction strengths in matrix form, and
+    // at this point we also show the matrix and warn for asymmetry if necessary.
     gccm.length = components;
     import std.string;
     string header = "Shan-Chen enabled - interaction matrix:\n\n         ";
@@ -75,33 +99,58 @@ void initForce(alias conn, T)(ref T L) {
     writeLogRI(header ~ "\n" ~ lines);
   }
 
+  // Because doubles are initialised as NaNs we set zeros here.
   L.resetForce();
 }
 
+/**
+   Reset all force arrays L.force[] to zero.
+
+   Params:
+     L = lattice
+*/
 void resetForce(T)(ref T L) {
   foreach( ref e; L.force) {
     e.initConst(0.0);
   }
 }
 
+/**
+   Add the Shan-Chen force to force arrays L.force[].
+   The force is calculated according to \(\vec{F}^c = - \Psi(\rho(\vec{x})) \sum_{c'} g_{cc'} \sum_{\vec{x}'} \Psi(\rho(\vec{x}'))(\vec{x} -\vec{x}')\),
+   where \(c'\) runs over all fluid species and \(\vec{x}'\) runs over all connected lattice sites.
+   Note that self-interaction is possible if \(g_{cc} \ne 0\).
+
+   Params:
+     L = lattice
+     conn = connectivity
+
+   Todo: adapt isBounceBack restriction to implement wetting walls.
+*/
 void addShanChenForce(alias conn, T)(ref T L) {
   auto cv = conn.velocities;
   auto cw = conn.weights;
   double[conn.d] df;
+  // Do all combinations of two fluids.
   for( int nc1 = 0; nc1 < L.fluids.length; nc1++ ) {
-    for( int nc2 = 0; nc2 < L.fluids.length; nc2++ ) { // no self-interaction
+    for( int nc2 = 0; nc2 < L.fluids.length; nc2++ ) {
+      // This interaction has a particular coupling constant.
       auto cc = gccm[nc1][nc2];
+      // Skip zero interactions.
       if ( cc == 0.0 ) continue;
       foreach( x, y, z, ref force ; L.force[nc1] ) {
+        // Only do lattice sites on which collision will take place.
 	if ( isCollidable(L.mask[x,y,z]) ) {
 	  auto psiden1 = psi(L.fluids[nc1][x,y,z].density());
 	  foreach( i, ref c; cv ) {
 	    auto nbx = x-cv[i][0];
 	    auto nby = y-cv[i][1];
 	    auto nbz = z-cv[i][2];
+            // Only do lattice sites that are not walls.
 	    if ( ! isBounceBack(L.mask[nbx,nby,nbz]) ) {
 	      auto psiden2 = psi(L.fluids[nc2][nbx,nby,nbz].density());
-	      force[0] += psiden1 * psiden2 * cc * cv[i][0]; // minus and minus from inverted cv
+              // The SC force function.
+	      force[0] += psiden1 * psiden2 * cc * cv[i][0];
 	      force[1] += psiden1 * psiden2 * cc * cv[i][1];
 	      force[2] += psiden1 * psiden2 * cc * cv[i][2];
 	    }
@@ -112,7 +161,15 @@ void addShanChenForce(alias conn, T)(ref T L) {
   }
 }
 
-private double psi(double den) {
+/**
+   Default form for the Shan-Chen \(\Psi\) function: \(\Psi(\rho) = 1 - e^{-\rho}\).
+
+   Params:
+     den = density \(\rho\)
+
+   Returns: \(\Psi(\rho)\).
+*/
+double psi(double den) pure nothrow @safe {
   import std.math;
   return ( 1.0 - exp(-den) );
 }
