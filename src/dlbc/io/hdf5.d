@@ -21,6 +21,7 @@ module dlbc.io.hdf5;
 public import hdf5.hdf5;
 
 import std.string: toStringz;
+import std.traits;
 
 import dlbc.io.io;
 import dlbc.lattice: gnx, gny, gnz;
@@ -36,6 +37,9 @@ import dlbc.range;
 private bool hdf5HasStarted = false;
 
 private immutable auto defaultDatasetName = "/OutArray";
+private immutable auto defaultInputFileGName = "input";
+private immutable auto defaultMetadataGName = "metadata";
+private immutable auto defaultGlobalsGName = "globals";
 
 /**
    This function wraps a call to $(D H5open()) to start up HDF5 and reports the version of the HDF5 library.
@@ -217,12 +221,79 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0) {
   H5Pclose(dxpl_id);
   H5Fclose(file_id);
 
-  // ! Call subroutine which adds the metadata, now the raw dataset exists
-  // ! Only possible from one processor
-  // if (myrankc .eq. 0 ) then
-  //   if (dbg_report_hdf5) call log_msg("HDF writing metadata")
-  //   call lbe_write_attr_phdf5(filename, dsetname, attrname)
-  //   if (dbg_report_hdf5) call log_msg("HDF finished writing metadata")
-  // end if
+  if ( M.isRoot() ) {
+    file_id = H5Fopen(fileName, H5F_ACC_RDWR, H5P_DEFAULT);
+    dataset_id = H5Dopen2(file_id, datasetName,  H5P_DEFAULT);
+    // string test = "testint";
+    // int testi = 42;
+    // dumpAttributeHDF5(testi, test, dataset_id);
+    // test = "teststr";
+    // string tests = "testa";
+    // dumpAttributeHDF5(tests, test, dataset_id);
+    dumpInputFileAttribute(dataset_id);
+    H5Dclose(dataset_id);    
+    H5Fclose(file_id);
+  }
+}
+
+/**
+   Dump a single piece of data as an attribute to an HDF5 file.
+
+   Params:
+     data = data to write
+     name = name of the attribute
+     loc_id = id of the location to attach to
+*/
+void dumpAttributeHDF5(T)(const T data, const string name, hid_t loc_id) {
+  auto attrname = name.toStringz();
+  hid_t sid, aid, type;
+  static if ( is (T == string ) ) {
+    hsize_t length[] = [ 1 ];
+    auto attrdata = data.toStringz();
+    type = H5Tcopy (H5T_C_S1);
+    H5Tset_size (type, H5T_VARIABLE);
+    sid = H5Screate_simple(1, length.ptr, null);
+    aid = H5Acreate2(loc_id, attrname, type, sid, H5P_DEFAULT, H5P_DEFAULT);
+    H5Awrite(aid, type, &attrdata);
+    H5Tclose(type);
+  }
+  else static if ( is (T : int ) ){
+    hsize_t length[] = [ 1 ];
+    sid = H5Screate_simple(1, length.ptr, null);
+    aid = H5Acreate2(loc_id, attrname, H5T_NATIVE_INT, sid, H5P_DEFAULT, H5P_DEFAULT);
+    H5Awrite(aid, H5T_NATIVE_INT, &data);
+  }
+  else {
+    static assert(0);
+  }
+  H5Aclose(aid);
+  H5Sclose(sid);
+}
+
+/**
+   Dump the contents of the input file as an attribute.
+
+   Params:
+     loc_id = id of the locataion to attach to
+*/
+void dumpInputFileAttribute(hid_t loc_id) {
+  import dlbc.parameters: inputFileData;
+  hid_t sid, aid, type;
+  auto attrname = defaultInputFileGName.toStringz();
+  hsize_t length[] = [ inputFileData.length ];
+
+  immutable(char)*[] stringz;
+  stringz.length = inputFileData.length;
+  foreach(i, e; inputFileData) {
+    stringz[i] = e.toStringz();
+  }
+  type = H5Tcopy(H5T_C_S1);
+  H5Tset_size(type, H5T_VARIABLE);
+  sid = H5Screate_simple(1, length.ptr, null);
+  aid = H5Acreate2(loc_id, attrname, type, sid, H5P_DEFAULT, H5P_DEFAULT);
+  H5Awrite(aid, type, stringz.ptr);
+  H5Tclose(type);
+  H5Aclose(aid);
+  H5Sclose(sid);
 }
 

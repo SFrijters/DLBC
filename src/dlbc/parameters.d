@@ -85,6 +85,11 @@ mixin(createImports());
 string[] parameterFileNames;
 
 /**
+   Lines of the input files.
+*/
+string[] inputFileData;
+
+/**
    The UDA to be used to denote a parameter variable.
 */
 static immutable string parameterUDA = "param";
@@ -196,7 +201,9 @@ private void readParameterSetFromFile(const string fileName) {
 
   size_t ln = 0;
   while(!f.eof()) {
-    parseParameter(f.readLine(),++ln,currentSection);
+    auto line = f.readLine();
+    inputFileData ~= to!string(line);
+    parseParameter(line,++ln,currentSection);
   }
   f.close();
 }
