@@ -123,8 +123,6 @@ size_t hdf5Lengthof(T)() {
    Params:
      field = field to be written
      name = name of the field, to be used in the file name
-
-   Todo: Add support for attributes.
 */
 void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0) {
   herr_t e;
@@ -261,6 +259,105 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0) {
     // H5Gclose(root_id);
     // H5Fclose(file_id);
   }
+}
+
+/**
+   Read a field from disk using HDF5.
+
+   Params:
+     field = field to be read
+     fileName = name of the file to be read from
+*/
+void readFieldHDF5(T)(ref T field, const string fileName) {
+  herr_t e;
+
+  hsize_t[] dimsg;
+  hsize_t[] dimsl;
+  hsize_t[] count;
+  hsize_t[] stride;
+  hsize_t[] block;
+  hsize_t[] start;
+  hsize_t[] arrstart;
+
+  auto type_id = hdf5Typeof!(T.type);
+
+  auto ndim = field.dimensions;
+  assert(ndim == 3, "dumpFieldHDF5 not implemented for ndim != 3");
+
+  auto typeLen = LengthOf!(T.type);
+
+  if ( typeLen > 1 ) {
+    ndim++; // One more dimension to store the vector component.
+    dimsg = [ gnx, gny, gnz, typeLen ];
+    dimsl = [ field.nxH, field.nyH, field.nzH, typeLen ];
+    count = [ 1, 1, 1, 1 ];
+    stride = [ 1, 1, 1, 1 ];
+    block = [ field.nx, field.ny, field.nz, typeLen ];
+    start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz, 0 ];
+    arrstart = [ field.haloSize, field.haloSize, field.haloSize, 0 ];
+  }
+  else {
+    dimsg = [ gnx, gny, gnz ];
+    dimsl = [ field.nxH, field.nyH, field.nzH ];
+    count = [ 1, 1, 1 ];
+    stride = [ 1, 1, 1 ];
+    block = [ field.nx, field.ny, field.nz ];
+    start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz ];
+    arrstart = [ field.haloSize, field.haloSize, field.haloSize ];
+  }
+
+  MPI_Info info = MPI_INFO_NULL;
+
+  auto fileNameString = makeFilenameOutput!(FileFormat.HDF5)(name, time);
+  auto fileName = fileNameString.toStringz();
+
+  writeLogRI("HDF attempting to write to file '%s'.", fileNameString);
+
+  // if (hdf_use_ibm_largeblock_io) then
+  //   if (dbg_report_hdf5) call log_msg("HDF using IBM_largeblock_io")
+  //   call MPI_Info_create(info, err)
+  //   call MPI_Info_set(info, "IBM_largeblock_io", "true", err)
+  // end if
+
+  // Create the file collectively.
+  auto fapl_id = H5Pcreate(H5P_FILE_ACCESS);
+  H5Pset_fapl_mpio(fapl_id, M.comm, info);
+  auto file_id = H5Fopen(fileName, H5F_ACC_RDONLY, fapl_id);
+  H5Pclose(fapl_id);
+
+  // Create the data spaces for the dataset, using global and local size
+  // (including halo!), respectively.
+  // auto filespace = H5Screate_simple(ndim, dimsg.ptr, null);
+  // auto memspace = H5Screate_simple(ndim, dimsl.ptr, null);
+
+  auto datasetName = defaultDatasetName.toStringz();
+  auto dataset_id = H5Dopen(file_id, datasetName, H5P_DEFAULT);
+
+  auto filespace = H5Dget_space(dataset_id);
+
+  // H5Sclose(filespace);
+
+
+  // filespace = H5Dget_space(dataset_id);
+  // In the filespace, we have an offset to make sure we write in the correct chunk.
+  e = H5Sselect_hyperslab(filespace, H5S_seloper_t.H5S_SELECT_SET, start.ptr, stride.ptr, count.ptr, block.ptr);
+  // In the memspace, we cut off the halo region.
+
+  auto memspace = H5Screate_simple(ndim, dimsl.ptr, null);
+  e = H5Sselect_hyperslab(memspace, H5S_seloper_t.H5S_SELECT_SET, arrstart.ptr, stride.ptr, count.ptr, block.ptr);
+
+  // Set up for collective IO.
+  auto dxpl_id = H5Pcreate(H5P_DATASET_XFER);
+  e = H5Pset_dxpl_mpio(dxpl_id, H5FD_mpio_xfer_t.H5FD_MPIO_COLLECTIVE);
+
+  H5Dread(dataset_id, type_id, memspace, filespace, dxpl_id, field.arr._data.ptr);
+
+  // Close all remaining handles.
+  H5Sclose(filespace);
+  H5Sclose(memspace);
+  H5Dclose(dataset_id);
+  H5Pclose(dxpl_id);
+  H5Fclose(file_id);
 }
 
 /**
