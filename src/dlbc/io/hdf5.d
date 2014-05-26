@@ -232,7 +232,8 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0) {
 
     // Write the global state
     auto group_id = H5Gcreate2(root_id, "globals", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    dumpAttributeHDF5(time, "time", group_id);
+    dumpAttributeHDF5(time + 42, "time", group_id);
+    dumpAttributeHDF5(34.5, "thingie", group_id);
     H5Gclose(group_id);
 
     // Write the metadata
@@ -246,6 +247,19 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0) {
 
     H5Gclose(root_id);
     H5Fclose(file_id);
+
+    // file_id = H5Fopen(fileName, H5F_ACC_RDWR, H5P_DEFAULT);
+    // root_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
+    // group_id = H5Gopen2(root_id, "globals", H5P_DEFAULT);
+    // int bla = readAttributeHDF5!int("time", group_id);
+    // auto bla2 = readAttributeHDF5!double("thingie", group_id);
+    // H5Gclose(group_id);
+    // group_id = H5Gopen2(root_id, "metadata", H5P_DEFAULT);
+    // auto bla3 = readAttributeHDF5!string("revisionDesc", group_id);
+    // writeLogRD("%s", bla3);
+    // H5Gclose(group_id);
+    // H5Gclose(root_id);
+    // H5Fclose(file_id);
   }
 }
 
@@ -270,17 +284,61 @@ void dumpAttributeHDF5(T)(const T data, const string name, hid_t loc_id) {
     H5Awrite(aid, type, &attrdata);
     H5Tclose(type);
   }
-  else static if ( is (T : int ) ){
+  else {
     hsize_t length[] = [ 1 ];
     sid = H5Screate_simple(1, length.ptr, null);
-    aid = H5Acreate2(loc_id, attrname, H5T_NATIVE_INT, sid, H5P_DEFAULT, H5P_DEFAULT);
-    H5Awrite(aid, H5T_NATIVE_INT, &data);
-  }
-  else {
-    static assert(0);
+    aid = H5Acreate2(loc_id, attrname, hdf5Typeof!T, sid, H5P_DEFAULT, H5P_DEFAULT);
+    H5Awrite(aid, hdf5Typeof!T, &data);
   }
   H5Aclose(aid);
   H5Sclose(sid);
+}
+
+/**
+   Read a single piece of data from an attribute of an HDF5 file.
+
+   Params:
+     name = name of the attribute
+     loc_id = id of the group
+*/
+T readAttributeHDF5(T)(const string name, hid_t loc_id) {
+  import std.conv: to;
+
+  auto attrname = name.toStringz();
+  hid_t sid, aid;
+  static if ( is (T == string ) ) {
+    auto type = H5Tcopy (H5T_C_S1);
+    H5Tset_size (type, H5T_VARIABLE);
+    auto att = H5Aopen_by_name(loc_id, ".", attrname, H5P_DEFAULT, H5P_DEFAULT);
+    auto ftype = H5Aget_type(att);
+    auto type_class = H5Tget_class (ftype);
+    auto dataspace = H5Aget_space(att);
+
+    hsize_t[] dims;
+    dims.length = 1;
+    H5Sget_simple_extent_dims(dataspace, dims.ptr, null);
+ 
+    char*[] chars;
+    chars.length = dims[0];
+    type = H5Tget_native_type(ftype, H5T_direction_t.H5T_DIR_ASCEND);
+    H5Aread(att, type, chars.ptr);
+
+    H5Sclose(dataspace);
+    H5Tclose(ftype);
+    H5Aclose(att);
+    H5Tclose(type);
+    return to!string(chars[0]);
+  }
+  else {
+    hsize_t length[] = [ 1 ];
+    T result;
+    sid = H5Screate_simple(1, length.ptr, null);
+    aid = H5Aopen_by_name(loc_id, ".", attrname, H5P_DEFAULT, H5P_DEFAULT);
+    H5Aread(aid, hdf5Typeof!T, &result);
+    H5Aclose(aid);
+    H5Sclose(sid);
+    return result;
+  }
 }
 
 /**
