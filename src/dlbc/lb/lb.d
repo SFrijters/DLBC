@@ -31,3 +31,5 @@ public import dlbc.lb.velocity;
 @("param") int components = 1;
 @("param") string[] fieldNames;
 
+uint timestep = 0;
+

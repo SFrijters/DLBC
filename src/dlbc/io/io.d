@@ -40,6 +40,10 @@ import dlbc.timers;
 */
 @("param") string outputPath = ".";
 /**
+   Relative path to create output files at.
+*/
+@("param") string cpPath = ".";
+/**
    From which timestep to start writing files.
 */
 @("param") int startOutput;
@@ -64,6 +68,10 @@ import dlbc.timers;
    Frequency at which force fields should be written to disk.
 */
 @("param") int forceFreq;
+/**
+   Frequency at which checkpoints should be written to disk.
+*/
+@("param") int cpFreq;
 
 /**
    Id of the simulation, based on the time it was started.
@@ -112,6 +120,8 @@ void broadcastSimulationId() {
 */
 void checkPaths() {
   outputPath.isValidPath();
+  auto fullCpPath = outputPath~"/"~cpPath;
+  fullCpPath.isValidPath();
 }
 
 /**
@@ -158,6 +168,23 @@ string makeFilenameOutput(FileFormat fileFormat)(const string name, const uint t
     static assert(0, "File name extension not specified for this file format.");
   }
   return format("%s/%s-%s-t%08d-%s.%s", outputPath, name, simulationName, time, simulationId, ext);
+}
+
+string makeFilenameCpOutput(FileFormat fileFormat)(const string name, const uint time) {
+  import std.string;
+
+  assert( simulationIdIsBcast, "Do not attempt to create a file name without first calling broadcastSimulationId() once.");
+
+  static if ( fileFormat == FileFormat.Ascii ) {
+    immutable string ext = "asc";
+  }
+  else static if ( fileFormat == FileFormat.HDF5 ) {
+    immutable string ext = "h5";
+  }
+  else {
+    static assert(0, "File name extension not specified for this file format.");
+  }
+  return format("%s/%s/%s-%s-t%08d-%s.%s", outputPath, cpPath, name, simulationName, time, simulationId, ext);
 }
 
 /**
@@ -309,3 +336,10 @@ private string makeDumpDataMixinString() {
   return mixinString;
 }
 
+void dumpCheckpoint(T)(ref T L, uint t) {
+  if (dumpNow(cpFreq,t)) {
+    foreach(i, ref e; L.fluids) {
+      e.dumpFieldHDF5("cp-"~fieldNames[i], t, true);
+    }
+  }
+}

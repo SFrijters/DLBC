@@ -66,7 +66,6 @@ import dlbc.versions;
      Zero exit code for success, non-zero exit code for failure.
 */
 int main(string[] args ) {
-  uint t = 0;
   version(unittest) {
     globalVerbosityLevel = VL.Debug;
   }
@@ -135,10 +134,11 @@ int main(string[] args ) {
 
   L.mask.dumpField("mask", 0);
   L.exchangeHalo();
-  L.dumpData(t);
+  L.dumpData(timestep);
+  L.dumpCheckpoint(timestep);
 
-  for ( t = 1; t <= timesteps; ++t ) {
-    writeLogRN("Starting timestep %d", t);
+  for ( timestep = 1; timestep <= timesteps; ++timestep ) {
+    writeLogRN("Starting timestep %d", timestep);
 
     foreach(ref e; L.fluids) {
       e.advectField!gconn(L.mask, L.advection);
@@ -160,7 +160,8 @@ int main(string[] args ) {
 
     // writeLogRI("Global mass = %f", L.red.globalMass(L.mask));
     // writeLogRI("Global momentum = %s", L.red.globalMomentum!(gconn)(L.mask));
-    L.dumpData(t);
+    L.dumpData(timestep);
+    L.dumpCheckpoint(timestep);
   }
 
   Timers.main.stop();

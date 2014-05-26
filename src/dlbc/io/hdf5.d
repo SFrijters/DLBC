@@ -124,7 +124,7 @@ size_t hdf5Lengthof(T)() {
      field = field to be written
      name = name of the field, to be used in the file name
 */
-void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0) {
+void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const bool isCheckpoint = false) {
   herr_t e;
 
   hsize_t[] dimsg;
@@ -164,7 +164,13 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0) {
 
   MPI_Info info = MPI_INFO_NULL;
 
-  auto fileNameString = makeFilenameOutput!(FileFormat.HDF5)(name, time);
+  string fileNameString;
+  if ( isCheckpoint ) {
+    fileNameString = makeFilenameCpOutput!(FileFormat.HDF5)(name, time);    
+  }
+  else {
+    fileNameString = makeFilenameOutput!(FileFormat.HDF5)(name, time);
+  }
   auto fileName = fileNameString.toStringz();
 
   writeLogRI("HDF attempting to write to file '%s'.", fileNameString);
@@ -221,27 +227,17 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0) {
 
   // Only root writes the attributes
   if ( M.isRoot() ) {
-    import dlbc.revision;
     file_id = H5Fopen(fileName, H5F_ACC_RDWR, H5P_DEFAULT);
 
     // Write the input file
     auto root_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
     dumpInputFileAttributes(root_id);
-
-    // Write the global state
-    auto group_id = H5Gcreate2(root_id, "globals", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    dumpAttributeHDF5(time + 42, "time", group_id);
-    dumpAttributeHDF5(34.5, "thingie", group_id);
-    H5Gclose(group_id);
-
     // Write the metadata
-    group_id = H5Gcreate2(root_id, "metadata", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    dumpAttributeHDF5(revisionHash, "revisionHash", group_id);
-    dumpAttributeHDF5(revisionDesc, "revisionDesc", group_id);
-    dumpAttributeHDF5(revisionBranch, "revisionBranch", group_id);
-    dumpAttributeHDF5(revisionChanged, "revisionChanged", group_id);
-    dumpAttributeHDF5(revisionChanges, "revisionChanges", group_id);
-    H5Gclose(group_id);
+    dumpMetadata(root_id);
+    // Write the global state
+    if ( isCheckpoint ) {
+      dumpCheckpointGlobals(root_id);
+    }
 
     H5Gclose(root_id);
     H5Fclose(file_id);
@@ -261,6 +257,31 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0) {
   }
 }
 
+void dumpCheckpointGlobals(const hid_t root_id) {
+  import dlbc.lb.lb: timestep;
+  auto group_id = H5Gcreate2(root_id, "globals", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  dumpAttributeHDF5(timestep + 42, "time", group_id);
+  H5Gclose(group_id);
+}
+
+void readCheckpointGlobals(const hid_t root_id) {
+  import dlbc.lb.lb: timestep;
+  auto group_id = H5Gopen2(root_id, "globals", H5P_DEFAULT);
+  timestep = readAttributeHDF5!int("time", group_id);
+  H5Gclose(group_id);
+}
+
+void dumpMetadata(const hid_t root_id) {
+  import dlbc.revision;
+  auto group_id = H5Gcreate2(root_id, "metadata", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  dumpAttributeHDF5(revisionHash, "revisionHash", group_id);
+  dumpAttributeHDF5(revisionDesc, "revisionDesc", group_id);
+  dumpAttributeHDF5(revisionBranch, "revisionBranch", group_id);
+  dumpAttributeHDF5(revisionChanged, "revisionChanged", group_id);
+  dumpAttributeHDF5(revisionChanges, "revisionChanges", group_id);
+  H5Gclose(group_id);
+}
+
 /**
    Read a field from disk using HDF5.
 
@@ -268,7 +289,7 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0) {
      field = field to be read
      fileName = name of the file to be read from
 */
-void readFieldHDF5(T)(ref T field, const string fileNameString) {
+void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isCheckpoint = false) {
   herr_t e;
 
   hsize_t[] dimsg;
@@ -324,24 +345,14 @@ void readFieldHDF5(T)(ref T field, const string fileNameString) {
   auto file_id = H5Fopen(fileName, H5F_ACC_RDONLY, fapl_id);
   H5Pclose(fapl_id);
 
-  // Create the data spaces for the dataset, using global and local size
-  // (including halo!), respectively.
-  // auto filespace = H5Screate_simple(ndim, dimsg.ptr, null);
-  // auto memspace = H5Screate_simple(ndim, dimsl.ptr, null);
-
   auto datasetName = defaultDatasetName.toStringz();
   auto dataset_id = H5Dopen2(file_id, datasetName, H5P_DEFAULT);
 
   auto filespace = H5Dget_space(dataset_id);
 
-  // H5Sclose(filespace);
-
-
-  // filespace = H5Dget_space(dataset_id);
   // In the filespace, we have an offset to make sure we write in the correct chunk.
   e = H5Sselect_hyperslab(filespace, H5S_seloper_t.H5S_SELECT_SET, start.ptr, stride.ptr, count.ptr, block.ptr);
   // In the memspace, we cut off the halo region.
-
   auto memspace = H5Screate_simple(ndim, dimsl.ptr, null);
   e = H5Sselect_hyperslab(memspace, H5S_seloper_t.H5S_SELECT_SET, arrstart.ptr, stride.ptr, count.ptr, block.ptr);
 
@@ -357,6 +368,17 @@ void readFieldHDF5(T)(ref T field, const string fileNameString) {
   H5Dclose(dataset_id);
   H5Pclose(dxpl_id);
   H5Fclose(file_id);
+
+  // Only root reads the attributes
+  if ( M.isRoot() ) {
+    file_id = H5Fopen(fileName, H5F_ACC_RDONLY, H5P_DEFAULT);
+    auto root_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
+    if ( isCheckpoint ) {
+      readCheckpointGlobals(root_id);
+    }
+    H5Gclose(root_id);
+    H5Fclose(file_id);
+  }
 }
 
 /**
