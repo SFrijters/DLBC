@@ -223,15 +223,15 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0) {
 
   if ( M.isRoot() ) {
     file_id = H5Fopen(fileName, H5F_ACC_RDWR, H5P_DEFAULT);
-    dataset_id = H5Dopen2(file_id, datasetName,  H5P_DEFAULT);
+    auto group_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
     // string test = "testint";
     // int testi = 42;
     // dumpAttributeHDF5(testi, test, dataset_id);
     // test = "teststr";
     // string tests = "testa";
     // dumpAttributeHDF5(tests, test, dataset_id);
-    dumpInputFileAttribute(dataset_id);
-    H5Dclose(dataset_id);    
+    dumpInputFileAttributes(group_id);
+    H5Gclose(group_id);    
     H5Fclose(file_id);
   }
 }
@@ -276,7 +276,7 @@ void dumpAttributeHDF5(T)(const T data, const string name, hid_t loc_id) {
    Params:
      loc_id = id of the locataion to attach to
 */
-void dumpInputFileAttribute(hid_t loc_id) {
+void dumpInputFileAttributes(hid_t loc_id) {
   import dlbc.parameters: inputFileData;
   hid_t sid, aid, type;
   auto attrname = defaultInputFileGName.toStringz();
@@ -295,5 +295,84 @@ void dumpInputFileAttribute(hid_t loc_id) {
   H5Tclose(type);
   H5Aclose(aid);
   H5Sclose(sid);
+}
+
+/**
+   Read the contents of the input file attribute into strings.
+
+   Params:
+     fileNameString = name of the file to read from
+
+   Returns: array of strings corresponding to lines of the input file.
+*/
+string[] readInputFileAttributes(const string fileNameString) {
+  import dlbc.parameters: inputFileData;
+  import std.conv;
+
+  herr_t ret;
+  auto attrname = defaultInputFileGName.toStringz();
+  auto fileName = fileNameString.toStringz();
+  auto dsetName = defaultDatasetName.toStringz();
+
+  auto file = H5Fopen(fileName, H5F_ACC_RDONLY, H5P_DEFAULT);
+  auto type = H5Tcopy (H5T_C_S1);
+  ret = H5Tset_size (type, H5T_VARIABLE);
+  auto root = H5Gopen2(file, "/", H5P_DEFAULT);
+  auto att = H5Aopen_by_name(root, ".", attrname, H5P_DEFAULT, H5P_DEFAULT);
+  auto ftype = H5Aget_type(att);
+  auto type_class = H5Tget_class (ftype);
+  auto dataspace = H5Aget_space(att);
+
+  hsize_t[] dims;
+  dims.length = 1;
+  H5Sget_simple_extent_dims(dataspace, dims.ptr, null);
+
+  // if (type_class == H5T_class_t.H5T_STRING) {
+  //   writeLogRD("File datatype has class H5T_STRING\n");
+  // }
+  // auto size = H5Tget_size(ftype);
+  // writeLogRD("%d %s" , size, dims);
+  //   printf(" Size is of the file datatype returned by H5Tget_size %d \n This is a size of char pointer\n Use H5Tis_variable_str call instead \n", size);
+  // auto size_var = H5Tis_variable_str(ftype);
+  // if (size_var == 1) {
+  //   writeLogRD(" to find if string has variable size \n");
+  // }
+  
+  char*[] chars;
+  chars.length = dims[0];
+  type = H5Tget_native_type(ftype, H5T_direction_t.H5T_DIR_ASCEND);
+  H5Aread(att, type, chars.ptr);
+
+  //   fprintf(stderr, "Attribute read was \n '%s'\n '%s' \n", string_attr[0], string_attr[1]);
+  //   free(string_attr[0]);
+  //   free(string_attr[1]);
+  // ret = H5Tclose(type_class);
+  ret = H5Sclose(dataspace);
+  ret = H5Tclose(ftype);
+  ret = H5Aclose(att);
+  ret = H5Gclose(root);
+  ret = H5Tclose(type);
+  ret = H5Fclose(file);
+
+  string[] strings;
+  foreach(e; chars) {
+    strings ~= to!string(e);
+  }
+
+  return strings;
+
+  // immutable(char)*[] stringz;
+  // stringz.length = inputFileData.length;
+  // foreach(i, e; inputFileData) {
+  //   stringz[i] = e.toStringz();
+  // }
+  // type = H5Tcopy(H5T_C_S1);
+  // H5Tset_size(type, H5T_VARIABLE);
+  // sid = H5Screate_simple(1, length.ptr, null);
+  // aid = H5Acreate2(loc_id, attrname, type, sid, H5P_DEFAULT, H5P_DEFAULT);
+  // H5Awrite(aid, type, stringz.ptr);
+  // H5Tclose(type);
+  // H5Aclose(aid);
+  // H5Sclose(sid);
 }
 

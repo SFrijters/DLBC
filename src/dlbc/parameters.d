@@ -123,7 +123,12 @@ void readParameterSetFromCliFiles() {
     writeLogRF("Parameter filename not set, please specify using the -p <filename> option.");
   }
   foreach( fileName; parameterFileNames) {
-    readParameterSetFromFile(fileName);
+    if ( fileName[$-3..$] == ".h5" ) {
+      readParameterSetFromHdf5File(fileName);
+    }
+    else {
+      readParameterSetFromTextFile(fileName);
+    }
   }
 }
 
@@ -179,12 +184,12 @@ private void parseParameter(char[] line, const size_t ln, ref string currentSect
 }
 
 /**
-   Attempt to parse a single input file.
+   Attempt to parse a single ascii input file.
 
    Params:
      fileName = name of the file to be parsed
 */
-private void readParameterSetFromFile(const string fileName) {
+private void readParameterSetFromTextFile(const string fileName) {
   import std.file;
   import std.stream;
 
@@ -206,6 +211,28 @@ private void readParameterSetFromFile(const string fileName) {
     parseParameter(line,++ln,currentSection);
   }
   f.close();
+}
+
+/**
+   Attempt to extract an input file from an HDF5 file.
+
+   Params:
+     fileName = name of the file to be parsed
+*/
+private void readParameterSetFromHdf5File(const string fileName) {
+  import std.file;
+  import std.stream;
+
+  string currentSection;
+  writeLogRI("Extracting parameters from file '%s'.",fileName);
+
+  auto lines = readInputFileAttributes(fileName);
+
+  foreach(ln, line; lines ) {
+    inputFileData ~= line;
+    char[] cline = line.dup;
+    parseParameter(cline,++ln,currentSection);
+  }
 }
 
 mixin(createParameterMixins());
