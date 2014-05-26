@@ -161,7 +161,7 @@ string makeFilenameOutput(FileFormat fileFormat)(const string name, const uint t
 }
 
 /**
-   Wrapper function to write a field to disk using HDF5.
+   Wrapper function to write a field to disk.
    Depending on the value of $(D outputFormat) the matching
    output function will be called.
 
@@ -176,6 +176,28 @@ void dumpField(T)(ref T field, const string name, const uint time = 0) {
     assert(0, "Ascii dumping of fields not yet implemented.");
   case FileFormat.HDF5:
     dumpFieldHDF5(field, name, time);
+    break;
+  }
+  Timers.io.stop();
+}
+
+
+/**
+   Wrapper function to read a field from disk.
+   Depending on the value of $(D outputFormat) the matching
+   reading function will be called.
+
+   Params:
+     field = field to be read
+     fileName = name of the file
+*/
+void readField(T)(ref T field, const string fileName) {
+  Timers.io.start();
+  final switch(outputFormat) {
+  case FileFormat.Ascii:
+    assert(0, "Ascii reading of fields not yet implemented.");
+  case FileFormat.HDF5:
+    readFieldHDF5(field, fileName);
     break;
   }
   Timers.io.stop();

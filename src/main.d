@@ -127,12 +127,13 @@ int main(string[] args ) {
 
   // L.fluids[0][2,2,2] = 2.0/gconn.q;
 
+  L.mask.initMask();
+
   foreach(ref e; L.fluids) {
     e.initRandomEquilibriumDensity!gconn(0.5);
   }
-  
-  //L.mask.initWallsX();
-  L.mask.initConst(Mask.None);
+
+  L.mask.dumpField("mask", 0);
   L.exchangeHalo();
   L.dumpData(t);
 

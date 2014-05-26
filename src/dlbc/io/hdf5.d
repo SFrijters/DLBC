@@ -268,7 +268,7 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0) {
      field = field to be read
      fileName = name of the file to be read from
 */
-void readFieldHDF5(T)(ref T field, const string fileName) {
+void readFieldHDF5(T)(ref T field, const string fileNameString) {
   herr_t e;
 
   hsize_t[] dimsg;
@@ -308,10 +308,9 @@ void readFieldHDF5(T)(ref T field, const string fileName) {
 
   MPI_Info info = MPI_INFO_NULL;
 
-  auto fileNameString = makeFilenameOutput!(FileFormat.HDF5)(name, time);
   auto fileName = fileNameString.toStringz();
 
-  writeLogRI("HDF attempting to write to file '%s'.", fileNameString);
+  writeLogRI("HDF attempting to read from file '%s'.", fileNameString);
 
   // if (hdf_use_ibm_largeblock_io) then
   //   if (dbg_report_hdf5) call log_msg("HDF using IBM_largeblock_io")
@@ -331,7 +330,7 @@ void readFieldHDF5(T)(ref T field, const string fileName) {
   // auto memspace = H5Screate_simple(ndim, dimsl.ptr, null);
 
   auto datasetName = defaultDatasetName.toStringz();
-  auto dataset_id = H5Dopen(file_id, datasetName, H5P_DEFAULT);
+  auto dataset_id = H5Dopen2(file_id, datasetName, H5P_DEFAULT);
 
   auto filespace = H5Dget_space(dataset_id);
 
