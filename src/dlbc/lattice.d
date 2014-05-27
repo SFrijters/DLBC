@@ -133,11 +133,12 @@ struct Lattice(alias conn) {
      with respect to the parallel decomposition, and allocate the fields.
   */
   this ( MpiParams M ) {
+    import dlbc.parameters: checkVector;
     import std.conv: to;
 
-    if ( (.gn).length == 0 ) {
-      writeLogF("Array variable lattice.gn must have length %d.", dimensions);
-    }
+    checkVector(.gn, "lattice.gn", dimensions, true);
+    checkVector(fieldNames, "lb.fieldNames", components, true);
+
     _gn = .gn;
 
     // Check if we can reconcile global lattice size with CPU grid
@@ -153,10 +154,6 @@ struct Lattice(alias conn) {
     // Determine number of fluid arrays
     fluids.length = components;
     force.length = components;
-
-    if ( fieldNames.length != components ) {
-      writeLogF("Parameter lb.fieldNames needs to have a number of values equal to lb.components.");
-    }
 
     // Initialize arrays
     foreach( ref e; fluids ) {

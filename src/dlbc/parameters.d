@@ -186,6 +186,40 @@ private void parseParameter(char[] line, const size_t ln, ref string currentSect
 }
 
 /**
+   Check if the length of a vector is appropriate. If it isn't, and strict is set to true,
+   log a fatal error. Otherwise, assume zero for all elements if the element has length zero.
+
+   Params:
+     vector = vector to check
+     name = name to report in case of fatal error
+     len = required length
+     strict = whether or not a zero-length vector is a fatal error
+*/
+void checkVector(T)(ref T vector, const string name, const size_t len, bool strict = false) {
+  import dlbc.range: BaseElementType;
+
+  if ( vector.length == 0 ) {
+    if ( strict ) {
+      writeLogF("Array parameter %s must have length %d.", name, len);
+    }
+    else {
+      vector.length = len;
+      static if ( is ( typeof(vector[0]) == string )) {
+	writeLogW("Array parameter %s has zero length, initialising to empty strings.", name);
+	vector[] = "";
+      }
+      else {
+	writeLogW("Array parameter %s has zero length, initialising to zeros.", name);
+	vector[] = cast(BaseElementType!T) 0;
+      }
+    }
+  }
+  else if ( vector.length != len ) {
+    writeLogF("Array parameter %s must have length %d.", name, len);
+  }
+}
+
+/**
    Attempt to parse a single ascii input file.
 
    Params:
