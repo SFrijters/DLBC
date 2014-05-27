@@ -107,6 +107,7 @@ private alias TypeTuple!(
                          "dlbc.lb.force",
                          "dlbc.parallel",
                          "dlbc.random",
+                         "dlbc.io.checkpoint",
                          "dlbc.io.io",
                          "dlbc.io.hdf5",
 			 ) parameterSourceModules;

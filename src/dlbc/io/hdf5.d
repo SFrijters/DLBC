@@ -23,6 +23,7 @@ public import hdf5.hdf5;
 import std.string: toStringz;
 import std.traits;
 
+import dlbc.io.checkpoint;
 import dlbc.io.io;
 import dlbc.lattice: gnx, gny, gnz;
 import dlbc.logging;
@@ -238,32 +239,24 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
     if ( isCheckpoint ) {
       dumpCheckpointGlobals(root_id);
     }
-
     H5Gclose(root_id);
     H5Fclose(file_id);
-
-    // file_id = H5Fopen(fileName, H5F_ACC_RDWR, H5P_DEFAULT);
-    // root_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
-    // group_id = H5Gopen2(root_id, "globals", H5P_DEFAULT);
-    // int bla = readAttributeHDF5!int("time", group_id);
-    // auto bla2 = readAttributeHDF5!double("thingie", group_id);
-    // H5Gclose(group_id);
-    // group_id = H5Gopen2(root_id, "metadata", H5P_DEFAULT);
-    // auto bla3 = readAttributeHDF5!string("revisionDesc", group_id);
-    // writeLogRD("%s", bla3);
-    // H5Gclose(group_id);
-    // H5Gclose(root_id);
-    // H5Fclose(file_id);
   }
 }
 
+/**
+   Write the designated global variables as attributes.
+*/
 void dumpCheckpointGlobals(const hid_t root_id) {
   import dlbc.lb.lb: timestep;
   auto group_id = H5Gcreate2(root_id, "globals", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-  dumpAttributeHDF5(timestep + 42, "time", group_id);
+  dumpAttributeHDF5(timestep, "time", group_id);
   H5Gclose(group_id);
 }
 
+/**
+   Read the designated global variables as attributes.
+*/
 void readCheckpointGlobals(const hid_t root_id) {
   import dlbc.lb.lb: timestep;
   if ( M.isRoot() ) {
@@ -274,6 +267,9 @@ void readCheckpointGlobals(const hid_t root_id) {
   MPI_Bcast(&timestep, 1, mpiTypeof!int, M.root, M.comm);
 }
 
+/**
+   Write metadata as attributes.
+*/
 void dumpMetadata(const hid_t root_id) {
   import dlbc.revision;
   auto group_id = H5Gcreate2(root_id, "metadata", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);

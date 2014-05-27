@@ -24,6 +24,7 @@ import dlbc.lb.lb;
 import dlbc.lattice;
 import dlbc.logging;
 import dlbc.io.ascii;
+import dlbc.io.checkpoint;
 import dlbc.io.hdf5;
 import dlbc.timers;
 
@@ -42,18 +43,9 @@ string restoreString;
 */
 @("param") string outputPath = ".";
 /**
-   Relative path to create output files at.
-*/
-@("param") string cpPath = ".";
-/**
    From which timestep to start writing files.
 */
 @("param") int startOutput;
-
-// Automatically add parameters for dumping frequencies of fields of the lattice.
-// mixin(makeDumpFreqMixinString());
-
-// Manually add dumping frequencies for derived quantities.
 /**
    Frequency at which the velocity field should be written to disk.
 */
@@ -70,10 +62,6 @@ string restoreString;
    Frequency at which force fields should be written to disk.
 */
 @("param") int forceFreq;
-/**
-   Frequency at which checkpoints should be written to disk.
-*/
-@("param") int cpFreq;
 
 /**
    Id of the simulation, based on the time it was started.
@@ -82,7 +70,7 @@ string restoreString;
 */
 string simulationId;
 
-private bool simulationIdIsBcast = false;
+bool simulationIdIsBcast = false;
 
 /**
    Possible file format options.
@@ -174,54 +162,59 @@ string makeFilenameOutput(FileFormat fileFormat)(const string name, const uint t
 }
 
 /**
-   Creates a filename based on the file format (which determines the extension),
-   the global parameters $(D outputPath), $(D cpPath) and $(D simulationName) and the automatically
-   generated $(D simulationId). A custom name can be supplied, which will be prepended.
+   Dump data to disk, based on the current lattice and the current timestep.
 
    Params:
-     name = name of the field, to be prepended to the file name
+     L = current lattice
+     t = current timestep
 */
-string makeFilenameCpOutput(FileFormat fileFormat)(const string name, const uint time) {
-  import std.string;
+void dumpData(T)(ref T L, uint t) {
+  if ( t < startOutput ) {
+    return;
+  }
 
-  assert( simulationIdIsBcast, "Do not attempt to create a file name without first calling broadcastSimulationId() once.");
+  // Checkpointing has its own routine.
+  if (dumpNow(cpFreq,t)) {
+    dumpCheckpoint(L, t);
+  }
 
-  static if ( fileFormat == FileFormat.Ascii ) {
-    immutable string ext = "asc";
+  if (dumpNow(fluidsFreq,t)) {
+    foreach(i, ref e; L.fluids) {
+      e.densityField(L.mask, L.density);
+      L.density.dumpField("density-"~fieldNames[i], t);
+    }
   }
-  else static if ( fileFormat == FileFormat.HDF5 ) {
-    immutable string ext = "h5";
+
+  if (dumpNow(fluidsFreq,t)) {
+    foreach(i, ref e; L.fluids) {
+      for (size_t j = i + 1; j < L.fluids.length ; j++ ) {
+	auto colour = colourField(L.fluids[i], L.fluids[j], L.mask);
+	colour.dumpField("colour-"~fieldNames[i]~"-"~fieldNames[j],t);
+      }
+    }
   }
-  else {
-    static assert(0, "File name extension not specified for this file format.");
+
+  if (dumpNow(profileFreq,t)) {
+    dumpProfiles(L,"profile",t);
   }
-  return format("%s/%s/%s-%s-t%08d-%s.%s", outputPath, cpPath, name, simulationName, time, simulationId, ext);
+
+  if (dumpNow(forceFreq,t)) {
+    foreach(i, ref e; L.force) {
+      e.dumpField("force-"~fieldNames[i], t);
+    }
+  }
 }
 
-
 /**
-   Creates a filename based on the file format (which determines the extension),
-   the global parameters $(D outputPath), $(D cpPath) and $(D simulationName) and the automatically
-   generated $(D simulationId). A custom name can be supplied, which will be prepended.
+   Data should be dumped if the frequency is larger than zero, and if the
+   current timestep is a multiple of the frequency.
 
    Params:
-     name = name of the field, to be prepended to the file name
+     freq = dumping frequency
+     t = current timestep
 */
-string makeFilenameCpRestore(FileFormat fileFormat)(const string name, const string simulationName) {
-  import std.string;
-
-  assert( simulationIdIsBcast, "Do not attempt to create a file name without first calling broadcastSimulationId() once.");
-
-  static if ( fileFormat == FileFormat.Ascii ) {
-    immutable string ext = "asc";
-  }
-  else static if ( fileFormat == FileFormat.HDF5 ) {
-    immutable string ext = "h5";
-  }
-  else {
-    static assert(0, "File name extension not specified for this file format.");
-  }
-  return format("%s/%s/%s-%s.%s", outputPath, cpPath, name, simulationName, ext);
+private bool dumpNow(uint freq, uint t) {
+  return ( freq > 0 && ( t % freq == 0 ));
 }
 
 /**
@@ -245,7 +238,6 @@ void dumpField(T)(ref T field, const string name, const uint time = 0) {
   Timers.io.stop();
 }
 
-
 /**
    Wrapper function to read a field from disk.
    Depending on the value of $(D outputFormat) the matching
@@ -265,178 +257,5 @@ void readField(T)(ref T field, const string fileName) {
     break;
   }
   Timers.io.stop();
-}
-
-/**
-   Dump data to disk, based on the current lattice and the current timestep.
-
-   Params:
-     L = current lattice
-     t = current timestep
-*/
-void dumpData(T)(ref T L, uint t) {
-  if ( t < startOutput ) {
-    return;
-  }
-
-  // Automatically allow lattice quantities to be dumped
-  // mixin(makeDumpDataMixinString());
-
-  // // Derived quantities
-  // if (dumpNow(velFreq,t)) {
-  //   auto v = L.red.velocityField!gconn(L.mask);
-  //   v.dumpField("vel",t);
-  // }
-
-  if (dumpNow(profileFreq,t)) {
-    dumpProfiles(L,"profile",t);
-  }
-
-  if (dumpNow(fluidsFreq,t)) {
-    foreach(i, ref e; L.fluids) {
-      e.densityField(L.mask, L.density);
-      L.density.dumpField("density-"~fieldNames[i], t);
-    }
-  }
-
-  if (dumpNow(forceFreq,t)) {
-    foreach(i, ref e; L.force) {
-      e.dumpField("force-"~fieldNames[i], t);
-    }
-  }
-
-  if (dumpNow(fluidsFreq,t)) {
-    foreach(i, ref e; L.fluids) {
-      for (size_t j = i + 1; j < L.fluids.length ; j++ ) {
-	auto colour = colourField(L.fluids[i], L.fluids[j], L.mask);
-	colour.dumpField("colour-"~fieldNames[i]~"-"~fieldNames[j],t);
-      }
-    }
-  }
-
-  // Checkpointing has its own routine.
-  if (dumpNow(cpFreq,t)) {
-    dumpCheckpoint(L, t);
-  }
-
-}
-
-/**
-   Data should be dumped if the frequency is larger than zero, and if the
-   current timestep is a multiple of the frequency.
-
-   Params:
-     freq = dumping frequency
-     t = current timestep
-*/
-bool dumpNow(uint freq, uint t) {
-  return ( freq > 0 && ( t % freq == 0 ));
-}
-
-/++
-/**
-   Prepare a mixin that creates a frequency variable for all fields of the
-   lattice struct marked with the @("field") UDA.
-*/
-private string makeDumpFreqMixinString() {
-  string mixinString;
-
-  foreach(e ; __traits(derivedMembers, dlbc.lattice.Lattice!(gconn))) {
-    mixin(`
-      static if ( __traits(compiles, __traits(getAttributes, dlbc.lattice.Lattice!(gconn).`~e~`))) {
-        foreach( t; __traits(getAttributes, dlbc.lattice.Lattice!(gconn).`~e~`)) {
-          if ( t == "field" ) {
-            mixinString ~= "/**\n   Frequency at which the `~e~` field should be written to disk.\n*/";
-	    mixinString ~= "@(\"param\") int "~e~"Freq;\n";
-          }
-        }
-      }
-     `);
-  }
-  return mixinString;
-}
-
-/**
-   Prepare a mixin that creates a call to dumpField for all fields of the
-   lattice struct marked with the @("field") UDA.
-*/
-private string makeDumpDataMixinString() {
-  string mixinString;
-
-  foreach(e ; __traits(derivedMembers, dlbc.lattice.Lattice!(gconn))) {
-    mixin(`
-      static if ( __traits(compiles, __traits(getAttributes, dlbc.lattice.Lattice!(gconn).`~e~`))) {
-        foreach( t; __traits(getAttributes, dlbc.lattice.Lattice!(gconn).`~e~`)) {
-          if ( t == "field" ) {
-	    mixinString ~= "if ( dumpNow(`~e~`Freq, t)) {\n";
-	    mixinString ~= "  L.`~e~`.dumpField(\"`~e~`\",t);\n";
-            mixinString ~= "}\n";
-          }
-        }
-      }
-     `);
-  }
-  return mixinString;
-}
-+/
-
-/**
-   Write a checkpoint to disk. A full checkpoint currently includes:
-   - The full populations of all fluid components.
-   - The mask.
-
-   Params:
-     L = the lattice
-     t = current time step
-*/
-void dumpCheckpoint(T)(ref T L, uint t) {
-  foreach(i, ref e; L.fluids) {
-    e.dumpFieldHDF5("cp-"~fieldNames[i], t, true);
-  }
-  L.mask.dumpFieldHDF5("cp-mask", t, true);
-}
-
-/**
-   Read a checkpoint from disk. A full checkpoint currently includes:
-   - The full populations of all fluid components. The checkpoint to be restored depends
-     on the value of $(D restoreString).
-   - The mask.
-
-   Params:
-     L = the lattice
-*/
-void readCheckpoint(T)(ref T L) {
-  string fileName;
-  writeLogRI("The simulation will be restored from checkpoint `%s'.", restoreString);
-  foreach(i, ref e; L.fluids) {
-    fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-"~fieldNames[i], restoreString);
-    e.readFieldHDF5(fileName, true);
-  }
-  fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-mask", restoreString);
-  L.mask.readFieldHDF5(fileName, true);
-}
-
-/**
-   Ensure that the restoreString is globally the same, by broadcasting the value
-   from the root process. This function should be called early in the simulation,
-   but definitely before any IO has been performed.
-*/
-void broadcastRestoreString() {
-  import dlbc.parallel: MpiBcastString;
-  MpiBcastString(restoreString);
-}
-
-/**
-   First broadcasts the value of the restore string to all processes,
-   and then decides if we are restoring something or not.
-*/
-bool isRestoring() {
-  broadcastRestoreString();
-  if ( restoreString ) {
-    return true;
-  }
-  else {
-    return false;
-  }
 }
 

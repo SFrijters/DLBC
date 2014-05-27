@@ -50,6 +50,7 @@ import dlbc.fields.field;
 import dlbc.fields.init;
 import dlbc.fields.parallel;
 import dlbc.getopt;
+import dlbc.io.checkpoint;
 import dlbc.io.io;
 import dlbc.io.hdf5;
 import dlbc.lattice;
