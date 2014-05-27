@@ -31,13 +31,13 @@ import dlbc.timers;
 string restoreString;
 
 /**
-   File format of the output.
-*/
-@("param") FileFormat outputFormat;
-/**
    Name of the simulation, to be used in file names for the output.
 */
 @("param") string simulationName;
+/**
+   File format of the output.
+*/
+@("param") FileFormat outputFormat;
 /**
    Relative path to create output files at.
 */

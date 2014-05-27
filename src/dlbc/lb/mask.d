@@ -1,8 +1,8 @@
 module dlbc.lb.mask;
 
-@("param") string maskFile;
-
 @("param") MaskInit maskInit;
+
+@("param") string maskFile;
 
 import dlbc.fields.init;
 import dlbc.io.io;
