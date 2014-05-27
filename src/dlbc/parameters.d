@@ -195,7 +195,7 @@ private void parseParameter(char[] line, const size_t ln, ref string currentSect
      len = required length
      strict = whether or not a zero-length vector is a fatal error
 */
-void checkVector(T)(ref T vector, const string name, const size_t len, bool strict = false) {
+void checkVectorParameterLength(T)(ref T vector, const string name, const size_t len, bool strict = false) {
   import dlbc.range: BaseElementType;
 
   if ( vector.length == 0 ) {

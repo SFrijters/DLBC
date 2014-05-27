@@ -133,11 +133,11 @@ struct Lattice(alias conn) {
      with respect to the parallel decomposition, and allocate the fields.
   */
   this ( MpiParams M ) {
-    import dlbc.parameters: checkVector;
+    import dlbc.parameters: checkVectorParameterLength;
     import std.conv: to;
 
-    checkVector(.gn, "lattice.gn", dimensions, true);
-    checkVector(fieldNames, "lb.fieldNames", components, true);
+    checkVectorParameterLength(.gn, "lattice.gn", dimensions, true);
+    checkVectorParameterLength(fieldNames, "lb.fieldNames", components, true);
 
     _gn = .gn;
 
