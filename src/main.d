@@ -12,6 +12,11 @@
    ---
      -h                 = show this help message and exit
      -p <path>          = path to parameter file (can be specified multiple times)
+     -r <name>            restore a simulation from a checkpoint; name consists
+                          of the name, time, and id of the simulation (e.g. if
+                          the file names are of the form 
+                          'cp-red-foobar-t00000060-20140527T135106.h5', name is
+                          'foobar-t00000060-20140527T135106')
      -t                 = show current time when logging messages
      -v <level>         = set verbosity level to one of (Off, Fatal, Error,
                           Warning, Notification, Information, Debug) [%s]
@@ -115,29 +120,25 @@ int main(string[] args ) {
 
   // Try and create the local lattice structure.
   auto L = Lattice!(gconn)(M);
-
   initForce!gconn(L);
 
-  // foreach(ref e; L.fluids) {
-  //   e.initEquilibriumDensity!gconn(0.5);
-  // }
-  // L.fluids[0].initEquilibriumDensity!gconn(1.0);
-  // L.fluids[1].initEquilibriumDensity!gconn(0.5);
+  if ( isRestoring() ) {
+    L.readCheckpoint();
+    L.exchangeHalo();
+  }
+  else {
+    foreach(ref e; L.fluids) {
+      e.initRandomEquilibriumDensity!gconn(0.5);
+    }
+    L.mask.initMask();
 
-  // L.fluids[0][2,2,2] = 2.0/gconn.q;
-
-  L.mask.initMask();
-
-  foreach(ref e; L.fluids) {
-    e.initRandomEquilibriumDensity!gconn(0.5);
+    L.exchangeHalo();
+    L.mask.dumpField("mask", 0);
+    L.dumpData(timestep);
   }
 
-  L.mask.dumpField("mask", 0);
-  L.exchangeHalo();
-  L.dumpData(timestep);
-  L.dumpCheckpoint(timestep);
-
-  for ( timestep = 1; timestep <= timesteps; ++timestep ) {
+  while ( timestep <= timesteps ) {
+    ++timestep;
     writeLogRN("Starting timestep %d", timestep);
 
     foreach(ref e; L.fluids) {
@@ -161,7 +162,6 @@ int main(string[] args ) {
     // writeLogRI("Global mass = %f", L.red.globalMass(L.mask));
     // writeLogRI("Global momentum = %s", L.red.globalMomentum!(gconn)(L.mask));
     L.dumpData(timestep);
-    L.dumpCheckpoint(timestep);
   }
 
   Timers.main.stop();

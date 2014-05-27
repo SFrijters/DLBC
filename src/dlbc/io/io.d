@@ -27,6 +27,8 @@ import dlbc.io.ascii;
 import dlbc.io.hdf5;
 import dlbc.timers;
 
+string restoreString;
+
 /**
    File format of the output.
 */
@@ -119,9 +121,10 @@ void broadcastSimulationId() {
    Give early warnings about problems with various paths that may be used later.
 */
 void checkPaths() {
-  outputPath.isValidPath();
-  auto fullCpPath = outputPath~"/"~cpPath;
-  fullCpPath.isValidPath();
+  string[] paths = [ outputPath, outputPath~"/"~cpPath ];
+  foreach(path; paths) {
+    path.isValidPath();
+  }
 }
 
 /**
@@ -170,6 +173,14 @@ string makeFilenameOutput(FileFormat fileFormat)(const string name, const uint t
   return format("%s/%s-%s-t%08d-%s.%s", outputPath, name, simulationName, time, simulationId, ext);
 }
 
+/**
+   Creates a filename based on the file format (which determines the extension),
+   the global parameters $(D outputPath), $(D cpPath) and $(D simulationName) and the automatically
+   generated $(D simulationId). A custom name can be supplied, which will be prepended.
+
+   Params:
+     name = name of the field, to be prepended to the file name
+*/
 string makeFilenameCpOutput(FileFormat fileFormat)(const string name, const uint time) {
   import std.string;
 
@@ -185,6 +196,32 @@ string makeFilenameCpOutput(FileFormat fileFormat)(const string name, const uint
     static assert(0, "File name extension not specified for this file format.");
   }
   return format("%s/%s/%s-%s-t%08d-%s.%s", outputPath, cpPath, name, simulationName, time, simulationId, ext);
+}
+
+
+/**
+   Creates a filename based on the file format (which determines the extension),
+   the global parameters $(D outputPath), $(D cpPath) and $(D simulationName) and the automatically
+   generated $(D simulationId). A custom name can be supplied, which will be prepended.
+
+   Params:
+     name = name of the field, to be prepended to the file name
+*/
+string makeFilenameCpRestore(FileFormat fileFormat)(const string name, const string simulationName) {
+  import std.string;
+
+  assert( simulationIdIsBcast, "Do not attempt to create a file name without first calling broadcastSimulationId() once.");
+
+  static if ( fileFormat == FileFormat.Ascii ) {
+    immutable string ext = "asc";
+  }
+  else static if ( fileFormat == FileFormat.HDF5 ) {
+    immutable string ext = "h5";
+  }
+  else {
+    static assert(0, "File name extension not specified for this file format.");
+  }
+  return format("%s/%s/%s-%s.%s", outputPath, cpPath, name, simulationName, ext);
 }
 
 /**
@@ -277,6 +314,11 @@ void dumpData(T)(ref T L, uint t) {
     }
   }
 
+  // Checkpointing has its own routine.
+  if (dumpNow(cpFreq,t)) {
+    dumpCheckpoint(L, t);
+  }
+
 }
 
 /**
@@ -291,6 +333,7 @@ bool dumpNow(uint freq, uint t) {
   return ( freq > 0 && ( t % freq == 0 ));
 }
 
+/++
 /**
    Prepare a mixin that creates a frequency variable for all fields of the
    lattice struct marked with the @("field") UDA.
@@ -335,11 +378,65 @@ private string makeDumpDataMixinString() {
   }
   return mixinString;
 }
++/
 
+/**
+   Write a checkpoint to disk. A full checkpoint currently includes:
+   - The full populations of all fluid components.
+   - The mask.
+
+   Params:
+     L = the lattice
+     t = current time step
+*/
 void dumpCheckpoint(T)(ref T L, uint t) {
-  if (dumpNow(cpFreq,t)) {
-    foreach(i, ref e; L.fluids) {
-      e.dumpFieldHDF5("cp-"~fieldNames[i], t, true);
-    }
+  foreach(i, ref e; L.fluids) {
+    e.dumpFieldHDF5("cp-"~fieldNames[i], t, true);
+  }
+  L.mask.dumpFieldHDF5("cp-mask", t, true);
+}
+
+/**
+   Read a checkpoint from disk. A full checkpoint currently includes:
+   - The full populations of all fluid components. The checkpoint to be restored depends
+     on the value of $(D restoreString).
+   - The mask.
+
+   Params:
+     L = the lattice
+*/
+void readCheckpoint(T)(ref T L) {
+  string fileName;
+  writeLogRI("The simulation will be restored from checkpoint `%s'.", restoreString);
+  foreach(i, ref e; L.fluids) {
+    fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-"~fieldNames[i], restoreString);
+    e.readFieldHDF5(fileName, true);
+  }
+  fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-mask", restoreString);
+  L.mask.readFieldHDF5(fileName, true);
+}
+
+/**
+   Ensure that the restoreString is globally the same, by broadcasting the value
+   from the root process. This function should be called early in the simulation,
+   but definitely before any IO has been performed.
+*/
+void broadcastRestoreString() {
+  import dlbc.parallel: MpiBcastString;
+  MpiBcastString(restoreString);
+}
+
+/**
+   First broadcasts the value of the restore string to all processes,
+   and then decides if we are restoring something or not.
+*/
+bool isRestoring() {
+  broadcastRestoreString();
+  if ( restoreString ) {
+    return true;
+  }
+  else {
+    return false;
   }
 }
+

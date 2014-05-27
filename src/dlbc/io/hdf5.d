@@ -266,9 +266,12 @@ void dumpCheckpointGlobals(const hid_t root_id) {
 
 void readCheckpointGlobals(const hid_t root_id) {
   import dlbc.lb.lb: timestep;
-  auto group_id = H5Gopen2(root_id, "globals", H5P_DEFAULT);
-  timestep = readAttributeHDF5!int("time", group_id);
-  H5Gclose(group_id);
+  if ( M.isRoot() ) {
+    auto group_id = H5Gopen2(root_id, "globals", H5P_DEFAULT);
+    timestep = readAttributeHDF5!int("time", group_id);
+    H5Gclose(group_id);
+  }
+  MPI_Bcast(&timestep, 1, mpiTypeof!int, M.root, M.comm);
 }
 
 void dumpMetadata(const hid_t root_id) {
@@ -370,14 +373,17 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
   H5Fclose(file_id);
 
   // Only root reads the attributes
-  if ( M.isRoot() ) {
-    file_id = H5Fopen(fileName, H5F_ACC_RDONLY, H5P_DEFAULT);
-    auto root_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
-    if ( isCheckpoint ) {
-      readCheckpointGlobals(root_id);
+  hid_t root_id;
+  if ( isCheckpoint ) {
+    if ( M.isRoot() ) {
+      file_id = H5Fopen(fileName, H5F_ACC_RDONLY, H5P_DEFAULT);
+      root_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
     }
-    H5Gclose(root_id);
-    H5Fclose(file_id);
+    readCheckpointGlobals(root_id);
+    if ( M.isRoot() ) {
+      H5Gclose(root_id);
+      H5Fclose(file_id);
+    }
   }
 }
 

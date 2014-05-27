@@ -23,6 +23,7 @@ module dlbc.getopt;
 
 import std.getopt;
 
+import dlbc.io.io: restoreString;
 import dlbc.logging;
 import dlbc.parameters: parameterFileNames;
 import dlbc.revision;
@@ -40,6 +41,11 @@ Usage:
 Options (defaults in brackets):
   -h                   show this help message and exit
   -p <path>            path to parameter file (can be specified multiple times)
+  -r <name>            restore a simulation from a checkpoint; name consists
+                       of the name, time, and id of the simulation (e.g. if
+                       the file names are of the form 
+                       'cp-red-foobar-t00000060-20140527T135106.h5', name is
+                       'foobar-t00000060-20140527T135106')
   -t                   show current time when logging messages
   -v <level>           set verbosity level to one of (Off, Fatal, Error,
                        Warning, Notification, Information, Debug) [%s]
@@ -68,9 +74,10 @@ void processCLI(string[] args) {
   getopt( args,
           "h", &showHelp,
           "p|parameterfile", &parameterFileNames,
-	  "t|time", &showTime,
+          "r|restore", &restoreString,
+          "t|time", &showTime,
           "v|verbose", &verbosityLevel,
-	  "version", &showVersion,
+          "version", &showVersion,
           "W", &warningsAreFatal,
           );
 
