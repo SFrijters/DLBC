@@ -47,6 +47,7 @@ MpiParams M;
 */
 struct MpiParams {
 
+  // Rank of the root process
   static immutable int root = 0;
 
   // MPI details

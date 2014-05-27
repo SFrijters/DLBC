@@ -143,6 +143,7 @@ bool isValidPath(const string path) {
 
    Params:
      name = name of the field, to be prepended to the file name
+     time = current timestep
 */
 string makeFilenameOutput(FileFormat fileFormat)(const string name, const uint time) {
   import std.string;
@@ -225,6 +226,7 @@ private bool dumpNow(uint freq, uint t) {
    Params:
      field = field to be written
      name = name of the field, to be used in the file name
+     time = current timestep
 */
 void dumpField(T)(ref T field, const string name, const uint time = 0) {
   Timers.io.start();

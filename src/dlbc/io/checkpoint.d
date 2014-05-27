@@ -123,6 +123,7 @@ private void broadcastRestoreString() {
 
    Params:
      name = name of the field, to be prepended to the file name
+     time = current timestep
 */
 string makeFilenameCpOutput(FileFormat fileFormat)(const string name, const uint time) {
   import std.string;
@@ -148,6 +149,7 @@ string makeFilenameCpOutput(FileFormat fileFormat)(const string name, const uint
 
    Params:
      name = name of the field, to be prepended to the file name
+     simulationName = used in the file name
 */
 string makeFilenameCpRestore(FileFormat fileFormat)(const string name, const string simulationName) {
   import std.string;

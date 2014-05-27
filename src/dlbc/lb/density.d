@@ -61,7 +61,6 @@ unittest {
    Params:
      field = field of population vectors
      mask = mask field
-     density = pre-allocated density field
 
    Returns:
      density field
@@ -276,7 +275,6 @@ unittest {
      field1 = field of population vectors
      field2 = field of population vectors
      mask = mask field
-     colour = pre-allocated colour field
 
    Returns:
      colour field

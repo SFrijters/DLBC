@@ -43,9 +43,9 @@ Options (defaults in brackets):
   -p <path>            path to parameter file (can be specified multiple times)
   -r <name>            restore a simulation from a checkpoint; name consists
                        of the name, time, and id of the simulation (e.g. if
-                       the file names are of the form 
-                       'cp-red-foobar-t00000060-20140527T135106.h5', name is
-                       'foobar-t00000060-20140527T135106')
+                       the file names are of the form
+                       "cp-red-foobar-t00000060-20140527T135106.h5", name is
+                       "foobar-t00000060-20140527T135106")
   -t                   show current time when logging messages
   -v <level>           set verbosity level to one of (Off, Fatal, Error,
                        Warning, Notification, Information, Debug) [%s]

@@ -34,7 +34,8 @@ import unstd.multidimarray;
    correct spot in the main array.
 
    Params:
-   haloSize = width of the halo to be exchanged; this can be smaller than
+     field = field to exchange the data of
+     haloSize = width of the halo to be exchanged; this can be smaller than
    the halo that is held in memory
 
    Todo: add unittest

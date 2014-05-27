@@ -79,7 +79,6 @@ unittest {
    Params:
      field = field of population vectors
      mask = mask field
-     velocity = pre-allocated velocity field
 
    Returns:
      velocity field

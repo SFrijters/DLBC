@@ -54,7 +54,6 @@ auto momentum(alias conn, T)(const ref T population) {
    Params:
      field = field of population vectors
      mask = mask field
-     momentum = pre-allocated momentum field
 
    Returns:
      momentum field

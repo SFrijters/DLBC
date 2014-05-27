@@ -124,6 +124,8 @@ size_t hdf5Lengthof(T)() {
    Params:
      field = field to be written
      name = name of the field, to be used in the file name
+     time = current timestep
+     isCheckpoint = whether this is checkpoint-related (different file name, write globals)
 */
 void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const bool isCheckpoint = false) {
   herr_t e;
@@ -264,7 +266,8 @@ void dumpMetadata(const hid_t root_id) {
 
    Params:
      field = field to be read
-     fileName = name of the file to be read from
+     fileNameString = name of the file to be read from
+     isCheckpoint = whether this is checkpoint related (reads checkpoint globals)
 */
 void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isCheckpoint = false) {
   herr_t e;
