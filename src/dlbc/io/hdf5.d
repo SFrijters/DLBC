@@ -167,14 +167,16 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
 
   string fileNameString;
   if ( isCheckpoint ) {
-    fileNameString = makeFilenameCpOutput!(FileFormat.HDF5)(name, time);    
+    fileNameString = makeFilenameCpOutput!(FileFormat.HDF5)(name, time);
+    writeLogRI("HDF attempting to write to checkpoint file '%s'.", fileNameString);
   }
   else {
     fileNameString = makeFilenameOutput!(FileFormat.HDF5)(name, time);
+    writeLogRI("HDF attempting to write to file '%s'.", fileNameString);
   }
   auto fileName = fileNameString.toStringz();
 
-  writeLogRI("HDF attempting to write to file '%s'.", fileNameString);
+
 
   // if (hdf_use_ibm_largeblock_io) then
   //   if (dbg_report_hdf5) call log_msg("HDF using IBM_largeblock_io")
@@ -236,7 +238,6 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
     dumpMetadata(root_id);
     H5Gclose(root_id);
     H5Fclose(file_id);
-
     // Write the global state
     if ( isCheckpoint ) {
       dumpCheckpointGlobals(fileName);

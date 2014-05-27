@@ -3,6 +3,9 @@
 /**
    Functions that handle (parallel) checkpoint I/O.
 
+   Variables that hold global state and need to be saved/restored
+   are to be annotated with the @("global") UDA.
+
    Copyright: Stefan Frijters 2011-2014
 
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
@@ -23,6 +26,9 @@ import dlbc.io.io;
 import dlbc.lb.lb: fieldNames;
 import dlbc.logging;
 import dlbc.parallel;
+import std.typecons;
+
+mixin(createImports());
 
 /**
    Path to create checkpoint files at, relative to $(D dlbc.io.outputPath).
@@ -32,6 +38,22 @@ import dlbc.parallel;
    Frequency at which checkpoints should be written to disk.
 */
 @("param") int cpFreq;
+
+/**
+   The UDA to be used to denote a global state holding variable.
+*/
+static immutable string globalUDA = "global";
+
+/**
+   A list of modules that have to be scanned for variables that hold global state.
+
+   Bugs:
+     Ideally this should be a template parameter to the createCheckpointMixins function, maybe?
+*/
+private alias TypeTuple!(
+                         "dlbc.lb.lb",
+                         "dlbc.parameters",
+			 ) globalsSourceModules;
 
 /**
    Write a checkpoint to disk. A full checkpoint currently includes:
@@ -144,39 +166,87 @@ string makeFilenameCpRestore(FileFormat fileFormat)(const string name, const str
   return format("%s/%s/%s-%s.%s", outputPath, cpPath, name, simulationName, ext);
 }
 
+mixin(createGlobalsMixins());
+
 /**
-   Write the designated global variables as attributes.
+   Creates an string mixin to define $(D dumpCheckpointGlobals), $(D readCheckpointGlobals), and $(D  broadcastCheckpointGlobals ).
 */
-void dumpCheckpointGlobals(const char* fileName) {
-  import dlbc.lb.lb: timestep;
-  auto file_id = H5Fopen(fileName, H5F_ACC_RDWR, H5P_DEFAULT);
-  auto root_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
-  auto group_id = H5Gcreate2(root_id, "globals", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-  dumpAttributeHDF5(timestep, "time", group_id);
-  H5Gclose(group_id);
-  H5Gclose(root_id);
-  H5Fclose(file_id);
+private auto createGlobalsMixins() {
+  string mixinStringDump;
+  string mixinStringRead;
+  string mixinStringBcast;
+
+  mixinStringDump ~= `
+  /**
+     Write the designated global variables as attributes.
+
+     Params:
+       fileName = file to write to, in C string format
+  */
+  void dumpCheckpointGlobals(const char* fileName) {
+    auto file_id = H5Fopen(fileName, H5F_ACC_RDWR, H5P_DEFAULT);
+    auto root_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
+    auto group_id = H5Gcreate2(root_id, "globals", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  `;
+  mixinStringRead ~= `
+  /**
+     Read the designated global variables as attributes.
+
+     Params:
+       fileName = file to read from, in C string format
+  */
+  void readCheckpointGlobals(const char* fileName) {
+    auto file_id = H5Fopen(fileName, H5F_ACC_RDONLY, H5P_DEFAULT);
+    auto root_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
+    auto group_id = H5Gopen2(root_id, "globals", H5P_DEFAULT);
+  `;
+
+  mixinStringBcast ~= `
+  /**
+     Broadcast restored global variables.
+  */
+  void broadcastCheckpointGlobals() {
+  `;
+
+  foreach(fullModuleName ; globalsSourceModules) {
+    foreach(e ; __traits(derivedMembers, mixin(fullModuleName))) {
+      mixin(`
+      static if ( __traits(compiles, __traits(getAttributes, `~fullModuleName~`.`~e~`))) {
+        foreach( t; __traits(getAttributes, `~fullModuleName~`.`~e~`)) {
+          if ( t == "`~globalUDA~`" ) {
+            auto fullName = "`~fullModuleName~`." ~ e;
+
+            mixinStringDump ~= "  writeLogRD(\"Saving "~fullName~" = %s.\","~fullName~");\n";
+            mixinStringDump ~= "    dumpAttributeHDF5("~fullName~", \""~fullName~"\", group_id);\n";
+            mixinStringRead ~= "  "~fullName~" = readAttributeHDF5!(typeof("~fullName~"))(\""~fullName~"\", group_id);\n";
+            mixinStringRead ~= "    writeLogRD(\"Restored "~fullName~" = %s.\","~fullName~");\n";
+
+            mixinStringBcast ~= "  MPI_Bcast(&"~fullName~", 1, mpiTypeof!(typeof("~fullName~")), M.root, M.comm);\n";
+
+            break;
+          }
+        }
+      }`);
+    }
+  }
+  mixinStringDump ~= "    H5Gclose(group_id);\n    H5Gclose(root_id);\n    H5Fclose(file_id);\n  }\n";
+
+  mixinStringRead ~= "    H5Gclose(group_id);\n    H5Gclose(root_id);\n    H5Fclose(file_id);\n  }\n";
+
+  mixinStringBcast ~= "  }\n";
+
+  return mixinStringDump ~ "\n" ~ mixinStringRead ~ "\n" ~ mixinStringBcast;
 }
 
 /**
-   Read the designated global variables as attributes.
+   Creates an string mixin to import the modules specified in $(D globalsSourceModules).
 */
-void readCheckpointGlobals(const char* fileName) {
-  import dlbc.lb.lb: timestep;
-  auto file_id = H5Fopen(fileName, H5F_ACC_RDONLY, H5P_DEFAULT);
-  auto root_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
-  auto group_id = H5Gopen2(root_id, "globals", H5P_DEFAULT);
-  timestep = readAttributeHDF5!int("time", group_id);
-  H5Gclose(group_id);
-  H5Gclose(root_id);
-  H5Fclose(file_id);
-}
+private auto createImports() {
+  string mixinString;
 
-/**
-   Broadcast restored global variables.
-*/
-void broadcastCheckpointGlobals() {
-  import dlbc.lb.lb: timestep;
-  MPI_Bcast(&timestep, 1, mpiTypeof!int, M.root, M.comm);
+  foreach(fullModuleName; globalsSourceModules) {
+    mixinString ~= "import " ~ fullModuleName ~ ";";
+  }
+  return mixinString;
 }
 

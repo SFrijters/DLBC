@@ -70,7 +70,6 @@
 module dlbc.parameters;
 
 import std.conv;
-import std.string;
 import std.traits;
 import std.typecons;
 
@@ -152,6 +151,7 @@ void processParameters() pure nothrow @safe {
                       a section header
 */
 private void parseParameter(char[] line, const size_t ln, ref string currentSection) {
+  import std.string;
   char[] keyString, valueString;
 
   enum vl = VL.Notification;
@@ -376,6 +376,7 @@ private auto createParameterMixins() {
    ---
 */
 private auto makeQualModuleName(const string fullModuleName) {
+  import std.string;
   auto splitModuleName = fullModuleName.split(".")[1..$];
   while ( (splitModuleName.length > 1) && (splitModuleName[$-1] == splitModuleName[$-2] ) ) {
     splitModuleName = splitModuleName[0..$-1];
