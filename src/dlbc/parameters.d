@@ -26,17 +26,16 @@
    // This is a comment
    // Multiline comments are not supported
 
-   lattice.gnx = 32   // Fully qualified parameter name
+   lattice.gn = [32, 32, 32]   // Fully qualified parameter name
 
    [parallel]         // This is a section header
    ncy = 2            // This now corresponds to parallel.ncy
 
    [lattice]
-   gnx = 32           // Later versions of the same parameter cause a warning
+   gn = [32, 32, 32]  // Later versions of the same parameter cause a warning
 
    []                 // This is a bit dirty, but actually resets the section name
-   lattice.gny = 16   // So now one needs to use fully qualified names again
-   lattice.gnz = 8
+   parallel.ncy = 2   // So now one needs to use fully qualified names again
 
    io.output = path/to/output    // String values are used without quotes
 

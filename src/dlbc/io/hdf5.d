@@ -25,7 +25,7 @@ import std.traits;
 
 import dlbc.io.checkpoint;
 import dlbc.io.io;
-import dlbc.lattice: gnx, gny, gnz;
+import dlbc.lattice;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.range;
@@ -147,7 +147,7 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
 
   if ( typeLen > 1 ) {
     ndim++; // One more dimension to store the vector component.
-    dimsg = [ gnx, gny, gnz, typeLen ];
+    dimsg = [ gn[0], gn[1], gn[2], typeLen ];
     dimsl = [ field.nxH, field.nyH, field.nzH, typeLen ];
     count = [ 1, 1, 1, 1 ];
     stride = [ 1, 1, 1, 1 ];
@@ -156,7 +156,7 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
     arrstart = [ field.haloSize, field.haloSize, field.haloSize, 0 ];
   }
   else {
-    dimsg = [ gnx, gny, gnz ];
+    dimsg = [ gn[0], gn[1], gn[2] ];
     dimsl = [ field.nxH, field.nyH, field.nzH ];
     count = [ 1, 1, 1 ];
     stride = [ 1, 1, 1 ];
@@ -289,7 +289,7 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
 
   if ( typeLen > 1 ) {
     ndim++; // One more dimension to store the vector component.
-    dimsg = [ gnx, gny, gnz, typeLen ];
+    dimsg = [ gn[0], gn[1], gn[2], typeLen ];
     dimsl = [ field.nxH, field.nyH, field.nzH, typeLen ];
     count = [ 1, 1, 1, 1 ];
     stride = [ 1, 1, 1, 1 ];
@@ -298,7 +298,7 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
     arrstart = [ field.haloSize, field.haloSize, field.haloSize, 0 ];
   }
   else {
-    dimsg = [ gnx, gny, gnz ];
+    dimsg = [ gn[0], gn[1], gn[2] ];
     dimsl = [ field.nxH, field.nyH, field.nzH ];
     count = [ 1, 1, 1 ];
     stride = [ 1, 1, 1 ];

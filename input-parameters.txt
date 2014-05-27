@@ -8,10 +8,12 @@
 outputFormat = HDF5
 simulationName = foobar
 outputPath = output
-densityFreq = 100
-velFreq = 100
-fluidsFreq = 100
-forceFreq = 100
+densityFreq = 10
+velFreq = 10
+fluidsFreq = 10
+forceFreq = 10
+checkpoint.cpFreq = 10
+checkpoint.cpPath = cp
 
 [lb]
 timesteps = 10000
@@ -21,6 +23,9 @@ fieldNames = [ "red", "blue" ]
 force.gcc = [ 0.0, 0.2, 0.2, 0.0 ]
 force.enableShanChen = true
 
+mask.maskInit = File
+mask.maskFile = mask.h5
+
 //force.globalAcc = [ 0, 0, 0.0001]
 
 [parallel]
@@ -28,9 +33,7 @@ force.enableShanChen = true
 //nc = [ 0, 0, 0 ]
 
 [lattice]
-gnx = 32    // Lattice size x-direction
-gny = 32    // Lattice size y-direction
-gnz = 32    // Lattice size z-direction
+gn = [32, 32, 32]    // Lattice size
 
 [random]
 seed = 42

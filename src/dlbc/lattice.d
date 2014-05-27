@@ -1,3 +1,21 @@
+// Written in the D programming language.
+
+/**
+   The lattice implementation of lattice Boltzmann.
+
+   Copyright: Stefan Frijters 2011-2014
+
+   License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
+
+   Authors: Stefan Frijters
+
+Macros:
+	TR = <tr>$0</tr>
+	TH = <th>$0</th>
+	TD = <td>$0</td>
+	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+*/
+
 module dlbc.lattice;
 
 import dlbc.fields.field;
@@ -8,58 +26,131 @@ import dlbc.logging;
 import dlbc.parallel;
 import dlbc.range;
 
-@("param") int gnx;
-@("param") int gny;
-@("param") int gnz;
+/**
+   Global size of the lattice.
+*/
+@("param") size_t[] gn;
 
+/**
+   The lattice struct holds various fields, and information on the shape of these fields.
+
+   Params:
+     conn = connecvitiy of the fluid fields
+*/
 struct Lattice(alias conn) {
   private size_t _dimensions = conn.d;
   private size_t[conn.d] _lengths;
 
+  private size_t[conn.d] _gn;
+
+  /**
+     Dimensions of the lattice.
+  */
   @property auto dimensions() {
     return _dimensions;
   }
-
+  /**
+     Size of the local lattice.
+  */
   @property auto lengths() {
     return _lengths;
   }
 
+  /**
+     Size of the local lattice in x-direction.
+  */
   @property auto nx() {
     return _lengths[0];
   }
 
+  /**
+     Size of the local lattice in y-direction.
+  */
   @property auto ny() {
     return _lengths[1];
   }
 
+  /**
+     Size of the local lattice in z-direction.
+  */
   @property auto nz() {
     return _lengths[2];
   }
 
-  @("field") Field!(double, conn.d, 2) density;
-  @("field") Field!(Mask, conn.d, 2) mask;
+  /**
+     Vector containing the size of the global lattice
+  */
+  @property auto gn() {
+    return _gn;
+  }
 
-  @("field") Field!(double[conn.q], conn.d, 2)[] fluids;
+  /**
+     Size of the global lattice in x-direction.
+  */
+  @property auto gnx() {
+    return _gn[0];
+  }
+
+  /**
+     Size of the global lattice in y-direction.
+  */
+  @property auto gny() {
+    return _gn[1];
+  }
+
+  static if ( conn.d > 2 ) {
+    /**
+       Number of processes in z-direction.
+    */
+    @property auto gnz() {
+      return _gn[2];
+    }
+  }
+
+  /**
+     Fluid fields.
+  */
+  Field!(double[conn.q], conn.d, 2)[] fluids;
+  /**
+     Temporary field to store advected fluids.
+  */
   BaseElementType!(typeof(fluids)) advection;
+  /**
+     Mask field
+  */
+  Field!(Mask, conn.d, 2) mask;
+  /**
+     Density field
+  */
+  Field!(double, conn.d, 2) density;
+  /**
+     Force field
+  */
+  Field!(double[conn.d], conn.d, 2)[] force;
 
-  @("field") Field!(double[conn.d], conn.d, 2)[] force;
-
+  /**
+     The constructor will verify that the local lattices can be set up correctly
+     with respect to the parallel decomposition, and allocate the fields.
+  */
   this ( MpiParams M ) {
     import std.conv: to;
+
+    if ( (.gn).length == 0 ) {
+      writeLogF("Array variable lattice.gn must have length %d.", dimensions);
+    }
+    _gn = .gn;
+
     // Check if we can reconcile global lattice size with CPU grid
-    if (gnx % M.ncx != 0 || gny % M.ncy != 0 || gnz % M.ncz != 0) {
-      writeLogF("Cannot divide lattice %d x %d x %d evenly over a %s grid of processes.", gnx, gny, gnz, makeLengthsString(M.nc));
+    if (gn[0] % M.nc[0] != 0 || gn[1] % M.nc[1] != 0 || gn[2] % M.nc[2] != 0) {
+      writeLogF("Cannot divide lattice %s evenly over a %s grid of processes.", makeLengthsString(gn), makeLengthsString(M.nc));
     }
 
-    // Calculate local lattice size
-    int nx = to!int(gnx / M.ncx);
-    int ny = to!int(gny / M.ncy);
-    int nz = to!int(gnz / M.ncz);
+    // Set the local sizes
+    for ( size_t i = 0; i < conn.d; i++ ) {
+      this._lengths[i] = to!int(gn[i] / M.nc[i]);
+    }
 
-    this._lengths[0] = nx;
-    this._lengths[1] = ny;
-    this._lengths[2] = nz;
-
+    // Determine number of fluid arrays
     fluids.length = components;
     force.length = components;
 
@@ -67,6 +158,7 @@ struct Lattice(alias conn) {
       writeLogF("Parameter lb.fieldNames needs to have a number of values equal to lb.components.");
     }
 
+    // Initialize arrays
     foreach( ref e; fluids ) {
       e = typeof(e)(lengths);
     }
@@ -79,6 +171,11 @@ struct Lattice(alias conn) {
 
   }
 
+  /**
+     Calls exchangeHalo on all member fields of the lattice.
+
+     Todo: implement UDA to only exchange necessary fields when this function is called.
+  */
   void exchangeHalo() {
     import std.algorithm: startsWith;
     import std.traits;
