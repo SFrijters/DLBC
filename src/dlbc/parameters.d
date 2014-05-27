@@ -209,7 +209,7 @@ void checkVectorParameterLength(T)(ref T vector, const string name, const size_t
 	vector[] = "";
       }
       else {
-	writeLogW("Array parameter %s has zero length, initialising to zeros.", name);
+	writeLogRW("Array parameter %s has zero length, initialising to zeros.", name);
 	vector[] = cast(BaseElementType!T) 0;
       }
     }
