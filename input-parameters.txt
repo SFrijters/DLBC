@@ -24,20 +24,20 @@ fieldNames = [ "red", "blue" ]
 
 force.gcc = [ 0.0, 0.2, 0.2, 0.0 ]
 force.enableShanChen = true
-//force.globalAcc = [ 0, 0, 0.0001]
+//force.globalAcc = [ 0, 0, 0.0001 ]
 
-init.fluidInit = EqDistRandom
-init.fluidDensity = [0.9, 0.3]
+init.fluidInit = [ EqDistRandom, EqDistRandom ]
+init.fluidDensity = [0.9, 0.3 ]
 
 mask.maskInit = None
 mask.maskFile = mask.h5
 
 [parallel]
 showTopology = false
-//nc = [ 0, 0, 0 ]
+nc = [ 0, 0, 0 ]
 
 [lattice]
-gn = [32, 32, 32]    // Lattice size
+gn = [32, 32, 32 ]    // Lattice size
 
 [random]
 seed = 42

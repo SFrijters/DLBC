@@ -1,6 +1,6 @@
 module dlbc.lb.init;
 
-@("param") FluidInit fluidInit;
+@("param") FluidInit[] fluidInit;
 
 @("param") double[] fluidDensity;
 
@@ -18,15 +18,12 @@ enum FluidInit {
 }
 
 void initFluid(alias conn, T)(ref T field, const size_t i) {
-  if ( fluidDensity.length == 0 ) {
-    fluidDensity.length = components;
-    fluidDensity[] = 0.0;
-  }
-  else if ( fluidDensity.length != components ) {
-    writeLogF("Array variable lb.init.fluidDensity must have length %d.", components * components);
-  }
+  import dlbc.parameters: checkVector;
 
-  final switch(fluidInit) {
+  checkVector(fluidInit, "lb.init.fluidInit", components);
+  checkVector(fluidDensity, "lb.init.fluidDensity", components);
+
+  final switch(fluidInit[i]) {
   case(FluidInit.None):
     break;
   case(FluidInit.Const):
@@ -43,5 +40,4 @@ void initFluid(alias conn, T)(ref T field, const size_t i) {
     break;
   }
 }
-
 
