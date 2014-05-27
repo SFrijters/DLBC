@@ -43,6 +43,10 @@ string restoreString;
 */
 @("param") string outputPath = ".";
 /**
+   Whether or not to create directories if necessary.
+*/
+@("param") bool createPath = false;
+/**
    From which timestep to start writing files.
 */
 @("param") int startOutput;
@@ -109,9 +113,12 @@ void broadcastSimulationId() {
    Give early warnings about problems with various paths that may be used later.
 */
 void checkPaths() {
-  string[] paths = [ outputPath, outputPath~"/"~cpPath ];
-  foreach(path; paths) {
-    path.isValidPath();
+  import dlbc.parallel: M;
+  if (M.isRoot() ) {
+    string[] paths = [ outputPath, outputPath~"/"~cpPath ];
+    foreach(path; paths) {
+      path.isValidPath();
+    }
   }
 }
 
@@ -123,17 +130,23 @@ void checkPaths() {
 */
 bool isValidPath(const string path) {
   import std.file;
-  if ( path.exists() ) {
-    if (! isDir(path) ){
-      writeLogW("Path `%s' is not a directory. I/O will probably fail.", path);
-      return false;
-    }
+  if ( path.exists() && path.isDir() ) {
+    return true;
   }
-  else {
-    writeLogW("Path `%s' does not exist. I/O will probably fail.", path);
+  
+  if ( path.exists() && !path.isDir() ) {
+    writeLogRW("Path `%s' exists, but is not a directory. I/O will probably fail.", path);
     return false;
   }
-  return true;
+
+  if ( createPath ) {
+    writeLogRI("Path `%s' does not exist - creating directory.", path);
+    mkdirRecurse(path);
+  }
+  else {
+    writeLogRW("Path `%s' is not a directory. I/O will probably fail.", path);
+  }
+  return false;
 }
 
 /**
