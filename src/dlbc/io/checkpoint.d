@@ -22,6 +22,7 @@ import dlbc.io.hdf5;
 import dlbc.io.io;
 import dlbc.lb.lb: fieldNames;
 import dlbc.logging;
+import dlbc.parallel;
 
 /**
    Path to create checkpoint files at, relative to $(D dlbc.io.outputPath).
@@ -141,5 +142,41 @@ string makeFilenameCpRestore(FileFormat fileFormat)(const string name, const str
     static assert(0, "File name extension not specified for this file format.");
   }
   return format("%s/%s/%s-%s.%s", outputPath, cpPath, name, simulationName, ext);
+}
+
+/**
+   Write the designated global variables as attributes.
+*/
+void dumpCheckpointGlobals(const char* fileName) {
+  import dlbc.lb.lb: timestep;
+  auto file_id = H5Fopen(fileName, H5F_ACC_RDWR, H5P_DEFAULT);
+  auto root_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
+  auto group_id = H5Gcreate2(root_id, "globals", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  dumpAttributeHDF5(timestep, "time", group_id);
+  H5Gclose(group_id);
+  H5Gclose(root_id);
+  H5Fclose(file_id);
+}
+
+/**
+   Read the designated global variables as attributes.
+*/
+void readCheckpointGlobals(const char* fileName) {
+  import dlbc.lb.lb: timestep;
+  auto file_id = H5Fopen(fileName, H5F_ACC_RDONLY, H5P_DEFAULT);
+  auto root_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
+  auto group_id = H5Gopen2(root_id, "globals", H5P_DEFAULT);
+  timestep = readAttributeHDF5!int("time", group_id);
+  H5Gclose(group_id);
+  H5Gclose(root_id);
+  H5Fclose(file_id);
+}
+
+/**
+   Broadcast restored global variables.
+*/
+void broadcastCheckpointGlobals() {
+  import dlbc.lb.lb: timestep;
+  MPI_Bcast(&timestep, 1, mpiTypeof!int, M.root, M.comm);
 }
 
