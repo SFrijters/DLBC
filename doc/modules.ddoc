@@ -14,6 +14,7 @@ MODULES =
 	$(MODULE dlbc.lb.connectivity, "Pre-calculated connectivity options")
 	$(MODULE dlbc.lb.density, "LB densities.")
 	$(MODULE dlbc.lb.force, "LB forces and accelerations.")
+	$(MODULE dlbc.lb.init, "LB field initialisations.")
 	$(MODULE dlbc.lb.mask, "LB masks.")
 	$(MODULE dlbc.lb.momentum, "LB momentum.")
 	$(MODULE dlbc.lb.velocity, "LB velocities.")
