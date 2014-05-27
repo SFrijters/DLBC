@@ -100,7 +100,7 @@ enum FileFormat {
    The module constructor sets the unique id before main() is run.
 */
 static this() {
-  simulationId = Clock.currTime().toISOString();
+  simulationId = Clock.currTime().toISOString()[0..15];
 }
 
 /**
