@@ -71,7 +71,6 @@ void initForce(alias conn, T)(ref T L) {
     // Shan-Chen model with only zero interaction strength is pointless, so there is
     // no default initialisation for this vector.
     if ( gcc.length != components * components ) {
-      writeLogRD("%d",gcc.length);
       writeLogF("Array variable lb.force.gcc must have length %d.", components * components);
     }
 

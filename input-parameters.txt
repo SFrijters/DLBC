@@ -5,31 +5,35 @@
 // Section headers (corresponding to modules) are enclosed in square brackets.
 
 [io]
-outputFormat = HDF5
 simulationName = foobar
+outputFormat = HDF5
 outputPath = output
-densityFreq = 10
-velFreq = 10
-fluidsFreq = 10
-forceFreq = 10
-checkpoint.cpFreq = 10
+
+densityFreq = 100
+velFreq = 100
+fluidsFreq = 100
+forceFreq = 100
+
+checkpoint.cpFreq = 100
 checkpoint.cpPath = cp
 
 [lb]
-timesteps = 10000
+timesteps = 1000
 components = 2
 fieldNames = [ "red", "blue" ]
 
 force.gcc = [ 0.0, 0.2, 0.2, 0.0 ]
 force.enableShanChen = true
-
-mask.maskInit = File
-mask.maskFile = mask.h5
-
 //force.globalAcc = [ 0, 0, 0.0001]
 
+init.fluidInit = EqDistRandom
+init.fluidDensity = [0.9, 0.3]
+
+mask.maskInit = None
+mask.maskFile = mask.h5
+
 [parallel]
-//showTopology = true
+showTopology = false
 //nc = [ 0, 0, 0 ]
 
 [lattice]

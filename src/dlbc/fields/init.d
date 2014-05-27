@@ -23,19 +23,6 @@ void initRank(T)(ref T field) {
   }
 }
 
-void initRandom(T)(ref T field, const double fill = 1.0) {
-  foreach( ref e; field.byElementForward) {
-    static if ( isIterable!(typeof(e))) {
-      foreach( ref c; e ) {
-	c = fill * uniform(0.0, 2.0, rng) / e.length;
-      }
-    }
-    else {
-      e = fill * uniform(0.0, 2.0, rng);
-    }
-  }
-}
-
 void initConst(T, U)(ref T field, const U fill) {
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
@@ -49,7 +36,20 @@ void initConst(T, U)(ref T field, const U fill) {
   }
 }
 
-void initEquilibriumDensity(alias conn, T)(ref T field, const double density) {
+void initConstRandom(T)(ref T field, const double fill) {
+  foreach( ref e; field.byElementForward) {
+    static if ( isIterable!(typeof(e))) {
+      foreach( ref c; e ) {
+	c = fill * uniform(0.0, 2.0, rng);
+      }
+    }
+    else {
+      e = fill * uniform(0.0, 2.0, rng);
+    }
+  }
+}
+
+void initEqDist(alias conn, T)(ref T field, const double density) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
   double[conn.q] pop0 = [ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -61,7 +61,7 @@ void initEquilibriumDensity(alias conn, T)(ref T field, const double density) {
   }
 }
 
-void initRandomEquilibriumDensity(alias conn, T)(ref T field, const double density) {
+void initEqDistRandom(alias conn, T)(ref T field, const double density) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
   double[conn.q] pop0;

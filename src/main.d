@@ -128,8 +128,8 @@ int main(string[] args ) {
     L.exchangeHalo();
   }
   else {
-    foreach(ref e; L.fluids) {
-      e.initRandomEquilibriumDensity!gconn(0.5);
+    foreach(i, ref e; L.fluids) {
+      e.initFluid!gconn(i);
     }
     L.mask.initMask();
 

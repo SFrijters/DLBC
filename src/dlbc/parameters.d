@@ -101,8 +101,9 @@ static immutable string parameterUDA = "param";
 private alias TypeTuple!(
                          "dlbc.lattice",
                          "dlbc.lb.lb",
-                         "dlbc.lb.mask",
+                         "dlbc.lb.init",
                          "dlbc.lb.force",
+                         "dlbc.lb.mask",
                          "dlbc.parallel",
                          "dlbc.random",
                          "dlbc.io.checkpoint",
