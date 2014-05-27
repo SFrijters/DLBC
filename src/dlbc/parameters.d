@@ -343,7 +343,7 @@ private auto createParameterMixins() {
             mixinStringParser ~= "\n";
 
             static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
-              mixinStringShow ~= "  if ( ! ( setParams.canFind(\""~fullName~"\") ) ) {\n";
+              mixinStringShow ~= "  if ( M.isRoot() && ( ! setParams.canFind(\""~fullName~"\") ) ) {\n";
               mixinStringShow ~= "    writeLog!(VL.Warning, logRankFormat)(\"! %-20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
               mixinStringShow ~= "  }\n  else {\n";
               mixinStringShow ~= "    writeLog!(vl, logRankFormat)(\"  %-20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
