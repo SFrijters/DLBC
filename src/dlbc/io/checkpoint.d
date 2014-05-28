@@ -38,6 +38,10 @@ mixin(createImports());
    Frequency at which checkpoints should be written to disk.
 */
 @("param") int cpFreq;
+/**
+   How many checkpoints to keep.
+*/
+@("param") int cpKeep = 1;
 
 /**
    The UDA to be used to denote a global state holding variable.
@@ -65,10 +69,32 @@ private alias TypeTuple!(
      t = current time step
 */
 void dumpCheckpoint(T)(ref T L, uint t) {
+  writeLogRN("Writing checkpoint for t = %d.", t);
   foreach(i, ref e; L.fluids) {
     e.dumpFieldHDF5("cp-"~fieldNames[i], t, true);
   }
   L.mask.dumpFieldHDF5("cp-mask", t, true);
+}
+
+/**
+   Delete a checkpoint from disk. A full checkpoint currently includes:
+   - The full populations of all fluid components.
+   - The mask.
+
+   Params:
+     L = the lattice
+     t = time step to delete
+*/
+void removeCheckpoint(T)(ref T L, int t) {
+  if ( t < 0 ) return;
+  string fileName;
+  writeLogRN("Removing checkpoint for t = %d.", t);
+  foreach(i, ref e; L.fluids) {
+    fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-"~fieldNames[i], t);
+    fileName.removeFile();
+  }
+  fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-mask", t);
+  fileName.removeFile();
 }
 
 /**
@@ -91,6 +117,9 @@ void readCheckpoint(T)(ref T L) {
   L.mask.readFieldHDF5(fileName, true);
   writeLogRI("The simulation has been restored and will continue at the next timestep.");
 }
+
+
+
 
 /**
    First broadcasts the value of the restore string to all processes,

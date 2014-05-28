@@ -176,6 +176,23 @@ string makeFilenameOutput(FileFormat fileFormat)(const string name, const uint t
 }
 
 /**
+   Attempt to remove a file, if it exists.
+
+   Params:
+     fileName = file to remove
+*/
+void removeFile(const string fileName) {
+  import dlbc.parallel: M;
+  import std.file;
+  if ( M.isRoot() ) {
+    if ( fileName.exists() ) {
+      writeLogRI("Removing file '%s'.", fileName);
+      fileName.remove();
+    }
+  }
+}
+
+/**
    Dump data to disk, based on the current lattice and the current timestep.
 
    Params:
@@ -190,6 +207,7 @@ void dumpData(T)(ref T L, uint t) {
   // Checkpointing has its own routine.
   if (dumpNow(cpFreq,t)) {
     dumpCheckpoint(L, t);
+    removeCheckpoint(L, t - (cpFreq * cpKeep)); 
   }
 
   if (dumpNow(fluidsFreq,t)) {
