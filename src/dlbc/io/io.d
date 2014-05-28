@@ -172,7 +172,7 @@ string makeFilenameOutput(FileFormat fileFormat)(const string name, const uint t
   else {
     static assert(0, "File name extension not specified for this file format.");
   }
-  return format("%s/%s-%s-t%08d-%s.%s", outputPath, name, simulationName, time, simulationId, ext);
+  return format("%s/%s-%s-%s-t%08d.%s", outputPath, name, simulationName, simulationId, time, ext);
 }
 
 /**

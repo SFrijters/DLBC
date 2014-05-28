@@ -168,7 +168,7 @@ string makeFilenameCpOutput(FileFormat fileFormat)(const string name, const uint
   else {
     static assert(0, "File name extension not specified for this file format.");
   }
-  return format("%s/%s/%s-%s-t%08d-%s.%s", outputPath, cpPath, name, simulationName, time, simulationId, ext);
+  return format("%s/%s/%s-%s-%s-t%08d.%s", outputPath, cpPath, name, simulationName, simulationId, time, ext);
 }
 
 /**
