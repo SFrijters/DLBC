@@ -32,10 +32,6 @@ bool showTime;
 bool warningsAreFatal = false;
 
 /**
-   String to append to truncated messages.
-*/
-private shared immutable string truncationSuffix = "[T]...";
-/**
    Maximum width of the terminal output.
 */
 private shared immutable size_t columnWidth = 120;

@@ -71,8 +71,7 @@ void startHDF5() {
    This function should only be called once during a given program run.
 */
 void endHDF5() {
-  herr_t e;
-  e = H5close();
+  H5close();
   writeLogRN("Closed HDF5.");
 }
 
@@ -128,8 +127,6 @@ size_t hdf5Lengthof(T)() {
      isCheckpoint = whether this is checkpoint-related (different file name, write globals)
 */
 void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const bool isCheckpoint = false) {
-  herr_t e;
-
   hsize_t[] dimsg;
   hsize_t[] dimsl;
   hsize_t[] count;
@@ -213,13 +210,13 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
 
   filespace = H5Dget_space(dataset_id);
   // In the filespace, we have an offset to make sure we write in the correct chunk.
-  e = H5Sselect_hyperslab(filespace, H5S_seloper_t.H5S_SELECT_SET, start.ptr, stride.ptr, count.ptr, block.ptr);
+  H5Sselect_hyperslab(filespace, H5S_seloper_t.H5S_SELECT_SET, start.ptr, stride.ptr, count.ptr, block.ptr);
   // In the memspace, we cut off the halo region.
-  e = H5Sselect_hyperslab(memspace, H5S_seloper_t.H5S_SELECT_SET, arrstart.ptr, stride.ptr, count.ptr, block.ptr);
+  H5Sselect_hyperslab(memspace, H5S_seloper_t.H5S_SELECT_SET, arrstart.ptr, stride.ptr, count.ptr, block.ptr);
 
   // Set up for collective IO.
   auto dxpl_id = H5Pcreate(H5P_DATASET_XFER);
-  e = H5Pset_dxpl_mpio(dxpl_id, H5FD_mpio_xfer_t.H5FD_MPIO_COLLECTIVE);
+  H5Pset_dxpl_mpio(dxpl_id, H5FD_mpio_xfer_t.H5FD_MPIO_COLLECTIVE);
 
   H5Dwrite(dataset_id, type_id, memspace, filespace, dxpl_id, field.arr._data.ptr);
 
@@ -270,8 +267,6 @@ void dumpMetadata(const hid_t root_id) {
      isCheckpoint = whether this is checkpoint related (reads checkpoint globals)
 */
 void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isCheckpoint = false) {
-  herr_t e;
-
   hsize_t[] dimsg;
   hsize_t[] dimsl;
   hsize_t[] count;
@@ -331,14 +326,14 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
   auto filespace = H5Dget_space(dataset_id);
 
   // In the filespace, we have an offset to make sure we write in the correct chunk.
-  e = H5Sselect_hyperslab(filespace, H5S_seloper_t.H5S_SELECT_SET, start.ptr, stride.ptr, count.ptr, block.ptr);
+  H5Sselect_hyperslab(filespace, H5S_seloper_t.H5S_SELECT_SET, start.ptr, stride.ptr, count.ptr, block.ptr);
   // In the memspace, we cut off the halo region.
   auto memspace = H5Screate_simple(ndim, dimsl.ptr, null);
-  e = H5Sselect_hyperslab(memspace, H5S_seloper_t.H5S_SELECT_SET, arrstart.ptr, stride.ptr, count.ptr, block.ptr);
+  H5Sselect_hyperslab(memspace, H5S_seloper_t.H5S_SELECT_SET, arrstart.ptr, stride.ptr, count.ptr, block.ptr);
 
   // Set up for collective IO.
   auto dxpl_id = H5Pcreate(H5P_DATASET_XFER);
-  e = H5Pset_dxpl_mpio(dxpl_id, H5FD_mpio_xfer_t.H5FD_MPIO_COLLECTIVE);
+  H5Pset_dxpl_mpio(dxpl_id, H5FD_mpio_xfer_t.H5FD_MPIO_COLLECTIVE);
 
   H5Dread(dataset_id, type_id, memspace, filespace, dxpl_id, field.arr._data.ptr);
 
@@ -370,7 +365,7 @@ void dumpAttributeHDF5(T)(const T data, const string name, hid_t loc_id) {
   auto attrname = name.toStringz();
   hid_t sid, aid, type;
   static if ( is (T == string ) ) {
-    hsize_t length[] = [ 1 ];
+    hsize_t[] length = [ 1 ];
     auto attrdata = data.toStringz();
     type = H5Tcopy (H5T_C_S1);
     H5Tset_size (type, H5T_VARIABLE);
@@ -380,7 +375,7 @@ void dumpAttributeHDF5(T)(const T data, const string name, hid_t loc_id) {
     H5Tclose(type);
   }
   else {
-    hsize_t length[] = [ 1 ];
+    hsize_t[] length = [ 1 ];
     sid = H5Screate_simple(1, length.ptr, null);
     aid = H5Acreate2(loc_id, attrname, hdf5Typeof!T, sid, H5P_DEFAULT, H5P_DEFAULT);
     H5Awrite(aid, hdf5Typeof!T, &data);
@@ -406,7 +401,7 @@ T readAttributeHDF5(T)(const string name, hid_t loc_id) {
     H5Tset_size (type, H5T_VARIABLE);
     auto att = H5Aopen_by_name(loc_id, ".", attrname, H5P_DEFAULT, H5P_DEFAULT);
     auto ftype = H5Aget_type(att);
-    auto type_class = H5Tget_class (ftype);
+    // auto type_class = H5Tget_class (ftype);
     auto dataspace = H5Aget_space(att);
 
     hsize_t[] dims;
@@ -425,7 +420,7 @@ T readAttributeHDF5(T)(const string name, hid_t loc_id) {
     return to!string(chars[0]);
   }
   else {
-    hsize_t length[] = [ 1 ];
+    hsize_t[] length = [ 1 ];
     T result;
     sid = H5Screate_simple(1, length.ptr, null);
     aid = H5Aopen_by_name(loc_id, ".", attrname, H5P_DEFAULT, H5P_DEFAULT);
@@ -446,7 +441,7 @@ void dumpInputFileAttributes(hid_t loc_id) {
   import dlbc.parameters: inputFileData;
   hid_t sid, aid, type;
   auto attrname = defaultInputFileAName.toStringz();
-  hsize_t length[] = [ inputFileData.length ];
+  hsize_t[] length = [ inputFileData.length ];
 
   immutable(char)*[] stringz;
   stringz.length = inputFileData.length;
@@ -475,18 +470,17 @@ string[] readInputFileAttributes(const string fileNameString) {
   import dlbc.parameters: inputFileData;
   import std.conv;
 
-  herr_t ret;
   auto attrname = defaultInputFileAName.toStringz();
   auto fileName = fileNameString.toStringz();
   auto dsetName = defaultDatasetName.toStringz();
 
   auto file = H5Fopen(fileName, H5F_ACC_RDONLY, H5P_DEFAULT);
   auto type = H5Tcopy (H5T_C_S1);
-  ret = H5Tset_size (type, H5T_VARIABLE);
+  H5Tset_size (type, H5T_VARIABLE);
   auto root = H5Gopen2(file, "/", H5P_DEFAULT);
   auto att = H5Aopen_by_name(root, ".", attrname, H5P_DEFAULT, H5P_DEFAULT);
   auto ftype = H5Aget_type(att);
-  auto type_class = H5Tget_class (ftype);
+  // auto type_class = H5Tget_class (ftype);
   auto dataspace = H5Aget_space(att);
 
   hsize_t[] dims;
