@@ -98,7 +98,7 @@ static immutable string parameterUDA = "param";
    Bugs:
      Ideally this should be a template parameter to the createParameterMixins function, maybe?
 */
-private alias TypeTuple!(
+private alias parameterSourceModules = TypeTuple!(
                          "dlbc.lattice",
                          "dlbc.lb.lb",
                          "dlbc.lb.init",
@@ -109,7 +109,7 @@ private alias TypeTuple!(
                          "dlbc.io.checkpoint",
                          "dlbc.io.io",
                          "dlbc.io.hdf5",
-			 ) parameterSourceModules;
+			 );
 /**
    List of parameters that have been set in the input files.
 */

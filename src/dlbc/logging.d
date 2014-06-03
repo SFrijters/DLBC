@@ -75,7 +75,7 @@ enum LogRankFormat {
   Ordered = 3,
 };
 /// Ditto
-alias LogRankFormat LRF;
+alias LRF = LogRankFormat;
 
 /**
    Specifies at which verbosity level the logging should be executed when passed as a (template) argument to various logging functions.
@@ -111,7 +111,7 @@ enum VerbosityLevel {
   Debug        = 6,
 };
 /// Ditto
-alias VerbosityLevel VL;
+alias VL = VerbosityLevel;
 
 version(unittest) {
   VL globalVerbosityLevel = VL.Off;

@@ -35,7 +35,7 @@ auto d3q19 = new immutable Connectivity!(3,19);
 /**
    Global connectivity parameter.
 */
-alias d3q19 gconn;
+alias gconn = d3q19;
 
 private auto generateBounce(T)(const T velocities) {
   size_t[velocities.length] bounce;

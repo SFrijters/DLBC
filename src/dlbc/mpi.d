@@ -4,10 +4,10 @@ module dlbc.mpi;
 extern(C):
 
 /* Aliases */
-alias long MPI_Aint;
-alias int  MPI_Comm;
-alias int  MPI_Datatype;
-alias int  MPI_Info;
+alias MPI_Aint = long;
+alias MPI_Comm = int;
+alias MPI_Datatype = int;
+alias MPI_Info = int;
 
 immutable MPI_Info MPI_INFO_NULL = cast(MPI_Info) 0x1c000000;
 
@@ -103,7 +103,7 @@ int MPI_Allreduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype da
 int MPI_Barrier(MPI_Comm);
 
 /* Collective operations */
-alias int MPI_Op;
+alias MPI_Op = int;
 
 immutable MPI_Op MPI_MAX     = cast(MPI_Op)(0x58000001);
 immutable MPI_Op MPI_MIN     = cast(MPI_Op)(0x58000002);
@@ -120,7 +120,7 @@ immutable MPI_Op MPI_MAXLOC  = cast(MPI_Op)(0x5800000c);
 immutable MPI_Op MPI_REPLACE = cast(MPI_Op)(0x5800000d);
 immutable MPI_Op MPI_NO_OP   = cast(MPI_Op)(0x5800000e);
 
-alias int MPI_Group;
+alias MPI_Group = int;
 immutable MPI_Group MPI_GROUP_EMPTY = cast(MPI_Group) 0x48000000;
 
 immutable MPI_Group MPI_GROUP_NULL = cast(MPI_Group) 0x08000000;

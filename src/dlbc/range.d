@@ -14,13 +14,13 @@ template rank(T) {
 
 template BaseElementType(T) {
   static if ( rank!T == 0 ) {
-    alias T BaseElementType;
+    alias BaseElementType = T;
   }
   else static if ( rank!T == 1 ) {
-    alias ElementType!T BaseElementType;
+    alias BaseElementType = ElementType!T;
   }
   else {
-    alias BaseElementType!(ElementType!(T)) BaseElementType;
+    alias BaseElementType = BaseElementType!(ElementType!(T));
   }
 }
 

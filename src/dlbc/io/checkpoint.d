@@ -54,10 +54,10 @@ static immutable string globalUDA = "global";
    Bugs:
      Ideally this should be a template parameter to the createCheckpointMixins function, maybe?
 */
-private alias TypeTuple!(
+private alias globalsSourceModules = TypeTuple!(
                          "dlbc.lb.lb",
                          "dlbc.parameters",
-			 ) globalsSourceModules;
+			 );
 
 /**
    Write a checkpoint to disk. A full checkpoint currently includes:

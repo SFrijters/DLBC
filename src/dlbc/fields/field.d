@@ -44,7 +44,7 @@ struct Field(T, uint dim, uint hs) {
   private size_t[dim] _lengths;
   private size_t[dim] _lengthsH;
 
-  alias T type;
+  alias type = T;
 
   /**
      Lengths of the physical dimensions of the field.

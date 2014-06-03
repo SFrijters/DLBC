@@ -128,7 +128,7 @@ struct MultiStopWatch {
   }
 }
 /// Ditto
-alias MultiStopWatch MSW;
+alias MSW = MultiStopWatch;
 
 private string createInitAllTimersMixin() {
   string mixinString;
