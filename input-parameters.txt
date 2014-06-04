@@ -30,8 +30,10 @@ force.gcc = [ 0.0, 0.2, 0.2, 0.0 ]
 force.enableShanChen = true
 force.globalAcc = [ 0.0, 0.0, 0.0 ]
 
-init.fluidInit = [ EqDistRandom, EqDistRandom ]
-init.fluidDensity = [0.9, 0.3 ]
+init.fluidInit = [ EqDistSphere , EqDistSphere ]
+init.fluidDensity = [0.7, 0.04 ]
+init.fluidDensity2 = [0.04, 0.7 ]
+init.sphereRadius = 9.5
 
 mask.maskInit = None
 mask.maskFile = mask.h5

@@ -4,6 +4,10 @@ module dlbc.lb.init;
 
 @("param") double[] fluidDensity;
 
+@("param") double[] fluidDensity2;
+
+@("param") double sphereRadius;
+
 import dlbc.lb.lb;
 import dlbc.fields.init;
 
@@ -15,6 +19,7 @@ enum FluidInit {
   EqDist,
   ConstRandom,
   EqDistRandom,
+  EqDistSphere,
 }
 
 void initFluid(alias conn, T)(ref T field, const size_t i) {
@@ -22,6 +27,7 @@ void initFluid(alias conn, T)(ref T field, const size_t i) {
 
   checkVectorParameterLength(fluidInit, "lb.init.fluidInit", components);
   checkVectorParameterLength(fluidDensity, "lb.init.fluidDensity", components);
+  checkVectorParameterLength(fluidDensity2, "lb.init.fluidDensity2", components);
 
   final switch(fluidInit[i]) {
   case(FluidInit.None):
@@ -37,6 +43,9 @@ void initFluid(alias conn, T)(ref T field, const size_t i) {
     break;
   case(FluidInit.EqDistRandom):
     field.initEqDistRandom!conn(fluidDensity[i]);
+    break;
+  case(FluidInit.EqDistSphere):
+    field.initEqDistSphere!conn(fluidDensity[i], fluidDensity2[i], sphereRadius);
     break;
   }
 }
