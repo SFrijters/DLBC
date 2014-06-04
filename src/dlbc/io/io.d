@@ -66,6 +66,10 @@ string restoreString;
    Frequency at which force fields should be written to disk.
 */
 @("param") int forceFreq;
+/**
+   Frequency at which mask fields should be written to disk.
+*/
+@("param") int maskFreq;
 
 /**
    Id of the simulation, based on the time it was started.
@@ -234,6 +238,10 @@ void dumpData(T)(ref T L, uint t) {
     foreach(i, ref e; L.force) {
       e.dumpField("force-"~fieldNames[i], t);
     }
+  }
+
+  if (dumpNow(maskFreq,t)) {
+    L.mask.dumpField("mask", t);
   }
 }
 
