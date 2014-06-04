@@ -20,6 +20,7 @@ module dlbc.lattice;
 
 import dlbc.fields.field;
 import dlbc.fields.parallel;
+import dlbc.io.checkpoint;
 import dlbc.lb.lb;
 import dlbc.lb.mask;
 import dlbc.logging;
@@ -179,6 +180,22 @@ struct Lattice(alias conn) {
     foreach(e ; __traits(derivedMembers, Lattice)) {
       mixin(`static if(typeof(Lattice.`~e~`).stringof.startsWith("Field!")) { static if (isArray!(typeof(Lattice.`~e~`)) ) { foreach(ref f; Lattice.`~e~`) { f.exchangeHalo!()();} } else {`~e~`.exchangeHalo!()();}}`);
     }
+  }
+}
+
+void initLattice(T)(ref T L) {
+  L.initForce!gconn();
+
+  if ( isRestoring() ) {
+    L.readCheckpoint();
+    L.exchangeHalo();
+  }
+  else {
+    foreach(i, ref e; L.fluids) {
+      e.initFluid!gconn(i);
+    }
+    L.mask.initMask();
+    L.exchangeHalo();
   }
 }
 

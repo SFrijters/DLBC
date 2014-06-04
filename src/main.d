@@ -62,6 +62,8 @@ import dlbc.random;
 import dlbc.timers;
 import dlbc.versions;
 
+import tests.test;
+
 /**
    The Main Is Mother, the Main Is Father.
 
@@ -97,47 +99,32 @@ int main(string[] args ) {
   initAllTimers();
   Timers.main.start!(VL.Debug, LRF.None);
 
-  // Read, broadcast, and show parameters.
-  if (M.isRoot) {
-    readParameterSetFromCliFiles();
-  }
-  bcastParameters();
-  showParameters!(VL.Information, LRF.Root);
-
-  // Set secondary values based on parameters.
-  processParameters();
-
-  // Show name and id of the current simulation.
-  broadcastSimulationId();
-
-  // Warn if output paths do not exist.
-  checkPaths();
-
-  // Make cartesian grid now that we have values ncx, ncy, ncz everywhere.
-  reorderMpi();
-
-  // Initialize random number generator.
-  initRNG();
-
   // Try and create the local lattice structure.
-  auto L = Lattice!(gconn)(M);
-  initForce!gconn(L);
-
-  if ( isRestoring() ) {
-    L.readCheckpoint();
-    L.exchangeHalo();
+  if ( ! isTesting() ) {
+    initParameters();
+    initCommon();
+    auto L = Lattice!(gconn)(M);
+    initLattice(L);
+    runTimeloop(L);
   }
   else {
-    foreach(i, ref e; L.fluids) {
-      e.initFluid!gconn(i);
-    }
-    L.mask.initMask();
-
-    L.exchangeHalo();
-    L.mask.dumpField("mask", 0);
-    L.dumpData(timestep);
+    runTests();
   }
 
+  Timers.main.stop();
+
+  showFinalAllTimers!(VL.Information, LRF.Root);
+
+  endHDF5();
+  endMpi();
+
+  writeLogRN(makeHeaderString("Finished DLBC run."));
+
+  return 0;
+}
+
+void runTimeloop(T)(ref T L) {
+  L.dumpData(timestep);
   while ( timestep <= timesteps ) {
     ++timestep;
     writeLogRN("Starting timestep %d", timestep);
@@ -164,16 +151,18 @@ int main(string[] args ) {
     // writeLogRI("Global momentum = %s", L.red.globalMomentum!(gconn)(L.mask));
     L.dumpData(timestep);
   }
-
-  Timers.main.stop();
-
-  showFinalAllTimers!(VL.Information, LRF.Root);
-
-  endHDF5();
-  endMpi();
-
-  writeLogRN(makeHeaderString("Finished DLBC run."));
-
-  return 0;
 }
 
+void initCommon() {
+  // Show name and id of the current simulation.
+  broadcastSimulationId();
+
+  // Warn if output paths do not exist.
+  checkPaths();
+
+  // Make cartesian grid now that we have values ncx, ncy, ncz everywhere.
+  reorderMpi();
+
+  // Initialize random number generator.
+  initRNG();
+}

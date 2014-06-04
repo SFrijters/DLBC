@@ -115,6 +115,18 @@ private alias parameterSourceModules = TypeTuple!(
 */
 private string[] setParams;
 
+void initParameters() {
+  // Read, broadcast, and show parameters.
+  if (M.isRoot) {
+    readParameterSetFromCliFiles();
+  }
+  bcastParameters();
+  showParameters!(VL.Information, LRF.Root);
+
+  // Set secondary values based on parameters.
+  processParameters();
+}
+
 /**
    Loops over all specified parameter files $(D parameterFileNames) in order to parse them.
    If no files are specified, a fatal error is logged.
