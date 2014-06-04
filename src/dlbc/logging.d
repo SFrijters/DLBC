@@ -210,15 +210,18 @@ void writeLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
   // Abort conditions...
   import std.c.stdlib: exit;
   if ( vl == VL.Fatal ) {
+    MpiBarrier();
     writeln(makeLogString!(vl, LRF.Any)("Fatal error, aborting..."));
     exit(-1);
   }
   if ( warningsAreFatal ) {
     if ( vl == VL.Error ) {
+      MpiBarrier();
       writeln(makeLogString!(vl, LRF.Any)("Error treated as fatal error, aborting..."));
       exit(-1);
     }
     if ( vl == VL.Warning ) {
+      MpiBarrier();
       writeln(makeLogString!(vl, LRF.Any)("Warning treated as fatal error, aborting..."));
       exit(-1);
     }
