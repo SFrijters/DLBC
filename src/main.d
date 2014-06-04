@@ -46,21 +46,21 @@
 
 module main;
 
-import dlbc.fields.field;
-import dlbc.fields.init;
-import dlbc.fields.parallel;
-import dlbc.getopt;
-import dlbc.io.checkpoint;
-import dlbc.io.io;
-import dlbc.io.hdf5;
-import dlbc.lattice;
-import dlbc.lb.lb;
-import dlbc.logging;
-import dlbc.parallel;
-import dlbc.parameters;
-import dlbc.random;
-import dlbc.timers;
-import dlbc.versions;
+public import dlbc.fields.field;
+public import dlbc.fields.init;
+public import dlbc.fields.parallel;
+public import dlbc.getopt;
+public import dlbc.io.checkpoint;
+public import dlbc.io.io;
+public import dlbc.io.hdf5;
+public import dlbc.lattice;
+public import dlbc.lb.lb;
+public import dlbc.logging;
+public import dlbc.parallel;
+public import dlbc.parameters;
+public import dlbc.random;
+public import dlbc.timers;
+public import dlbc.versions;
 
 import tests.test;
 
