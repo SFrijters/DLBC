@@ -19,13 +19,13 @@ src/unstd/multidimarray.o: src/unstd/generictuple.o src/unstd/multidimarray.d
 	dmd src/unstd/multidimarray.d -I./src -c -ofsrc/unstd/multidimarray.o
 
 dlbc-dmd: revision src/unstd/multidimarray.o
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o -ofdlbc -I./src -O -g -w -de
+	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d -ofdlbc -I./src -O -g -w -de
 
 release-dmd: revision src/unstd/multidimarray.o
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o -ofdlbc -I./src -unittest -cov -g -w -de -inline -noboundscheck
+	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d -ofdlbc -I./src cov -g -w -de -inline -noboundscheck
 
 test-dmd: revision src/unstd/multidimarray.o
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o -ofdlbc -I./src -unittest -cov -g -w -de
+	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d src/tests/runnable/*.d -ofdlbc -I./src -unittest -cov -g -w -de
 
 clean:
 	rm -f src/dlbc/revision.d
@@ -42,6 +42,10 @@ clean:
 	rm -f src/dlbc/io/*~
 	rm -f src/dlbc/lb/*.o
 	rm -f src/dlbc/lb/*~
+	rm -f src/tests/*.o
+	rm -f src/tests/*~
+	rm -f src/tests/runnable/*.o
+	rm -f src/tests/runnable/*~
 	rm -f src/unstd/*.o
 	rm -f dlbc
 	rm -f dlbc.o
