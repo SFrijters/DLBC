@@ -23,7 +23,11 @@ bool isTesting() {
 
 version(unittest) {
 
+  public import main;
+
   mixin(createTestImportMixin());
+
+  immutable string runnableTestPath = "src/tests/runnable/";
 
   void runTests() {
     import std.algorithm: canFind;
