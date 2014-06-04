@@ -127,7 +127,7 @@ int main(string[] args ) {
 
 void runTimeloop(T)(ref T L) {
   L.dumpData(timestep);
-  while ( timestep <= timesteps ) {
+  while ( timestep < timesteps ) {
     ++timestep;
     writeLogRN("Starting timestep %d", timestep);
 
