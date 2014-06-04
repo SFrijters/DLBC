@@ -91,7 +91,6 @@ void initEqDistSphere(alias conn, T)(ref T field, const double density1, const d
     auto oy = gy - to!double(M.ncy * field.ny / 2);
     auto oz = gz - to!double(M.ncz * field.nz / 2);
     double offset = sqrt(ox*ox + oy*oy + oz*oz);
-    writeLogRD("%f %f",offset, initSphereRadius);
     if ( offset < initSphereRadius ) {
       e = pop1;
     }
