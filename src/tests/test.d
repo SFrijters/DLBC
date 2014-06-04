@@ -9,11 +9,72 @@ enum RunnableTests {
   Laplace,
 }
 
-void runTests() {
-  writeLogRD("%s", testsToRun);
+bool isTesting() {
+  version(unittest) {
+    return ( testsToRun.length > 0 );
+  }
+  else {
+    if ( testsToRun.length > 0 ) {
+      writeLogRF("Runnable tests are only available when the code is compiled with -unittest.");
+    }
+    return false;
+  }
 }
 
-bool isTesting() {
-  return ( testsToRun.length > 0 );
+version(unittest) {
+
+  mixin(createTestImportMixin());
+
+  void runTests() {
+    import std.algorithm: canFind;
+    if ( testsToRun.canFind(RunnableTests.All) ) {
+      runAllTests();
+    }
+    else {
+      foreach(immutable t; testsToRun) {
+        final switch(t) {
+          mixin(createTestCaseMixin());
+        }
+      }
+    }
+  }
+
+  void runAllTests() {
+    import std.string: toLower;
+    writeLogRN("Performing all runnable tests...");
+    foreach (m; __traits(allMembers, RunnableTests)) {
+      static if ( m != "All") {
+        mixin("tests.runnable."~m.toLower()~".runTest();");
+      }
+    }
+  }
+
+  private string createTestCaseMixin() {
+    import std.string: toLower;
+    string mixinString;
+    foreach (m; __traits(allMembers, RunnableTests)) {
+      static if ( m != "All") {
+        mixinString ~= "case RunnableTests."~m~":\n";
+        mixinString ~= "  tests.runnable."~m.toLower()~".runTest();\n";
+        mixinString ~= "  break;\n";
+      }
+      else {
+        mixinString ~= "case RunnableTests."~m~":\n  break;";
+      }
+    }
+    return mixinString;
+  }
+
+  private string createTestImportMixin() {
+    import std.string: toLower;
+    string mixinString;
+    foreach (m; __traits(allMembers, RunnableTests)) {
+      static if ( m != "All") {
+        mixinString ~= "import tests.runnable." ~ m.toLower() ~ ";\n";
+      }
+    }
+    return mixinString;
+  }
+
 }
 

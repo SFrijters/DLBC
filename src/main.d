@@ -108,7 +108,9 @@ int main(string[] args ) {
     runTimeloop(L);
   }
   else {
-    runTests();
+    version(unittest) {
+      runTests();
+    }
   }
 
   Timers.main.stop();
