@@ -27,10 +27,11 @@ import dlbc.parallel;
 /**
    Show the current time in the various writeLog functions.
 */
-bool showTime;
-
+bool showTime = false;
+/**
+   If set, warnings and above are treated as fatal errors.
+*/
 bool warningsAreFatal = false;
-
 /**
    Maximum width of the terminal output.
 */
