@@ -117,6 +117,21 @@ else {
   private VL globalVerbosityLevel = VL.Debug;
 }
 
+private VL squelchedGlobalVL;
+private bool isSquelched = false;
+
+void squelchLog() {
+  if ( ! isSquelched ) {
+    squelchedGlobalVL = globalVerbosityLevel;
+    globalVerbosityLevel = VL.Off;
+    isSquelched = true;
+  }
+}
+
+void unsquelchLog() {
+  globalVerbosityLevel = squelchedGlobalVL;
+}
+
 /**
    Setter function for the global verbosity level.
 
