@@ -370,3 +370,30 @@ void MpiBcastString(ref string str) {
   }
 }
 
+void broadcastParameter(T)(ref T parameter) {
+  import std.traits;
+  import std.conv: to;
+  int arrlen;
+  static if ( is( T == string) ) {
+    MpiBcastString(parameter);
+  }
+  else {
+    static if ( isArray!T ) {
+      arrlen = to!int(parameter.length);
+      MPI_Bcast(&arrlen, 1, mpiTypeof!(typeof(arrlen)), M.root, M.comm);
+      parameter.length = arrlen;
+      static if ( is (typeof(parameter[0]) == string ) ) {
+        for ( int i = 0; i < arrlen; i++ ) {
+          MpiBcastString(parameter[i]);
+        }
+      }
+      else {
+        MPI_Bcast(parameter.ptr, arrlen, mpiTypeof!T, M.root, M.comm);
+      }
+    }
+    else {
+      MPI_Bcast(&parameter, 1, mpiTypeof!T, M.root, M.comm);
+    }
+  }
+}
+
