@@ -1,0 +1,23 @@
+// Parameters to test Laplace's law for two fluids.
+
+[io]
+simulationName = tests.runnable.laplace
+
+[lb]
+timesteps = 1
+components = 2
+fieldNames = [ "red", "blue" ]
+
+force.gcc = [ 0.0, 0.2, 0.2, 0.0 ]
+force.enableShanChen = true
+
+init.fluidInit = [ EqDistSphere , EqDistSphere ]
+init.fluidDensity = [0.7, 0.04 ]
+init.fluidDensity2 = [0.04, 0.7 ]
+init.sphereRadius = nan
+
+mask.maskInit = None
+
+[lattice]
+gn = [32, 32, 32 ]
+
