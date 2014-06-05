@@ -73,7 +73,7 @@ string restoreString;
 
 /**
    Id of the simulation, based on the time it was started.
-   Initialized in the static constructor of the module.
+   Initialized in broadcastSimulationId.
    To be used in file names for the output.
 */
 string simulationId;
@@ -95,19 +95,13 @@ enum FileFormat {
 }
 
 /**
-   The module constructor sets the unique id before main() is run.
-*/
-static this() {
-  simulationId = Clock.currTime().toISOString()[0..15];
-}
-
-/**
    Ensure that the simulationId is globally the same, by broadcasting the value
    from the root process. This function should be called early in the simulation,
    but definitely before any IO has been performed.
 */
 void broadcastSimulationId() {
   import dlbc.parallel: MpiBcastString;
+  simulationId = Clock.currTime().toISOString()[0..15];
   MpiBcastString(simulationId);
   writeLogRI("The name of the simulation is `%s' and its id is `%s'.", simulationName, simulationId);
   simulationIdIsBcast = true;
