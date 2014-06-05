@@ -320,3 +320,26 @@ void colourField(T, U, V)(ref T field1, ref T field2, ref U mask, ref V colour) 
   }
 }
 
+/**
+   Calculates the local pressure of an array of densities: \(P = \sum \rho_c c_s^2 + \frac{c_s^2}{2} \sum g_{c c'} \Psi_c \Psi_{c'}\).
+
+   Params:
+     density = array of densities \(\rho_c\) for the different components
+
+   Returns:
+     local pressure \(P\)
+*/
+auto pressure(alias conn, T)(const ref T density[]) {
+  import std.algorithm;
+  import dlbc.lb.force;
+  double pressure = 0.0;
+  foreach(i, d1; density) {
+    pressure += d1;
+    foreach(j, d2; density) {
+      pressure += 0.5*gccm[i][j]*psi(d1)*psi(d2);
+    }
+  }
+  return (pressure * conn.css);
+}
+
+

@@ -43,7 +43,7 @@ import dlbc.logging;
 /**
    Shan-Chen interaction strength parameters in matrix form.
 */
-private double[][] gccm;
+double[][] gccm;
 
 /**
    Initialisation of the force systems. This should be run before the time loop starts.
