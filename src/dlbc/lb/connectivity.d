@@ -24,6 +24,7 @@ immutable struct Connectivity(uint _d, uint _q) {
   enum int[d][q] velocities = generateVelocities!(d, q);
   enum int[q] bounce = generateBounce(generateVelocities!(d, q));
   enum double[q] weights = generateWeights(generateVelocities!(d, q));
+  enum double css = 1.0/3.0;
 }
 
 /**
