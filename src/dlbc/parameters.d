@@ -421,7 +421,7 @@ private auto createImports() {
   return mixinString;
 }
 
-void setParameter(T)(ref T parameter, const T value) {
+void setParameter(T)(ref T parameter, T value) {
   parameter = value;
   broadcastParameter(parameter);
 }
