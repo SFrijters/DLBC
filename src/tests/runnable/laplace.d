@@ -2,47 +2,76 @@ module tests.runnable.laplace;
 
 version(unittest) {
 
-  enum volumeAverage = 2;
-
   import std.conv;
+  import std.stdio;
 
   import tests.test;
+
+  immutable string parameterFile = runnableTestPath ~ "laplace-parameters.txt";
+  immutable string resultsFile = runnableTestPath ~ "laplace-results.dat";
 
   int runTest() {
     writeLogRN(makeHeaderString("Running test '%s'", __MODULE__));
 
-    immutable string parameterFile = runnableTestPath ~ "laplace-parameters.txt";
     dlbc.parameters.parameterFileNames = [ parameterFile ];
 
     squelchLog();
     initParameters();
-    initCommon();
     unsquelchLog();
 
     double[] radii = [ 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 ];
+    double[][] gccArray = [ 
+                        // [ 0.0, 0.1, 0.1, 0.0 ],
+                           [ 0.0, 0.2, 0.2, 0.0 ],
+                           [ 0.0, 0.225, 0.225, 0.0 ],
+                           [ 0.0, 0.25, 0.25, 0.0 ],
+                           [ 0.0, 0.275, 0.275, 0.0 ],
+                           [ 0.0, 0.3, 0.3, 0.0 ],
+                           [ 0.0, 0.325, 0.325, 0.0 ],
+                           [ 0.0, 0.35, 0.35, 0.0 ],
+                           [ 0.0, 0.375, 0.375, 0.0 ],
+                           [ 0.0, 0.4, 0.4, 0.0 ],
+                           [ 0.0, 0.425, 0.425, 0.0 ],
+                           [ 0.0, 0.45, 0.45, 0.0 ],
+                           [ 0.0, 0.475, 0.475, 0.0 ],
+                           [ 0.0, 0.5, 0.5, 0.0 ],
+			  ];
 
-    foreach(immutable r; radii) {
-      dlbc.lb.init.sphereRadius.setParameter(r);
-      writeLogRN("Performing simulation with dlbc.lb.init.sphereRadius = %f.", dlbc.lb.init.sphereRadius);
-      // showParameters!(VL.Information, LRF.Root);
+    enum volumeAverage = 2;
 
-      auto L = Lattice!(gconn)(M);
-      timestep = 0;
-      initLattice(L);
-      calculateLaplace(L);
-      runTimeloop(L);
+    if ( M.isRoot() ) {
+      auto f = File(resultsFile, "w");
+      f.writefln("#?     t %13s %13s %13s %13s %13s %13s", "gcc", "R", "sigma", "R_d", "P_in", "P_out");
+    }
+
+    foreach(g; gccArray) {
+      foreach(immutable r; radii) {
+	dlbc.lb.init.sphereRadius.setParameter(r);
+	dlbc.lb.force.gcc.setParameter(g);
+	writeLogRN("Performing simulation with:\n    dlbc.lb.force.gcc = %s\n    dlbc.lb.init.sphereRadius = %f", dlbc.lb.force.gcc, dlbc.lb.init.sphereRadius);
+	initCommon();
+
+	auto L = Lattice!(gconn)(M);
+	timestep = 0;
+	initLattice(L);
+	L.calculateLaplace(volumeAverage);
+	runTimeloop(L);
+	L.calculateLaplace(volumeAverage);
+	// auto colour = colourField(L.fluids[0], L.fluids[1], L.mask);
+	// colour.dumpField("colour-"~fieldNames[0]~"-"~fieldNames[1],timestep);
+      }
     }
 
     writeLogRN(makeHeaderString("Finished test '%s'", __MODULE__));
     return 0;
   }
 
-  private void calculateLaplace(T)(ref T L) {
+  private void calculateLaplace(T)(ref T L, const int volumeAverage) {
     import std.algorithm: sum;
     import std.math;
 
-    auto inDen = insideDensity(L);
-    auto outDen = outsideDensity(L);
+    auto inDen = L.insideDensity(volumeAverage);
+    auto outDen = L.outsideDensity(volumeAverage);
 
     if ( timestep == 0 ) {
       assert(approxEqual(inDen[0], fluidDensity[0]));
@@ -51,31 +80,36 @@ version(unittest) {
       assert(approxEqual(outDen[1], fluidDensity2[1]));
     }
 
-    writeLogRD("outDen = %s", outDen);
-    writeLogRD("inDen = %s", inDen);
-
     double[] gMass;
     gMass.length = L.fluids.length;
-    foreach(i, ref field; L.fluids) {      
+    foreach(i, ref field; L.fluids) {
       gMass[i] = field.globalMass(L.mask);
     }
-    writeLogRD("gmass = %s", gMass);
+    //writeLogRD("gmass = %s", gMass);
 
     double effMass = gMass[0] - ( L.gnx * L.gny * L.gnz * outDen[0]);
     double rpow3 = effMass / ( 4.0 / 3.0 * PI * ( inDen[0] - outDen[0] ) );
     double measuredR = pow(rpow3, 1.0/3.0);
+    //writeLogRD("%f %f %f", effMass, rpow3, measuredR);
 
-    double inPresRaw = sum(inDen) / 3.0; // Speed of sound squared
-    double outPresRaw = sum(outDen) / 3.0; // Speed of sound squared
+    auto inPres = pressure!gconn(inDen);
+    auto outPres = pressure!gconn(outDen);
 
-    double inPres = inPresRaw + ( gcc[1] + gcc[2] ) *psi(inDen[0])*psi(inDen[1]) / 3.0;
-    double outPres = outPresRaw + ( gcc[1] + gcc[2] ) *psi(outDen[0])*psi(outDen[1] / 3.0);
+    double sigma = measuredR * ( inPres - outPres ) / 2;
 
-    writeLogRN("%f %f %f", measuredR, inPres, outPres);
+    if ( timestep == 0 ) {
+      assert(approxEqual(sigma, 0.0));
+    }
 
+    writeLogRD("<LAPLACE> %8d %f %f %f %f %f %f", timestep, gccm[0][1], sphereRadius, sigma, measuredR, inPres, outPres );
+
+    if ( M.isRoot() ) {
+      auto f = File(resultsFile, "a");
+      f.writefln("%8d %+e %+e %+e %+e %+e %+e", timestep, gccm[0][1], sphereRadius, sigma, measuredR, inPres, outPres );
+    }
   }
 
-  private double[] outsideDensity(T)(ref T L) {
+  private double[] outsideDensity(T)(ref T L, const int volumeAverage) {
     double ldensity[];
     ldensity.length = L.fluids.length;
     ldensity[] = 0.0;
@@ -112,7 +146,7 @@ version(unittest) {
     return gdensity;
   }
 
-  private double[] insideDensity(T)(ref T L) {
+  private double[] insideDensity(T)(ref T L, const int volumeAverage) {
     double ldensity[];
     ldensity.length = L.fluids.length;
     ldensity[] = 0.0;
