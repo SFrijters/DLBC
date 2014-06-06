@@ -63,6 +63,14 @@ string restoreString;
 */
 @("param") int fluidsFreq;
 /**
+   Frequency at which fluid density difference fields (colour) should be written to disk.
+*/
+@("param") int colourFreq;
+/**
+   Frequency at which velocity fields should be written to disk.
+*/
+@("param") int velocitiesFreq;
+/**
    Frequency at which force fields should be written to disk.
 */
 @("param") int forceFreq;
@@ -215,12 +223,19 @@ void dumpData(T)(ref T L, uint t) {
     }
   }
 
-  if (dumpNow(fluidsFreq,t)) {
+  if (dumpNow(colourFreq,t)) {
     foreach(i, ref e; L.fluids) {
       for (size_t j = i + 1; j < L.fluids.length ; j++ ) {
 	auto colour = colourField(L.fluids[i], L.fluids[j], L.mask);
 	colour.dumpField("colour-"~fieldNames[i]~"-"~fieldNames[j],t);
       }
+    }
+  }
+
+  if (dumpNow(velocitiesFreq,t)) {
+    foreach(i, ref e; L.fluids) {
+      auto velocity = e.velocityField!gconn(L.mask);
+      velocity.dumpField("velocity-"~fieldNames[i], t);
     }
   }
 
