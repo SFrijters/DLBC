@@ -65,6 +65,7 @@ at the README.md file.
      args = command line arguments
 */
 void processCLI(string[] args) {
+  import std.conv;
   bool showHelp = false;
   bool showVersion = false;
   if ( args.length <= 1 ) {
@@ -73,16 +74,26 @@ void processCLI(string[] args) {
 
   VL verbosityLevel = getGlobalVerbosityLevel();
 
-  getopt( args,
-          "h", &showHelp,
-          "p|parameterfile", &parameterFileNames,
-          "r|restore", &restoreString,
-          "t|test", &testsToRun,
-          "time", &showTime,
-          "v|verbose", &verbosityLevel,
-          "version", &showVersion,
-          "W", &warningsAreFatal,
-          );
+  try {
+    getopt( args,
+	    "h", &showHelp,
+	    "p|parameterfile", &parameterFileNames,
+	    "r|restore", &restoreString,
+	    "t|test", &testsToRun,
+	    "time", &showTime,
+	    "v|verbose", &verbosityLevel,
+	    "version", &showVersion,
+	    "W", &warningsAreFatal,
+	    );
+  }
+  catch(GetOptException e) {
+    import std.string;
+    writeLogF("%s",e.toString.splitLines[0]);
+  }
+  catch(ConvException e) {
+    import std.string;
+    writeLogF("%s",e.toString.splitLines[0]);
+  }
 
   if ( showHelp ) {
     import std.stdio: writefln;
