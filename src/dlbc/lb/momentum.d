@@ -38,7 +38,7 @@ auto momentum(alias conn, T)(const ref T population) {
   auto immutable cv = conn.velocities;
   static assert(population.length == cv.length);
 
-  double[conn.dimensions] momentum;
+  double[conn.d] momentum;
   momentum[] = 0.0;
   foreach(i, e; population) {
     momentum[0] += e * cv[i][0];
@@ -63,7 +63,7 @@ auto momentumField(alias conn, T, U)(ref T field, ref U mask) {
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
 
-  auto momentum = Field!(double[conn.dimensions], field.dimensions, field.haloSize)(field.lengths);
+  auto momentum = Field!(double[conn.d], field.dimensions, field.haloSize)(field.lengths);
   assert(field.lengthsH == momentum.lengthsH);
 
   foreach(x,y,z, ref population; field.arr) {
@@ -110,7 +110,7 @@ auto localMomentum(alias conn, T, U)(ref T field, ref U mask) {
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
 
-  double[conn.dimensions] momentum = 0.0;
+  double[conn.d] momentum = 0.0;
   foreach(x, y, z, ref e; field) {
     if ( isFluid(mask[x,y,z]) ) {
       momentum[] += e.momentum!conn()[];
@@ -137,7 +137,7 @@ auto globalMomentum(alias conn, T, U)(ref T field, ref U mask) {
   import dlbc.parallel;
   auto localMomentum = field.localMomentum!conn(mask);
   typeof(localMomentum) globalMomentum;
-  MPI_Allreduce(&localMomentum, &globalMomentum, conn.dimensions, MPI_DOUBLE, MPI_SUM, M.comm);
+  MPI_Allreduce(&localMomentum, &globalMomentum, conn.d, MPI_DOUBLE, MPI_SUM, M.comm);
   return globalMomentum;
 }
 
