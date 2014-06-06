@@ -99,15 +99,17 @@ int main(string[] args ) {
   initAllTimers();
   Timers.main.start!(VL.Debug, LRF.None);
 
-  // Try and create the local lattice structure.
   if ( ! isTesting() ) {
     initParameters();
     initCommon();
+    // Try and create the local lattice structure.
     auto L = Lattice!(gconn)(M);
     initLattice(L);
     runTimeloop(L);
   }
   else {
+    // If we are in testing mode, run only tests instead.
+    // The tests have to take care of the initialisations themselves.
     version(unittest) {
       runTests();
     }
@@ -125,6 +127,12 @@ int main(string[] args ) {
   return 0;
 }
 
+/**
+   The main time loop.
+
+   Params:
+     L = the lattice
+*/
 void runTimeloop(T)(ref T L) {
   L.dumpData(timestep);
   while ( timestep < timesteps ) {
@@ -141,23 +149,25 @@ void runTimeloop(T)(ref T L) {
       L.addShanChenForce!gconn();
     }
 
-    // L.resetForce();
-    // L.addShanChenForce!gconn();
-
     foreach(i, ref e; L.fluids) {
       e.collideField!gconn(L.mask, L.force[i]);
     }
     L.exchangeHalo(); // Remove one of these?
 
-    // writeLogRI("Global mass = %f", L.red.globalMass(L.mask));
-    // writeLogRI("Global momentum = %s", L.red.globalMomentum!(gconn)(L.mask));
+    // writeLogRI("Global mass = %f %f", L.fluids[0].globalMass(L.mask), L.fluids[1].globalMass(L.mask));
+    // writeLogRI("Global momentum = %s %s", L.fluids[0].globalMomentum!(gconn)(L.mask), L.fluids[1].globalMomentum!(gconn)(L.mask));
     L.dumpData(timestep);
   }
 }
 
+/**
+   Easy to call set of initialisation routines.
+   This has been split off from main() to enable easy implementation of
+   multiple runs of simulations, such as for the testing modules.
+*/
 void initCommon() {
-  // Show name and id of the current simulation.
-  broadcastSimulationId();
+  // Create, broadcast, and show id of current simulation.
+  initSimulationId();
 
   // Warn if output paths do not exist.
   checkPaths();
@@ -168,3 +178,4 @@ void initCommon() {
   // Initialize random number generator.
   initRNG();
 }
+

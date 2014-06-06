@@ -28,8 +28,6 @@ import dlbc.io.checkpoint;
 import dlbc.io.hdf5;
 import dlbc.timers;
 
-string restoreString;
-
 /**
    Name of the simulation, to be used in file names for the output.
 */
@@ -86,7 +84,15 @@ string restoreString;
 */
 string simulationId;
 
+/**
+   Flag to remember if we have synchronized a simulation id.
+*/
 bool simulationIdIsBcast = false;
+
+/**
+   Indentifier for checkpoint to restore from.
+*/
+string restoreString;
 
 /**
    Possible file format options.
@@ -107,7 +113,7 @@ enum FileFormat {
    from the root process. This function should be called early in the simulation,
    but definitely before any IO has been performed.
 */
-void broadcastSimulationId() {
+void initSimulationId() {
   import dlbc.parallel: MpiBcastString;
   simulationId = Clock.currTime().toISOString()[0..15];
   MpiBcastString(simulationId);
