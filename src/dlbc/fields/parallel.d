@@ -26,7 +26,7 @@ import dlbc.timers;
 import unstd.multidimarray;
 
 /**
-   The halo of the field is exchanged with all 6 neighbours. The data is first
+   The halo of the field is exchanged with all neighbours. The data is first
    stored in the send buffer $(D field.sbuffer), and data from the neighbours
    is received in $(D field.rbuffer). Because the slicing is performed in an
    identical fashion on all processes, we can then easily put the data in the
@@ -42,8 +42,29 @@ import unstd.multidimarray;
    Todo: add unittest
 */
 void exchangeHalo(T)(ref T field, uint haloSize) {
+  static if ( field.dimensions == 3 ) {
+    field.exchangeHalo3D(haloSize);
+  }
+  else static if ( field.dimensions == 2 ) {
+    field.exchangeHalo2D(haloSize);
+  }
+  else {
+    static assert(0, "Halo exchange not implemented for dimensions != 3 or 2.");
+  }
+}
+
+/// Ditto
+void exchangeHalo(T)(ref T field) {
+  field.exchangeHalo(field.haloSize);
+}
+
+/**
+   Halo exchange for three-dimensional fields.
+*/
+void exchangeHalo3D(T)(ref T field, uint haloSize) {
   import std.conv: to;
 
+  static assert(field.dimensions == 3);
   assert( haloSize <= field.haloSize, "Requested size of halo exchange cannot be larger than halo size of field.");
 
   Timers.haloExchange.start();
@@ -62,60 +83,57 @@ void exchangeHalo(T)(ref T field, uint haloSize) {
 
   immutable uint haloOffset = field.haloSize - haloSize;
 
-  static if ( field.dimensions == 3 ) {
+  immutable uint lus = field.haloSize + haloOffset + haloSize;
+  immutable uint uus = field.haloSize + haloOffset;
+  immutable uint lls = field.haloSize + haloOffset;
+  immutable uint uls = field.haloSize + haloOffset + haloSize;
 
-    immutable uint lus = field.haloSize + haloOffset + haloSize;
-    immutable uint uus = field.haloSize + haloOffset;
-    immutable uint lls = field.haloSize + haloOffset;
-    immutable uint uls = field.haloSize + haloOffset + haloSize;
+  immutable uint lur = haloOffset + haloSize;
+  immutable uint uur = haloOffset;
+  immutable uint llr = haloOffset;
+  immutable uint ulr = haloOffset + haloSize;
 
-    immutable uint lur = haloOffset + haloSize;
-    immutable uint uur = haloOffset;
-    immutable uint llr = haloOffset;
-    immutable uint ulr = haloOffset + haloSize;
+  // Send to positive x
+  buflen = to!uint((field.ny + 2*haloSize) * (field.nz + 2*haloSize) * haloSize * mpiLength);
+  field.rbuffer = multidimArray!(T.type)([haloSize, (field.ny + 2*haloSize), (field.nz + 2*haloSize)]);
+  field.sbuffer = field.arr[$-lus .. $-uus, haloOffset..$-haloOffset, haloOffset..$-haloOffset].dup;
+  MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nbx[1], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nbx[0], 0, M.comm, &mpiStatus);
+  field.arr[llr..ulr, haloOffset..$-haloOffset, haloOffset..$-haloOffset] = field.rbuffer;
+  // Send to negative x
+  field.sbuffer = field.arr[lls..uls, haloOffset..$-haloOffset, haloOffset..$-haloOffset].dup;
+  MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nbx[0], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nbx[1], 0, M.comm, &mpiStatus);
+  field.arr[$-lur .. $-uur, haloOffset..$-haloOffset, haloOffset..$-haloOffset] = field.rbuffer;
 
-    // Send to positive x
-    buflen = to!uint((field.ny + 2*haloSize) * (field.nz + 2*haloSize) * haloSize * mpiLength);
-    field.rbuffer = multidimArray!(T.type)([haloSize, (field.ny + 2*haloSize), (field.nz + 2*haloSize)]);
-    field.sbuffer = field.arr[$-lus .. $-uus, haloOffset..$-haloOffset, haloOffset..$-haloOffset].dup;
-    MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nbx[1], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nbx[0], 0, M.comm, &mpiStatus);
-    field.arr[llr..ulr, haloOffset..$-haloOffset, haloOffset..$-haloOffset] = field.rbuffer;
-    // Send to negative x
-    field.sbuffer = field.arr[lls..uls, haloOffset..$-haloOffset, haloOffset..$-haloOffset].dup;
-    MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nbx[0], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nbx[1], 0, M.comm, &mpiStatus);
-    field.arr[$-lur .. $-uur, haloOffset..$-haloOffset, haloOffset..$-haloOffset] = field.rbuffer;
+  // Send to positive y
+  buflen = to!uint((field.nx + 2*haloSize) * (field.nz + 2*haloSize) * haloSize * mpiLength);
+  field.rbuffer = multidimArray!(T.type)((field.nx + 2*haloSize), haloSize, (field.nz + 2*haloSize));
+  field.sbuffer = field.arr[haloOffset..$-haloOffset, $-lus..$-uus, haloOffset..$-haloOffset].dup;
+  MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nby[1], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nby[0], 0, M.comm, &mpiStatus);
+  field.arr[haloOffset..$-haloOffset, llr..ulr, haloOffset..$-haloOffset] = field.rbuffer;
+  // Send to negative y
+  field.sbuffer = field.arr[haloOffset..$-haloOffset, lls..uls, haloOffset..$-haloOffset].dup;
+  MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nby[0], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nby[1], 0, M.comm, &mpiStatus);
+  field.arr[haloOffset..$-haloOffset, $-lur..$-uur, haloOffset..$-haloOffset] = field.rbuffer;
 
-    // Send to positive y
-    buflen = to!uint((field.nx + 2*haloSize) * (field.nz + 2*haloSize) * haloSize * mpiLength);
-    field.rbuffer = multidimArray!(T.type)((field.nx + 2*haloSize), haloSize, (field.nz + 2*haloSize));
-    field.sbuffer = field.arr[haloOffset..$-haloOffset, $-lus..$-uus, haloOffset..$-haloOffset].dup;
-    MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nby[1], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nby[0], 0, M.comm, &mpiStatus);
-    field.arr[haloOffset..$-haloOffset, llr..ulr, haloOffset..$-haloOffset] = field.rbuffer;
-    // Send to negative y
-    field.sbuffer = field.arr[haloOffset..$-haloOffset, lls..uls, haloOffset..$-haloOffset].dup;
-    MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nby[0], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nby[1], 0, M.comm, &mpiStatus);
-    field.arr[haloOffset..$-haloOffset, $-lur..$-uur, haloOffset..$-haloOffset] = field.rbuffer;
-
-    // Send to positive z
-    buflen = to!uint((field.nx + 2*haloSize) * (field.ny + 2*haloSize) * haloSize * mpiLength);
-    field.rbuffer = multidimArray!(T.type)((field.nx + 2*haloSize), (field.ny + 2*haloSize), haloSize);
-    field.sbuffer = field.arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, $-lus..$-uus].dup;
-    MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, M.comm, &mpiStatus);
-    field.arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, llr..ulr] = field.rbuffer;
-    // Send to negative z
-    field.sbuffer = field.arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, lls..uls].dup;
-    MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, M.comm, &mpiStatus);
-    field.arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, $-lur..$-uur] = field.rbuffer;
-  }
-  else {
-    static assert(0, "Halo exchange not implemented for dimensions != 3.");
-  }
+  // Send to positive z
+  buflen = to!uint((field.nx + 2*haloSize) * (field.ny + 2*haloSize) * haloSize * mpiLength);
+  field.rbuffer = multidimArray!(T.type)((field.nx + 2*haloSize), (field.ny + 2*haloSize), haloSize);
+  field.sbuffer = field.arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, $-lus..$-uus].dup;
+  MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, M.comm, &mpiStatus);
+  field.arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, llr..ulr] = field.rbuffer;
+  // Send to negative z
+  field.sbuffer = field.arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, lls..uls].dup;
+  MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nbz[0], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nbz[1], 0, M.comm, &mpiStatus);
+  field.arr[haloOffset..$-haloOffset, haloOffset..$-haloOffset, $-lur..$-uur] = field.rbuffer;
 
   Timers.haloExchange.stop();
 }
 
-/// Ditto
-void exchangeHalo(T)(ref T field) {
-  field.exchangeHalo(field.haloSize);
+/**
+   Halo exchange for two-dimensional fields.
+*/
+void exchangeHalo2D(T)(ref T field, uint haloSize) {
+  assert(0, "exchangeHalo2D not yet implemented.");
 }
+
 
