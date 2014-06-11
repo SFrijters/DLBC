@@ -55,7 +55,7 @@ void initTubeZ(T)(ref T field) {
     }
   }
   else {
-    static assert(0, "initTubeZ not implemented for field.dimensions != 3.");
+    assert(0, "initTubeZ not implemented for field.dimensions != 3.");
   }
 }
 
@@ -77,7 +77,7 @@ void initWallsX(T)(ref T field) {
     }
   }
   else {
-    static assert(0, "initWallsX not implemented for field.dimensions != 3.");
+    assert(0, "initWallsX not implemented for field.dimensions != 3.");
   }
 }
 

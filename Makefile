@@ -6,6 +6,8 @@ release: release-dmd
 
 revision: src/dlbc/revision.d
 
+d2q9: test-d2q9-dmd
+
 doc: revision doc/*ddoc
 	cd doc/ ; rdmd bootDoc/generate.d ./../src --output=./html --bootdoc=.
 
@@ -26,6 +28,9 @@ release-dmd: revision src/unstd/multidimarray.o
 
 test-dmd: revision src/unstd/multidimarray.o
 	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d src/tests/runnable/*.d -ofdlbc -I./src -g -w -de -unittest -debug -cov
+
+test-d2q9-dmd: revision src/unstd/multidimarray.o
+	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d src/tests/runnable/*.d -ofdlbc -I./src -g -w -de -unittest -debug -cov -version=D2Q9
 
 clean:
 	rm -f src/dlbc/revision.d

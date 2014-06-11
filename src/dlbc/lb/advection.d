@@ -80,10 +80,10 @@ unittest {
   reorderMpi();
 
   if ( M.size == 8 ) {
-    size_t[gconn.d] lengths = [ 16, 16 ,16 ];
-    auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
-    auto temp = Field!(double[gconn.q], gconn.d, 2)(lengths);
-    auto mask = Field!(Mask, gconn.d, 2)(lengths);
+    size_t[d3q19.d] lengths = [ 16, 16 ,16 ];
+    auto field = Field!(double[d3q19.q], d3q19.d, 2)(lengths);
+    auto temp = Field!(double[d3q19.q], d3q19.d, 2)(lengths);
+    auto mask = Field!(Mask, d3q19.d, 2)(lengths);
 
     field.initConst(0);
     if ( M.isRoot ) {
