@@ -67,15 +67,19 @@ struct Lattice(alias conn) {
   /**
      Size of the local lattice in y-direction.
   */
-  @property auto ny() {
-    return _lengths[1];
+  static if ( conn.d > 1 ) {
+    @property auto ny() {
+      return _lengths[1];
+    }
   }
 
   /**
      Size of the local lattice in z-direction.
   */
-  @property auto nz() {
-    return _lengths[2];
+  static if ( conn.d > 2 ) {
+    @property auto nz() {
+      return _lengths[2];
+    }
   }
 
   /**
@@ -95,14 +99,16 @@ struct Lattice(alias conn) {
   /**
      Size of the global lattice in y-direction.
   */
-  @property auto gny() {
-    return _gn[1];
+  static if ( conn.d > 1 ) {
+    @property auto gny() {
+      return _gn[1];
+    }
   }
 
+  /**
+     Size of the global lattice in z-direction.
+  */
   static if ( conn.d > 2 ) {
-    /**
-       Number of processes in z-direction.
-    */
     @property auto gnz() {
       return _gn[2];
     }
@@ -143,7 +149,7 @@ struct Lattice(alias conn) {
     _gn = .gn;
 
     // Check if we can reconcile global lattice size with CPU grid
-    if (gn[0] % M.nc[0] != 0 || gn[1] % M.nc[1] != 0 || gn[2] % M.nc[2] != 0) {
+    if (! canDivide(gn, M.nc) ) {
       writeLogF("Cannot divide lattice %s evenly over a %s grid of processes.", makeLengthsString(gn), makeLengthsString(M.nc));
     }
 
@@ -199,4 +205,12 @@ void initLattice(T)(ref T L) {
   }
 }
 
+bool canDivide(size_t[] gn, int[] nc) {
+  foreach(i, g; gn) {
+    if ( g % nc[i] != 0 ) {
+      return false;
+    }
+  }
+  return true;
+}
 

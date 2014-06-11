@@ -40,34 +40,44 @@ void initMask(T)(ref T mask) {
 void initTubeZ(T)(ref T field) {
   static assert( is (T.type == Mask ) );
 
-  foreach( x,y,z, ref e; field.arr) {
-    auto gx = x + M.cx * field.nx - field.haloSize;
-    auto gy = y + M.cy * field.ny - field.haloSize;
-    auto gz = z + M.cz * field.nz - field.haloSize;
+  static if ( field.dimensions == 3 ) {
+    foreach( x,y,z, ref e; field.arr) {
+      auto gx = x + M.cx * field.nx - field.haloSize;
+      auto gy = y + M.cy * field.ny - field.haloSize;
+      auto gz = z + M.cz * field.nz - field.haloSize;
 
-    if ( gx == 0 || gx == (field.nx * M.ncx - 1) || gy == 0 || gy == (field.ny * M.ncy - 1 ) ) {
-      e = Mask.Solid;
+      if ( gx == 0 || gx == (field.nx * M.ncx - 1) || gy == 0 || gy == (field.ny * M.ncy - 1 ) ) {
+	e = Mask.Solid;
+      }
+      else {
+	e = Mask.None;
+      }
     }
-    else {
-      e = Mask.None;
-    }
+  }
+  else {
+    static assert(0, "initTubeZ not implemented for field.dimensions != 3.");
   }
 }
 
 void initWallsX(T)(ref T field) {
   static assert( is (T.type == Mask ) );
 
-  foreach( x,y,z, ref e; field.arr) {
-    auto gx = x + M.cx * field.nx - field.haloSize;
-    auto gy = y + M.cy * field.ny - field.haloSize;
-    auto gz = z + M.cz * field.nz - field.haloSize;
+  static if ( field.dimensions == 3 ) {
+    foreach( x,y,z, ref e; field.arr) {
+      auto gx = x + M.cx * field.nx - field.haloSize;
+      auto gy = y + M.cy * field.ny - field.haloSize;
+      auto gz = z + M.cz * field.nz - field.haloSize;
 
-    if ( gx == 0 || gx == (field.nx * M.ncx - 1) ) {
-      e = Mask.Solid;
+      if ( gx == 0 || gx == (field.nx * M.ncx - 1) ) {
+	e = Mask.Solid;
+      }
+      else {
+	e = Mask.None;
+      }
     }
-    else {
-      e = Mask.None;
-    }
+  }
+  else {
+    static assert(0, "initWallsX not implemented for field.dimensions != 3.");
   }
 }
 

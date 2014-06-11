@@ -34,9 +34,6 @@ import unstd.generictuple;
      hs = size of the halo region
 */
 struct Field(T, uint dim, uint hs) {
-  static assert(dim > 1, "1D fields are not supported.");
-  static assert(dim == 3, "Non-3D fields not yet implemented.");
-
   MultidimArray!(T, dim) arr, sbuffer, rbuffer;
 
   enum uint dimensions = dim;
@@ -63,8 +60,10 @@ struct Field(T, uint dim, uint hs) {
   /**
      Alias for the second component of $(D lengths).
   */
-  @property auto ny() {
-    return _lengths[1];
+  static if ( dim > 1 ) {
+    @property auto ny() {
+      return _lengths[1];
+    }
   }
 
   /**
@@ -93,8 +92,10 @@ struct Field(T, uint dim, uint hs) {
   /**
      Alias for the second component of $(D lengthsH).
   */
-  @property auto nyH() {
-    return _lengthsH[1];
+  static if ( dim > 1 ) {
+    @property auto nyH() {
+      return _lengthsH[1];
+    }
   }
 
   /**

@@ -33,18 +33,21 @@ immutable struct Connectivity(uint _d, uint _q) {
 */
 auto d3q19 = new immutable Connectivity!(3,19);
 
+auto d2q9 = new immutable Connectivity!(2,9);
+
 /**
    Global connectivity parameter.
 */
 alias gconn = d3q19;
 
 private auto generateBounce(T)(const T velocities) {
+  import std.algorithm: any;
   size_t[velocities.length] bounce;
   int[velocities[0].length] diff;
   foreach(i, e1 ; velocities) {
     foreach(j, e2; velocities ) {
       diff[] = e1[] + e2[];
-      if ( diff == [0,0,0] ) {
+      if ( !any(diff[]) ) {
 	bounce[i] = j;
 	break;
       }
@@ -77,11 +80,33 @@ private auto generateVelocities(uint d, uint q)() {
       static assert(0);
     }
   }
+  else static if ( d == 2 ) {
+    static if ( q == 9 ) {
+      return generateD2Q9();
+    }
+    else {
+      static assert(0);
+    }
+  }
   else {
     static assert(0);
   }
 }
 
+private auto generateD2Q9() pure @safe nothrow {
+  int[2][9] d2q9;
+  d2q9[0] = [0, 0];
+
+  d2q9[1] = [1, 0];
+  d2q9[2] = [-1, 0];
+  d2q9[3] = [0, 1];
+  d2q9[4] = [0, -1];
+  d2q9[5] = [1, 1];
+  d2q9[6] = [1, -1];
+  d2q9[7] = [-1, 1];
+  d2q9[8] = [-1, -1];
+  return d2q9;
+}
 
 private auto generateD3Q1() pure @safe nothrow {
   int[3][1] d3q1;

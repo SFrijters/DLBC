@@ -137,8 +137,8 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
 
   auto type_id = hdf5Typeof!(T.type);
 
+  static assert(field.dimensions == 3, "dumpFieldHDF5 not implemented for field.dimensions != 3");
   auto ndim = field.dimensions;
-  assert(ndim == 3, "dumpFieldHDF5 not implemented for ndim != 3");
 
   auto typeLen = LengthOf!(T.type);
 
@@ -174,8 +174,6 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
     writeLogRI("HDF writing to file '%s'.", fileNameString);
   }
   auto fileName = fileNameString.toStringz();
-
-
 
   // if (hdf_use_ibm_largeblock_io) then
   //   if (dbg_report_hdf5) call log_msg("HDF using IBM_largeblock_io")
@@ -277,8 +275,8 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
 
   auto type_id = hdf5Typeof!(T.type);
 
+  static assert(field.dimensions == 3, "dumpFieldHDF5 not implemented for field.dimensions != 3");
   auto ndim = field.dimensions;
-  assert(ndim == 3, "dumpFieldHDF5 not implemented for ndim != 3");
 
   auto typeLen = LengthOf!(T.type);
 

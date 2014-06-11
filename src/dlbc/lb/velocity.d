@@ -42,9 +42,9 @@ auto velocity(alias conn, T)(const ref T population, const double density) {
 
   double[conn.d] vel = 0.0;
   foreach(i, e; population) {
-    vel[0] += e * cv[i][0];
-    vel[1] += e * cv[i][1];
-    vel[2] += e * cv[i][2];
+    for(auto j = 0; j < conn.d; ++j) {
+      vel[j] += e * cv[i][j];
+    }
   }
   vel[] /= density;
   return vel;
