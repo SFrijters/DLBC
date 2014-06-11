@@ -55,9 +55,11 @@ struct MpiParams {
   int ver, subver;
 
   // Topology
-  private int[dim] _nc;
-  private int[dim] _c;
-  private int[2][dim] _nb;
+  private {
+    int[] _nc;
+    int[dim] _c;
+    int[2][dim] _nb;
+  }
 
   /**
      Total number of processes.
@@ -175,7 +177,7 @@ void startMpi(const string[] args) {
 void reorderMpi() {
   import dlbc.parameters: checkVectorParameterLength;
   int rank, size;
-  int[dim] dims;
+  int[] dims;
   int[dim] periodic = true;
   int[dim] pos;
   int reorder = true;
@@ -186,7 +188,8 @@ void reorderMpi() {
 
   writeLogRD("Creating MPI dims from suggestion %s.", makeLengthsString(dims));
 
-  // Create cartesian grid of dimensions ( ncx * ncy * ncz )
+  // Create cartesian grid of dimensions 'dims'
+  dims.length = dim;
   MPI_Dims_create(M.size, dim, dims.ptr);
   M._nc = dims;
 
