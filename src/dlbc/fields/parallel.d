@@ -26,27 +26,20 @@ import dlbc.timers;
 import unstd.multidimarray;
 
 /**
-   The halo of the field is exchanged with all 6 neighbours, according to 
-   the haloSize specified when the field was created. The data is first
-   stored in the send buffer $(D sbuffer), and data from the neighbours is
-   received in $(D rbuffer). Because the slicing is performed in an
-   identical fashion on all processes, we can easily put the data in the
-   correct spot in the main array.
+   The halo of the field is exchanged with all 6 neighbours. The data is first
+   stored in the send buffer $(D field.sbuffer), and data from the neighbours
+   is received in $(D field.rbuffer). Because the slicing is performed in an
+   identical fashion on all processes, we can then easily put the data in the
+   correct spot in the main array. If haloSize is not supplied explicitly,
+   the maximum halo size is used. In any event, haloSize cannot be larger than
+   $(D field.haloSize).
 
    Params:
      field = field to exchange the data of
      haloSize = width of the halo to be exchanged; this can be smaller than
-   the halo that is held in memory
+                the halo that is held in memory
 
    Todo: add unittest
-
-   Bugs: when compiling in -release mode, the buffers are somehow not
-   allocated properly, or optimized away.
-   ---
-   Fatal error in MPI_Sendrecv: Invalid buffer pointer, error stack:
-   MPI_Sendrecv(215): MPI_Sendrecv(sbuf=(nil), scount=27360, MPI_DOUBLE, dest=5, stag=0, rbuf=(nil), rcount=27360, MPI_DOUBLE, src=5, rtag=0, comm=0x84000002, status=0x7fff71bb1410) failed
-   MPI_Sendrecv(149): Null buffer pointer
-   ---
 */
 void exchangeHalo(T)(ref T field, uint haloSize) {
   import std.conv: to;
@@ -115,6 +108,7 @@ void exchangeHalo(T)(ref T field, uint haloSize) {
   Timers.haloExchange.stop();
 }
 
+/// Ditto
 void exchangeHalo(T)(ref T field) {
   field.exchangeHalo(field.haloSize);
 }
