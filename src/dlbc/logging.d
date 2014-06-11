@@ -305,6 +305,7 @@ void owriteLog(VL vl, T...)(const T args) {
       for (int srcRank = 1; srcRank < M.size; srcRank++ ) {
 	// Then receive from each process first a string length...
 	MPI_Recv(&strlen, 1, MPI_INT, srcRank, mpiTag, M.comm, &mpiStatus);
+        strbuf.length = strlen;
 	// ...and then the char buffer.
 	MPI_Recv(strbuf.ptr, strlen, MPI_CHAR, srcRank, mpiTag, M.comm, &mpiStatus);
 	logString = to!string(strbuf[0..strlen]);
