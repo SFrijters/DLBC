@@ -5,7 +5,7 @@ This is a home project to implement the lattice Boltzmann method using the D pro
 
 D HDF5 bindings have been added as a submodule [hdf5-d](http://github.com/SFrijters/hdf5-d), while D MPI bindings are still a work in progress and are currently handled through a partial header translation.
 
-Multidimensional arrays have been added using Denis Shelomovskij's [Unstandard library](https://bitbucket.org/denis-sh/unstandard).
+Multidimensional arrays have been added using a fork of Denis Shelomovskij's [Unstandard library](https://bitbucket.org/SFrijters/unstandard).
 
 Documentation is generated using DDoc and Jakob Ovrum's [bootDoc](http://github.com/JakobOvrum/bootDoc).
 
