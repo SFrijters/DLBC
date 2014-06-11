@@ -186,9 +186,17 @@ struct MpiParams {
      Show information about the layout of the grid of processes.
   */
   void show(VL vl)() {
+    import std.string: format;
     writeLog!(vl, LRF.Root)("Currently using %d CPUs on a %s grid.", size, makeLengthsString(nc));
-    writeLog!(vl, LRF.Ordered)("Rank %d is running on host '%s' at position (%d, %d, %d):", rank, hostname, cx, cy, cz);
-    writeLog!(vl, LRF.Ordered)("Neighbours:\nx %#6.6d %#6.6d %#6.6d\ny %#6.6d %#6.6d %#6.6d\nz %#6.6d %#6.6d %#6.6d", nbx[0], rank, nbx[1], nby[0], rank, nby[1], nbz[0], rank, nbz[1]);
+    writeLog!(vl, LRF.Ordered)("Rank %d is running on host '%s' at position %s:", rank, hostname, c);
+    string neighbours = format("Neighbours:\nx %#6.6d %#6.6d %#6.6d", nbx[0], rank, nbx[1]);
+    static if ( dim > 1 ) {
+      neighbours ~= format("\ny %#6.6d %#6.6d %#6.6d",nby[0], rank, nby[1]);
+    }
+    static if ( dim > 2 ) {
+      neighbours ~= format("\nz %#6.6d %#6.6d %#6.6d",nbz[0], rank, nbz[1]);
+    }
+    writeLog!(vl, LRF.Ordered)(neighbours);
   }
 }
 
