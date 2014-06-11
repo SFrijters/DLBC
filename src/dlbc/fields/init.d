@@ -116,7 +116,7 @@ void initEqDistSphere(alias conn, T)(ref T field, const double density1, const d
     }
   }
   else {
-    assert(0, "initEqDistSphere not implemented for field.dimensions != 2 or 3.);
+    assert(0, "initEqDistSphere not implemented for field.dimensions != 2 or 3.");
   }
 }
 
