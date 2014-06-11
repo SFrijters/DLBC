@@ -137,29 +137,54 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
 
   auto type_id = hdf5Typeof!(T.type);
 
-  static assert(field.dimensions == 3, "dumpFieldHDF5 not implemented for field.dimensions != 3");
   auto ndim = field.dimensions;
 
   auto typeLen = LengthOf!(T.type);
 
-  if ( typeLen > 1 ) {
-    ndim++; // One more dimension to store the vector component.
-    dimsg = [ gn[0], gn[1], gn[2], typeLen ];
-    dimsl = [ field.nxH, field.nyH, field.nzH, typeLen ];
-    count = [ 1, 1, 1, 1 ];
-    stride = [ 1, 1, 1, 1 ];
-    block = [ field.nx, field.ny, field.nz, typeLen ];
-    start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz, 0 ];
-    arrstart = [ field.haloSize, field.haloSize, field.haloSize, 0 ];
+  static if ( field.dimensions == 3 ) {
+    if ( typeLen > 1 ) {
+      ndim++; // One more dimension to store the vector component.
+      dimsg = [ gn[0], gn[1], gn[2], typeLen ];
+      dimsl = [ field.nxH, field.nyH, field.nzH, typeLen ];
+      count = [ 1, 1, 1, 1 ];
+      stride = [ 1, 1, 1, 1 ];
+      block = [ field.nx, field.ny, field.nz, typeLen ];
+      start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz, 0 ];
+      arrstart = [ field.haloSize, field.haloSize, field.haloSize, 0 ];
+    }
+    else {
+      dimsg = [ gn[0], gn[1], gn[2] ];
+      dimsl = [ field.nxH, field.nyH, field.nzH ];
+      count = [ 1, 1, 1 ];
+      stride = [ 1, 1, 1 ];
+      block = [ field.nx, field.ny, field.nz ];
+      start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz ];
+      arrstart = [ field.haloSize, field.haloSize, field.haloSize ];
+    }
+  }
+  else static if ( field.dimensions == 2 ) {
+    if ( typeLen > 1 ) {
+      ndim++; // One more dimension to store the vector component.
+      dimsg = [ gn[0], gn[1], typeLen ];
+      dimsl = [ field.nxH, field.nyH, typeLen ];
+      count = [ 1, 1, 1 ];
+      stride = [ 1, 1, 1 ];
+      block = [ field.nx, field.ny, typeLen ];
+      start = [ M.cx*field.nx, M.cy*field.ny, 0 ];
+      arrstart = [ field.haloSize, field.haloSize, 0 ];
+    }
+    else {
+      dimsg = [ gn[0], gn[1] ];
+      dimsl = [ field.nxH, field.nyH ];
+      count = [ 1, 1 ];
+      stride = [ 1, 1 ];
+      block = [ field.nx, field.ny ];
+      start = [ M.cx*field.nx, M.cy*field.ny ];
+      arrstart = [ field.haloSize, field.haloSize ];
+    }
   }
   else {
-    dimsg = [ gn[0], gn[1], gn[2] ];
-    dimsl = [ field.nxH, field.nyH, field.nzH ];
-    count = [ 1, 1, 1 ];
-    stride = [ 1, 1, 1 ];
-    block = [ field.nx, field.ny, field.nz ];
-    start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz ];
-    arrstart = [ field.haloSize, field.haloSize, field.haloSize ];
+    static assert(0, "dumpFieldHDF5 not implemented for dimensions != 3 or 2.");
   }
 
   MPI_Info info = MPI_INFO_NULL;
@@ -275,29 +300,54 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
 
   auto type_id = hdf5Typeof!(T.type);
 
-  static assert(field.dimensions == 3, "dumpFieldHDF5 not implemented for field.dimensions != 3");
   auto ndim = field.dimensions;
 
   auto typeLen = LengthOf!(T.type);
 
-  if ( typeLen > 1 ) {
-    ndim++; // One more dimension to store the vector component.
-    dimsg = [ gn[0], gn[1], gn[2], typeLen ];
-    dimsl = [ field.nxH, field.nyH, field.nzH, typeLen ];
-    count = [ 1, 1, 1, 1 ];
-    stride = [ 1, 1, 1, 1 ];
-    block = [ field.nx, field.ny, field.nz, typeLen ];
-    start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz, 0 ];
-    arrstart = [ field.haloSize, field.haloSize, field.haloSize, 0 ];
+  static if ( field.dimensions == 3 ) {
+    if ( typeLen > 1 ) {
+      ndim++; // One more dimension to store the vector component.
+      dimsg = [ gn[0], gn[1], gn[2], typeLen ];
+      dimsl = [ field.nxH, field.nyH, field.nzH, typeLen ];
+      count = [ 1, 1, 1, 1 ];
+      stride = [ 1, 1, 1, 1 ];
+      block = [ field.nx, field.ny, field.nz, typeLen ];
+      start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz, 0 ];
+      arrstart = [ field.haloSize, field.haloSize, field.haloSize, 0 ];
+    }
+    else {
+      dimsg = [ gn[0], gn[1], gn[2] ];
+      dimsl = [ field.nxH, field.nyH, field.nzH ];
+      count = [ 1, 1, 1 ];
+      stride = [ 1, 1, 1 ];
+      block = [ field.nx, field.ny, field.nz ];
+      start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz ];
+      arrstart = [ field.haloSize, field.haloSize, field.haloSize ];
+    }
+  }
+  else static if ( field.dimensions == 2 ) {
+    if ( typeLen > 1 ) {
+      ndim++; // One more dimension to store the vector component.
+      dimsg = [ gn[0], gn[1], typeLen ];
+      dimsl = [ field.nxH, field.nyH, typeLen ];
+      count = [ 1, 1, 1 ];
+      stride = [ 1, 1, 1 ];
+      block = [ field.nx, field.ny, typeLen ];
+      start = [ M.cx*field.nx, M.cy*field.ny, 0 ];
+      arrstart = [ field.haloSize, field.haloSize, 0 ];
+    }
+    else {
+      dimsg = [ gn[0], gn[1] ];
+      dimsl = [ field.nxH, field.nyH ];
+      count = [ 1, 1 ];
+      stride = [ 1, 1 ];
+      block = [ field.nx, field.ny ];
+      start = [ M.cx*field.nx, M.cy*field.ny ];
+      arrstart = [ field.haloSize, field.haloSize ];
+    }
   }
   else {
-    dimsg = [ gn[0], gn[1], gn[2] ];
-    dimsl = [ field.nxH, field.nyH, field.nzH ];
-    count = [ 1, 1, 1 ];
-    stride = [ 1, 1, 1 ];
-    block = [ field.nx, field.ny, field.nz ];
-    start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz ];
-    arrstart = [ field.haloSize, field.haloSize, field.haloSize ];
+    static assert(0, "readFieldHDF5 not implemented for dimensions != 3 or 2.");
   }
 
   MPI_Info info = MPI_INFO_NULL;
