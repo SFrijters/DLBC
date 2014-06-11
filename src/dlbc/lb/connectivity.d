@@ -38,7 +38,12 @@ auto d2q9 = new immutable Connectivity!(2,9);
 /**
    Global connectivity parameter.
 */
-alias gconn = d3q19;
+version(D2Q9) {
+  alias gconn = d2q9;
+}
+else {
+  alias gconn = d3q19;
+}
 
 private auto generateBounce(T)(const T velocities) {
   import std.algorithm: any;
