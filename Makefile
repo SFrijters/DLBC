@@ -19,13 +19,13 @@ src/unstd/multidimarray.o: src/unstd/generictuple.o src/unstd/multidimarray.d
 	dmd src/unstd/multidimarray.d -I./src -c -ofsrc/unstd/multidimarray.o
 
 dlbc-dmd: revision src/unstd/multidimarray.o
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d -ofdlbc -I./src -O -g -w -de
+	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d -ofdlbc -I./src -g -w -de
 
 release-dmd: revision src/unstd/multidimarray.o
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d -ofdlbc -I./src -O -g -w -de -inline -noboundscheck
+	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d -ofdlbc -I./src -g -w -dw -O -inline -noboundscheck -release
 
 test-dmd: revision src/unstd/multidimarray.o
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d src/tests/runnable/*.d -ofdlbc -I./src -unittest -cov -g -w -de
+	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d src/tests/runnable/*.d -ofdlbc -I./src -g -w -de -unittest -debug -cov
 
 clean:
 	rm -f src/dlbc/revision.d

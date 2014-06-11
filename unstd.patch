@@ -1,8 +1,8 @@
 diff --git a/unstd/multidimarray.d b/unstd/multidimarray.d
-index 4106345..72abf00 100644
+index 4106345..f7ce568 100644
 --- a/unstd/multidimarray.d
 +++ b/unstd/multidimarray.d
-@@ -51,15 +51,15 @@ Something like FORTRAN's one.
+@@ -51,18 +51,18 @@ Something like FORTRAN's one.
  */
  struct MultidimArray(T, size_t n) if(n >= 1)
  {
@@ -20,7 +20,11 @@ index 4106345..72abf00 100644
 +	T[] _data; // _strides[0] * _lengths[0] <= _data.length
  
  	private this(in size_t[n] lengths, in size_t[n] strides, inout T[] data) inout @safe pure nothrow
- 	in
+-	in
++	body
+ 	{
+ 		_lengths = lengths;
+ 		_strides = strides;
 @@ -98,19 +98,19 @@ struct MultidimArray(T, size_t n) if(n >= 1)
  			foreach_reverse(i; iotaTuple!(n - 2))
  				strides[i] = lengths[i + 1] * strides[i + 1];
