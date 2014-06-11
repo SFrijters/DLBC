@@ -248,7 +248,6 @@ void writeLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
 
    Params:
      args = data to write
-
 */
 void writeLogRF(T...)(const T args) { writeLog!(VL.Fatal       , LRF.Root)(args); }
 /// Ditto
@@ -506,5 +505,61 @@ version(unittest) {
     writeLog!(VL.Warning, LRF.Root)(args);
     globalVerbosityLevel = VL.Off;
   }
+}
+
+debug {
+  /**
+     Logging function for debugging purposes: @trusted to be allowed in safe code, nothrow to 
+     be allowed in nothrow code, and purity is ignored when compiled with -debug.
+
+     Params:
+       vl = verbosity level to write at
+       logRankFormat = which processes should write
+       args = data to write
+  */
+  @trusted nothrow void dwriteLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
+    debug {
+      import std.stdio;
+      try {
+	writeLog!(vl, logRankFormat)(args);
+      }
+      catch (Exception e) {
+      }
+    }
+  }
+
+  /**
+     Shorthand for various logging templates based on $(D dwriteLog).
+
+     The last letter of the function name corresponds to the first of the verbosity level enum member that is passed into the template.
+     The optional 'R' passes $(D LRF.Root), otherwise $(D LRF.Any) is passed.
+
+     Params:
+       args = data to write
+  */
+  void dwriteLogRF(T...)(const T args) { dwriteLog!(VL.Fatal       , LRF.Root)(args); }
+  /// Ditto
+  void dwriteLogRE(T...)(const T args) { dwriteLog!(VL.Error       , LRF.Root)(args); }
+  /// Ditto
+  void dwriteLogRW(T...)(const T args) { dwriteLog!(VL.Warning     , LRF.Root)(args); }
+  /// Ditto
+  void dwriteLogRN(T...)(const T args) { dwriteLog!(VL.Notification, LRF.Root)(args); }
+  /// Ditto
+  void dwriteLogRI(T...)(const T args) { dwriteLog!(VL.Information , LRF.Root)(args); }
+  /// Ditto
+  void dwriteLogRD(T...)(const T args) { dwriteLog!(VL.Debug       , LRF.Root)(args); }
+
+  /// Ditto
+  void dwriteLogF(T...)(const T args)  { dwriteLog!(VL.Fatal       , LRF.Any )(args); }
+  /// Ditto
+  void dwriteLogE(T...)(const T args)  { dwriteLog!(VL.Error       , LRF.Any )(args); }
+  /// Ditto
+  void dwriteLogW(T...)(const T args)  { dwriteLog!(VL.Warning     , LRF.Any )(args); }
+  /// Ditto
+  void dwriteLogN(T...)(const T args)  { dwriteLog!(VL.Notification, LRF.Any )(args); }
+  /// Ditto
+  void dwriteLogI(T...)(const T args)  { dwriteLog!(VL.Information , LRF.Any )(args); }
+  /// Ditto
+  void dwriteLogD(T...)(const T args)  { dwriteLog!(VL.Debug       , LRF.Any )(args); }
 }
 
