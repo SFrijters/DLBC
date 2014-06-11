@@ -21,6 +21,7 @@ module dlbc.parallel;
 public import dlbc.mpi;
 
 import dlbc.logging;
+import dlbc.lb.connectivity: gconn;
 
 /**
    Number of processes in the cardinal directions.
@@ -32,10 +33,10 @@ import dlbc.logging;
 */
 @("param") bool showTopology;
 
-/** 
+/**
     Dimensionality of the MPI grid.
 */
-private enum dim = 3;
+private enum dim = gconn.d;
 
 /**
    Parameters related to MPI are nicely packed into a globally available struct.
@@ -240,7 +241,7 @@ void reorderMpi() {
   import dlbc.parameters: checkVectorParameterLength;
   int rank, size;
   int[dim] dims;
-  int[dim] periodic = [ true , true , true ];
+  int[dim] periodic = true;
   int[dim] pos;
   int reorder = true;
   int srcRank, destRank;
