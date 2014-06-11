@@ -48,6 +48,10 @@ private shared immutable size_t headerLength = columnWidth - indent.length;
    Character to fill the header line with.
 */
 private shared immutable string headerDash = "=";
+/**
+   Names of dimensions.
+*/
+shared immutable string[] dimstr = [ "x", "y", "z" ];
 
 /**
    Specifies which processes should do the logging when passed as a (template) argument to various logging functions.

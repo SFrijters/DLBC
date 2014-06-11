@@ -85,12 +85,12 @@ void initEqDistSphere(alias conn, T)(ref T field, const double density1, const d
   typeof(pop0) pop2 = density2*eqDist!conn(pop0, dv)[];
   static if ( field.dimensions == 3 ) {
     foreach( x, y, z, ref e; field.arr) {
-      auto gx = x + M.cx * field.nx - to!double(field.haloSize);
-      auto gy = y + M.cy * field.ny - to!double(field.haloSize);
-      auto gz = z + M.cz * field.nz - to!double(field.haloSize);
-      auto ox = gx - to!double(M.ncx * field.nx / 2);
-      auto oy = gy - to!double(M.ncy * field.ny / 2);
-      auto oz = gz - to!double(M.ncz * field.nz / 2);
+      auto gx = x + M.c[0] * field.nx - to!double(field.haloSize);
+      auto gy = y + M.c[1] * field.ny - to!double(field.haloSize);
+      auto gz = z + M.c[2] * field.nz - to!double(field.haloSize);
+      auto ox = gx - to!double(M.nc[0] * field.nx / 2);
+      auto oy = gy - to!double(M.nc[1] * field.ny / 2);
+      auto oz = gz - to!double(M.nc[2] * field.nz / 2);
       double offset = sqrt(ox*ox + oy*oy + oz*oz);
       if ( offset < initSphereRadius ) {
 	e = pop1;
@@ -102,10 +102,10 @@ void initEqDistSphere(alias conn, T)(ref T field, const double density1, const d
   }
   else static if ( field.dimensions == 2 ) {
     foreach( x, y, ref e; field.arr) {
-      auto gx = x + M.cx * field.nx - to!double(field.haloSize);
-      auto gy = y + M.cy * field.ny - to!double(field.haloSize);
-      auto ox = gx - to!double(M.ncx * field.nx / 2);
-      auto oy = gy - to!double(M.ncy * field.ny / 2);
+      auto gx = x + M.c[0] * field.nx - to!double(field.haloSize);
+      auto gy = y + M.c[1] * field.ny - to!double(field.haloSize);
+      auto ox = gx - to!double(M.nc[0] * field.nx / 2);
+      auto oy = gy - to!double(M.nc[1] * field.ny / 2);
       double offset = sqrt(ox*ox + oy*oy);
       if ( offset < initSphereRadius ) {
 	e = pop1;

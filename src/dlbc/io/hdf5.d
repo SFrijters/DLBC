@@ -144,33 +144,33 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
   static if ( field.dimensions == 3 ) {
     if ( typeLen > 1 ) {
       ndim++; // One more dimension to store the vector component.
-      dimsg = [ gn[0], gn[1], gn[2], typeLen ];
+      dimsg = gn ~ typeLen;
       dimsl = [ field.nxH, field.nyH, field.nzH, typeLen ];
       count = [ 1, 1, 1, 1 ];
       stride = [ 1, 1, 1, 1 ];
       block = [ field.nx, field.ny, field.nz, typeLen ];
-      start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz, 0 ];
+      start = [ M.c[0]*field.nx, M.c[1]*field.ny, M.c[2]*field.nz, 0 ];
       arrstart = [ field.haloSize, field.haloSize, field.haloSize, 0 ];
     }
     else {
-      dimsg = [ gn[0], gn[1], gn[2] ];
+      dimsg = gn;
       dimsl = [ field.nxH, field.nyH, field.nzH ];
       count = [ 1, 1, 1 ];
       stride = [ 1, 1, 1 ];
       block = [ field.nx, field.ny, field.nz ];
-      start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz ];
+      start = [ M.c[0]*field.nx, M.c[1]*field.ny, M.c[2]*field.nz ];
       arrstart = [ field.haloSize, field.haloSize, field.haloSize ];
     }
   }
   else static if ( field.dimensions == 2 ) {
     if ( typeLen > 1 ) {
       ndim++; // One more dimension to store the vector component.
-      dimsg = [ gn[0], gn[1], typeLen ];
+      dimsg = gn ~ typeLen;
       dimsl = [ field.nxH, field.nyH, typeLen ];
       count = [ 1, 1, 1 ];
       stride = [ 1, 1, 1 ];
       block = [ field.nx, field.ny, typeLen ];
-      start = [ M.cx*field.nx, M.cy*field.ny, 0 ];
+      start = [ M.c[0]*field.nx, M.c[1]*field.ny, 0 ];
       arrstart = [ field.haloSize, field.haloSize, 0 ];
     }
     else {
@@ -179,7 +179,7 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
       count = [ 1, 1 ];
       stride = [ 1, 1 ];
       block = [ field.nx, field.ny ];
-      start = [ M.cx*field.nx, M.cy*field.ny ];
+      start = [ M.c[0]*field.nx, M.c[1]*field.ny ];
       arrstart = [ field.haloSize, field.haloSize ];
     }
   }
@@ -312,7 +312,7 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
       count = [ 1, 1, 1, 1 ];
       stride = [ 1, 1, 1, 1 ];
       block = [ field.nx, field.ny, field.nz, typeLen ];
-      start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz, 0 ];
+      start = [ M.c[0]*field.nx, M.c[1]*field.ny, M.c[2]*field.nz, 0 ];
       arrstart = [ field.haloSize, field.haloSize, field.haloSize, 0 ];
     }
     else {
@@ -321,7 +321,7 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
       count = [ 1, 1, 1 ];
       stride = [ 1, 1, 1 ];
       block = [ field.nx, field.ny, field.nz ];
-      start = [ M.cx*field.nx, M.cy*field.ny, M.cz*field.nz ];
+      start = [ M.c[0]*field.nx, M.c[1]*field.ny, M.c[2]*field.nz ];
       arrstart = [ field.haloSize, field.haloSize, field.haloSize ];
     }
   }
@@ -333,7 +333,7 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
       count = [ 1, 1, 1 ];
       stride = [ 1, 1, 1 ];
       block = [ field.nx, field.ny, typeLen ];
-      start = [ M.cx*field.nx, M.cy*field.ny, 0 ];
+      start = [ M.c[0]*field.nx, M.c[1]*field.ny, 0 ];
       arrstart = [ field.haloSize, field.haloSize, 0 ];
     }
     else {
@@ -342,7 +342,7 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
       count = [ 1, 1 ];
       stride = [ 1, 1 ];
       block = [ field.nx, field.ny ];
-      start = [ M.cx*field.nx, M.cy*field.ny ];
+      start = [ M.c[0]*field.nx, M.c[1]*field.ny ];
       arrstart = [ field.haloSize, field.haloSize ];
     }
   }

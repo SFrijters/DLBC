@@ -72,29 +72,6 @@ struct MpiParams {
   }
 
   /**
-     Number of processes in x-direction.
-  */
-  @property auto ncx() {
-    return _nc[0];
-  }
-
-  /**
-     Number of processes in y-direction.
-  */
-  @property auto ncy() {
-    return _nc[1];
-  }
-
-  static if ( dim > 2 ) {
-    /**
-       Number of processes in z-direction.
-    */
-    @property auto ncz() {
-      return _nc[2];
-    }
-  }
-
-  /**
      Vector containing the ranks of neighbour processes in each cardinal direction.
   */
   @property auto nb() {
@@ -102,57 +79,10 @@ struct MpiParams {
   }
 
   /**
-     Ranks of neighbour processes in x-direction.
-  */
-
-  @property auto nbx() {
-    return _nb[0];
-  }
-
-  /**
-     Ranks of neighbour processes in y-direction.
-  */
-  @property auto nby() {
-    return _nb[1];
-  }
-
-  static if ( dim > 2 ) {
-    /**
-       Ranks of neighbour processes in z-direction.
-    */
-    @property auto nbz() {
-      return _nb[2];
-    }
-  }
-
-  /**
      Vector containing the coordinates of the process.
   */
   @property auto c() {
     return _c;
-  }
-
-  /**
-     X-coordinate of the process.
-  */
-  @property auto cx() {
-    return _c[0];
-  }
-
-  /**
-     Y-coordinate of the process.
-  */
-  @property auto cy() {
-    return _c[1];
-  }
-
-  static if ( dim > 2 ) {
-    /**
-       Z-coordinate of the process.
-    */
-    @property auto cz() {
-      return _c[2];
-    }
   }
 
   /**
@@ -189,12 +119,9 @@ struct MpiParams {
     import std.string: format;
     writeLog!(vl, LRF.Root)("Currently using %d CPUs on a %s grid.", size, makeLengthsString(nc));
     writeLog!(vl, LRF.Ordered)("Rank %d is running on host '%s' at position %s:", rank, hostname, c);
-    string neighbours = format("Neighbours:\nx %#6.6d %#6.6d %#6.6d", nbx[0], rank, nbx[1]);
-    static if ( dim > 1 ) {
-      neighbours ~= format("\ny %#6.6d %#6.6d %#6.6d",nby[0], rank, nby[1]);
-    }
-    static if ( dim > 2 ) {
-      neighbours ~= format("\nz %#6.6d %#6.6d %#6.6d",nbz[0], rank, nbz[1]);
+    string neighbours = "Neighbours:\n";
+    foreach(i, nbpair; nb) {
+      neighbours ~= format("%s %#6.6d %#6.6d %#6.6d\n", dimstr[i], nbpair[0], rank, nbpair[1]);
     }
     writeLog!(vl, LRF.Ordered)(neighbours);
   }

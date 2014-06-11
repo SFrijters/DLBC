@@ -120,9 +120,9 @@ version(unittest) {
 
     foreach(i, ref field; L.fluids) {
       foreach( x, y, z, ref e; field) {
-        auto gx = x + M.cx * field.nx - to!int(field.haloSize);
-        auto gy = y + M.cy * field.ny - to!int(field.haloSize);
-        auto gz = z + M.cz * field.nz - to!int(field.haloSize);
+        auto gx = x + M.c[0] * field.nx - to!int(field.haloSize);
+        auto gy = y + M.c[1] * field.ny - to!int(field.haloSize);
+        auto gz = z + M.c[2] * field.nz - to!int(field.haloSize);
         if ( ( gx < 2*volumeAverage ) && ( gy < 2*volumeAverage ) && ( gz < 2*volumeAverage ) ) {
           lnsites[i]++;
           ldensity[i] += e.density();
@@ -157,9 +157,9 @@ version(unittest) {
 
     foreach(i, ref field; L.fluids) {
       foreach( x, y, z, ref e; field) {
-        auto gx = x + M.cx * field.nx - to!int(field.haloSize);
-        auto gy = y + M.cy * field.ny - to!int(field.haloSize);
-        auto gz = z + M.cz * field.nz - to!int(field.haloSize);
+        auto gx = x + M.c[0] * field.nx - to!int(field.haloSize);
+        auto gy = y + M.c[1] * field.ny - to!int(field.haloSize);
+        auto gz = z + M.c[2] * field.nz - to!int(field.haloSize);
         if ( ( L.gnx / 2 - volumeAverage <= gx ) && ( gx < L.gnx / 2 + volumeAverage ) &&
              ( L.gny / 2 - volumeAverage <= gy ) && ( gy < L.gny / 2 + volumeAverage ) &&
              ( L.gnz / 2 - volumeAverage <= gz ) && ( gz < L.gnz / 2 + volumeAverage ) ) {

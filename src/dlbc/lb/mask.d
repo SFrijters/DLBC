@@ -42,11 +42,11 @@ void initTubeZ(T)(ref T field) {
 
   static if ( field.dimensions == 3 ) {
     foreach( x,y,z, ref e; field.arr) {
-      auto gx = x + M.cx * field.nx - field.haloSize;
-      auto gy = y + M.cy * field.ny - field.haloSize;
-      auto gz = z + M.cz * field.nz - field.haloSize;
+      auto gx = x + M.c[0] * field.nx - field.haloSize;
+      auto gy = y + M.c[1] * field.ny - field.haloSize;
+      auto gz = z + M.c[2] * field.nz - field.haloSize;
 
-      if ( gx == 0 || gx == (field.nx * M.ncx - 1) || gy == 0 || gy == (field.ny * M.ncy - 1 ) ) {
+      if ( gx == 0 || gx == (field.nx * M.nc[0] - 1) || gy == 0 || gy == (field.ny * M.nc[1] - 1 ) ) {
 	e = Mask.Solid;
       }
       else {
@@ -64,11 +64,11 @@ void initWallsX(T)(ref T field) {
 
   static if ( field.dimensions == 3 ) {
     foreach( x,y,z, ref e; field.arr) {
-      auto gx = x + M.cx * field.nx - field.haloSize;
-      auto gy = y + M.cy * field.ny - field.haloSize;
-      auto gz = z + M.cz * field.nz - field.haloSize;
+      auto gx = x + M.c[0] * field.nx - field.haloSize;
+      auto gy = y + M.c[1] * field.ny - field.haloSize;
+      auto gz = z + M.c[2] * field.nz - field.haloSize;
 
-      if ( gx == 0 || gx == (field.nx * M.ncx - 1) ) {
+      if ( gx == 0 || gx == (field.nx * M.nc[0] - 1) ) {
 	e = Mask.Solid;
       }
       else {
