@@ -102,7 +102,7 @@ unittest {
   double[gconn.q] population, eq;
   double[gconn.d] dv = 0.0;
   population[] = 0.0;
-  for ( int i = 0; i < population.length; i++ ){
+  for ( size_t i = 0; i < population.length; i++ ){
     population[i] = uniform(0.0, 1.0, rng);
     eq = eqDist!gconn(population, dv);
     assert(approxEqual(eq.density(), population.density()));                  // Mass conservation

@@ -170,6 +170,28 @@ struct Field(T, uint dim, uint hs) {
     }
   }
 
+  int opApply(int delegate(ptrdiff_t[arr.dimensions], ref T) dg) {
+    if(!elements)
+      return 0;
+
+    ptrdiff_t[arr.dimensions] indices = haloSize;
+    indices[$ - 1] = -1 + haloSize;
+
+    for(;;) {
+      foreach_reverse(const plane, ref index; indices) {
+	if(++index < arr.lengths[plane] - haloSize)
+	  break;
+	else if(plane)
+	  index = haloSize;
+	else
+	  return 0;
+      }
+
+      if(const res = dg(indices, arr._data[getOffset(indices)]))
+	return res;
+    }
+  }
+
   /**
      Wrapper for toString that takes care of verbosity and rank.
 

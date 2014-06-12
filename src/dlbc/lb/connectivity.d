@@ -19,10 +19,11 @@
 module dlbc.lb.connectivity;
 
 immutable struct Connectivity(uint _d, uint _q) {
-  enum int d = _d;
-  enum int q = _q;
-  enum int[d][q] velocities = generateVelocities!(d, q);
-  enum int[q] bounce = generateBounce(generateVelocities!(d, q));
+  alias vel_t = ptrdiff_t[_d];
+  enum uint d = _d;
+  enum uint q = _q;
+  enum ptrdiff_t[d][q] velocities = generateVelocities!(d, q);
+  enum ptrdiff_t[q] bounce = generateBounce(generateVelocities!(d, q));
   enum double[q] weights = generateWeights(generateVelocities!(d, q));
   enum double css = 1.0/3.0;
 }

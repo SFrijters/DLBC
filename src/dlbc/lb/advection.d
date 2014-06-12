@@ -35,6 +35,7 @@ import dlbc.timers;
 */
 void advectField(alias conn, T, U)(ref T field, ref U mask, ref T tempField) {
   import std.algorithm: swap;
+  import dlbc.range: Iota;
 
   static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
@@ -45,23 +46,25 @@ void advectField(alias conn, T, U)(ref T field, ref U mask, ref T tempField) {
   Timers.adv.start();
 
   auto immutable cv = conn.velocities;
-  foreach( x, y, z, ref population; tempField) {
-    if ( isAdvectable(mask[x,y,z]) ) {
+  foreach( p, ref population; tempField) {
+    if ( isAdvectable(mask[p]) ) {
       assert(population.length == cv.length);
       foreach( i, ref c; population ) {
-	auto nbx = x-cv[i][0];
-	auto nby = y-cv[i][1];
-	auto nbz = z-cv[i][2];
-	if ( isBounceBack(mask[nbx,nby,nbz]) ) {
-	  c = field[x, y, z][conn.bounce[i]];
+	conn.vel_t nb;
+	// Todo: better array syntax.
+	foreach( j; Iota!(0, conn.d) ) {
+	  nb[j] = p[j] - cv[i][j];
+	}
+	if ( isBounceBack(mask[nb]) ) {
+	  c = field[p][conn.bounce[i]];
 	}
 	else {
-	  c = field[nbx, nby, nbz][i];
+	  c = field[nb][i];
       	}
       }
     }
     else {
-      population = field[x, y, z];
+      population = field[p];
     }
   }
   swap(field, tempField);
