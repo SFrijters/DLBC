@@ -91,12 +91,12 @@ auto velocityField(alias conn, T, U)(ref T field, ref U mask) {
   auto velocity = Field!(double[conn.d], field.dimensions, field.haloSize)(field.lengths);
   assert(field.lengthsH == velocity.lengthsH);
 
-  foreach(x,y,z, ref pop; field.arr) {
-    if ( isFluid(mask[x,y,z]) ) {
-      velocity[x,y,z] = pop.velocity!conn();
+  foreach(p, ref pop; field.arr) {
+    if ( isFluid(mask[p]) ) {
+      velocity[p] = pop.velocity!conn();
     }
     else {
-      velocity[x,y,z][] = 0.0;
+      velocity[p][] = 0.0;
     }
   }
   return velocity;
@@ -110,9 +110,9 @@ void velocityField(alias conn, T, U, V)(ref T field, ref U mask, ref V velocity)
   assert(field.lengthsH == mask.lengthsH);
   assert(field.lengthsH == velocity.lengthsH);
 
-  foreach(x,y,z, ref population; field.arr) {
+  foreach(x,y,z, ref pop; field.arr) {
     if ( isFluid(mask[x,y,z] ) ) {
-      velocity[x,y,z] = population.velocity!conn;
+      velocity[x,y,z] = pop.velocity!conn();
     }
     else {
       velocity[x,y,z][] = 0.0;

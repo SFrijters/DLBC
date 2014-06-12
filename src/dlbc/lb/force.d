@@ -22,6 +22,7 @@ import dlbc.lb.lb;
 import dlbc.fields.init;
 import dlbc.lattice;
 import dlbc.logging;
+import dlbc.range;
 
 /**
    Global acceleration.
@@ -129,21 +130,24 @@ void addShanChenForce(alias conn, T)(ref T L) {
       auto cc = gccm[nc1][nc2];
       // Skip zero interactions.
       if ( cc == 0.0 ) continue;
-      foreach( x, y, z, ref force ; L.force[nc1] ) {
+      foreach( p, ref force ; L.force[nc1] ) {
         // Only do lattice sites on which collision will take place.
-	if ( isCollidable(L.mask[x,y,z]) ) {
-	  auto psiden1 = psi(L.fluids[nc1][x,y,z].density());
+	if ( isCollidable(L.mask[p]) ) {
+	  auto psiden1 = psi(L.fluids[nc1][p].density());
 	  foreach( i, ref c; cv ) {
-	    auto nbx = x-cv[i][0];
-	    auto nby = y-cv[i][1];
-	    auto nbz = z-cv[i][2];
+	    conn.vel_t nb;
+	    // Todo: better array syntax.
+	    foreach( j; Iota!(0, conn.d) ) {
+	      nb[j] = p[j] - cv[i][j];
+	    }
             // Only do lattice sites that are not walls.
-	    if ( ! isBounceBack(L.mask[nbx,nby,nbz]) ) {
-	      auto psiden2 = psi(L.fluids[nc2][nbx,nby,nbz].density());
+	    if ( ! isBounceBack(L.mask[nb]) ) {
+	      immutable auto psiden2 = psi(L.fluids[nc2][nb].density());
+	      immutable auto prefactor = psiden1 * psiden2 * cc;
               // The SC force function.
-	      force[0] += psiden1 * psiden2 * cc * cv[i][0];
-	      force[1] += psiden1 * psiden2 * cc * cv[i][1];
-	      force[2] += psiden1 * psiden2 * cc * cv[i][2];
+	      foreach( j; Iota!(0, conn.d) ) {
+		force[j] += prefactor * cv[i][j];
+	      }
 	    }
 	  }
 	}

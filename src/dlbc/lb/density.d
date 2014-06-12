@@ -92,12 +92,12 @@ void densityField(T, U, V)(ref T field, ref U mask, ref V density) {
   assert(field.lengthsH == mask.lengthsH);
   assert(field.lengthsH == density.lengthsH);
 
-  foreach(x,y,z, ref pop; field.arr) {
-    if ( isFluid(mask[x,y,z]) ) {
-      density[x,y,z] = pop.density();
+  foreach(p, ref pop; field.arr) {
+    if ( isFluid(mask[p]) ) {
+      density[p] = pop.density();
     }
     else {
-      density[x,y,z] = 0.0;
+      density[p] = 0.0;
     }
   }
 }
@@ -289,12 +289,12 @@ auto colourField(T, U)(ref T field1, ref T field2, ref U mask) {
   auto colour = Field!(double, field1.dimensions, field1.haloSize)(field1.lengths);
   assert(field1.lengthsH == colour.lengthsH);
 
-  foreach(x,y,z, ref pop; field1.arr) {
-    if ( isFluid(mask[x,y,z]) ) {
-      colour[x,y,z] = field1[x,y,z].density() - field2[x,y,z].density();
+  foreach(p, ref pop; field1.arr) {
+    if ( isFluid(mask[p]) ) {
+      colour[p] = field1[p].density() - field2[p].density();
     }
     else {
-      colour[x,y,z] = 0.0;
+      colour[p] = 0.0;
     }
   }
   return colour;
