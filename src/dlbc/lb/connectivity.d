@@ -24,7 +24,7 @@ immutable struct Connectivity(uint _d, uint _q) {
   enum uint q = _q;
   enum ptrdiff_t[d][q] velocities = generateVelocities!(d, q);
   enum ptrdiff_t[q] bounce = generateBounce(generateVelocities!(d, q));
-  enum double[q] weights = generateWeights(generateVelocities!(d, q));
+  enum double[q] weights = generateWeights!(d, q);
   enum double css = 1.0/3.0;
 }
 
@@ -62,14 +62,44 @@ private auto generateBounce(T)(const T velocities) {
   return bounce;
 }
 
-private auto generateWeights(T)(const T velocities) {
-  import std.algorithm: reduce;
-  double[velocities.length] weights;
+private auto generateWeights(uint d, uint q)() {
+  static if ( d == 3 ) {
+    static if ( q == 19 ) {
+      return generateWeightsD3Q19();
+    }
+    else {
+      static assert(0);
+    }
+  }
+  else static if ( d == 2 ) {
+    static if ( q == 9 ) {
+      return generateWeightsD2Q9();
+    }
+    else {
+      static assert(0);
+    }
+  }
+  else {
+    static assert(0);
+  }
+}
+
+private auto generateWeightsD3Q19() {
+  double[19] weights;
   weights[0] = 1.0/3.0;
   weights[1..7] = 1.0/18.0;
   weights[7..$] = 1.0/36.0;
   return weights;
 }
+
+private auto generateWeightsD2Q9() {
+  double[9] weights;
+  weights[0] = 4.0/9.0;
+  weights[1..5] = 1.0/9.0;
+  weights[5..$] = 1.0/36.0;
+  return weights;
+}
+
 
 private auto generateVelocities(uint d, uint q)() {
   static if ( d == 3 ) {
