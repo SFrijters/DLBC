@@ -18,6 +18,8 @@
 
 module dlbc.lb.connectivity;
 
+import dlbc.logging;
+
 immutable struct Connectivity(uint _d, uint _q) {
   alias vel_t = ptrdiff_t[_d];
   enum uint d = _d;
@@ -26,6 +28,14 @@ immutable struct Connectivity(uint _d, uint _q) {
   enum ptrdiff_t[q] bounce = generateBounce(generateVelocities!(d, q));
   enum double[q] weights = generateWeights!(d, q);
   enum double css = 1.0/3.0;
+
+  /**
+     Show information about the layout of the grid of processes.
+  */
+  void show(VL vl)() {
+    import std.math;
+    writeLog!(vl, LRF.Root)("Connectivity D%dQ%d:\n  velocities: %s\n  bounce: %s\n  weights: %s\n  speed of sound: %f", d, q, velocities, bounce, weights, sqrt(css));
+  }
 }
 
 /**

@@ -103,6 +103,7 @@ int main(string[] args ) {
     initParameters();
     initCommon();
     // Try and create the local lattice structure.
+    gconn.show!(VL.Information)();
     auto L = Lattice!(gconn)(M);
     initLattice(L);
     runTimeloop(L);
