@@ -33,7 +33,7 @@ import tests.test: testsToRun;
    Usage help text.
 */
 private auto usage = `
-DLBC: a parallel implementation of the lattice Boltzmann method
+DLBC (version %s): a parallel implementation of the lattice Boltzmann method
 for the simulation of fluid dynamics.
 
 Usage:
