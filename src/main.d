@@ -17,7 +17,9 @@
                           the file names are of the form
                           "cp-red-foobar-t00000060-20140527T135106.h5", name is
                           "foobar-t00000060-20140527T135106")
-     -t                 = show current time when logging messages
+     -t <name> | All    = run a specific test, or all tests  (only when compiled
+                          with -unittest)
+     --time             = show current time when logging messages
      -v <level>         = set verbosity level to one of (Off, Fatal, Error,
                           Warning, Notification, Information, Debug) [%s]
      --version          = show version and exit

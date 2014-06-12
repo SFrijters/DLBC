@@ -47,12 +47,18 @@ Options (defaults in brackets):
                        the file names are of the form
                        "cp-red-foobar-t00000060-20140527T135106.h5", name is
                        "foobar-t00000060-20140527T135106")
-  -t <name> | all      run a specific test, or all tests
+  -t <name> | All      run a specific test, or all tests (only when compiled
+                       with -unittest)
   --time               show current time when logging messages
   -v <level>           set verbosity level to one of (Off, Fatal, Error,
                        Warning, Notification, Information, Debug) [%s]
   --version            show version and exit
-  -W                   warnings and above are fatal
+  -W                   warnings and above are treated as fatal errors
+
+Normally, mpirun or a similar command should be used to enable parallel
+execution on n processes.
+
+mpirun -np <n> ./dlbc [options]
 
 For more information, visit https://github.com/SFrijters/DLBC, or look
 at the README.md file.
