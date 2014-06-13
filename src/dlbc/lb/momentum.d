@@ -75,7 +75,7 @@ auto momentumField(alias conn, T, U)(const ref T field, const ref U mask) {
 
   foreach(p, pop; field.arr) {
     if ( isFluid(mask[p]) ) {
-      momentum[p] = population.momentum!conn();
+      momentum[p] = pop.momentum!conn();
     }
     else {
       momentum[p] = 0.0;
@@ -94,7 +94,7 @@ void momentumField(alias conn, T, U, V)(const ref T field, const ref U mask, ref
 
   foreach(p, pop; field.arr) {
     if ( isFluid(mask[p]) ) {
-      momentum[p] = population.momentum!conn();
+      momentum[p] = pop.momentum!conn();
     }
     else {
       momentum[p] = 0.0;
