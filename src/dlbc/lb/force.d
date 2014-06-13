@@ -164,7 +164,7 @@ void addShanChenForce(alias conn, T)(ref T L) {
 
    Returns: \(\Psi(\rho)\).
 */
-double psi(double den) pure nothrow @safe {
+double psi(const double den) pure nothrow @safe {
   import std.math;
   return ( 1.0 - exp(-den) );
 }

@@ -33,7 +33,7 @@ import dlbc.timers;
      tempField = temporary field of the same size and type as $(D field)
      conn = connectivity
 */
-void advectField(alias conn, T, U)(ref T field, ref U mask, ref T tempField) {
+void advectField(alias conn, T, U)(ref T field, const ref U mask, ref T tempField) {
   import std.algorithm: swap;
   import dlbc.range: Iota;
 

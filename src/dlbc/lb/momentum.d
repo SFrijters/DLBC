@@ -23,6 +23,7 @@ import dlbc.lb.connectivity;
 import dlbc.lb.density;
 import dlbc.lb.mask;
 import dlbc.lb.velocity;
+import dlbc.range;
 
 /**
    Calculates the local momentum of a population \(\vec{n}\): \(\vec{p}(\vec{n}) = \sum_r n_r \vec{c}__r\).
@@ -41,9 +42,9 @@ auto momentum(alias conn, T)(const ref T population) {
   double[conn.d] momentum;
   momentum[] = 0.0;
   foreach(i, e; population) {
-    momentum[0] += e * cv[i][0];
-    momentum[1] += e * cv[i][1];
-    momentum[2] += e * cv[i][2];
+    foreach(j; Iota!(0, conn.d) ) {
+      momentum[j] += e * cv[i][j];
+    }
   }
   return momentum;
 }
@@ -58,7 +59,7 @@ auto momentum(alias conn, T)(const ref T population) {
    Returns:
      momentum field
 */
-auto momentumField(alias conn, T, U)(ref T field, ref U mask) {
+auto momentumField(alias conn, T, U)(const ref T field, const ref U mask) {
   static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
@@ -66,31 +67,31 @@ auto momentumField(alias conn, T, U)(ref T field, ref U mask) {
   auto momentum = Field!(double[conn.d], field.dimensions, field.haloSize)(field.lengths);
   assert(field.lengthsH == momentum.lengthsH);
 
-  foreach(x,y,z, ref population; field.arr) {
-    if ( isFluid(mask[x,y,z]) ) {
-      momentum[x,y,z] = population.momentum!conn();
+  foreach(p, pop; field.arr) {
+    if ( isFluid(mask[p]) ) {
+      momentum[p] = population.momentum!conn();
     }
     else {
-      momentum[x,y,z][] = 0.0;
+      momentum[p] = 0.0;
     }
   }
   return momentum;
 }
 
 /// Ditto
-void momentumField(alias conn, T, U, V)(ref T field, ref U mask, ref V momentum) {
+void momentumField(alias conn, T, U, V)(const ref T field, const ref U mask, ref V momentum) {
   static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   static assert(field.dimensions == momentum.dimensions);
   assert(field.lengthsH == mask.lengthsH);
   assert(field.lengthsH == momentum.lengthsH);
 
-  foreach(x,y,z, ref population; field.arr) {
-    if ( isFluid(mask[x,y,z]) ) {
-      momentum[x,y,z] = population.momentum!conn();
+  foreach(p, pop; field.arr) {
+    if ( isFluid(mask[p]) ) {
+      momentum[p] = population.momentum!conn();
     }
     else {
-      momentum[x,y,z][] = 0.0;
+      momentum[p] = 0.0;
     }
   }
 }
@@ -105,15 +106,18 @@ void momentumField(alias conn, T, U, V)(ref T field, ref U mask, ref V momentum)
    Returns:
      total momentum of the field on the local process
 */
-auto localMomentum(alias conn, T, U)(ref T field, ref U mask) {
+auto localMomentum(alias conn, T, U)(const ref T field, const ref U mask) {
   static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
 
   double[conn.d] momentum = 0.0;
-  foreach(x, y, z, ref e; field) {
-    if ( isFluid(mask[x,y,z]) ) {
-      momentum[] += e.momentum!conn()[];
+  foreach(p, pop; field) {
+    if ( isFluid(mask[p]) ) {
+      double[conn.d] pmomentum = pop.momentum!conn();
+      foreach(j; Iota!(0, conn.d) ) {
+	momentum[j] += pmomentum[j];
+      }
     }
   }
   return momentum;
@@ -129,7 +133,7 @@ auto localMomentum(alias conn, T, U)(ref T field, ref U mask) {
    Returns:
      global momentum of the field
 */
-auto globalMomentum(alias conn, T, U)(ref T field, ref U mask) {
+auto globalMomentum(alias conn, T, U)(const ref T field, const ref U mask) {
   static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);

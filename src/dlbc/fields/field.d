@@ -46,14 +46,14 @@ struct Field(T, uint dim, uint hs) {
   /**
      Lengths of the physical dimensions of the field.
   */
-  @property auto lengths() {
+  @property auto const lengths() {
     return _lengths;
   }
 
   /**
      Alias for the first component of $(D lengths).
   */
-  @property auto nx() {
+  @property auto const nx() {
     return _lengths[0];
   }
 
@@ -61,7 +61,7 @@ struct Field(T, uint dim, uint hs) {
      Alias for the second component of $(D lengths).
   */
   static if ( dim > 1 ) {
-    @property auto ny() {
+    @property auto const ny() {
       return _lengths[1];
     }
   }
@@ -70,7 +70,7 @@ struct Field(T, uint dim, uint hs) {
      Alias for the third component of $(D lengths), if $(D dim) > 2.
   */
   static if ( dim > 2 ) {
-    @property auto nz() {
+    @property auto const nz() {
       return _lengths[2];
     }
   }
@@ -78,7 +78,7 @@ struct Field(T, uint dim, uint hs) {
   /**
      Length of the physical dimensions with added halo on both sides, i.e. the stored field.
   */
-  @property auto lengthsH() {
+  @property auto const lengthsH() {
     return _lengthsH;
   }
 
@@ -171,6 +171,28 @@ struct Field(T, uint dim, uint hs) {
   }
 
   int opApply(int delegate(ptrdiff_t[arr.dimensions], ref T) dg) {
+    if(!elements)
+      return 0;
+
+    ptrdiff_t[arr.dimensions] indices = haloSize;
+    indices[$ - 1] = -1 + haloSize;
+
+    for(;;) {
+      foreach_reverse(const plane, ref index; indices) {
+	if(++index < arr.lengths[plane] - haloSize)
+	  break;
+	else if(plane)
+	  index = haloSize;
+	else
+	  return 0;
+      }
+
+      if(const res = dg(indices, arr._data[getOffset(indices)]))
+	return res;
+    }
+  }
+
+  const int opApply(int delegate(ptrdiff_t[arr.dimensions], ref const(T)) dg) {
     if(!elements)
       return 0;
 

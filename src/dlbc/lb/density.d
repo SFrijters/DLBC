@@ -65,7 +65,7 @@ unittest {
    Returns:
      density field
 */
-auto densityField(T, U)(ref T field, ref U mask) {
+auto densityField(T, U)(const ref T field, const ref U mask) {
   static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
@@ -73,26 +73,26 @@ auto densityField(T, U)(ref T field, ref U mask) {
   auto density = Field!(double, field.dimensions, field.haloSize)(field.lengths);
   assert(field.lengthsH == density.lengthsH);
 
-  foreach(x,y,z, ref pop; field.arr) {
-    if ( isFluid(mask[x,y,z]) ) {
-      density[x,y,z] = pop.density();
+  foreach(p, pop; field.arr) {
+    if ( isFluid(mask[p]) ) {
+      density[p] = pop.density();
     }
     else {
-      density[x,y,z] = 0.0;
+      density[p] = 0.0;
     }
   }
   return density;
 }
 
 /// Ditto
-void densityField(T, U, V)(ref T field, ref U mask, ref V density) {
+void densityField(T, U, V)(const ref T field, const ref U mask, ref V density) {
   static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   static assert(field.dimensions == density.dimensions);
   assert(field.lengthsH == mask.lengthsH);
   assert(field.lengthsH == density.lengthsH);
 
-  foreach(p, ref pop; field.arr) {
+  foreach(p, pop; field.arr) {
     if ( isFluid(mask[p]) ) {
       density[p] = pop.density();
     }
@@ -140,16 +140,16 @@ unittest {
    Returns:
      total mass of the field on the local process
 */
-auto localMass(T, U)(ref T field, ref U mask) {
+auto localMass(T, U)(const ref T field, const ref U mask) {
   static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
 
   double mass = 0.0;
   // This loops over the physical field only.
-  foreach(x, y, z, ref e; field) {
-    if ( isFluid(mask[x,y,z])) {
-      mass += e.density();
+  foreach(p, pop; field) {
+    if ( isFluid(mask[p])) {
+      mass += pop.density();
     }
   }
   return mass;
@@ -178,7 +178,7 @@ unittest {
    Returns:
      global mass of the field
 */
-auto globalMass(T, U)(ref T field, ref U mask) {
+auto globalMass(T, U)(const ref T field, const ref U mask) {
   static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
@@ -216,7 +216,7 @@ unittest {
    Returns:
      average density of the field on the local process
 */
-auto localDensity(T, U)(ref T field, ref U mask) {
+auto localDensity(T, U)(const ref T field, const ref U mask) {
   static assert(is(U.type == Mask ) );
   auto size = field.nx * field.ny * field.nz;
   return localMass(field, mask) / size;
@@ -245,7 +245,7 @@ unittest {
    Returns:
      global average density of the field
 */
-auto globalDensity(T, U)(ref T field, ref U mask) {
+auto globalDensity(T, U)(const ref T field, const ref U mask) {
   static assert(is(U.type == Mask ) );
   import dlbc.parallel;
   auto size = field.nx * field.ny * field.nz * M.size;
@@ -279,7 +279,7 @@ unittest {
    Returns:
      colour field
 */
-auto colourField(T, U)(ref T field1, ref T field2, ref U mask) {
+auto colourField(T, U)(const ref T field1, const ref T field2, const ref U mask) {
   static assert(is(U.type == Mask ) );
   static assert(field1.dimensions == mask.dimensions);
   static assert(field2.dimensions == mask.dimensions);
@@ -301,7 +301,7 @@ auto colourField(T, U)(ref T field1, ref T field2, ref U mask) {
 }
 
 /// Ditto
-void colourField(T, U, V)(ref T field1, ref T field2, ref U mask, ref V colour) {
+void colourField(T, U, V)(const ref T field1, const ref T field2, const ref U mask, ref V colour) {
   static assert(is(U.type == Mask ) );
   static assert(field1.dimensions == field2.dimensions);
   static assert(field1.dimensions == mask.dimensions);
@@ -310,12 +310,12 @@ void colourField(T, U, V)(ref T field1, ref T field2, ref U mask, ref V colour) 
   assert(field1.lengthsH == mask.lengthsH);
   assert(field1.lengthsH == density.lengthsH);
 
-  foreach(x,y,z, ref pop; field1.arr) {
-    if ( isFluid(mask[x,y,z]) ) {
-      colour[x,y,z] = field1[x,y,z].density() - field2[x,y,z].density();
+  foreach(p, pop; field1.arr) {
+    if ( isFluid(mask[p]) ) {
+      colour[p] = field1[p].density() - field2[p].density();
     }
     else {
-      colour[x,y,z] = 0.0;
+      colour[p] = 0.0;
     }
   }
 }

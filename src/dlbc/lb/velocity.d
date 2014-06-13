@@ -23,6 +23,8 @@ import dlbc.lb.connectivity;
 import dlbc.lb.density;
 import dlbc.lb.mask;
 
+import dlbc.range;
+
 /**
    Calculates the local velocity of a population \(\vec{n}\): \(\vec{u}(\vec{n}) = \frac{\sum_r n_r \vec{c}__r}{\rho_0(\vec{n})}\).
 
@@ -42,7 +44,7 @@ auto velocity(alias conn, T)(const ref T population, const double density) {
 
   double[conn.d] vel = 0.0;
   foreach(i, e; population) {
-    for(auto j = 0; j < conn.d; ++j) {
+    foreach( j; Iota!(0, conn.d) ) {
       vel[j] += e * cv[i][j];
     }
   }
@@ -83,7 +85,7 @@ unittest {
    Returns:
      velocity field
 */
-auto velocityField(alias conn, T, U)(ref T field, ref U mask) {
+auto velocityField(alias conn, T, U)(const ref T field, const ref U mask) {
   static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   assert(field.lengthsH == mask.lengthsH);
@@ -91,31 +93,31 @@ auto velocityField(alias conn, T, U)(ref T field, ref U mask) {
   auto velocity = Field!(double[conn.d], field.dimensions, field.haloSize)(field.lengths);
   assert(field.lengthsH == velocity.lengthsH);
 
-  foreach(p, ref pop; field.arr) {
+  foreach(p, pop; field.arr) {
     if ( isFluid(mask[p]) ) {
       velocity[p] = pop.velocity!conn();
     }
     else {
-      velocity[p][] = 0.0;
+      velocity[p] = 0.0;
     }
   }
   return velocity;
 }
 
 /// Ditto
-void velocityField(alias conn, T, U, V)(ref T field, ref U mask, ref V velocity) {
+void velocityField(alias conn, T, U, V)(const ref T field, const ref U mask, ref V velocity) {
   static assert(is(U.type == Mask ) );
   static assert(field.dimensions == mask.dimensions);
   static assert(field.dimensions == velocity.dimensions);
   assert(field.lengthsH == mask.lengthsH);
   assert(field.lengthsH == velocity.lengthsH);
 
-  foreach(x,y,z, ref pop; field.arr) {
-    if ( isFluid(mask[x,y,z] ) ) {
-      velocity[x,y,z] = pop.velocity!conn();
+  foreach(p, pop; field.arr) {
+    if ( isFluid(mask[p] ) ) {
+      velocity[p] = pop.velocity!conn();
     }
     else {
-      velocity[x,y,z][] = 0.0;
+      velocity[p] = 0.0;
     }
   }
 }

@@ -73,7 +73,7 @@ void collideField(alias conn, T, U, V)(ref T field, ref U mask, ref V force) {
      force = force field
      conn = connectivity
 */
-void collideField(alias conn, T, U, V)(ref T field, ref U mask, ref V force) {
+void collideField(alias conn, T, U, V)(ref T field, const ref U mask, const ref V force) {
   static assert(is(U.type == Mask));
   static assert(field.dimensions == force.dimensions);
   static assert(field.dimensions == mask.dimensions);
