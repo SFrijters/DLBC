@@ -157,13 +157,13 @@ auto localMass(T, U)(const ref T field, const ref U mask) {
 
 ///
 unittest {
-  size_t[3] lengths = [ 4, 4 ,4 ];
+  size_t[gconn.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
   field.initConst(0.1);
   auto mask = Field!(Mask, gconn.d, 2)(lengths);
   mask.initConst(Mask.None);
 
-  auto mass = localMass(field, mask);
+  auto mass = field.localMass(mask);
 
   assert(approxEqual(mass,gconn.q*4*4*4*0.1));
 }
@@ -201,7 +201,7 @@ unittest {
   auto mask = Field!(Mask, gconn.d, 2)(lengths);
   mask.initConst(Mask.None);
 
-  auto mass = globalMass(field, mask);
+  auto mass = field.globalMass(mask);
 
   assert(approxEqual(mass,M.size*gconn.q*4*4*4*0.1));
 }

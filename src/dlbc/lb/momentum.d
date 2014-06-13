@@ -25,6 +25,12 @@ import dlbc.lb.mask;
 import dlbc.lb.velocity;
 import dlbc.range;
 
+version(unittest) {
+  import dlbc.fields.init;
+  import dlbc.parallel;
+  import std.math: approxEqual;
+}
+
 /**
    Calculates the local momentum of a population \(\vec{n}\): \(\vec{p}(\vec{n}) = \sum_r n_r \vec{c}__r\).
 
@@ -96,6 +102,29 @@ void momentumField(alias conn, T, U, V)(const ref T field, const ref U mask, ref
   }
 }
 
+///
+unittest {
+  size_t[gconn.d] lengths = [ 4, 4 ,4 ];
+  auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
+  auto mask = Field!(Mask, gconn.d, 2)(lengths);
+  mask.initConst(Mask.None);
+
+  double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
+  		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
+
+  field.initConst(0.0);
+  field[1,2,3] = pop1;
+
+  auto momentum1 = momentumField!gconn(field, mask);
+  assert(momentum1[1,2,3] == [-0.1,-0.1, 0.1]);
+  assert(momentum1[0,1,3] == [0.0, 0.0, 0.0]);
+
+  auto momentum2 = Field!(double[gconn.d], gconn.d, 2)(lengths);
+  momentumField!gconn(field, mask, momentum2);
+  assert(momentum2[1,2,3] == [-0.1,-0.1, 0.1]);
+  assert(momentum2[0,1,3] == [0.0, 0.0, 0.0]);
+}
+
 /**
    Calculates the total momentum of a population field on the local process only.
 
@@ -123,6 +152,22 @@ auto localMomentum(alias conn, T, U)(const ref T field, const ref U mask) {
   return momentum;
 }
 
+///
+unittest {
+  size_t[gconn.d] lengths = [ 4, 4 ,4 ];
+  auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
+  auto mask = Field!(Mask, gconn.d, 2)(lengths);
+  mask.initConst(Mask.None);
+  double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
+  		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
+  field.initConst(0.0);
+  field[1,2,3] = pop1; // Inside the halo, this should not be counted!
+  field[3,3,3] = pop1;
+
+  auto momentum = localMomentum!gconn(field, mask);
+  assert(momentum == [-0.1,-0.1, 0.1]);
+}
+
 /**
    Calculates the global momentum of a population field.
 
@@ -145,3 +190,25 @@ auto globalMomentum(alias conn, T, U)(const ref T field, const ref U mask) {
   return globalMomentum;
 }
 
+///
+unittest {
+  startMpi([]);
+  reorderMpi();
+
+  import dlbc.fields.init;
+
+  size_t[gconn.d] lengths = [ 4, 4 ,4 ];
+  auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
+  auto mask = Field!(Mask, gconn.d, 2)(lengths);
+  mask.initConst(Mask.None);
+  double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
+  		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
+  field.initConst(0.0);
+  field[1,2,3] = pop1; // Inside the halo, this should not be counted!
+  field[3,3,3] = pop1;
+
+  auto momentum = field.globalMomentum!gconn(mask);
+  assert(approxEqual(momentum[0], M.size * -0.1));
+  assert(approxEqual(momentum[1], M.size * -0.1));
+  assert(approxEqual(momentum[2], M.size *  0.1));
+}
