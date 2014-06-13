@@ -46,13 +46,13 @@ void advectField(alias conn, T, U)(ref T field, const ref U mask, ref T tempFiel
   Timers.adv.start();
 
   auto immutable cv = conn.velocities;
-  foreach( p, ref population; tempField) {
+  foreach(immutable p, ref pop; tempField) {
     if ( isAdvectable(mask[p]) ) {
-      assert(population.length == cv.length);
-      foreach( i, ref c; population ) {
+      assert(pop.length == cv.length);
+      foreach(immutable i, ref c; pop ) {
 	conn.vel_t nb;
 	// Todo: better array syntax.
-	foreach( j; Iota!(0, conn.d) ) {
+	foreach(immutable j; Iota!(0, conn.d) ) {
 	  nb[j] = p[j] - cv[i][j];
 	}
 	if ( isBounceBack(mask[nb]) ) {
@@ -64,7 +64,7 @@ void advectField(alias conn, T, U)(ref T field, const ref U mask, ref T tempFiel
       }
     }
     else {
-      population = field[p];
+      pop = field[p];
     }
   }
   swap(field, tempField);

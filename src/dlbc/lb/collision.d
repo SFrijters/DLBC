@@ -30,40 +30,6 @@ import dlbc.timers;
 
 import dlbc.logging;
 
-/++
-/**
-   Let the populations of the field collide.
-
-   Params:
-     field = field of populations
-     mask = mask field
-     force = force field
-     conn = connectivity
-*/
-void collideField(alias conn, T, U, V)(ref T field, ref U mask, ref V force) {
-  static assert(is(U.type == Mask));
-  static assert(field.dimensions == force.dimensions);
-  static assert(field.dimensions == mask.dimensions);
-  assert(force.lengthsH == field.lengthsH, "force field and collided field need to have the same size");
-  assert(mask.lengthsH == field.lengthsH, "mask and collided field need to have the same size");
-  assert(force.dimensions == conn.d, "force needs to have the same dimension as the connectivity");
-  assert(globalAcc.length == conn.d, "globalAcc needs to have the same dimension as the connectivity");
-
-  Timers.coll.start();
-
-  enum omega = 1.0;
-  foreach(x, y, z, ref population; field.arr) { // this includes the halo
-    if ( isCollidable(mask[x,y,z]) ) {
-      // We need this temporary variable because direct assignment is not implemented in DMD yet.
-      double[conn.d] dv = globalAcc[] + force[x,y,z][] / population.density(); 
-      population[] -= omega * ( population[] - (eqDist!conn(population, dv))[]);
-    }
-  }
-
-  Timers.coll.stop();
-}
-+/
-
 /**
    Let the populations of the field collide.
 
@@ -85,21 +51,21 @@ void collideField(alias conn, T, U, V)(ref T field, const ref U mask, const ref 
   Timers.coll.start();
 
   enum omega = 1.0;
-  foreach(p, ref population; field.arr) { // this includes the halo
+  foreach(immutable p, ref pop; field.arr) { // this includes the halo
     if ( isCollidable(mask[p]) ) {
       // We need this temporary variable because direct assignment is not implemented in DMD yet.
       double[conn.d] dv;
       //      Timers.collden.start();
-      auto den = population.density();
+      auto den = pop.density();
       //      Timers.collden.stop();
-      foreach(i; Iota!(0,conn.d) ) {
+      foreach(immutable i; Iota!(0,conn.d) ) {
 	dv[i] = globalAcc[i] + force[p][i] / den;
       }
       //      Timers.colleq.start();
-      auto eq = eqDist!conn(population, dv);
+      auto eq = eqDist!conn(pop, dv);
       //      Timers.colleq.stop();
-      foreach(i; Iota!(0,conn.q) ) {
-	population[i] -= omega * ( population[i] - eq[i]);
+      foreach(immutable i; Iota!(0,conn.q) ) {
+	pop[i] -= omega * ( pop[i] - eq[i]);
       }
     }
   }
@@ -131,24 +97,24 @@ auto eqDist(alias conn, T)(const ref T population, const double[conn.d] dv) {
   // double[conn.d] v = dv[] + pv[];
 
   double[conn.d] v;
-  foreach(i; Iota!(0,conn.d) ) {
+  foreach(immutable i; Iota!(0,conn.d) ) {
     v[i] = dv[i] + pv[i];
   }
   enum css = 1.0/3.0;
 
   auto immutable vdotv = v.dotProduct(v);
   // double vdotv2;
-  // foreach(j; Iota!(0,conn.d)) {
+  // foreach(immutable j; Iota!(0,conn.d)) {
   //   vdotv2 += v[j]*v[j];
   // }
 
   T dist;
-  // foreach(i, e; cv) {
+  // foreach(immutable i, e; cv) {
   //   immutable auto vdotcv = v.dotProduct(e);
   foreach(i; Iota!(0,conn.q)) {
     immutable auto vdotcv = v.dotProduct(cv[i]);
     //   double vdotcv;
-    //   foreach(j; Iota!(0,conn.d)) {
+    //   foreach(immutable j; Iota!(0,conn.d)) {
     //     vdotcv += v[j]*cv[i][j];
     //   }
     dist[i] = rho0 * cw[i] * ( 1.0 + ( vdotcv / css ) + ( (vdotcv * vdotcv ) / ( 2.0 * css * css ) ) - ( ( vdotv ) / ( 2.0 * css) ) );

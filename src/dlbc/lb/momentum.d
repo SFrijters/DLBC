@@ -45,10 +45,9 @@ auto momentum(alias conn, T)(const ref T population) {
   auto immutable cv = conn.velocities;
   static assert(population.length == cv.length);
 
-  double[conn.d] momentum;
-  momentum[] = 0.0;
-  foreach(i, e; population) {
-    foreach(j; Iota!(0, conn.d) ) {
+  double[conn.d] momentum = 0.0;
+  foreach(immutable i, e; population) {
+    foreach(immutable j; Iota!(0, conn.d) ) {
       momentum[j] += e * cv[i][j];
     }
   }
@@ -73,7 +72,7 @@ auto momentumField(alias conn, T, U)(const ref T field, const ref U mask) {
   auto momentum = Field!(double[conn.d], field.dimensions, field.haloSize)(field.lengths);
   assert(field.lengthsH == momentum.lengthsH);
 
-  foreach(p, pop; field.arr) {
+  foreach(immutable p, pop; field.arr) {
     if ( isFluid(mask[p]) ) {
       momentum[p] = pop.momentum!conn();
     }
@@ -92,7 +91,7 @@ void momentumField(alias conn, T, U, V)(const ref T field, const ref U mask, ref
   assert(field.lengthsH == mask.lengthsH);
   assert(field.lengthsH == momentum.lengthsH);
 
-  foreach(p, pop; field.arr) {
+  foreach(immutable p, pop; field.arr) {
     if ( isFluid(mask[p]) ) {
       momentum[p] = pop.momentum!conn();
     }
@@ -141,10 +140,10 @@ auto localMomentum(alias conn, T, U)(const ref T field, const ref U mask) {
   assert(field.lengthsH == mask.lengthsH);
 
   double[conn.d] momentum = 0.0;
-  foreach(p, pop; field) {
+  foreach(immutable p, pop; field) {
     if ( isFluid(mask[p]) ) {
       double[conn.d] pmomentum = pop.momentum!conn();
-      foreach(j; Iota!(0, conn.d) ) {
+      foreach(immutable j; Iota!(0, conn.d) ) {
 	momentum[j] += pmomentum[j];
       }
     }

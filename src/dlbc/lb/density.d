@@ -73,7 +73,7 @@ auto densityField(T, U)(const ref T field, const ref U mask) {
   auto density = Field!(double, field.dimensions, field.haloSize)(field.lengths);
   assert(field.lengthsH == density.lengthsH);
 
-  foreach(p, pop; field.arr) {
+  foreach(immutable p, pop; field.arr) {
     if ( isFluid(mask[p]) ) {
       density[p] = pop.density();
     }
@@ -92,7 +92,7 @@ void densityField(T, U, V)(const ref T field, const ref U mask, ref V density) {
   assert(field.lengthsH == mask.lengthsH);
   assert(field.lengthsH == density.lengthsH);
 
-  foreach(p, pop; field.arr) {
+  foreach(immutable p, pop; field.arr) {
     if ( isFluid(mask[p]) ) {
       density[p] = pop.density();
     }
@@ -147,7 +147,7 @@ auto localMass(T, U)(const ref T field, const ref U mask) {
 
   double mass = 0.0;
   // This loops over the physical field only.
-  foreach(p, pop; field) {
+  foreach(immutable p, pop; field) {
     if ( isFluid(mask[p])) {
       mass += pop.density();
     }
@@ -289,7 +289,7 @@ auto colourField(T, U)(const ref T field1, const ref T field2, const ref U mask)
   auto colour = Field!(double, field1.dimensions, field1.haloSize)(field1.lengths);
   assert(field1.lengthsH == colour.lengthsH);
 
-  foreach(p, ref pop; field1.arr) {
+  foreach(immutable p, ref pop; field1.arr) {
     if ( isFluid(mask[p]) ) {
       colour[p] = field1[p].density() - field2[p].density();
     }
@@ -310,7 +310,7 @@ void colourField(T, U, V)(const ref T field1, const ref T field2, const ref U ma
   assert(field1.lengthsH == mask.lengthsH);
   assert(field1.lengthsH == density.lengthsH);
 
-  foreach(p, pop; field1.arr) {
+  foreach(immutable p, pop; field1.arr) {
     if ( isFluid(mask[p]) ) {
       colour[p] = field1[p].density() - field2[p].density();
     }
@@ -333,9 +333,9 @@ auto pressure(alias conn, T)(const ref T density[]) {
   import std.algorithm;
   import dlbc.lb.force;
   double pressure = 0.0;
-  foreach(i, d1; density) {
+  foreach(immutable i, d1; density) {
     pressure += d1;
-    foreach(j, d2; density) {
+    foreach(immutable j, d2; density) {
       pressure += 0.5*gccm[i][j]*psi(d1)*psi(d2);
     }
   }

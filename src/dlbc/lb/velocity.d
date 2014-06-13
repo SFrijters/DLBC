@@ -35,16 +35,14 @@ import dlbc.range;
 
    Returns:
      local velocity \(\vec{u}(\vec{n})\)
-
-   Todo: remove explicit velocity components.
 */
 auto velocity(alias conn, T)(const ref T population, const double density) {
   auto immutable cv = conn.velocities;
   static assert(population.length == cv.length);
 
   double[conn.d] vel = 0.0;
-  foreach(i, e; population) {
-    foreach( j; Iota!(0, conn.d) ) {
+  foreach(immutable i, e; population) {
+    foreach(immutable j; Iota!(0, conn.d) ) {
       vel[j] += e * cv[i][j];
     }
   }
@@ -93,7 +91,7 @@ auto velocityField(alias conn, T, U)(const ref T field, const ref U mask) {
   auto velocity = Field!(double[conn.d], field.dimensions, field.haloSize)(field.lengths);
   assert(field.lengthsH == velocity.lengthsH);
 
-  foreach(p, pop; field.arr) {
+  foreach(immutable p, pop; field.arr) {
     if ( isFluid(mask[p]) ) {
       velocity[p] = pop.velocity!conn();
     }
@@ -112,7 +110,7 @@ void velocityField(alias conn, T, U, V)(const ref T field, const ref U mask, ref
   assert(field.lengthsH == mask.lengthsH);
   assert(field.lengthsH == velocity.lengthsH);
 
-  foreach(p, pop; field.arr) {
+  foreach(immutable p, pop; field.arr) {
     if ( isFluid(mask[p] ) ) {
       velocity[p] = pop.velocity!conn();
     }

@@ -170,7 +170,8 @@ struct Field(T, uint dim, uint hs) {
     }
   }
 
-  int opApply(int delegate(ptrdiff_t[arr.dimensions], ref T) dg) {
+  /// Ditto
+  int opApply(int delegate(immutable ptrdiff_t[arr.dimensions], ref T) dg) {
     if(!elements)
       return 0;
 
@@ -192,7 +193,8 @@ struct Field(T, uint dim, uint hs) {
     }
   }
 
-  const int opApply(int delegate(ptrdiff_t[arr.dimensions], ref const(T)) dg) {
+  /// Ditto
+  const int opApply(int delegate(immutable ptrdiff_t[arr.dimensions], ref const(T)) dg) {
     if(!elements)
       return 0;
 

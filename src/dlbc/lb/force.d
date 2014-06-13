@@ -102,7 +102,7 @@ void initForce(alias conn, T)(ref T L) {
      L = lattice
 */
 void resetForce(T)(ref T L) {
-  foreach( ref e; L.force) {
+  foreach(ref e; L.force) {
     e.initConst(0.0);
   }
 }
@@ -118,6 +118,7 @@ void resetForce(T)(ref T L) {
      conn = connectivity
 
    Todo: adapt isBounceBack restriction to implement wetting walls.
+   Todo: add unittest.
 */
 void addShanChenForce(alias conn, T)(ref T L) {
   auto cv = conn.velocities;
@@ -130,14 +131,14 @@ void addShanChenForce(alias conn, T)(ref T L) {
       auto cc = gccm[nc1][nc2];
       // Skip zero interactions.
       if ( cc == 0.0 ) continue;
-      foreach( p, ref force ; L.force[nc1] ) {
+      foreach(immutable p, ref force ; L.force[nc1] ) {
         // Only do lattice sites on which collision will take place.
 	if ( isCollidable(L.mask[p]) ) {
 	  auto psiden1 = psi(L.fluids[nc1][p].density());
-	  foreach( i, ref c; cv ) {
+	  foreach(immutable i, ref c; cv ) {
 	    conn.vel_t nb;
 	    // Todo: better array syntax.
-	    foreach( j; Iota!(0, conn.d) ) {
+	    foreach(immutable j; Iota!(0, conn.d) ) {
 	      nb[j] = p[j] - cv[i][j];
 	    }
             // Only do lattice sites that are not walls.
@@ -145,7 +146,7 @@ void addShanChenForce(alias conn, T)(ref T L) {
 	      immutable auto psiden2 = psi(L.fluids[nc2][nb].density());
 	      immutable auto prefactor = psiden1 * psiden2 * cc;
               // The SC force function.
-	      foreach( j; Iota!(0, conn.d) ) {
+	      foreach(immutable j; Iota!(0, conn.d) ) {
 		force[j] += prefactor * cv[i][j];
 	      }
 	    }
