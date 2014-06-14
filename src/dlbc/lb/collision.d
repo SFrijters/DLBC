@@ -53,16 +53,15 @@ void collideField(alias conn, T, U, V)(ref T field, const ref U mask, const ref 
   enum omega = 1.0;
   foreach(immutable p, ref pop; field.arr) { // this includes the halo
     if ( isCollidable(mask[p]) ) {
-      // We need this temporary variable because direct assignment is not implemented in DMD yet.
       double[conn.d] dv;
       //      Timers.collden.start();
-      auto den = pop.density();
+      immutable den = pop.density();
       //      Timers.collden.stop();
       foreach(immutable i; Iota!(0,conn.d) ) {
 	dv[i] = globalAcc[i] + force[p][i] / den;
       }
       //      Timers.colleq.start();
-      auto eq = eqDist!conn(pop, dv);
+      immutable eq = eqDist!conn(pop, dv);
       //      Timers.colleq.stop();
       foreach(immutable i; Iota!(0,conn.q) ) {
 	pop[i] -= omega * ( pop[i] - eq[i]);
@@ -85,38 +84,24 @@ void collideField(alias conn, T, U, V)(ref T field, const ref U mask, const ref 
      equilibrium distribution \(\vec{n}^{\mathrm{eq}}\)
 */
 auto eqDist(alias conn, T)(const ref T population, const double[conn.d] dv) {
+  static assert(population.length == conn.q);
+
   import std.numeric: dotProduct;
 
-  auto immutable cv = conn.velocities;
-  auto immutable cw = conn.weights;
-  static assert(population.length == cv.length);
-  static assert(population.length == cw.length);
-
-  immutable auto rho0 = population.density();
-  immutable auto pv = population.velocity!(conn)(rho0);
-  // double[conn.d] v = dv[] + pv[];
+  immutable cv = conn.velocities;
+  immutable cw = conn.weights;
+  immutable css = conn.css;
+  immutable rho0 = population.density();
+  immutable pv = population.velocity!(conn)(rho0);
 
   double[conn.d] v;
   foreach(immutable i; Iota!(0,conn.d) ) {
     v[i] = dv[i] + pv[i];
   }
-  enum css = 1.0/3.0;
-
-  auto immutable vdotv = v.dotProduct(v);
-  // double vdotv2;
-  // foreach(immutable j; Iota!(0,conn.d)) {
-  //   vdotv2 += v[j]*v[j];
-  // }
-
+  immutable vdotv = v.dotProduct(v);
   T dist;
-  // foreach(immutable i, e; cv) {
-  //   immutable auto vdotcv = v.dotProduct(e);
   foreach(i; Iota!(0,conn.q)) {
-    immutable auto vdotcv = v.dotProduct(cv[i]);
-    //   double vdotcv;
-    //   foreach(immutable j; Iota!(0,conn.d)) {
-    //     vdotcv += v[j]*cv[i][j];
-    //   }
+    immutable vdotcv = v.dotProduct(cv[i]);
     dist[i] = rho0 * cw[i] * ( 1.0 + ( vdotcv / css ) + ( (vdotcv * vdotcv ) / ( 2.0 * css * css ) ) - ( ( vdotv ) / ( 2.0 * css) ) );
   }
   return dist;
