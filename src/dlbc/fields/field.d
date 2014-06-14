@@ -34,10 +34,14 @@ import unstd.generictuple;
      hs = size of the halo region
 */
 struct Field(T, uint dim, uint hs) {
-  MultidimArray!(T, dim) arr, sbuffer, rbuffer;
-
   enum uint dimensions = dim;
   enum uint haloSize = hs;
+  alias type = T;
+
+  /**
+     Allows to access the underlying multidimensional array correctly.
+  */
+  alias arr this;
 
   private {
     size_t[dim] _lengths;
@@ -46,12 +50,12 @@ struct Field(T, uint dim, uint hs) {
     size_t _sizeH = 1;
   }
 
-  alias type = T;
+  MultidimArray!(T, dim) arr, sbuffer, rbuffer;
 
   /**
      Lengths of the physical dimensions of the field.
   */
-  @property auto const lengths() {
+  @property const lengths() {
     return _lengths;
   }
   /// Ditto
@@ -60,7 +64,7 @@ struct Field(T, uint dim, uint hs) {
   /**
      Length of the physical dimensions with added halo on both sides, i.e. the stored field.
   */
-  @property auto const lengthsH() {
+  @property const lengthsH() {
     return _lengthsH;
   }
   /// Ditto
@@ -69,21 +73,16 @@ struct Field(T, uint dim, uint hs) {
   /**
      Number of physical sites of the field.
   */
-  @property auto const size() {
+  @property const size() {
     return _size;
   }
 
   /**
      Number of sites of the field.
   */
-  @property auto const sizeH() {
+  @property const sizeH() {
     return _sizeH;
   }
-
-  /**
-     Allows to access the underlying multidimensional array correctly.
-  */
-  alias arr this;
 
   /**
      A $(D Field) is constructed by specifying the size of the physical domain and the required halo size.
