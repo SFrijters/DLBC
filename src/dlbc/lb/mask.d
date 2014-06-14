@@ -7,6 +7,7 @@ module dlbc.lb.mask;
 import dlbc.fields.init;
 import dlbc.io.io;
 import dlbc.parallel;
+import dlbc.range;
 
 enum MaskInit {
   None,
@@ -39,45 +40,34 @@ void initMask(T)(ref T mask) {
 
 void initTubeZ(T)(ref T field) {
   static assert( is (T.type == Mask ) );
-
-  static if ( field.dimensions == 3 ) {
-    foreach( x,y,z, ref e; field.arr) {
-      auto gx = x + M.c[0] * field.nx - field.haloSize;
-      auto gy = y + M.c[1] * field.ny - field.haloSize;
-      auto gz = z + M.c[2] * field.nz - field.haloSize;
-
-      if ( gx == 0 || gx == (field.nx * M.nc[0] - 1) || gy == 0 || gy == (field.ny * M.nc[1] - 1 ) ) {
-	e = Mask.Solid;
-      }
-      else {
-	e = Mask.None;
-      }
+  foreach(immutable p, ref e; field.arr) {
+    ptrdiff_t[field.dimensions] gn;
+    foreach(immutable i; Iota!(0, field.dimensions) ) {
+      gn[i] = p[i] + M.c[i] * field.n[i] - field.haloSize;
     }
-  }
-  else {
-    assert(0, "initTubeZ not implemented for field.dimensions != 3.");
+    if ( gn[0] == 0 || gn[0] == (field.n[0] * M.nc[0] - 1) || gn[1] == 0 || gn[1] == (field.n[1] * M.nc[1] - 1 ) ) {
+      e = Mask.Solid;
+    }
+    else {
+      e = Mask.None;
+    }
   }
 }
 
 void initWallsX(T)(ref T field) {
   static assert( is (T.type == Mask ) );
 
-  static if ( field.dimensions == 3 ) {
-    foreach( x,y,z, ref e; field.arr) {
-      auto gx = x + M.c[0] * field.nx - field.haloSize;
-      auto gy = y + M.c[1] * field.ny - field.haloSize;
-      auto gz = z + M.c[2] * field.nz - field.haloSize;
-
-      if ( gx == 0 || gx == (field.nx * M.nc[0] - 1) ) {
-	e = Mask.Solid;
-      }
-      else {
-	e = Mask.None;
-      }
+  foreach(immutable p, ref e; field.arr) {
+    ptrdiff_t[field.dimensions] gn;
+    foreach(immutable i; Iota!(0, field.dimensions) ) {
+      gn[i] = p[i] + M.c[i] * field.n[i] - field.haloSize;
     }
-  }
-  else {
-    assert(0, "initWallsX not implemented for field.dimensions != 3.");
+    if ( gn[0] == 0 || gn[0] == (field.n[0] * M.nc[0] - 1) ) {
+      e = Mask.Solid;
+    }
+    else {
+      e = Mask.None;
+    }
   }
 }
 

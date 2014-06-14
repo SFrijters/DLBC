@@ -137,49 +137,49 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
 
   auto type_id = hdf5Typeof!(T.type);
 
-  auto ndim = field.dimensions;
+  auto dim = field.dimensions;
 
   auto typeLen = LengthOf!(T.type);
 
   static if ( field.dimensions == 3 ) {
     if ( typeLen > 1 ) {
-      ndim++; // One more dimension to store the vector component.
-      dimsg = gn ~ typeLen;
-      dimsl = [ field.nxH, field.nyH, field.nzH, typeLen ];
+      dim++; // One more dimension to store the vector component.
+      dimsg = [ gn[0], gn[1], gn[2], typeLen ];
+      dimsl = field.nH.dup ~ typeLen;
       count = [ 1, 1, 1, 1 ];
       stride = [ 1, 1, 1, 1 ];
-      block = [ field.nx, field.ny, field.nz, typeLen ];
-      start = [ M.c[0]*field.nx, M.c[1]*field.ny, M.c[2]*field.nz, 0 ];
+      block = field.n.dup ~ typeLen;
+      start = [ M.c[0]*field.n[0], M.c[1]*field.n[1], M.c[2]*field.n[2], 0 ];
       arrstart = [ field.haloSize, field.haloSize, field.haloSize, 0 ];
     }
     else {
-      dimsg = gn;
-      dimsl = [ field.nxH, field.nyH, field.nzH ];
+      dimsg = [ gn[0], gn[1], gn[2] ];
+      dimsl = field.nH.dup;
       count = [ 1, 1, 1 ];
       stride = [ 1, 1, 1 ];
-      block = [ field.nx, field.ny, field.nz ];
-      start = [ M.c[0]*field.nx, M.c[1]*field.ny, M.c[2]*field.nz ];
+      block = field.n.dup;
+      start = [ M.c[0]*field.n[0], M.c[1]*field.n[1], M.c[2]*field.n[2] ];
       arrstart = [ field.haloSize, field.haloSize, field.haloSize ];
     }
   }
   else static if ( field.dimensions == 2 ) {
     if ( typeLen > 1 ) {
-      ndim++; // One more dimension to store the vector component.
-      dimsg = gn ~ typeLen;
-      dimsl = [ field.nxH, field.nyH, typeLen ];
+      dim++; // One more dimension to store the vector component.
+      dimsg = [ gn[0], gn[1], typeLen ];
+      dimsl = field.nH.dup ~ typeLen;
       count = [ 1, 1, 1 ];
       stride = [ 1, 1, 1 ];
-      block = [ field.nx, field.ny, typeLen ];
-      start = [ M.c[0]*field.nx, M.c[1]*field.ny, 0 ];
+      block = field.n.dup ~ typeLen;
+      start = [ M.c[0]*field.n[0], M.c[1]*field.n[1], 0 ];
       arrstart = [ field.haloSize, field.haloSize, 0 ];
     }
     else {
       dimsg = [ gn[0], gn[1] ];
-      dimsl = [ field.nxH, field.nyH ];
+      dimsl = field.nH.dup;
       count = [ 1, 1 ];
       stride = [ 1, 1 ];
-      block = [ field.nx, field.ny ];
-      start = [ M.c[0]*field.nx, M.c[1]*field.ny ];
+      block = field.n.dup;
+      start = [ M.c[0]*field.n[0], M.c[1]*field.n[1] ];
       arrstart = [ field.haloSize, field.haloSize ];
     }
   }
@@ -214,13 +214,13 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
 
   // Create the data spaces for the dataset, using global and local size
   // (including halo!), respectively.
-  auto filespace = H5Screate_simple(ndim, dimsg.ptr, null);
-  auto memspace = H5Screate_simple(ndim, dimsl.ptr, null);
+  auto filespace = H5Screate_simple(dim, dimsg.ptr, null);
+  auto memspace = H5Screate_simple(dim, dimsl.ptr, null);
 
   hid_t dcpl_id;
   if ( writeChunked ) {
     dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
-    H5Pset_chunk(dcpl_id, ndim, block.ptr);
+    H5Pset_chunk(dcpl_id, dim, block.ptr);
   }
   else {
     dcpl_id = H5P_DEFAULT;
@@ -290,6 +290,7 @@ void dumpMetadata(const hid_t root_id) {
      isCheckpoint = whether this is checkpoint related (reads checkpoint globals)
 */
 void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isCheckpoint = false) {
+  auto dim = field.dimensions;
   hsize_t[] dimsg;
   hsize_t[] dimsl;
   hsize_t[] count;
@@ -298,51 +299,49 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
   hsize_t[] start;
   hsize_t[] arrstart;
 
-  auto type_id = hdf5Typeof!(T.type);
+  alias type_id = hdf5Typeof!(T.type);
 
-  auto ndim = field.dimensions;
-
-  auto typeLen = LengthOf!(T.type);
+  alias typeLen = LengthOf!(T.type);
 
   static if ( field.dimensions == 3 ) {
     if ( typeLen > 1 ) {
-      ndim++; // One more dimension to store the vector component.
+      dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], gn[1], gn[2], typeLen ];
-      dimsl = [ field.nxH, field.nyH, field.nzH, typeLen ];
+      dimsl = field.nH.dup ~ typeLen;
       count = [ 1, 1, 1, 1 ];
       stride = [ 1, 1, 1, 1 ];
-      block = [ field.nx, field.ny, field.nz, typeLen ];
-      start = [ M.c[0]*field.nx, M.c[1]*field.ny, M.c[2]*field.nz, 0 ];
+      block = field.n.dup ~ typeLen;
+      start = [ M.c[0]*field.n[0], M.c[1]*field.n[1], M.c[2]*field.n[2], 0 ];
       arrstart = [ field.haloSize, field.haloSize, field.haloSize, 0 ];
     }
     else {
       dimsg = [ gn[0], gn[1], gn[2] ];
-      dimsl = [ field.nxH, field.nyH, field.nzH ];
+      dimsl = field.nH.dup;
       count = [ 1, 1, 1 ];
       stride = [ 1, 1, 1 ];
-      block = [ field.nx, field.ny, field.nz ];
-      start = [ M.c[0]*field.nx, M.c[1]*field.ny, M.c[2]*field.nz ];
+      block = field.n.dup;
+      start = [ M.c[0]*field.n[0], M.c[1]*field.n[1], M.c[2]*field.n[2] ];
       arrstart = [ field.haloSize, field.haloSize, field.haloSize ];
     }
   }
   else static if ( field.dimensions == 2 ) {
     if ( typeLen > 1 ) {
-      ndim++; // One more dimension to store the vector component.
+      dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], gn[1], typeLen ];
-      dimsl = [ field.nxH, field.nyH, typeLen ];
+      dimsl = field.nH.dup ~ typeLen;
       count = [ 1, 1, 1 ];
       stride = [ 1, 1, 1 ];
-      block = [ field.nx, field.ny, typeLen ];
-      start = [ M.c[0]*field.nx, M.c[1]*field.ny, 0 ];
+      block = field.n.dup ~ typeLen;
+      start = [ M.c[0]*field.n[0], M.c[1]*field.n[1], 0 ];
       arrstart = [ field.haloSize, field.haloSize, 0 ];
     }
     else {
       dimsg = [ gn[0], gn[1] ];
-      dimsl = [ field.nxH, field.nyH ];
+      dimsl = field.nH.dup;
       count = [ 1, 1 ];
       stride = [ 1, 1 ];
-      block = [ field.nx, field.ny ];
-      start = [ M.c[0]*field.nx, M.c[1]*field.ny ];
+      block = field.n.dup;
+      start = [ M.c[0]*field.n[0], M.c[1]*field.n[1] ];
       arrstart = [ field.haloSize, field.haloSize ];
     }
   }
@@ -376,7 +375,7 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
   // In the filespace, we have an offset to make sure we write in the correct chunk.
   H5Sselect_hyperslab(filespace, H5S_seloper_t.H5S_SELECT_SET, start.ptr, stride.ptr, count.ptr, block.ptr);
   // In the memspace, we cut off the halo region.
-  auto memspace = H5Screate_simple(ndim, dimsl.ptr, null);
+  auto memspace = H5Screate_simple(dim, dimsl.ptr, null);
   H5Sselect_hyperslab(memspace, H5S_seloper_t.H5S_SELECT_SET, arrstart.ptr, stride.ptr, count.ptr, block.ptr);
 
   // Set up for collective IO.

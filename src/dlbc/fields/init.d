@@ -74,49 +74,25 @@ void initEqDistRandom(alias conn, T)(ref T field, const double density) {
 }
 
 void initEqDistSphere(alias conn, T)(ref T field, const double density1, const double density2, const double initSphereRadius) {
-  import dlbc.lb.collision;
-  import dlbc.lb.connectivity;
-  import std.math;
-  import std.conv: to;
+  import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
+  import std.math, std.conv, std.numeric;
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
   double[conn.d] dv = 0.0;
   typeof(pop0) pop1 = density1*eqDist!conn(pop0, dv)[];
   typeof(pop0) pop2 = density2*eqDist!conn(pop0, dv)[];
-  static if ( field.dimensions == 3 ) {
-    foreach( x, y, z, ref e; field.arr) {
-      auto gx = x + M.c[0] * field.nx - to!double(field.haloSize);
-      auto gy = y + M.c[1] * field.ny - to!double(field.haloSize);
-      auto gz = z + M.c[2] * field.nz - to!double(field.haloSize);
-      auto ox = gx - to!double(M.nc[0] * field.nx / 2);
-      auto oy = gy - to!double(M.nc[1] * field.ny / 2);
-      auto oz = gz - to!double(M.nc[2] * field.nz / 2);
-      double offset = sqrt(ox*ox + oy*oy + oz*oz);
-      if ( offset < initSphereRadius ) {
-	e = pop1;
-      }
-      else {
-	e = pop2;
-      }
+  foreach(immutable p, ref e; field.arr) {
+    double[conn.d] gn, offset;
+    foreach(immutable i; Iota!(0, conn.d) ) {
+      gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
+      offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] / 2);
     }
-  }
-  else static if ( field.dimensions == 2 ) {
-    foreach( x, y, ref e; field.arr) {
-      auto gx = x + M.c[0] * field.nx - to!double(field.haloSize);
-      auto gy = y + M.c[1] * field.ny - to!double(field.haloSize);
-      auto ox = gx - to!double(M.nc[0] * field.nx / 2);
-      auto oy = gy - to!double(M.nc[1] * field.ny / 2);
-      double offset = sqrt(ox*ox + oy*oy);
-      if ( offset < initSphereRadius ) {
-	e = pop1;
-      }
-      else {
-	e = pop2;
-      }
+    if ( offset.dotProduct(offset) < initSphereRadius ) {
+      e = pop1;
     }
-  }
-  else {
-    assert(0, "initEqDistSphere not implemented for field.dimensions != 2 or 3.");
+    else {
+      e = pop2;
+    }
   }
 }
 

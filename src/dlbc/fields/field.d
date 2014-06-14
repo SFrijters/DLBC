@@ -38,8 +38,13 @@ struct Field(T, uint dim, uint hs) {
 
   enum uint dimensions = dim;
   enum uint haloSize = hs;
-  private size_t[dim] _lengths;
-  private size_t[dim] _lengthsH;
+
+  private {
+    size_t[dim] _lengths;
+    size_t[dim] _lengthsH;
+    size_t _size = 1;
+    size_t _sizeH = 1;
+  }
 
   alias type = T;
 
@@ -49,31 +54,8 @@ struct Field(T, uint dim, uint hs) {
   @property auto const lengths() {
     return _lengths;
   }
-
-  /**
-     Alias for the first component of $(D lengths).
-  */
-  @property auto const nx() {
-    return _lengths[0];
-  }
-
-  /**
-     Alias for the second component of $(D lengths).
-  */
-  static if ( dim > 1 ) {
-    @property auto const ny() {
-      return _lengths[1];
-    }
-  }
-
-  /**
-     Alias for the third component of $(D lengths), if $(D dim) > 2.
-  */
-  static if ( dim > 2 ) {
-    @property auto const nz() {
-      return _lengths[2];
-    }
-  }
+  /// Ditto
+  alias n = lengths;
 
   /**
      Length of the physical dimensions with added halo on both sides, i.e. the stored field.
@@ -81,30 +63,21 @@ struct Field(T, uint dim, uint hs) {
   @property auto const lengthsH() {
     return _lengthsH;
   }
+  /// Ditto
+  alias nH = lengthsH;
 
   /**
-     Alias for the first component of $(D lengthsH).
+     Number of physical sites of the field.
   */
-  @property auto nxH() {
-    return _lengthsH[0];
+  @property auto const size() {
+    return _size;
   }
 
   /**
-     Alias for the second component of $(D lengthsH).
+     Number of sites of the field.
   */
-  static if ( dim > 1 ) {
-    @property auto nyH() {
-      return _lengthsH[1];
-    }
-  }
-
-  /**
-     Alias for the third component of $(D lengthsH), if $(D dim) > 2.
-  */
-  static if ( dim > 2 ) {
-    @property auto nzH() {
-      return _lengthsH[2];
-    }
+  @property auto const sizeH() {
+    return _sizeH;
   }
 
   /**
@@ -119,9 +92,14 @@ struct Field(T, uint dim, uint hs) {
        lengths = lengths of the dimensions of the physical domain
   */
   this (const size_t[dim] lengths) {
+    import dlbc.range;
     writeLogRD("Initializing %s local field of type '%s' with halo of thickness %d.", lengths.makeLengthsString, T.stringof, haloSize);
     this._lengths = lengths;
-    this._lengthsH[] = lengths[] + (2 * hs);
+    foreach(immutable i; Iota!(0, dim) ) {
+      this._size *= lengths[i];
+      this._lengthsH[i] = lengths[i] + (2 * hs);
+      this._sizeH *= lengthsH[i];
+    }
     arr = multidimArray!T(lengthsH);
   }
 

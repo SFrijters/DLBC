@@ -218,8 +218,7 @@ unittest {
 */
 auto localDensity(T, U)(const ref T field, const ref U mask) {
   static assert(is(U.type == Mask ) );
-  auto size = field.nx * field.ny * field.nz;
-  return localMass(field, mask) / size;
+  return localMass(field, mask) / field.size;
 }
 
 ///
@@ -248,8 +247,7 @@ unittest {
 auto globalDensity(T, U)(const ref T field, const ref U mask) {
   static assert(is(U.type == Mask ) );
   import dlbc.parallel;
-  auto size = field.nx * field.ny * field.nz * M.size;
-  return globalMass(field, mask) / size;
+  return globalMass(field, mask) / ( field.size * M.size);
 }
 
 ///
