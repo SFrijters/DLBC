@@ -39,79 +39,44 @@ import dlbc.range;
      conn = connecvitiy of the fluid fields
 */
 struct Lattice(alias conn) {
-  private size_t _dimensions = conn.d;
-  private size_t[conn.d] _lengths;
 
-  private size_t[conn.d] _gn;
+  enum uint dimensions = conn.d;
 
-  /**
-     Dimensions of the lattice.
-  */
-  @property auto dimensions() {
-    return _dimensions;
+  private {
+    size_t[conn.d] _lengths;
+    size_t[conn.d] _gn;
+    size_t _size = 1;
+    size_t _gsize = 1;
   }
+
   /**
      Size of the local lattice.
   */
-  @property auto lengths() {
+  @property const lengths() {
     return _lengths;
   }
-
-  /**
-     Size of the local lattice in x-direction.
-  */
-  @property auto nx() {
-    return _lengths[0];
-  }
-
-  /**
-     Size of the local lattice in y-direction.
-  */
-  static if ( conn.d > 1 ) {
-    @property auto ny() {
-      return _lengths[1];
-    }
-  }
-
-  /**
-     Size of the local lattice in z-direction.
-  */
-  static if ( conn.d > 2 ) {
-    @property auto nz() {
-      return _lengths[2];
-    }
-  }
+  /// Ditto
+  alias n = lengths;
 
   /**
      Vector containing the size of the global lattice
   */
-  @property auto gn() {
+  @property const gn() {
     return _gn;
   }
 
   /**
-     Size of the global lattice in x-direction.
+     Number of physical sites of the local lattice.
   */
-  @property auto gnx() {
-    return _gn[0];
+  @property const size() {
+    return _size;
   }
 
   /**
-     Size of the global lattice in y-direction.
+     Number of physical sites of the local lattice.
   */
-  static if ( conn.d > 1 ) {
-    @property auto gny() {
-      return _gn[1];
-    }
-  }
-
-  /**
-     Size of the global lattice in z-direction.
-  */
-  static if ( conn.d > 2 ) {
-    @property auto gnz() {
-      return _gn[2];
-    }
+  @property const gsize() {
+    return _gsize;
   }
 
   /**
@@ -154,7 +119,7 @@ struct Lattice(alias conn) {
     }
 
     // Set the local sizes
-    for ( size_t i = 0; i < conn.d; i++ ) {
+    foreach(immutable i; Iota!(0, conn.d) ) {
       this._lengths[i] = to!int(gn[i] / M.nc[i]);
     }
 
@@ -163,16 +128,15 @@ struct Lattice(alias conn) {
     force.length = components;
 
     // Initialize arrays
-    foreach( ref e; fluids ) {
+    foreach(ref e; fluids ) {
       e = typeof(e)(lengths);
     }
-    foreach( ref e; force ) {
+    foreach(ref e; force ) {
       e = typeof(e)(lengths);
     }
     advection = typeof(advection)(lengths);
     density = typeof(density)(lengths);
     mask = typeof(mask)(lengths);
-
   }
 
   /**
@@ -197,7 +161,7 @@ void initLattice(T)(ref T L) {
     L.exchangeHalo();
   }
   else {
-    foreach(i, ref e; L.fluids) {
+    foreach(immutable i, ref e; L.fluids) {
       e.initFluid!gconn(i);
     }
     L.mask.initMask();
@@ -205,8 +169,9 @@ void initLattice(T)(ref T L) {
   }
 }
 
-bool canDivide(size_t[] gn, int[] nc) {
-  foreach(i, g; gn) {
+bool canDivide(const size_t[] gn, const int[] nc) {
+  assert(gn.length == nc.length);
+  foreach(immutable i, g; gn) {
     if ( g % nc[i] != 0 ) {
       return false;
     }

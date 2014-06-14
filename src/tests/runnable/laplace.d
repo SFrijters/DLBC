@@ -87,7 +87,7 @@ version(unittest) {
     }
     //writeLogRD("gmass = %s", gMass);
 
-    double effMass = gMass[0] - ( L.gnx * L.gny * L.gnz * outDen[0]);
+    double effMass = gMass[0] - ( L.gsize * outDen[0]);
     double rpow3 = effMass / ( 4.0 / 3.0 * PI * ( inDen[0] - outDen[0] ) );
     double measuredR = pow(rpow3, 1.0/3.0);
     //writeLogRD("%f %f %f", effMass, rpow3, measuredR);
@@ -160,9 +160,9 @@ version(unittest) {
         auto gx = p[0] + M.c[0] * field.n[0] - to!int(field.haloSize);
         auto gy = p[1] + M.c[1] * field.n[1] - to!int(field.haloSize);
         auto gz = p[2] + M.c[2] * field.n[2] - to!int(field.haloSize);
-        if ( ( L.gnx / 2 - volumeAverage <= gx ) && ( gx < L.gnx / 2 + volumeAverage ) &&
-             ( L.gny / 2 - volumeAverage <= gy ) && ( gy < L.gny / 2 + volumeAverage ) &&
-             ( L.gnz / 2 - volumeAverage <= gz ) && ( gz < L.gnz / 2 + volumeAverage ) ) {
+        if ( ( L.gn[0] / 2 - volumeAverage <= gx ) && ( gx < L.gn[0] / 2 + volumeAverage ) &&
+             ( L.gn[1] / 2 - volumeAverage <= gy ) && ( gy < L.gn[1] / 2 + volumeAverage ) &&
+             ( L.gn[2] / 2 - volumeAverage <= gz ) && ( gz < L.gn[2] / 2 + volumeAverage ) ) {
           lnsites[i]++;
           ldensity[i] += e.density();
         }
