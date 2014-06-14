@@ -48,69 +48,97 @@ MpiParams M;
 */
 struct MpiParams {
 
-  // Rank of the root process
-  static immutable int root = 0;
-
-  // MPI details
-  int ver, subver;
-
-  // Topology
   private {
+    int _ver, _subver;
     int[] _nc;
     int[dim] _c;
     int[2][dim] _nb;
+    int _size;
+    int _rank;
+    MPI_Comm _comm;
+    string _hostname;
+    bool _hasStarted = false;
   }
+
+  /**
+     Rank of the root process
+  */
+  static immutable int root = 0;
 
   /**
      Total number of processes.
   */
-  int size;
+  @property const size() {
+    return _size;
+  }
 
   /**
      Vector containing the number of processes in each cardinal direction.
   */
-  @property auto nc() {
+  @property const nc() {
     return _nc;
   }
 
   /**
      Vector containing the ranks of neighbour processes in each cardinal direction.
   */
-  @property auto nb() {
+  @property const nb() {
     return _nb;
   }
 
   /**
      Vector containing the coordinates of the process.
   */
-  @property auto c() {
+  @property const c() {
     return _c;
   }
 
   /**
      Rank of the process.
   */
-  int rank;
+  @property const rank() {
+    return _rank;
+  }
 
-  /** 
+  /**
      MPI Communicator.
   */
-  MPI_Comm comm;
+  @property const comm() {
+    return _comm;
+  }
 
-  /** 
+  /**
      Hostname of the host on which the process resides.
   */
-  string hostname;
+  @property const hostname() {
+    return _hostname;
+  }
 
-  /** 
+  /**
      Keep track of whether MPI has been started yet.
   */
-  bool hasStarted = false;
+  @property const hasStarted() {
+    return _hasStarted;
+  }
 
-  /** 
+  /**
+     MPI version
+  */
+  @property const ver() {
+    return _ver;
+  }
+
+  /**
+     MPI subversion
+  */
+  @property const subver() {
+    return _subver;
+  }
+
+  /**
      Returns whether the current process is the root process.
   */
-  bool isRoot() @property {
+  @property bool isRoot() {
     return ( rank == root );
   }
 
@@ -122,7 +150,7 @@ struct MpiParams {
     writeLog!(vl, LRF.Root)("Currently using %d CPUs on a %s grid.", size, makeLengthsString(nc));
     writeLog!(vl, LRF.Ordered)("Rank %d is running on host '%s' at position %s:", rank, hostname, c);
     string neighbours = "Neighbours:\n";
-    foreach(i, nbpair; nb) {
+    foreach(immutable i, nbpair; nb) {
       neighbours ~= format("%s %#6.6d %#6.6d %#6.6d\n", dimstr[i], nbpair[0], rank, nbpair[1]);
     }
     writeLog!(vl, LRF.Ordered)(neighbours);
@@ -151,23 +179,23 @@ void startMpi(const string[] args) {
 
   // For hostnames
   auto pname = new char[](MPI_MAX_PROCESSOR_NAME + 1);
-  int pnlen;
 
   MPI_Init( &argc, &argv );
   MPI_Comm_rank( commWorld, &rank );
   MPI_Comm_size( commWorld, &size );
 
   // Set values in global MPI parameter struct
-  M.rank = rank;
-  M.size = size;
-  M.comm = commWorld;
+  M._rank = rank;
+  M._size = size;
+  M._comm = commWorld;
 
-  MPI_Get_version( &M.ver, &M.subver );
+  MPI_Get_version( &M._ver, &M._subver );
 
+  int pnlen;
   MPI_Get_processor_name( pname.ptr, &pnlen );
-  M.hostname = to!string(pname[0..pnlen]);
+  M._hostname = to!string(pname[0..pnlen]);
 
-  M.hasStarted = true;
+  M._hasStarted = true;
   writeLogRN("\nInitialized MPI v%d.%d on %d CPUs.", M.ver, M.subver, M.size);
 }
 
@@ -176,6 +204,7 @@ void startMpi(const string[] args) {
 */
 void reorderMpi() {
   import dlbc.parameters: checkVectorParameterLength;
+  import dlbc.range: Iota;
   int rank, size;
   int[] dims;
   int[dim] periodic = true;
@@ -197,21 +226,21 @@ void reorderMpi() {
 
   // Create a new communicator with the grid
   MPI_Cart_create(M.comm, dim, dims.ptr, periodic.ptr, reorder, &comm);
-  M.comm = comm;
+  M._comm = comm;
 
   // Recalculate rank (size shouldn't change)
   MPI_Comm_rank( M.comm, &rank );
   MPI_Comm_size( M.comm, &size );
-  M.rank = rank;
+  M._rank = rank;
   assert(M.size == size);
-  M.size = size;
+  M._size = size;
 
   // Get position in the cartesian grid
   MPI_Cart_get(M.comm, dim, dims.ptr, periodic.ptr, pos.ptr);
   M._c = pos;
 
   // Calculate nearest neighbours
-  for ( uint i = 0; i < dim ; i++ ) {
+  foreach(immutable i; Iota!(0, dim) ) {
     MPI_Cart_shift(M.comm, i, 1, &srcRank, &destRank);
     M._nb[i][0] = srcRank;
     M._nb[i][1] = destRank;
@@ -304,7 +333,7 @@ void MpiBcastString(ref string str) {
     strbuf[0..strlen] = str;
   }
   MPI_Bcast(strbuf.ptr, strlen, MPI_CHAR, M.root, M.comm);
-  if ( ! M.isRoot ) {
+  if ( ! M.isRoot() ) {
     str = to!string(strbuf[0..strlen]);
   }
 }
