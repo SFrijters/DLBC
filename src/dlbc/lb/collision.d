@@ -114,11 +114,11 @@ unittest {
   double[gconn.q] population, eq;
   double[gconn.d] dv = 0.0;
   population[] = 0.0;
-  for ( size_t i = 0; i < population.length; i++ ){
+  foreach(immutable i; Iota!(0,gconn.q) ) {
     population[i] = uniform(0.0, 1.0, rng);
     eq = eqDist!gconn(population, dv);
     assert(approxEqual(eq.density(), population.density()));                  // Mass conservation
-    assert(approxEqual(eq.velocity!(gconn)[],population.velocity!(gconn)[])); // Momentum conservation
+    assert(approxEqual(eq.velocity!(gconn)()[],population.velocity!(gconn)()[])); // Momentum conservation
   }
 }
 

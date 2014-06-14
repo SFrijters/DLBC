@@ -94,11 +94,11 @@ void processCLI(string[] args) {
   }
   catch(GetOptException e) {
     import std.string;
-    writeLogF("%s",e.toString.splitLines[0]);
+    writeLogF("%s",e.toString().splitLines()[0]);
   }
   catch(ConvException e) {
     import std.string;
-    writeLogF("%s",e.toString.splitLines[0]);
+    writeLogF("%s",e.toString().splitLines()[0]);
   }
 
   if ( showHelp ) {

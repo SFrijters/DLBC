@@ -92,7 +92,7 @@ struct Field(T, uint dim, uint hs) {
   */
   this (const size_t[dim] lengths) {
     import dlbc.range;
-    writeLogRD("Initializing %s local field of type '%s' with halo of thickness %d.", lengths.makeLengthsString, T.stringof, haloSize);
+    writeLogRD("Initializing %s local field of type '%s' with halo of thickness %d.", lengths.makeLengthsString(), T.stringof, haloSize);
     this._lengths = lengths;
     foreach(immutable i; Iota!(0, dim) ) {
       this._size *= lengths[i];

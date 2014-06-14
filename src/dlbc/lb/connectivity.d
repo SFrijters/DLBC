@@ -24,9 +24,9 @@ immutable struct Connectivity(uint _d, uint _q) {
   alias vel_t = ptrdiff_t[_d];
   enum uint d = _d;
   enum uint q = _q;
-  enum ptrdiff_t[d][q] velocities = generateVelocities!(d, q);
-  enum ptrdiff_t[q] bounce = generateBounce(generateVelocities!(d, q));
-  enum double[q] weights = generateWeights!(d, q);
+  enum ptrdiff_t[d][q] velocities = generateVelocities!(d, q)();
+  enum ptrdiff_t[q] bounce = generateBounce(generateVelocities!(d, q)());
+  enum double[q] weights = generateWeights!(d, q)();
   enum double css = 1.0/3.0;
 
   /**

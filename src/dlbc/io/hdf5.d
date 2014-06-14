@@ -35,12 +35,13 @@ import dlbc.range;
 */
 @("param") bool writeChunked = false;
 
-private bool hdf5HasStarted = false;
-
-private immutable auto defaultDatasetName = "/OutArray";
-private immutable auto defaultInputFileAName = "input";
-private immutable auto defaultMetadataGName = "metadata";
-private immutable auto defaultGlobalsGName = "globals";
+private {
+  bool hdf5HasStarted = false;
+  immutable defaultDatasetName = "/OutArray";
+  immutable defaultInputFileAName = "input";
+  immutable defaultMetadataGName = "metadata";
+  immutable defaultGlobalsGName = "globals";
+}
 
 /**
    This function wraps a call to $(D H5open()) to start up HDF5 and reports the version of the HDF5 library.
@@ -84,7 +85,7 @@ void endHDF5() {
 
    Returns: the corresponding HDF5 data type identifier
 */
-hid_t hdf5Typeof(T)() {
+hid_t hdf5Typeof(T)() @property {
   import dlbc.range;
   import std.traits;
   static if ( isArray!T ) {
@@ -112,7 +113,7 @@ hid_t hdf5Typeof(T)() {
 
    Returns: the corresponding length
 */
-size_t hdf5Lengthof(T)() {
+size_t hdf5Lengthof(T)() @property {
   import dlbc.range;
   return LengthOf!T;
 }

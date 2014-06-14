@@ -24,7 +24,7 @@ template BaseElementType(T) {
   }
 }
 
-size_t LengthOf(T)() {
+size_t LengthOf(T)() @property {
   static if ( hasLength!T) {
     return T.length;
   }

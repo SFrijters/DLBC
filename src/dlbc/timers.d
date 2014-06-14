@@ -147,7 +147,7 @@ void initAllTimers() {
 private string createShowFinalAllTimersMixin() {
   string mixinString;
   foreach(e ; __traits(allMembers, Timers) ) {
-    mixinString ~= `  Timers.`~e~`.showFinal!(vl, logRankFormat);`;
+    mixinString ~= `  Timers.`~e~`.showFinal!(vl, logRankFormat)();`;
   }
   return mixinString;
 }

@@ -175,7 +175,7 @@ void startMpi(const string[] args) {
   MPI_Comm commWorld = MPI_COMM_WORLD;
 
   int argc = cast(int) args.length;
-  char** argv = cast(char**)map!(toStringz)(args).array.ptr;
+  char** argv = cast(char**)map!(toStringz)(args).array().ptr;
 
   // For hostnames
   auto pname = new char[](MPI_MAX_PROCESSOR_NAME + 1);
@@ -248,7 +248,7 @@ void reorderMpi() {
 
   writeLogRD("Finished reordering MPI communicator.");
   if (showTopology) {
-    M.show!(VL.Information);
+    M.show!(VL.Information)();
   }
 }
 
@@ -276,7 +276,7 @@ int MpiBarrier() {
    Returns:
      The MPI_Datatype matching T.
 */
-MPI_Datatype mpiTypeof(T)() {
+MPI_Datatype mpiTypeof(T)() @property {
   import dlbc.range;
   import std.traits;
   static if ( isArray!T ) {
@@ -310,7 +310,7 @@ MPI_Datatype mpiTypeof(T)() {
    Returns:
      The length of T if it is a range, or 1 otherwise.
 */
-auto mpiLengthof(T)() {
+auto mpiLengthof(T)() @property {
   import std.conv: to;
   import dlbc.range;
   return to!uint(LengthOf!T);

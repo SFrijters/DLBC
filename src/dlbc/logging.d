@@ -355,7 +355,7 @@ void owriteLogD(T...)(const T args) { owriteLog!(VL.Debug)(args); }
 private string makeLogString(VL vl, LRF logRankFormat, T...)(T args) {
   import std.algorithm: canFind;
 
-  immutable string rankTag = makeRankString!logRankFormat;
+  immutable string rankTag = makeRankString!logRankFormat();
   string vlTag, preTag;
 
   final switch(vl) {
@@ -435,7 +435,7 @@ private string makeRankString(LogRankFormat logRankFormat)() {
 string makeCurrTimeString() {
   import std.datetime;
 
-  SysTime tNow = Clock.currTime;
+  SysTime tNow = Clock.currTime();
   return format("%#2.2d:%#2.2d:%#2.2d", tNow.hour, tNow.minute, tNow.second);
 }
 

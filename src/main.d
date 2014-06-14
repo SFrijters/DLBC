@@ -91,15 +91,15 @@ int main(string[] args ) {
   showGlobalVerbosityLevel();
 
   // Show build-related information.
-  showCompilerInfo!(VL.Information, LRF.Root);
-  showRevisionInfo!(VL.Information, LRF.Root);
+  showCompilerInfo!(VL.Information, LRF.Root)();
+  showRevisionInfo!(VL.Information, LRF.Root)();
 
   // Prepare for HDF5 output.
   startHDF5();
 
   // Start Main timer.
   initAllTimers();
-  Timers.main.start!(VL.Debug, LRF.None);
+  Timers.main.start!(VL.Debug, LRF.None)();
 
   if ( ! isTesting() ) {
     initParameters();
@@ -120,7 +120,7 @@ int main(string[] args ) {
 
   Timers.main.stop();
 
-  showFinalAllTimers!(VL.Information, LRF.Root);
+  showFinalAllTimers!(VL.Information, LRF.Root)();
 
   endHDF5();
   endMpi();

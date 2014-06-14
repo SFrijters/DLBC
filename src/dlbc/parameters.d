@@ -121,7 +121,7 @@ void initParameters() {
     readParameterSetFromCliFiles();
   }
   bcastParameters();
-  showParameters!(VL.Information, LRF.Root);
+  showParameters!(VL.Information, LRF.Root)();
 
   // Set secondary values based on parameters.
   processParameters();
