@@ -76,6 +76,7 @@ void initEqDistRandom(alias conn, T)(ref T field, const double density) {
 void initEqDistSphere(alias conn, T)(ref T field, const double density1, const double density2, const double initSphereRadius) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
   import std.math, std.conv, std.numeric;
+  immutable r2 = initSphereRadius * initSphereRadius;
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
   double[conn.d] dv = 0.0;
@@ -87,7 +88,7 @@ void initEqDistSphere(alias conn, T)(ref T field, const double density1, const d
       gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
       offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] / 2);
     }
-    if ( offset.dotProduct(offset) < initSphereRadius ) {
+    if ( offset.dotProduct(offset) < r2 ) {
       e = pop1;
     }
     else {
