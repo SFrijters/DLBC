@@ -203,7 +203,7 @@ void startMpi(const string[] args) {
    Reorders MPI to use a cartesian grid based on the suggestion parallel.nc.
 */
 void reorderMpi() {
-  import dlbc.parameters: checkVectorParameterLength;
+  import dlbc.parameters: checkArrayParameterLength;
   import dlbc.range: Iota;
   int rank, size;
   int[] dims;
@@ -213,7 +213,7 @@ void reorderMpi() {
   int srcRank, destRank;
   MPI_Comm comm;
 
-  checkVectorParameterLength(nc, "parallel.nc", dim);
+  checkArrayParameterLength(nc, "parallel.nc", dim);
 
   writeLogRD("Creating MPI dims from suggestion %s.", makeLengthsString(dims));
 

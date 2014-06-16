@@ -57,16 +57,16 @@ double[][] gccm;
      conn = connectivity
 */
 void initForce(alias conn, T)(ref T L) {
-  import dlbc.parameters: checkVectorParameterLength;
-  // Firstly, the acceleration vector is checked for length
-  checkVectorParameterLength(globalAcc, "lb.force.globalAcc", conn.d);
+  import dlbc.parameters: checkArrayParameterLength;
+  // Firstly, the acceleration vector is checked for length.
+  checkArrayParameterLength(globalAcc, "lb.force.globalAcc", conn.d);
 
   // If the Shan-Chen model is enabled, some more prep is needed.
   if ( enableShanChen ) {
-    // Again, we need to check the length of a vector.
+    // Again, we need to check the length of an array.
     // Shan-Chen model with only zero interaction strength is pointless, so there is
     // no default initialisation for this vector.
-    checkVectorParameterLength(gcc, "lb.force.gcc", components*components, true);
+    checkArrayParameterLength(gcc, "lb.force.gcc", components*components, true);
 
     // It's convenient to store the interaction strengths in matrix form, and
     // at this point we also show the matrix and warn for asymmetry if necessary.

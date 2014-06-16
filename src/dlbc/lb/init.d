@@ -58,11 +58,11 @@ enum FluidInit {
 }
 
 void initFluid(alias conn, T)(ref T field, const size_t i) {
-  import dlbc.parameters: checkVectorParameterLength;
+  import dlbc.parameters: checkArrayParameterLength;
 
-  checkVectorParameterLength(fluidInit, "lb.init.fluidInit", components);
-  checkVectorParameterLength(fluidDensity, "lb.init.fluidDensity", components);
-  checkVectorParameterLength(fluidDensity2, "lb.init.fluidDensity2", components);
+  checkArrayParameterLength(fluidInit, "lb.init.fluidInit", components);
+  checkArrayParameterLength(fluidDensity, "lb.init.fluidDensity", components);
+  checkArrayParameterLength(fluidDensity2, "lb.init.fluidDensity2", components);
 
   final switch(fluidInit[i]) {
   case(FluidInit.None):

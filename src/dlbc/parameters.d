@@ -120,7 +120,7 @@ void initParameters() {
   if (M.isRoot) {
     readParameterSetFromCliFiles();
   }
-  bcastParameters();
+  broadcastParameters();
   showParameters!(VL.Information, LRF.Root)();
 
   // Set secondary values based on parameters.
@@ -131,7 +131,7 @@ void initParameters() {
    Loops over all specified parameter files $(D parameterFileNames) in order to parse them.
    If no files are specified, a fatal error is logged.
 */
-void readParameterSetFromCliFiles() {
+private void readParameterSetFromCliFiles() {
   if (parameterFileNames.length == 0) {
     writeLogRF("Parameter filename not set, please specify using the -p <filename> option.");
   }
@@ -178,8 +178,6 @@ private void parseParameter(char[] line, const size_t ln, ref string currentSect
   if (assignmentPos > 0) {
     keyString = strip(line[0 .. assignmentPos]);
     valueString = strip(line[(assignmentPos+1) .. $]);
-    // This mixin creates cases for all members of the parameterTypes struct
-    //mixin(makeParameterCase());
     if ( currentSection != "" ) {
       parseParameter(currentSection~"."~to!string(keyString), to!string(valueString), ln);
     }
@@ -207,7 +205,7 @@ private void parseParameter(char[] line, const size_t ln, ref string currentSect
      len = required length
      strict = whether or not a zero-length vector is a fatal error
 */
-void checkVectorParameterLength(T)(ref T vector, const string name, const size_t len, bool strict = false) {
+void checkArrayParameterLength(T)(ref T vector, const string name, const size_t len, bool strict = false) {
   import dlbc.range: BaseElementType;
 
   if ( vector.length == 0 ) {
@@ -283,7 +281,6 @@ private void readParameterSetFromHdf5File(const string fileName) {
   }
 }
 
-mixin(createParameterMixins());
 
 /**
    Creates an string mixin to define $(D parseParameter), $(D showParameters), and $(D bcastParameters).
@@ -292,39 +289,6 @@ private auto createParameterMixins() {
   string mixinStringParser;
   string mixinStringShow;
   string mixinStringBcast;
-
-  mixinStringParser ~= `
-  /**
-     Attempt to parse a single parameter, by converting it to the correct datatype and assigning the result to its matching variable.
-
-     Params:
-       keyString = qualified name of the parameter
-       valueString = value to be assigned
-       ln = line number (for more useful warnings)
-  */
-  `;
-  mixinStringParser ~= "private void parseParameter(const string keyString, const string valueString, const size_t ln) {\n  import std.algorithm;\n";
-  mixinStringParser ~= "switch(keyString) {\n\n";
-
-  mixinStringShow ~= `
-  /**
-     Show the current parameter set.
-
-     Params:
-       vl = verbosity level to write at
-       logRankFormat = which processes should write
-  */
-  `;
-  mixinStringShow ~= "void showParameters(VL vl, LRF logRankFormat)() {\n  import std.algorithm;\n";
-  mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"Current parameter set:\");";
-
-  mixinStringBcast ~= `
-  /**
-     Broadcast all parameters from the root process to all other processes.
-  */
-  `;
-  mixinStringBcast ~= "void bcastParameters() {\n  int arrlen;\n";
-  mixinStringBcast ~= "  writeLogRI(\"Distributing parameter set through MPI_Bcast.\");";
 
   foreach(fullModuleName ; parameterSourceModules) {
     immutable string qualModuleName = makeQualModuleName(fullModuleName);
@@ -375,14 +339,52 @@ private auto createParameterMixins() {
       }`);
     }
   }
-  mixinStringParser ~= "default:\n  writeLogRW(\"Unknown key at line %d: '%s'.\", ln, keyString);\n}\n\n";
-  mixinStringParser ~= "}\n";
+  return [ mixinStringParser, mixinStringShow, mixinStringBcast ];
+}
 
-  mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"\n\");\n}\n";
+/**
+   Stores the mixins used below.
+*/
+private immutable parameterMixins = createParameterMixins();
 
-  mixinStringBcast ~= "}\n";
+/**
+   Attempt to parse a single parameter, by converting it to the correct datatype and assigning the result to its matching variable.
 
-  return mixinStringParser ~ "\n" ~ mixinStringShow ~ "\n" ~ mixinStringBcast;
+   Params:
+     keyString = qualified name of the parameter
+     valueString = value to be assigned
+     ln = line number (for more useful warnings)
+*/
+private void parseParameter(const string keyString, const string valueString, const size_t ln) {
+  import std.algorithm;
+  switch(keyString) {
+    mixin(parameterMixins[0]);
+  default:
+    writeLogRW("Unknown key at line %d: '%s'.", ln, keyString);
+  }
+}
+
+/**
+   Show the current parameter set.
+
+   Params:
+     vl = verbosity level to write at
+     logRankFormat = which processes should write
+*/
+void showParameters(VL vl, LRF logRankFormat)() {
+  import std.algorithm;
+  writeLog!(vl, logRankFormat)("Current parameter set:");
+  mixin(parameterMixins[1]);
+  writeLog!(vl, logRankFormat)("\n");
+}
+
+/**
+   Broadcast all parameters from the root process to all other processes.
+*/
+private void broadcastParameters() {
+  int arrlen;
+  writeLogRI("Distributing parameter set through MPI_Bcast.");
+  mixin(parameterMixins[2]);
 }
 
 /**
@@ -414,7 +416,6 @@ private auto makeQualModuleName(const string fullModuleName) {
 */
 private auto createImports() {
   string mixinString;
-
   foreach(fullModuleName ; parameterSourceModules) {
     mixinString ~= "import " ~ fullModuleName ~ ";";
   }
