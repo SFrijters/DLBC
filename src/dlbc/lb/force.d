@@ -43,6 +43,12 @@ import dlbc.timers;
 @("param") double[] gcc;
 
 /**
+   Array of interaction strength parameters for the Shan-Chen model
+   to model wettable walls.
+*/
+@("param") double[] gwc;
+
+/**
    Shan-Chen interaction strength parameters in matrix form.
 */
 double[][] gccm;
@@ -67,6 +73,7 @@ void initForce(alias conn, T)(ref T L) {
     // Shan-Chen model with only zero interaction strength is pointless, so there is
     // no default initialisation for this vector.
     checkArrayParameterLength(gcc, "lb.force.gcc", components*components, true);
+    checkArrayParameterLength(gwc, "lb.force.gwc", components);
 
     // It's convenient to store the interaction strengths in matrix form, and
     // at this point we also show the matrix and warn for asymmetry if necessary.
@@ -110,15 +117,24 @@ void resetForce(T)(ref T L) {
 
 /**
    Add the Shan-Chen force to force arrays L.force[].
-   The force is calculated according to \(\vec{F}^c = - \Psi(\rho(\vec{x})) \sum_{c'} g_{cc'} \sum_{\vec{x}'} \Psi(\rho(\vec{x}'))(\vec{x} -\vec{x}')\),
-   where \(c'\) runs over all fluid species and \(\vec{x}'\) runs over all connected lattice sites.
+   
+   We calculate the force on $(D isCollidable) sites only.
+   
+   First, the fluid-fluid forces are calculated according to
+   \(\vec{F}^c = - \Psi(\rho(\vec{x})) \sum_{c'} g_{cc'} \sum_{\vec{x}'} \Psi(\rho(\vec{x}'))(\vec{x} -\vec{x}')\),
+   where \(c'\) runs over all fluid species and \(\vec{x}'\) runs over all connected fluid lattice sites.
    Note that self-interaction is possible if \(g_{cc} \ne 0\).
+
+   Second, the fluid-wall forces are calculated according to
+   \(\vec{F}^c = - \Psi(\rho(\vec{x})) g_{wc} \sum_{\vec{x}'} \rho(\vec{x}')(\vec{x} -\vec{x}')\),
+   where \(c'\) runs over all fluid species and \(\vec{x}'\) runs over all connected wall lattice sites.
+   Note that the effect of the psi-function are assumed to be adsorbed into the interaction strength
+   and/or the density set on the wall. Currently, this density is unity always.
 
    Params:
      L = lattice
      conn = connectivity
 
-   Todo: adapt isBounceBack restriction to implement wetting walls.
    Todo: add unittest.
 */
 void addShanChenForce(alias conn, T)(ref T L) {
@@ -140,20 +156,42 @@ void addShanChenForce(alias conn, T)(ref T L) {
         // Only do lattice sites on which collision will take place.
 	if ( isCollidable(L.mask[p]) ) {
 	  immutable psiden1 = psi(L.density[nc1][p]);
-	  foreach(immutable i, ref c; cv ) {
+	  foreach(immutable i; Iota!(0, conn.q) ) {
 	    conn.vel_t nb;
 	    // Todo: better array syntax.
 	    foreach(immutable j; Iota!(0, conn.d) ) {
 	      nb[j] = p[j] - cv[i][j];
 	    }
             // Only do lattice sites that are not walls.
-	    if ( ! isBounceBack(L.mask[nb]) ) {
-	      immutable psiden2 = psi(L.density[nc2][nb]);
-	      immutable prefactor = psiden1 * psiden2 * cc;
-              // The SC force function.
-	      foreach(immutable j; Iota!(0, conn.d) ) {
-		force[j] += prefactor * cv[i][j];
-	      }
+	    immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi(L.density[nc2][p]) : psi(L.density[nc2][nb]));
+	    immutable prefactor = psiden1 * psiden2 * cc;
+	    // The SC force function.
+	    foreach(immutable j; Iota!(0, conn.d) ) {
+	      force[j] += prefactor * cv[i][j];
+	    }
+	  }
+	}
+      }
+    }
+
+    // Wall interactions
+    immutable wc = gwc[nc1];
+    if ( wc == 0.0 ) continue;
+    foreach(immutable p, ref force ; L.force[nc1] ) {
+      // Only do lattice sites on which collision will take place.
+      if ( isCollidable(L.mask[p]) ) {
+	immutable psiden1 = psi(L.density[nc1][p]);
+	foreach(immutable i; Iota!(0, conn.q) ) {
+	  conn.vel_t nb;
+	  // Todo: better array syntax.
+	  foreach(immutable j; Iota!(0, conn.d) ) {
+	    nb[j] = p[j] - cv[i][j];
+	  }
+	  if ( isBounceBack(L.mask[nb]) ) {
+	    immutable prefactor = psiden1 * L.density[nc1][nb] * wc;
+	    // The SC force function.
+	    foreach(immutable j; Iota!(0, conn.d) ) {
+	      force[j] += prefactor * cv[i][j];
 	    }
 	  }
 	}

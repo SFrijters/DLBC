@@ -129,3 +129,21 @@ void initEqDistSphereFrac(alias conn, T)(ref T field, const double density1, con
   }
 }
 
+void initEqDistWall(alias conn, T, U)(ref T field, const double density, ref U mask) {
+  static assert( is (U.type == Mask ) );
+
+  import dlbc.lb.collision;
+  import dlbc.lb.connectivity;
+  import dlbc.lb.mask;
+  double[conn.q] pop0 = 0.0;
+  pop0[0] = 1.0;
+  double[conn.d] dv = 0.0;
+  typeof(pop0) pop = density*eqDist!conn(pop0, dv)[];
+  foreach(immutable p, ref e; field.arr) {
+    if ( mask[p] == Mask.Solid ) {
+      e = pop;
+    }
+  }
+}
+
+

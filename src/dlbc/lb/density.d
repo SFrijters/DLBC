@@ -74,12 +74,7 @@ auto densityField(T, U)(const ref T field, const ref U mask) {
   assert(field.lengthsH == density.lengthsH);
 
   foreach(immutable p, pop; field.arr) {
-    if ( isFluid(mask[p]) ) {
-      density[p] = pop.density();
-    }
-    else {
-      density[p] = 0.0;
-    }
+    density[p] = pop.density();
   }
   return density;
 }
@@ -93,12 +88,7 @@ void densityField(T, U, V)(const ref T field, const ref U mask, ref V density) {
   assert(field.lengthsH == density.lengthsH);
 
   foreach(immutable p, pop; field.arr) {
-    if ( isFluid(mask[p]) ) {
-      density[p] = pop.density();
-    }
-    else {
-      density[p] = 0.0;
-    }
+    density[p] = pop.density();
   }
 }
 

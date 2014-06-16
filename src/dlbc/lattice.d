@@ -180,10 +180,14 @@ void initLattice(T)(ref T L) {
     L.exchangeHalo();
   }
   else {
+    L.mask.initMask();
     foreach(immutable i, ref e; L.fluids) {
       e.initFluid!gconn(i);
+      // Coloured walls.
+      import dlbc.fields.init: initEqDistWall;
+      e.initEqDistWall!gconn(1.0, L.mask);
     }
-    L.mask.initMask();
+
     L.exchangeHalo();
   }
 }
