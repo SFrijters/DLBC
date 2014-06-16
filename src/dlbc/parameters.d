@@ -135,7 +135,7 @@ private void readParameterSetFromCliFiles() {
   if (parameterFileNames.length == 0) {
     writeLogRF("Parameter filename not set, please specify using the -p <filename> option.");
   }
-  foreach( fileName; parameterFileNames) {
+  foreach(immutable fileName; parameterFileNames) {
     if ( fileName[$-3..$] == ".h5" ) {
       readParameterSetFromHdf5File(fileName);
     }
@@ -162,19 +162,19 @@ void processParameters() pure nothrow @safe {
      currentSection = current section --- this can be updated if we encounter
                       a section header
 */
-private void parseParameter(char[] line, const size_t ln, ref string currentSection) {
+private void parseParameterLine(char[] line, const size_t ln, ref string currentSection) {
   import std.string;
   char[] keyString, valueString;
 
   enum vl = VL.Notification;
   enum logRankFormat = LRF.Root;
 
-  auto commentPos = indexOf(line, "//");
+  immutable commentPos = indexOf(line, "//");
   if (commentPos >= 0) {
     line = line[0 .. commentPos];
   }
 
-  auto assignmentPos = indexOf(line, "=");
+  immutable assignmentPos = indexOf(line, "=");
   if (assignmentPos > 0) {
     keyString = strip(line[0 .. assignmentPos]);
     valueString = strip(line[(assignmentPos+1) .. $]);
@@ -215,7 +215,7 @@ void checkArrayParameterLength(T)(ref T vector, const string name, const size_t 
     else {
       vector.length = len;
       static if ( is ( typeof(vector[0]) == string )) {
-	writeLogW("Array parameter %s has zero length, initialising to empty strings.", name);
+	writeLogRW("Array parameter %s has zero length, initialising to empty strings.", name);
 	vector[] = "";
       }
       else {
@@ -254,7 +254,7 @@ private void readParameterSetFromTextFile(const string fileName) {
   while(!f.eof()) {
     auto line = f.readLine();
     inputFileData ~= to!string(line);
-    parseParameter(line,++ln,currentSection);
+    parseParameterLine(line,++ln,currentSection);
   }
   f.close();
 }
@@ -274,10 +274,10 @@ private void readParameterSetFromHdf5File(const string fileName) {
 
   auto lines = readInputFileAttributes(fileName);
 
-  foreach(ln, line; lines ) {
+  foreach(immutable ln, line; lines ) {
     inputFileData ~= line;
     char[] cline = line.dup;
-    parseParameter(cline,++ln,currentSection);
+    parseParameterLine(cline,ln,currentSection);
   }
 }
 
@@ -416,7 +416,7 @@ private auto makeQualModuleName(const string fullModuleName) {
 */
 private auto createImports() {
   string mixinString;
-  foreach(fullModuleName ; parameterSourceModules) {
+  foreach(immutable fullModuleName ; parameterSourceModules) {
     mixinString ~= "import " ~ fullModuleName ~ ";";
   }
   return mixinString;
