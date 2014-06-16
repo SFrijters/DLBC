@@ -346,7 +346,7 @@ private auto createParameterMixins() {
               mixinStringParser ~= "  try {\n";
               mixinStringParser ~= "    " ~ fullName ~ " = to!(typeof(" ~ fullName ~ "))( valueString );\n";
               mixinStringParser ~= "  }\n";
-              mixinStringParser ~= "  catch (ConvException e) { writeLogF(\"ConvException at line %d of the input file.\",ln); throw e; }\n";
+              mixinStringParser ~= "  catch (ConvException e) { writeLogF(\"ConvException at line %d of the input file: `~qualModuleName~`.`~e~` = %s.\",ln, valueString); throw e; }\n";
               mixinStringParser ~= "  setParams ~= \""~fullName~"\"; break;\n";
             }
             else {
