@@ -32,6 +32,7 @@ struct Timers {
   static MSW coll;
   static MSW collden;
   static MSW colleq;
+  static MSW forceSC;
   static MSW io;
   static MSW haloExchange;
 }

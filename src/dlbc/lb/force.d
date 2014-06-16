@@ -23,6 +23,7 @@ import dlbc.fields.init;
 import dlbc.lattice;
 import dlbc.logging;
 import dlbc.range;
+import dlbc.timers;
 
 /**
    Global acceleration.
@@ -48,9 +49,9 @@ double[][] gccm;
 
 /**
    Initialisation of the force systems. This should be run before the time loop starts.
-   
+
    The forces to be applied to the fluids L.fluids are stored in L.force.
-  
+
    Params:
      L = lattice
      conn = connectivity
@@ -73,11 +74,11 @@ void initForce(alias conn, T)(ref T L) {
     import std.string;
     string header = "Shan-Chen enabled - interaction matrix:\n\n         ";
     string lines;
-    for(int i = 0; i < components; i++ ) {
+    foreach(immutable i; 0..components ) {
       header ~= format("%8d ",i);
       lines ~= format("%8d ",i);
       gccm[i].length = components;
-      for(int j = 0; j < components; j++ ) {
+      foreach(immutable j; 0..components) {
         gccm[i][j] = gcc[i+j*components];
         lines ~= format("%8f ",gccm[i][j]);
         if ( i > j ) {
@@ -121,20 +122,20 @@ void resetForce(T)(ref T L) {
    Todo: add unittest.
 */
 void addShanChenForce(alias conn, T)(ref T L) {
-  auto cv = conn.velocities;
-  auto cw = conn.weights;
-  double[conn.d] df;
+  Timers.forceSC.start();
+  immutable cv = conn.velocities;
+  immutable cw = conn.weights;
   // Do all combinations of two fluids.
-  for( int nc1 = 0; nc1 < L.fluids.length; nc1++ ) {
-    for( int nc2 = 0; nc2 < L.fluids.length; nc2++ ) {
+  foreach(immutable nc1; 0..L.fluids.length ) {
+    foreach(immutable nc2; 0..L.fluids.length ) {
       // This interaction has a particular coupling constant.
-      auto cc = gccm[nc1][nc2];
+      immutable cc = gccm[nc1][nc2];
       // Skip zero interactions.
       if ( cc == 0.0 ) continue;
       foreach(immutable p, ref force ; L.force[nc1] ) {
         // Only do lattice sites on which collision will take place.
 	if ( isCollidable(L.mask[p]) ) {
-	  auto psiden1 = psi(L.fluids[nc1][p].density());
+	  immutable psiden1 = psi(L.fluids[nc1][p].density());
 	  foreach(immutable i, ref c; cv ) {
 	    conn.vel_t nb;
 	    // Todo: better array syntax.
@@ -143,8 +144,8 @@ void addShanChenForce(alias conn, T)(ref T L) {
 	    }
             // Only do lattice sites that are not walls.
 	    if ( ! isBounceBack(L.mask[nb]) ) {
-	      immutable auto psiden2 = psi(L.fluids[nc2][nb].density());
-	      immutable auto prefactor = psiden1 * psiden2 * cc;
+	      immutable psiden2 = psi(L.fluids[nc2][nb].density());
+	      immutable prefactor = psiden1 * psiden2 * cc;
               // The SC force function.
 	      foreach(immutable j; Iota!(0, conn.d) ) {
 		force[j] += prefactor * cv[i][j];
@@ -155,6 +156,7 @@ void addShanChenForce(alias conn, T)(ref T L) {
       }
     }
   }
+  Timers.forceSC.stop();
 }
 
 /**
