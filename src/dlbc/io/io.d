@@ -49,14 +49,6 @@ import dlbc.timers;
 */
 @("param") int startOutput;
 /**
-   Frequency at which the velocity field should be written to disk.
-*/
-@("param") int velFreq;
-/**
-   Frequency at which profiles should be written to disk.
-*/
-@("param") int profileFreq;
-/**
    Frequency at which fluid density fields should be written to disk.
 */
 @("param") int fluidsFreq;
@@ -76,6 +68,10 @@ import dlbc.timers;
    Frequency at which mask fields should be written to disk.
 */
 @("param") int maskFreq;
+/**
+   Frequency at which profiles should be written to disk.
+*/
+@("param") int profileFreq;
 
 /**
    Id of the simulation, based on the time it was started.
