@@ -223,15 +223,15 @@ void dumpData(T)(ref T L, uint t) {
   }
 
   if (dumpNow(fluidsFreq,t)) {
-    foreach(i, ref e; L.fluids) {
-      e.densityField(L.mask, L.density);
-      L.density.dumpField("density-"~fieldNames[i], t);
+    foreach(immutable i, ref e; L.fluids) {
+      e.densityField(L.mask, L.density[i]);
+      L.density[i].dumpField("density-"~fieldNames[i], t);
     }
   }
 
   if (dumpNow(colourFreq,t)) {
-    foreach(i, ref e; L.fluids) {
-      for (size_t j = i + 1; j < L.fluids.length ; j++ ) {
+    foreach(immutable i, ref e; L.fluids) {
+      foreach(immutable j; i+1..L.fluids.length) {
 	auto colour = colourField(L.fluids[i], L.fluids[j], L.mask);
 	colour.dumpField("colour-"~fieldNames[i]~"-"~fieldNames[j],t);
       }
@@ -239,7 +239,7 @@ void dumpData(T)(ref T L, uint t) {
   }
 
   if (dumpNow(velocitiesFreq,t)) {
-    foreach(i, ref e; L.fluids) {
+    foreach(immutable i, ref e; L.fluids) {
       auto velocity = e.velocityField!gconn(L.mask);
       velocity.dumpField("velocity-"~fieldNames[i], t);
     }
@@ -250,7 +250,7 @@ void dumpData(T)(ref T L, uint t) {
   }
 
   if (dumpNow(forceFreq,t)) {
-    foreach(i, ref e; L.force) {
+    foreach(immutable i, ref e; L.force) {
       e.dumpField("force-"~fieldNames[i], t);
     }
   }

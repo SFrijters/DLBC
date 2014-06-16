@@ -84,21 +84,21 @@ struct Lattice(alias conn) {
   */
   Field!(double[conn.q], conn.d, 2)[] fluids;
   /**
-     Temporary field to store advected fluids.
-  */
-  BaseElementType!(typeof(fluids)) advection;
-  /**
-     Mask field
+     Mask field.
   */
   Field!(Mask, conn.d, 2) mask;
   /**
-     Density field
+     Temporary fields to store densities.
   */
-  Field!(double, conn.d, 2) density;
+  Field!(double, conn.d, 2)[] density;
   /**
-     Force field
+     Force fields.
   */
   Field!(double[conn.d], conn.d, 2)[] force;
+  /**
+     Temporary field to store advected fluids.
+  */
+  BaseElementType!(typeof(fluids)) advection;
 
   /**
      The constructor will verify that the local lattices can be set up correctly
@@ -126,6 +126,7 @@ struct Lattice(alias conn) {
     // Determine number of fluid arrays
     fluids.length = components;
     force.length = components;
+    density.length = components;
 
     // Initialize arrays
     foreach(ref e; fluids ) {
@@ -134,9 +135,11 @@ struct Lattice(alias conn) {
     foreach(ref e; force ) {
       e = typeof(e)(lengths);
     }
-    advection = typeof(advection)(lengths);
-    density = typeof(density)(lengths);
+    foreach(ref e; density ) {
+      e = typeof(e)(lengths);
+    }
     mask = typeof(mask)(lengths);
+    advection = typeof(advection)(lengths);
   }
 
   /**
@@ -151,8 +154,24 @@ struct Lattice(alias conn) {
       mixin(`static if(typeof(Lattice.`~e~`).stringof.startsWith("Field!")) { static if (isArray!(typeof(Lattice.`~e~`)) ) { foreach(ref f; Lattice.`~e~`) { f.exchangeHalo!()();} } else {`~e~`.exchangeHalo!()();}}`);
     }
   }
+
+  /**
+     Fills the lattice density arrays by recomputing the values from the populations.
+  */
+  void calculateDensity() {
+    foreach(immutable nc1; 0..fluids.length ) {
+      fluids[nc1].densityField(mask, density[nc1]);
+    }
+  }
 }
 
+/**
+   Initialization of the lattice: initialize the force arrays, and the fluids and mask,
+   unless we are restoring, in which case read the checkpoint.
+
+   Params:
+     L = the lattice
+*/
 void initLattice(T)(ref T L) {
   L.initForce!gconn();
 
@@ -169,7 +188,15 @@ void initLattice(T)(ref T L) {
   }
 }
 
-bool canDivide(const size_t[] gn, const int[] nc) {
+/**
+   Check if all global lattice lengths are divisible by
+   the number of processes in that direction.
+
+   Params:
+     gn = global lattice size
+     nc = number of processes
+*/
+private bool canDivide(const size_t[] gn, const int[] nc) {
   assert(gn.length == nc.length);
   foreach(immutable i, g; gn) {
     if ( g % nc[i] != 0 ) {

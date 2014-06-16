@@ -125,6 +125,10 @@ void addShanChenForce(alias conn, T)(ref T L) {
   Timers.forceSC.start();
   immutable cv = conn.velocities;
   immutable cw = conn.weights;
+
+  // It's actually faster to pre-calculate the densities, apparently...
+  L.calculateDensity();
+
   // Do all combinations of two fluids.
   foreach(immutable nc1; 0..L.fluids.length ) {
     foreach(immutable nc2; 0..L.fluids.length ) {
@@ -135,7 +139,7 @@ void addShanChenForce(alias conn, T)(ref T L) {
       foreach(immutable p, ref force ; L.force[nc1] ) {
         // Only do lattice sites on which collision will take place.
 	if ( isCollidable(L.mask[p]) ) {
-	  immutable psiden1 = psi(L.fluids[nc1][p].density());
+	  immutable psiden1 = psi(L.density[nc1][p]);
 	  foreach(immutable i, ref c; cv ) {
 	    conn.vel_t nb;
 	    // Todo: better array syntax.
@@ -144,7 +148,7 @@ void addShanChenForce(alias conn, T)(ref T L) {
 	    }
             // Only do lattice sites that are not walls.
 	    if ( ! isBounceBack(L.mask[nb]) ) {
-	      immutable psiden2 = psi(L.fluids[nc2][nb].density());
+	      immutable psiden2 = psi(L.density[nc2][nb]);
 	      immutable prefactor = psiden1 * psiden2 * cc;
               // The SC force function.
 	      foreach(immutable j; Iota!(0, conn.d) ) {
