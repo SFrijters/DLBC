@@ -8,6 +8,8 @@ module dlbc.lb.init;
 
 @("param") double sphereRadius;
 
+@("param") double[] sphereOffset;
+
 import dlbc.lb.lb;
 import dlbc.fields.init;
 
@@ -63,6 +65,7 @@ void initFluid(alias conn, T)(ref T field, const size_t i) {
   checkArrayParameterLength(fluidInit, "lb.init.fluidInit", components);
   checkArrayParameterLength(fluidDensity, "lb.init.fluidDensity", components);
   checkArrayParameterLength(fluidDensity2, "lb.init.fluidDensity2", components);
+  checkArrayParameterLength(sphereOffset, "lb.init.sphereOffset", conn.d);
 
   final switch(fluidInit[i]) {
   case(FluidInit.None):
@@ -80,10 +83,10 @@ void initFluid(alias conn, T)(ref T field, const size_t i) {
     field.initEqDistRandom!conn(fluidDensity[i]);
     break;
   case(FluidInit.EqDistSphere):
-    field.initEqDistSphere!conn(fluidDensity[i], fluidDensity2[i], sphereRadius);
+    field.initEqDistSphere!conn(fluidDensity[i], fluidDensity2[i], sphereRadius, sphereOffset);
     break;
   case(FluidInit.EqDistSphereFrac):
-    field.initEqDistSphereFrac!conn(fluidDensity[i], fluidDensity2[i], sphereRadius);
+    field.initEqDistSphereFrac!conn(fluidDensity[i], fluidDensity2[i], sphereRadius, sphereOffset);
     break;
   }
 }

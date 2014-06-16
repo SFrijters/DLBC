@@ -73,7 +73,8 @@ void initEqDistRandom(alias conn, T)(ref T field, const double density) {
   }
 }
 
-void initEqDistSphere(alias conn, T)(ref T field, const double density1, const double density2, const double initSphereRadius) {
+void initEqDistSphere(alias conn, T)(ref T field, const double density1, const double density2,
+				     const double initSphereRadius, const double[] initSphereOffset) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
   import std.math, std.conv, std.numeric;
   immutable r2 = initSphereRadius * initSphereRadius;
@@ -86,7 +87,7 @@ void initEqDistSphere(alias conn, T)(ref T field, const double density1, const d
     double[conn.d] gn, offset;
     foreach(immutable i; Iota!(0, conn.d) ) {
       gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
-      offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] / 2) + 0.5;
+      offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * 0.5 + initSphereOffset[i]) + 0.5;
     }
     if ( offset.dotProduct(offset) < r2 ) {
       e = pop1;
@@ -97,7 +98,8 @@ void initEqDistSphere(alias conn, T)(ref T field, const double density1, const d
   }
 }
 
-void initEqDistSphereFrac(alias conn, T)(ref T field, const double density1, const double density2, const double initSphereFrac) {
+void initEqDistSphereFrac(alias conn, T)(ref T field, const double density1, const double density2,
+					 const double initSphereFrac, const double[] initSphereOffset) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range, dlbc.lattice;
   import std.math, std.conv, std.numeric;
   auto smallSize = gn[0];
@@ -116,7 +118,7 @@ void initEqDistSphereFrac(alias conn, T)(ref T field, const double density1, con
     double[conn.d] gn, offset;
     foreach(immutable i; Iota!(0, conn.d) ) {
       gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
-      offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] / 2) + 0.5;
+      offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * ( 0.5 + initSphereOffset[i]) ) + 0.5;
     }
     if ( offset.dotProduct(offset) < r2 ) {
       e = pop1;
