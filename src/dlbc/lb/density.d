@@ -65,13 +65,11 @@ unittest {
    Returns:
      density field
 */
-auto densityField(T, U)(const ref T field, const ref U mask) {
-  static assert(is(U.type == Mask ) );
-  static assert(field.dimensions == mask.dimensions);
-  assert(field.lengthsH == mask.lengthsH);
+auto densityField(T, U)(const ref T field, const ref U mask) if (isField!T && is(U.type == Mask) ) {
+  static assert(haveCompatibleDims!(field, mask));
 
   auto density = Field!(double, field.dimensions, field.haloSize)(field.lengths);
-  assert(field.lengthsH == density.lengthsH);
+  assert(haveCompatibleLengthsH(field, mask, density));
 
   foreach(immutable p, pop; field.arr) {
     density[p] = pop.density();
@@ -80,12 +78,9 @@ auto densityField(T, U)(const ref T field, const ref U mask) {
 }
 
 /// Ditto
-void densityField(T, U, V)(const ref T field, const ref U mask, ref V density) {
-  static assert(is(U.type == Mask ) );
-  static assert(field.dimensions == mask.dimensions);
-  static assert(field.dimensions == density.dimensions);
-  assert(field.lengthsH == mask.lengthsH);
-  assert(field.lengthsH == density.lengthsH);
+void densityField(T, U, V)(const ref T field, const ref U mask, ref V density) if (isField!T && is(U.type == Mask) && isField!V ) {
+  static assert(haveCompatibleDims!(field, mask, density));
+  assert(haveCompatibleLengthsH(field, mask, density));
 
   foreach(immutable p, pop; field.arr) {
     density[p] = pop.density();
@@ -130,10 +125,9 @@ unittest {
    Returns:
      total mass of the field on the local process
 */
-auto localMass(T, U)(const ref T field, const ref U mask) {
-  static assert(is(U.type == Mask ) );
-  static assert(field.dimensions == mask.dimensions);
-  assert(field.lengthsH == mask.lengthsH);
+auto localMass(T, U)(const ref T field, const ref U mask) if (isField!T && is(U.type == Mask) ) {
+  static assert(haveCompatibleDims!(field, mask));
+  assert(haveCompatibleLengthsH(field, mask));
 
   double mass = 0.0;
   // This loops over the physical field only.
@@ -168,10 +162,9 @@ unittest {
    Returns:
      global mass of the field
 */
-auto globalMass(T, U)(const ref T field, const ref U mask) {
-  static assert(is(U.type == Mask ) );
-  static assert(field.dimensions == mask.dimensions);
-  assert(field.lengthsH == mask.lengthsH);
+auto globalMass(T, U)(const ref T field, const ref U mask) if (isField!T && is(U.type == Mask) ) {
+  static assert(haveCompatibleDims!(field, mask));
+  assert(haveCompatibleLengthsH(field, mask));
 
   import dlbc.parallel;
   auto localMass = localMass(field, mask);
@@ -206,8 +199,7 @@ unittest {
    Returns:
      average density of the field on the local process
 */
-auto localDensity(T, U)(const ref T field, const ref U mask) {
-  static assert(is(U.type == Mask ) );
+auto localDensity(T, U)(const ref T field, const ref U mask) if (isField!T && is(U.type == Mask) ) {
   return localMass(field, mask) / field.size;
 }
 
@@ -234,8 +226,7 @@ unittest {
    Returns:
      global average density of the field
 */
-auto globalDensity(T, U)(const ref T field, const ref U mask) {
-  static assert(is(U.type == Mask ) );
+auto globalDensity(T, U)(const ref T field, const ref U mask) if (isField!T && is(U.type == Mask) ) {
   import dlbc.parallel;
   return globalMass(field, mask) / ( field.size * M.size);
 }
@@ -267,15 +258,11 @@ unittest {
    Returns:
      colour field
 */
-auto colourField(T, U)(const ref T field1, const ref T field2, const ref U mask) {
-  static assert(is(U.type == Mask ) );
-  static assert(field1.dimensions == mask.dimensions);
-  static assert(field2.dimensions == mask.dimensions);
-  assert(field1.lengthsH == mask.lengthsH);
-  assert(field2.lengthsH == mask.lengthsH);
+auto colourField(T, U)(const ref T field1, const ref T field2, const ref U mask) if (isField!T && is(U.type == Mask) ) {
+  static assert(haveCompatibleDims!(field1, field2, mask));
 
   auto colour = Field!(double, field1.dimensions, field1.haloSize)(field1.lengths);
-  assert(field1.lengthsH == colour.lengthsH);
+  assert(haveCompatibleLengthsH(field1, field2, mask, colour));
 
   foreach(immutable p, ref pop; field1.arr) {
     if ( isFluid(mask[p]) ) {
@@ -289,14 +276,9 @@ auto colourField(T, U)(const ref T field1, const ref T field2, const ref U mask)
 }
 
 /// Ditto
-void colourField(T, U, V)(const ref T field1, const ref T field2, const ref U mask, ref V colour) {
-  static assert(is(U.type == Mask ) );
-  static assert(field1.dimensions == field2.dimensions);
-  static assert(field1.dimensions == mask.dimensions);
-  static assert(field1.dimensions == density.dimensions);
-  assert(field1.lengthsH == field2.lengthsH);
-  assert(field1.lengthsH == mask.lengthsH);
-  assert(field1.lengthsH == density.lengthsH);
+void colourField(T, U, V)(const ref T field1, const ref T field2, const ref U mask, ref V colour ) if (isField!T && is(U.type == Mask) && isField!V ) {
+  static assert(haveCompatibleDims!(field1, field2, mask, colour));
+  assert(haveCompatibleLengthsH(field1, field2, mask, colour));
 
   foreach(immutable p, pop; field1.arr) {
     if ( isFluid(mask[p]) ) {
@@ -329,5 +311,4 @@ auto pressure(alias conn, T)(const ref T density[]) {
   }
   return (pressure * conn.css);
 }
-
 

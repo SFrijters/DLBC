@@ -42,7 +42,7 @@ version(unittest) {
      local momentum \(\vec{p}(\vec{n})\)
 */
 auto momentum(alias conn, T)(const ref T population) {
-  auto immutable cv = conn.velocities;
+  immutable cv = conn.velocities;
   static assert(population.length == cv.length);
 
   double[conn.d] momentum = 0.0;
@@ -64,13 +64,11 @@ auto momentum(alias conn, T)(const ref T population) {
    Returns:
      momentum field
 */
-auto momentumField(alias conn, T, U)(const ref T field, const ref U mask) {
-  static assert(is(U.type == Mask ) );
-  static assert(field.dimensions == mask.dimensions);
-  assert(field.lengthsH == mask.lengthsH);
+auto momentumField(alias conn, T, U)(const ref T field, const ref U mask) if ( isField!T && is(U.type == Mask ) ) {
+  static assert(haveCompatibleDims!(field, mask));
 
   auto momentum = Field!(double[conn.d], field.dimensions, field.haloSize)(field.lengths);
-  assert(field.lengthsH == momentum.lengthsH);
+  assert(haveCompatibleLengthsH(field, mask, momentum));
 
   foreach(immutable p, pop; field.arr) {
     if ( isFluid(mask[p]) ) {
@@ -84,12 +82,9 @@ auto momentumField(alias conn, T, U)(const ref T field, const ref U mask) {
 }
 
 /// Ditto
-void momentumField(alias conn, T, U, V)(const ref T field, const ref U mask, ref V momentum) {
-  static assert(is(U.type == Mask ) );
-  static assert(field.dimensions == mask.dimensions);
-  static assert(field.dimensions == momentum.dimensions);
-  assert(field.lengthsH == mask.lengthsH);
-  assert(field.lengthsH == momentum.lengthsH);
+void momentumField(alias conn, T, U, V)(const ref T field, const ref U mask, ref V momentum) if ( isField!T && is (U.type == Mask ) && isField!V ) {
+  static assert(haveCompatibleDims!(field, mask, momentum));
+  assert(haveCompatibleLengthsH(field, mask, momentum));
 
   foreach(immutable p, pop; field.arr) {
     if ( isFluid(mask[p]) ) {
@@ -134,10 +129,9 @@ unittest {
    Returns:
      total momentum of the field on the local process
 */
-auto localMomentum(alias conn, T, U)(const ref T field, const ref U mask) {
-  static assert(is(U.type == Mask ) );
-  static assert(field.dimensions == mask.dimensions);
-  assert(field.lengthsH == mask.lengthsH);
+auto localMomentum(alias conn, T, U)(const ref T field, const ref U mask) if ( isField!T && is(U.type == Mask ) ) {
+  static assert(haveCompatibleDims!(field, mask));
+  assert(haveCompatibleLengthsH(field, mask));
 
   double[conn.d] momentum = 0.0;
   foreach(immutable p, pop; field) {
@@ -177,10 +171,9 @@ unittest {
    Returns:
      global momentum of the field
 */
-auto globalMomentum(alias conn, T, U)(const ref T field, const ref U mask) {
-  static assert(is(U.type == Mask ) );
-  static assert(field.dimensions == mask.dimensions);
-  assert(field.lengthsH == mask.lengthsH);
+auto globalMomentum(alias conn, T, U)(const ref T field, const ref U mask) if ( isField!T && is(U.type == Mask ) ) {
+  static assert(haveCompatibleDims!(field, mask));
+  assert(haveCompatibleLengthsH(field, mask));
 
   import dlbc.parallel;
   auto localMomentum = field.localMomentum!conn(mask);

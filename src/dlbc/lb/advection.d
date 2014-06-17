@@ -33,15 +33,12 @@ import dlbc.timers;
      tempField = temporary field of the same size and type as $(D field)
      conn = connectivity
 */
-void advectField(alias conn, T, U)(ref T field, const ref U mask, ref T tempField) {
+void advectField(alias conn, T, U)(ref T field, const ref U mask, ref T tempField) if ( isField!T && is(U.type == Mask) ) {
   import std.algorithm: swap;
   import dlbc.range: Iota;
 
-  static assert(is(U.type == Mask ) );
-  static assert(field.dimensions == mask.dimensions);
-  static assert(field.dimensions == tempField.dimensions);
-  assert(mask.lengthsH == field.lengthsH, "mask and advected field need to have the same size");
-  assert(tempField.lengthsH == field.lengthsH, "tempField and advected field need to have the same size");
+  static assert(haveCompatibleDims!(field, mask, tempField));
+  assert(haveCompatibleLengthsH(field, mask, tempField));
 
   Timers.adv.start();
 

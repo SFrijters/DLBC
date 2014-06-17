@@ -165,6 +165,8 @@ struct Lattice(alias conn) {
   }
 }
 
+enum isLattice(T) = is(T:Lattice!(conn), alias conn);
+
 /**
    Initialization of the lattice: initialize the force arrays, and the fluids and mask,
    unless we are restoring, in which case read the checkpoint.
@@ -172,7 +174,7 @@ struct Lattice(alias conn) {
    Params:
      L = the lattice
 */
-void initLattice(T)(ref T L) {
+void initLattice(T)(ref T L) if (isLattice!T) {
   L.initForce!gconn();
 
   if ( isRestoring() ) {
@@ -200,7 +202,7 @@ void initLattice(T)(ref T L) {
      gn = global lattice size
      nc = number of processes
 */
-private bool canDivide(const size_t[] gn, const int[] nc) {
+private bool canDivide(const size_t[] gn, const int[] nc) @safe pure nothrow {
   assert(gn.length == nc.length);
   foreach(immutable i, g; gn) {
     if ( g % nc[i] != 0 ) {

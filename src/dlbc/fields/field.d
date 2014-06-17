@@ -205,4 +205,40 @@ struct Field(T, uint dim, uint hs) {
   }
 }
 
+enum isField(T) = is(T:Field!(U, dim, hs), U, uint dim, uint hs);
+
+template haveCompatibleDims(T...) {
+  // pragma(msg,T);
+  static if ( T.length > 1 ) {
+    static if ( T.length > 2 ) {
+      enum haveCompatibleDims = haveCompatibleDims!(T[1..$]);
+    }
+    else {
+      enum haveCompatibleDims = ( T[0].dimensions == T[1].dimensions );
+    }
+  }
+  else {
+    enum haveCompatibleDims = true;
+  }
+}
+
+bool haveCompatibleLengthsH(T...)(const T fields) {
+  immutable lengthsH = fields[0].lengthsH; 
+  foreach(ref field; fields) {
+    if ( field.lengthsH != lengthsH ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool haveCompatibleLengths(T...)(const T fields) {
+  immutable lengths = fields[0].lengths; 
+  foreach(ref field; fields) {
+    if ( field.lengths != lengths ) {
+      return false;
+    }
+  }
+  return true;
+}
 

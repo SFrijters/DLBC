@@ -37,7 +37,7 @@ import dlbc.range;
      local velocity \(\vec{u}(\vec{n})\)
 */
 auto velocity(alias conn, T)(const ref T population, const double density) {
-  auto immutable cv = conn.velocities;
+  immutable cv = conn.velocities;
   static assert(population.length == cv.length);
 
   double[conn.d] vel = 0.0;
@@ -52,7 +52,7 @@ auto velocity(alias conn, T)(const ref T population, const double density) {
 
 /// Ditto
 auto velocity(alias conn, T)(const ref T population) {
-  auto immutable density = population.density();
+  immutable density = population.density();
   return velocity!conn(population, density);
 }
 
@@ -83,13 +83,11 @@ unittest {
    Returns:
      velocity field
 */
-auto velocityField(alias conn, T, U)(const ref T field, const ref U mask) {
-  static assert(is(U.type == Mask ) );
-  static assert(field.dimensions == mask.dimensions);
-  assert(field.lengthsH == mask.lengthsH);
+auto velocityField(alias conn, T, U)(const ref T field, const ref U mask) if ( isField!T && is(U.type == Mask ) ) {
+  static assert(haveCompatibleDims!(field, mask));
 
   auto velocity = Field!(double[conn.d], field.dimensions, field.haloSize)(field.lengths);
-  assert(field.lengthsH == velocity.lengthsH);
+  assert(haveCompatibleLengthsH(field, mask, velocity));
 
   foreach(immutable p, pop; field.arr) {
     if ( isFluid(mask[p]) ) {
@@ -103,12 +101,9 @@ auto velocityField(alias conn, T, U)(const ref T field, const ref U mask) {
 }
 
 /// Ditto
-void velocityField(alias conn, T, U, V)(const ref T field, const ref U mask, ref V velocity) {
-  static assert(is(U.type == Mask ) );
-  static assert(field.dimensions == mask.dimensions);
-  static assert(field.dimensions == velocity.dimensions);
-  assert(field.lengthsH == mask.lengthsH);
-  assert(field.lengthsH == velocity.lengthsH);
+void velocityField(alias conn, T, U, V)(const ref T field, const ref U mask, ref V velocity) if ( isField!T && is(U.type == Mask ) && isField!V ) {
+  static assert(haveCompatibleDims!(field, mask, velocity));
+  assert(haveCompatibleLengthsH(field, mask, velocity));
 
   foreach(immutable p, pop; field.arr) {
     if ( isFluid(mask[p] ) ) {

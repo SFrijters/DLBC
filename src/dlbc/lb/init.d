@@ -10,6 +10,7 @@ module dlbc.lb.init;
 
 @("param") double[] sphereOffset;
 
+import dlbc.fields.field;
 import dlbc.lb.lb;
 import dlbc.fields.init;
 
@@ -59,7 +60,7 @@ enum FluidInit {
   EqDistSphereFrac,
 }
 
-void initFluid(alias conn, T)(ref T field, const size_t i) {
+void initFluid(alias conn, T)(ref T field, const size_t i) if ( isField!T ) {
   import dlbc.parameters: checkArrayParameterLength;
 
   checkArrayParameterLength(fluidInit, "lb.init.fluidInit", components);

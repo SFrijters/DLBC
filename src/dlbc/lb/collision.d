@@ -39,14 +39,10 @@ import dlbc.logging;
      force = force field
      conn = connectivity
 */
-void collideField(alias conn, T, U, V)(ref T field, const ref U mask, const ref V force) {
-  static assert(is(U.type == Mask));
-  static assert(field.dimensions == force.dimensions);
-  static assert(field.dimensions == mask.dimensions);
-  assert(force.lengthsH == field.lengthsH, "force field and collided field need to have the same size");
-  assert(mask.lengthsH == field.lengthsH, "mask and collided field need to have the same size");
-  assert(force.dimensions == conn.d, "force needs to have the same dimension as the connectivity");
-  assert(globalAcc.length == conn.d, "globalAcc needs to have the same dimension as the connectivity");
+void collideField(alias conn, T, U, V)(ref T field, const ref U mask, const ref V force) if ( isField!T && is(U.type == Mask) && isField!V ) {
+  static assert(haveCompatibleDims!(conn, field, mask, force, conn));
+  assert(haveCompatibleLengthsH(field, mask, force));
+  assert(globalAcc.length == conn.d);
 
   Timers.coll.start();
 
