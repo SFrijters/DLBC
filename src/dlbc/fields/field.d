@@ -205,8 +205,18 @@ struct Field(T, uint dim, uint hs) {
   }
 }
 
-enum isField(T) = is(T:Field!(U, dim, hs), U, uint dim, uint hs);
+/**
+   Template to check if a type is a field.
+*/
+template isField(T) {
+  enum isField = is(T:Field!(U, dim, hs), U, uint dim, uint hs);
+}
 
+/**
+   Checks if all arguments have the same (enum) dimensions.
+   This is useful for some static asserts in functions that take
+   fields as arguments.
+*/
 template haveCompatibleDims(T...) {
   // pragma(msg,T);
   static if ( T.length > 1 ) {
@@ -222,8 +232,15 @@ template haveCompatibleDims(T...) {
   }
 }
 
+/**
+   Checks if all arguments have the same lengthsH. This is useful for asserts.
+
+   Params:
+     fields = fields whose lengthsH to check
+*/
 bool haveCompatibleLengthsH(T...)(const T fields) {
-  immutable lengthsH = fields[0].lengthsH; 
+  if ( fields.length < 2 ) return true;
+  immutable lengthsH = fields[0].lengthsH;
   foreach(ref field; fields) {
     if ( field.lengthsH != lengthsH ) {
       return false;
@@ -232,8 +249,15 @@ bool haveCompatibleLengthsH(T...)(const T fields) {
   return true;
 }
 
+/**
+   Checks if all arguments have the same lengths. This is useful for asserts.
+
+   Params:
+     fields = fields whose lengths to check
+*/
 bool haveCompatibleLengths(T...)(const T fields) {
-  immutable lengths = fields[0].lengths; 
+  if ( fields.length < 2 ) return true;
+  immutable lengths = fields[0].lengths;
   foreach(ref field; fields) {
     if ( field.lengths != lengths ) {
       return false;

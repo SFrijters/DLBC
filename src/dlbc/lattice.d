@@ -36,7 +36,7 @@ import dlbc.range;
    The lattice struct holds various fields, and information on the shape of these fields.
 
    Params:
-     conn = connecvitiy of the fluid fields
+     conn = connectivity of the fluid fields
 */
 struct Lattice(alias conn) {
 
@@ -165,7 +165,12 @@ struct Lattice(alias conn) {
   }
 }
 
-enum isLattice(T) = is(T:Lattice!(conn), alias conn);
+/**
+   Template to check if a type is a lattice.
+*/
+template isLattice(T) {
+  enum isLattice = is(T:Lattice!(conn), alias conn);
+}
 
 /**
    Initialization of the lattice: initialize the force arrays, and the fluids and mask,
