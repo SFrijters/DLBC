@@ -41,7 +41,7 @@ import unstd.multidimarray;
 
    Todo: add unittest
 */
-void exchangeHalo(T)(ref T field, uint haloSize) {
+void exchangeHalo(T)(ref T field, uint haloSize) if (isField!T) {
   static if ( field.dimensions == 3 ) {
     field.exchangeHalo3D(haloSize);
   }
@@ -54,14 +54,14 @@ void exchangeHalo(T)(ref T field, uint haloSize) {
 }
 
 /// Ditto
-void exchangeHalo(T)(ref T field) {
+void exchangeHalo(T)(ref T field) if (isField!T) {
   field.exchangeHalo(field.haloSize);
 }
 
 /**
    Halo exchange for three-dimensional fields.
 */
-void exchangeHalo3D(T)(ref T field, uint haloSize) {
+void exchangeHalo3D(T)(ref T field, uint haloSize) if (isField!T) {
   import std.conv: to;
 
   static assert(field.dimensions == 3);
@@ -132,7 +132,7 @@ void exchangeHalo3D(T)(ref T field, uint haloSize) {
 /**
    Halo exchange for two-dimensional fields.
 */
-void exchangeHalo2D(T)(ref T field, uint haloSize) {
+void exchangeHalo2D(T)(ref T field, uint haloSize) if (isField!T) {
   import std.conv: to;
 
   static assert(field.dimensions == 2);
