@@ -142,20 +142,19 @@ void runTimeloop(T)(ref T L) {
     ++timestep;
     writeLogRN("Starting timestep %d", timestep);
 
+    L.exchangeHalo();
     foreach(ref e; L.fluids) {
       e.advectField!gconn(L.mask, L.advection);
     }
-    L.exchangeHalo();
 
     L.resetForce();
     if ( enableShanChen ) {
       L.addShanChenForce!gconn();
     }
 
-    foreach(i, ref e; L.fluids) {
+    foreach(immutable i, ref e; L.fluids) {
       e.collideField!gconn(L.mask, L.force[i]);
     }
-    L.exchangeHalo(); // Remove one of these?
 
     // writeLogRI("Global mass = %f %f", L.fluids[0].globalMass(L.mask), L.fluids[1].globalMass(L.mask));
     // writeLogRI("Global momentum = %s %s", L.fluids[0].globalMomentum!(gconn)(L.mask), L.fluids[1].globalMomentum!(gconn)(L.mask));

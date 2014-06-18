@@ -47,7 +47,7 @@ void collideField(alias conn, T, U, V)(ref T field, const ref U mask, const ref 
   Timers.coll.start();
 
   enum omega = 1.0;
-  foreach(immutable p, ref pop; field.arr) { // this includes the halo
+  foreach(immutable p, ref pop; field) {
     if ( isCollidable(mask[p]) ) {
       double[conn.d] dv;
       //      Timers.collden.start();
@@ -60,7 +60,7 @@ void collideField(alias conn, T, U, V)(ref T field, const ref U mask, const ref 
       immutable eq = eqDist!conn(pop, dv);
       //      Timers.colleq.stop();
       foreach(immutable i; Iota!(0,conn.q) ) {
-	pop[i] -= omega * ( pop[i] - eq[i]);
+	pop[i] -= omega * ( pop[i] - eq[i] );
       }
     }
   }

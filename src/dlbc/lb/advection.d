@@ -43,7 +43,8 @@ void advectField(alias conn, T, U)(ref T field, const ref U mask, ref T tempFiel
   Timers.adv.start();
 
   immutable cv = conn.velocities;
-  foreach(immutable p, ref pop; tempField) {
+  foreach(immutable p, ref pop; tempField.arr) {
+    if ( p.isOnEdge!conn(field.lengthsH) ) continue;
     if ( isAdvectable(mask[p]) ) {
       assert(pop.length == cv.length);
       foreach(immutable i, ref e; pop ) {
@@ -66,6 +67,16 @@ void advectField(alias conn, T, U)(ref T field, const ref U mask, ref T tempFiel
   swap(field, tempField);
 
   Timers.adv.stop();
+}
+
+bool isOnEdge(alias conn)(const ptrdiff_t[conn.d] p, const size_t[conn.d] lengthsH) @safe nothrow pure {
+  import dlbc.range: Iota;
+  foreach(immutable i; Iota!(0, conn.d) ) {
+    if ( p[i] == 0 || p[i] == lengthsH[i] - 1 ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 ///

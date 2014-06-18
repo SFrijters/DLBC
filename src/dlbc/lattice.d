@@ -40,7 +40,7 @@ import dlbc.range;
 */
 struct Lattice(alias conn) {
 
-  enum Exchange;
+  private enum Exchange;
 
   enum uint dimensions = conn.d;
 
@@ -84,19 +84,19 @@ struct Lattice(alias conn) {
   /**
      Fluid fields.
   */
-  @Exchange Field!(double[conn.q], conn.d, 1)[] fluids;
+  @Exchange Field!(double[conn.q], conn.d, 2)[] fluids;
   /**
      Mask field.
   */
-  @Exchange Field!(Mask, conn.d, 1) mask;
+  @Exchange Field!(Mask, conn.d, 2) mask;
   /**
      Temporary fields to store densities.
   */
-  Field!(double, conn.d, 1)[] density;
+  Field!(double, conn.d, 2)[] density;
   /**
      Force fields.
   */
-  @Exchange Field!(double[conn.d], conn.d, 1)[] force;
+  Field!(double[conn.d], conn.d, 2)[] force;
   /**
      Temporary field to store advected fluids.
   */
@@ -144,7 +144,7 @@ struct Lattice(alias conn) {
     advection = typeof(advection)(lengths);
   }
 
-  private static bool isExchangeField (string field)() {
+  private static bool isExchangeField (string field)() @safe pure nothrow {
     import std.typetuple;
     alias attrs = TypeTuple!(__traits(getAttributes, mixin("Lattice."  ~ field)));
     return staticIndexOf!(Exchange, attrs) != -1;
