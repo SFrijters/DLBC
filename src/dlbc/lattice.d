@@ -40,6 +40,8 @@ import dlbc.range;
 */
 struct Lattice(alias conn) {
 
+  enum Exchange;
+
   enum uint dimensions = conn.d;
 
   private {
@@ -82,19 +84,19 @@ struct Lattice(alias conn) {
   /**
      Fluid fields.
   */
-  Field!(double[conn.q], conn.d, 2)[] fluids;
+  @Exchange Field!(double[conn.q], conn.d, 1)[] fluids;
   /**
      Mask field.
   */
-  Field!(Mask, conn.d, 2) mask;
+  @Exchange Field!(Mask, conn.d, 1) mask;
   /**
      Temporary fields to store densities.
   */
-  Field!(double, conn.d, 2)[] density;
+  Field!(double, conn.d, 1)[] density;
   /**
      Force fields.
   */
-  Field!(double[conn.d], conn.d, 2)[] force;
+  @Exchange Field!(double[conn.d], conn.d, 1)[] force;
   /**
      Temporary field to store advected fluids.
   */
@@ -142,6 +144,12 @@ struct Lattice(alias conn) {
     advection = typeof(advection)(lengths);
   }
 
+  private static bool isExchangeField (string field)() {
+    import std.typetuple;
+    alias attrs = TypeTuple!(__traits(getAttributes, mixin("Lattice."  ~ field)));
+    return staticIndexOf!(Exchange, attrs) != -1;
+  }
+
   /**
      Calls exchangeHalo on all member fields of the lattice.
 
@@ -151,7 +159,16 @@ struct Lattice(alias conn) {
     import std.algorithm: startsWith;
     import std.traits;
     foreach(e ; __traits(derivedMembers, Lattice)) {
-      mixin(`static if(typeof(Lattice.`~e~`).stringof.startsWith("Field!")) { static if (isArray!(typeof(Lattice.`~e~`)) ) { foreach(ref f; Lattice.`~e~`) { f.exchangeHalo!()();} } else {`~e~`.exchangeHalo!()();}}`);
+      static if (isExchangeField!(e)) {
+	static if (isField!(typeof(mixin(e))) ) {
+	  mixin(e~".exchangeHalo!()();");
+	}
+	else {
+	  foreach(ref f; mixin(e) ) {
+	    f.exchangeHalo!()();
+	  }
+      	}
+      }
     }
   }
 
