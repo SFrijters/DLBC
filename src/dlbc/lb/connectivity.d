@@ -20,22 +20,49 @@ module dlbc.lb.connectivity;
 
 import dlbc.logging;
 
-immutable struct Connectivity(uint _d, uint _q) {
-  alias vel_t = ptrdiff_t[_d];
-  enum uint d = _d;
-  enum uint q = _q;
-  enum ptrdiff_t[d][q] velocities = generateVelocities!(d, q)();
-  enum ptrdiff_t[q] bounce = generateBounce(generateVelocities!(d, q)());
-  enum double[q] weights = generateWeights!(d, q)();
-  enum double css = 1.0/3.0;
-  alias dimensions = d;
-
-  /**
-     Show information about the layout of the grid of processes.
-  */
-  void show(VL vl)() {
-    import std.math;
-    writeLog!(vl, LRF.Root)("Connectivity D%dQ%d:\n  velocities: %s\n  bounce: %s\n  weights: %s\n  speed of sound: %f", d, q, velocities, bounce, weights, sqrt(css));
+/**
+   The Connectivity struct contains information about the links between lattice sites.
+   It is a static struct, so no need to instantiate it.
+*/
+static immutable struct Connectivity(uint _d, uint _q) {
+  static {
+    /**
+       Type of a connecting vector.
+    */
+    alias vel_t = ptrdiff_t[_d];
+    /**
+       Number of dimensions.
+    */
+    enum uint d = _d;
+    /// Ditto
+    alias dimensions = d;
+    /**
+       Number of velocities.
+    */
+    enum uint q = _q;
+    /**
+       Array of velocity vectors.
+    */
+    enum ptrdiff_t[d][q] velocities = generateVelocities!(d, q)();
+    /**
+       Array of indices which point to the velocity vector in the opposite direction.
+    */
+    enum ptrdiff_t[q] bounce = generateBounce(generateVelocities!(d, q)());
+    /**
+       Weigths of the velocity vectors.
+    */
+    enum double[q] weights = generateWeights!(d, q)();
+    /**
+       Speed of sound.
+    */
+    enum double css = 1.0/3.0;
+    /**
+       Show information about the layout of the grid of processes.
+    */
+    void show(VL vl)() {
+      import std.math;
+      writeLog!(vl, LRF.Root)("Connectivity D%dQ%d:\n  velocities: %s\n  bounce: %s\n  weights: %s\n  speed of sound: %f", d, q, velocities, bounce, weights, sqrt(css));
+    }
   }
 }
 
@@ -43,9 +70,13 @@ immutable struct Connectivity(uint _d, uint _q) {
    D3Q19 connectivity, i.e. the rest vector, plus connecting vectors of length 1,
    plus connecting vectors of length sqrt(2).
 */
-auto d3q19 = new immutable Connectivity!(3,19);
+alias d3q19 = Connectivity!(3,19);
 
-auto d2q9 = new immutable Connectivity!(2,9);
+/**
+   D2Q9 connectivity, i.e. the rest vector, plus connecting vectors of length 1,
+   plus connecting vectors of length sqrt(2).
+*/
+alias d2q9 = Connectivity!(2,9);
 
 /**
    Global connectivity parameter.
@@ -57,7 +88,7 @@ else {
   alias gconn = d3q19;
 }
 
-private auto generateBounce(T)(const T velocities) {
+private auto generateBounce(T)(const T velocities) @safe pure nothrow {
   import std.algorithm: any;
   size_t[velocities.length] bounce;
   int[velocities[0].length] diff;
@@ -73,7 +104,7 @@ private auto generateBounce(T)(const T velocities) {
   return bounce;
 }
 
-private auto generateWeights(uint d, uint q)() {
+private auto generateWeights(uint d, uint q)() @safe pure nothrow {
   static if ( d == 3 ) {
     static if ( q == 19 ) {
       return generateWeightsD3Q19();
@@ -95,7 +126,7 @@ private auto generateWeights(uint d, uint q)() {
   }
 }
 
-private auto generateWeightsD3Q19() {
+private auto generateWeightsD3Q19() @safe pure nothrow {
   double[19] weights;
   weights[0] = 1.0/3.0;
   weights[1..7] = 1.0/18.0;
@@ -103,7 +134,7 @@ private auto generateWeightsD3Q19() {
   return weights;
 }
 
-private auto generateWeightsD2Q9() {
+private auto generateWeightsD2Q9() @safe pure nothrow {
   double[9] weights;
   weights[0] = 4.0/9.0;
   weights[1..5] = 1.0/9.0;
@@ -112,7 +143,7 @@ private auto generateWeightsD2Q9() {
 }
 
 
-private auto generateVelocities(uint d, uint q)() {
+private auto generateVelocities(uint d, uint q)() @safe pure nothrow {
   static if ( d == 3 ) {
     static if ( q == 1) {
       return generateD3Q1();

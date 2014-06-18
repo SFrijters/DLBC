@@ -186,7 +186,7 @@ struct Lattice(alias conn) {
    Template to check if a type is a lattice.
 */
 template isLattice(T) {
-  enum isLattice = is(T:Lattice!(conn), alias conn);
+  enum isLattice = is(T:Lattice!(Connectivity!(d,q)), uint d, uint q);
 }
 
 /**
