@@ -71,7 +71,7 @@ void initWallsX(T)(ref T field) {
   }
 }
 
-bool isFluid(Mask bc) {
+bool isFluid(Mask bc) @safe pure nothrow {
   final switch(bc) {
   case Mask.None:
     return true;
@@ -80,7 +80,7 @@ bool isFluid(Mask bc) {
   }
 }
 
-bool isAdvectable(Mask bc) {
+bool isAdvectable(Mask bc) @safe pure nothrow {
   final switch(bc) {
   case Mask.None:
     return true;
@@ -89,7 +89,7 @@ bool isAdvectable(Mask bc) {
   }
 }
 
-bool isBounceBack(Mask bc) {
+bool isBounceBack(Mask bc) @safe pure nothrow {
   final switch(bc) {
   case Mask.None:
     return false;
@@ -98,7 +98,7 @@ bool isBounceBack(Mask bc) {
   }
 }
 
-bool isCollidable(Mask bc) {
+bool isCollidable(Mask bc) @safe pure nothrow {
   final switch(bc) {
   case Mask.None:
     return true;
