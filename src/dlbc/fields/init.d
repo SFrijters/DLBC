@@ -137,6 +137,7 @@ void initEqDistWall(alias conn, T, U)(ref T field, const double density, ref U m
   import dlbc.lb.mask;
   foreach(immutable p, ref e; field.arr) {
     if ( mask[p] == Mask.Solid ) {
+      e = 0.0;
       e[0] = density;
     }
   }
