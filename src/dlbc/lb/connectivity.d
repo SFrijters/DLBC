@@ -73,10 +73,20 @@ static immutable struct Connectivity(uint _d, uint _q) {
 alias d3q19 = Connectivity!(3,19);
 
 /**
+   D3Q19 connectivity, i.e. the rest vector, plus connecting vectors of length 1.
+*/
+alias d3q7 = Connectivity!(3,7);
+
+/**
    D2Q9 connectivity, i.e. the rest vector, plus connecting vectors of length 1,
    plus connecting vectors of length sqrt(2).
 */
 alias d2q9 = Connectivity!(2,9);
+
+/**
+   D2Q9 connectivity, i.e. the rest vector, plus connecting vectors of length 1.
+*/
+alias d2q5 = Connectivity!(2,5);
 
 /**
    Global connectivity parameter.
@@ -107,7 +117,17 @@ private auto generateBounce(T)(const T velocities) @safe pure nothrow {
 private auto generateWeights(uint d, uint q)() @safe pure nothrow {
   static if ( d == 3 ) {
     static if ( q == 19 ) {
-      return generateWeightsD3Q19();
+      double[19] weights;
+      weights[0] = 1.0/3.0;
+      weights[1..7] = 1.0/18.0;
+      weights[7..$] = 1.0/36.0;
+      return weights;
+    }
+    else static if ( q == 7 ) {
+      double[7] weights;
+      weights[0] = 1.0/4.0;
+      weights[1..7] = 1.0/8.0;
+      return weights;
     }
     else {
       static assert(0);
@@ -115,7 +135,17 @@ private auto generateWeights(uint d, uint q)() @safe pure nothrow {
   }
   else static if ( d == 2 ) {
     static if ( q == 9 ) {
-      return generateWeightsD2Q9();
+      double[9] weights;
+      weights[0] = 4.0/9.0;
+      weights[1..5] = 1.0/9.0;
+      weights[5..$] = 1.0/36.0;
+      return weights;
+    }
+    else static if ( q == 5 ) {
+      double[5] weights;
+      weights[0] = 1.0/3.0;
+      weights[1..5] = 1.0/6.0;
+      return weights;
     }
     else {
       static assert(0);
@@ -125,23 +155,6 @@ private auto generateWeights(uint d, uint q)() @safe pure nothrow {
     static assert(0);
   }
 }
-
-private auto generateWeightsD3Q19() @safe pure nothrow {
-  double[19] weights;
-  weights[0] = 1.0/3.0;
-  weights[1..7] = 1.0/18.0;
-  weights[7..$] = 1.0/36.0;
-  return weights;
-}
-
-private auto generateWeightsD2Q9() @safe pure nothrow {
-  double[9] weights;
-  weights[0] = 4.0/9.0;
-  weights[1..5] = 1.0/9.0;
-  weights[5..$] = 1.0/36.0;
-  return weights;
-}
-
 
 private auto generateVelocities(uint d, uint q)() @safe pure nothrow {
   static if ( d == 3 ) {
@@ -162,6 +175,9 @@ private auto generateVelocities(uint d, uint q)() @safe pure nothrow {
     static if ( q == 9 ) {
       return generateD2Q9();
     }
+    else static if ( q == 5 ) {
+      return generateD2Q5();
+    }
     else {
       static assert(0);
     }
@@ -171,14 +187,21 @@ private auto generateVelocities(uint d, uint q)() @safe pure nothrow {
   }
 }
 
+private auto generateD2Q5() pure @safe nothrow {
+  int[2][5] d2q5;
+  d2q5[0] = [0, 0];
+
+  d2q5[1] = [1, 0];
+  d2q5[2] = [-1, 0];
+  d2q5[3] = [0, 1];
+  d2q5[4] = [0, -1];
+  return d2q5;
+}
+
 private auto generateD2Q9() pure @safe nothrow {
   int[2][9] d2q9;
-  d2q9[0] = [0, 0];
+  d2q9[0..5] = generateD2Q5();
 
-  d2q9[1] = [1, 0];
-  d2q9[2] = [-1, 0];
-  d2q9[3] = [0, 1];
-  d2q9[4] = [0, -1];
   d2q9[5] = [1, 1];
   d2q9[6] = [1, -1];
   d2q9[7] = [-1, 1];
