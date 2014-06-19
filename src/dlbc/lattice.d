@@ -23,6 +23,7 @@ import dlbc.fields.parallel;
 import dlbc.io.checkpoint;
 import dlbc.lb.lb;
 import dlbc.lb.mask;
+import dlbc.lb.thermal;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.range;
@@ -102,6 +103,9 @@ struct Lattice(alias conn) {
   */
   BaseElementType!(typeof(fluids)) advection;
 
+  @Exchange Field!(double[tconn.q], tconn.d, 2) thermal;
+  typeof(thermal) advThermal;
+
   /**
      The constructor will verify that the local lattices can be set up correctly
      with respect to the parallel decomposition, and allocate the fields.
@@ -142,6 +146,11 @@ struct Lattice(alias conn) {
     }
     mask = typeof(mask)(lengths);
     advection = typeof(advection)(lengths);
+
+    if ( enableThermal ) {
+      thermal = typeof(thermal)(lengths);
+      advThermal = typeof(advThermal)(lengths);
+    }
   }
 
   private static bool isExchangeField (string field)() @safe pure nothrow {
@@ -211,7 +220,7 @@ void initLattice(T)(ref T L) if (isLattice!T) {
       import dlbc.fields.init: initEqDistWall;
       e.initEqDistWall!gconn(1.0, L.mask);
     }
-
+    L.initThermal();
     L.exchangeHalo();
   }
 }

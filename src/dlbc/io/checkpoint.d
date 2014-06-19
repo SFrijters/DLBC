@@ -74,6 +74,9 @@ void dumpCheckpoint(T)(ref T L, uint t) {
     e.dumpFieldHDF5("cp-"~fieldNames[i], t, true);
   }
   L.mask.dumpFieldHDF5("cp-mask", t, true);
+  if ( enableThermal ) {
+    L.thermal.dumpFieldHDF5("cp-thermal", t, true);
+  }
 }
 
 /**
@@ -115,6 +118,11 @@ void readCheckpoint(T)(ref T L) {
   }
   fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-mask", restoreString);
   L.mask.readFieldHDF5(fileName, true);
+  if ( enableThermal ) {
+    fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-thermal", restoreString);
+    L.thermal.readFieldHDF5(fileName, true);
+  }
+
   writeLogRI("The simulation has been restored and will continue at the next timestep.");
 }
 

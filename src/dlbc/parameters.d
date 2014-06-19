@@ -104,6 +104,7 @@ private alias parameterSourceModules = TypeTuple!(
                          "dlbc.lb.init",
                          "dlbc.lb.force",
                          "dlbc.lb.mask",
+                         "dlbc.lb.thermal",
                          "dlbc.parallel",
                          "dlbc.random",
                          "dlbc.io.checkpoint",
@@ -281,6 +282,11 @@ private void readParameterSetFromHdf5File(const string fileName) {
   }
 }
 
+private static bool isParameter (string variable)() {
+  import std.typetuple;
+  alias attrs = TypeTuple!(__traits(getAttributes, mixin(variable)));
+  return staticIndexOf!(Exchange, attrs) != -1;
+}
 
 /**
    Creates an string mixin to define $(D parseParameter), $(D showParameters), and $(D bcastParameters).

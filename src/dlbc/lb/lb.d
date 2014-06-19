@@ -26,6 +26,7 @@ public import dlbc.lb.force;
 public import dlbc.lb.init;
 public import dlbc.lb.mask;
 public import dlbc.lb.momentum;
+public import dlbc.lb.thermal;
 public import dlbc.lb.velocity;
 
 @("param") int timesteps;

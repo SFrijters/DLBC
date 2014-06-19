@@ -72,6 +72,10 @@ import dlbc.timers;
    Frequency at which profiles should be written to disk.
 */
 @("param") int profileFreq;
+/**
+   Frequency at which temperature field should be written to disk.
+*/
+@("param") int thermalFreq;
 
 /**
    Id of the simulation, based on the time it was started.
@@ -249,6 +253,11 @@ void dumpData(T)(ref T L, uint t) {
     foreach(immutable i, ref e; L.force) {
       e.dumpField("force-"~fieldNames[i], t);
     }
+  }
+
+  if ( enableThermal && dumpNow(thermalFreq,t) ) {
+    auto T = L.thermal.densityField(L.mask);
+    T.dumpField("T", t);
   }
 
   if (dumpNow(maskFreq,t)) {
