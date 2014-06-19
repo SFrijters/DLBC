@@ -42,6 +42,8 @@ import unstd.multidimarray;
    Todo: add unittest
 */
 void exchangeHalo(T)(ref T field, uint haloSize) if (isField!T) {
+  import std.algorithm: all;
+  if ( !all(field.lengths[]) ) return;
   static if ( field.dimensions == 3 ) {
     field.exchangeHalo3D(haloSize);
   }
