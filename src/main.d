@@ -148,9 +148,7 @@ void runTimeloop(T)(ref T L) {
     }
 
     L.resetForce();
-    if ( enableShanChen ) {
-      L.addShanChenForce!gconn();
-    }
+    L.addShanChenForce!gconn();
 
     foreach(immutable i, ref e; L.fluids) {
       e.collideField!gconn(L.mask, L.force[i]);

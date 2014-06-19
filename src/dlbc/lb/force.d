@@ -138,6 +138,7 @@ void resetForce(T)(ref T L) {
    Todo: add unittest.
 */
 void addShanChenForce(alias conn, T)(ref T L) if (isLattice!T) {
+  if ( ! enableShanChen ) return;
   Timers.forceSC.start();
   immutable cv = conn.velocities;
   immutable cw = conn.weights;
