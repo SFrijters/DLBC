@@ -28,12 +28,19 @@ import dlbc.range;
 
 double globalTemperature;
 
-version(D2Q9) {
-  alias tconn = d2q5;
+private template thermalConnOf(alias conn) {
+  static if ( conn.d == 3 ) {
+    alias thermalConnOf = d3q7;
+  }
+  else static if ( conn.d == 2 ) {
+    alias thermalConnOf = d2q5;
+  }
+  else {
+    static assert(0);
+  }
 }
-else {
-  alias tconn = d3q7;
-}
+
+alias tconn = thermalConnOf!gconn;
 
 void initThermal(T)(ref T L) if (isLattice!T) {
   if ( ! enableThermal ) return;
