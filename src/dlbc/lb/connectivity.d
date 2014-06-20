@@ -108,6 +108,16 @@ else {
   alias gconn = d3q19;
 }
 
+/**
+   For a connectivity DdQq returns the connectivity for DdQ1.
+
+   Params:
+     conn = connectivity
+*/
+template unconnectedOf(alias conn) {
+  alias unconnectedOf = Connectivity!(conn.d, 1);
+}
+
 private auto generateBounce(T)(const T velocities) @safe pure nothrow {
   import std.algorithm: any;
   size_t[velocities.length] bounce;
@@ -209,7 +219,7 @@ private auto generateD2Q1() @safe pure nothrow {
   return d2q1;
 }
 
-private auto generateD2Q5() pure @safe nothrow {
+private auto generateD2Q5() @safe pure nothrow {
   int[2][5] d2q5;
   d2q5[0..1] = generateD2Q1();
 
@@ -220,7 +230,7 @@ private auto generateD2Q5() pure @safe nothrow {
   return d2q5;
 }
 
-private auto generateD2Q9() pure @safe nothrow {
+private auto generateD2Q9() @safe pure nothrow {
   int[2][9] d2q9;
   d2q9[0..5] = generateD2Q5();
 
@@ -231,13 +241,13 @@ private auto generateD2Q9() pure @safe nothrow {
   return d2q9;
 }
 
-private auto generateD3Q1() pure @safe nothrow {
+private auto generateD3Q1() @safe pure nothrow {
   int[3][1] d3q1;
   d3q1[0] = [0, 0, 0];
   return d3q1;
 }
 
-private auto generateD3Q7() pure @safe nothrow {
+private auto generateD3Q7() @safe pure nothrow {
   int[3][7] d3q7;
   d3q7[0..1] = generateD3Q1();
   d3q7[1] = [ 1, 0, 0];
@@ -249,7 +259,7 @@ private auto generateD3Q7() pure @safe nothrow {
   return d3q7;
 }
 
-private auto generateD3Q19() pure @safe nothrow {
+private auto generateD3Q19() @safe pure nothrow {
   int[3][19] d3q19;
   d3q19[0..7] = generateD3Q7();
   d3q19[7] = [ 1, 1, 0];
