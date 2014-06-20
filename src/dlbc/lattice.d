@@ -91,21 +91,26 @@ struct Lattice(uint dim) {
   /**
      Mask field.
   */
-  @Exchange Field!(Mask, dimOf!lbconn, 2) mask;
+  @Exchange MaskFieldOf!(typeof(fluids)) mask;
   /**
      Temporary fields to store densities.
   */
-  Field!(double, dimOf!lbconn, 2)[] density;
+  ScalarFieldOf!(typeof(fluids))[] density;
   /**
      Force fields.
   */
-  Field!(double[lbconn.d], dimOf!lbconn, 2)[] force;
+  VectorFieldOf!(typeof(fluids))[] force;
   /**
      Temporary field to store advected fluids.
   */
   BaseElementType!(typeof(fluids)) advection;
-
+  /**
+     Thermal population field.
+  */
   @Exchange Field!(double[tconn.q], tconn, 2) thermal;
+  /**
+     Temporary field to store advected thermal populations.
+  */
   typeof(thermal) advThermal;
 
   /**

@@ -70,7 +70,7 @@ auto densityField(T, U)(const ref T field, const ref U mask) if (isPopulationFie
 
   alias conn = field.conn;
 
-  auto density = Field!(double, dimOf!conn, field.haloSize)(field.lengths);
+  auto density = ScalarFieldOf!T(field.lengths);
   assert(haveCompatibleLengthsH(field, mask, density));
 
   foreach(immutable p, pop; field.arr) {
@@ -93,7 +93,7 @@ void densityField(T, U, V)(const ref T field, const ref U mask, ref V density) i
 unittest {
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[gconn.q], gconn, 2)(lengths);
-  auto mask = Field!(Mask, dimOf!gconn, 2)(lengths);
+  auto mask = MaskFieldOf!(typeof(field))(lengths);
   mask.initConst(Mask.None);
 
   double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
@@ -110,7 +110,7 @@ unittest {
   assert(density1[2,0,1] == 1.9);
   assert(density1[0,1,3] == 0.0);
 
-  auto density2 = Field!(double, dimOf!gconn, 2)(lengths);
+  auto density2 = ScalarFieldOf!(typeof(field))(lengths);
   densityField(field, mask, density2);
   assert(density2[1,2,3] == 0.5);
   assert(density2[2,0,1] == 1.9);
@@ -146,7 +146,7 @@ unittest {
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[gconn.q], gconn, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(Mask, dimOf!gconn, 2)(lengths);
+  auto mask = MaskFieldOf!(typeof(field))(lengths);
   mask.initConst(Mask.None);
 
   auto mass = field.localMass(mask);
@@ -183,7 +183,7 @@ unittest {
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[gconn.q], gconn, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(Mask, dimOf!gconn, 2)(lengths);
+  auto mask = MaskFieldOf!(typeof(field))(lengths);
   mask.initConst(Mask.None);
 
   auto mass = field.globalMass(mask);
@@ -210,7 +210,7 @@ unittest {
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[gconn.q], gconn, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(Mask, dimOf!gconn, 2)(lengths);
+  auto mask = MaskFieldOf!(typeof(field))(lengths);
   mask.initConst(Mask.None);
 
   auto density = localDensity(field, mask);
@@ -241,7 +241,7 @@ unittest {
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[gconn.q], gconn, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(Mask, dimOf!gconn, 2)(lengths);
+  auto mask = MaskFieldOf!(typeof(field))(lengths);
   mask.initConst(Mask.None);
 
   auto density = globalDensity(field, mask);

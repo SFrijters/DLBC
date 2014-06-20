@@ -112,3 +112,16 @@ template isMaskField(T) {
   enum isMaskField = ( isField!T && is(T.type == Mask) );
 }
 
+/**
+   Type of mask Field matching Field T.
+   
+   Params:
+     T = field to match
+*/
+import dlbc.fields.field;
+import dlbc.lb.connectivity;
+template MaskFieldOf(T) if ( isField!(BaseElementType!T) ) {
+  alias BT = BaseElementType!(T);
+  alias MaskFieldOf = Field!(Mask, dimOf!(BT.conn), BT.haloSize);
+}
+

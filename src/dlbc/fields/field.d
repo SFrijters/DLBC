@@ -22,6 +22,8 @@ import dlbc.logging;
 
 import dlbc.lb.connectivity;
 
+import dlbc.range;
+
 import unstd.multidimarray;
 import unstd.generictuple;
 
@@ -212,6 +214,9 @@ struct Field(T, alias c, uint hs) {
 
 /**
    Template to check if a type is a Field.
+
+   Params:
+     T = type to check
 */
 template isField(T) {
   enum isField = is(T:Field!(U, Connectivity!(d,q), hs), U, uint d, uint q, uint hs);
@@ -219,6 +224,9 @@ template isField(T) {
 
 /**
    Template to check if a type is a Field and has non-zero connectivity.
+
+   Params:
+     T = type to check
 */
 template isPopulationField(T) {
   enum isPopulationField = ( isField!T && T.q > 0 );
@@ -226,6 +234,7 @@ template isPopulationField(T) {
 
 /**
    Template to check if two types are Fields and have the same dimension and connectivity.
+
    Params:
      T = type to check
      U = field to check
@@ -267,7 +276,7 @@ template isMatchingVectorField(T, U) {
    fields as arguments.
 
    Params:
-     T... = fields to check
+     T = fields to check
 */
 template haveCompatibleDims(T...) {
   static if ( T.length > 1 ) {
@@ -281,6 +290,28 @@ template haveCompatibleDims(T...) {
   else {
     enum haveCompatibleDims = true;
   }
+}
+
+/**
+   Type of scalar Field matching population Field T.
+   
+   Params:
+     T = field to match
+*/
+template ScalarFieldOf(T) if ( isPopulationField!(BaseElementType!T) ) {
+  alias BT = BaseElementType!(T);
+  alias ScalarFieldOf = Field!(BaseElementType!(BT.type), dimOf!(BT.conn), BT.haloSize);
+}
+
+/**
+   Type of vector Field matching population Field T.
+   
+   Params:
+     T = field to match
+*/
+template VectorFieldOf(T) if ( isPopulationField!(BaseElementType!T) ) {
+  alias BT = BaseElementType!(T);
+  alias VectorFieldOf = Field!(BaseElementType!(BT.type)[BT.d], dimOf!(BT.conn), BT.haloSize);
 }
 
 /**

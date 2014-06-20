@@ -86,7 +86,7 @@ unittest {
 auto velocityField(T, U)(const ref T field, const ref U mask) if ( isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   alias conn = field.conn;
-  auto velocity = Field!(double[conn.d], dimOf!conn, field.haloSize)(field.lengths);
+  auto velocity = VectorFieldOf!T(field.lengths);
   assert(haveCompatibleLengthsH(field, mask, velocity));
 
   foreach(immutable p, pop; field.arr) {
@@ -122,7 +122,7 @@ unittest {
 
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[gconn.q], gconn, 2)(lengths);
-  auto mask = Field!(Mask, dimOf!gconn, 2)(lengths);
+  auto mask = MaskFieldOf!(typeof(field))(lengths);
   mask.initConst(Mask.None);
 
   double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
@@ -137,7 +137,7 @@ unittest {
   assert(isNaN(velocity1[0,1,3][1]));
   assert(isNaN(velocity1[0,1,3][2]));
 
-  auto velocity2 = Field!(double[gconn.d], dimOf!gconn, 2)(lengths);
+  auto velocity2 = VectorFieldOf!(typeof(field))(lengths);
   velocityField(field, mask, velocity2);
   assert(velocity2[1,2,3] == [-0.2,-0.2, 0.2]);
   assert(isNaN(velocity2[0,1,3][0]));
