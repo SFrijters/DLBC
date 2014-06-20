@@ -10,10 +10,10 @@
    Authors: Stefan Frijters
 
    Macros:
-	TR = <tr>$0</tr>
-	TH = <th>$0</th>
-	TD = <td>$0</td>
-	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
 module dlbc.lb.connectivity;
@@ -26,42 +26,60 @@ import dlbc.logging;
 */
 static immutable struct Connectivity(uint _d, uint _q) {
   static {
-    /**
-       Type of a connecting vector.
-    */
-    alias vel_t = ptrdiff_t[_d];
-    /**
-       Number of dimensions.
-    */
-    enum uint d = _d;
-    /// Ditto
-    alias dimensions = d;
-    /**
-       Number of velocities.
-    */
-    enum uint q = _q;
-    /**
-       Array of velocity vectors.
-    */
-    enum ptrdiff_t[d][q] velocities = generateVelocities!(d, q)();
-    /**
-       Array of indices which point to the velocity vector in the opposite direction.
-    */
-    enum ptrdiff_t[q] bounce = generateBounce(generateVelocities!(d, q)());
-    /**
-       Weigths of the velocity vectors.
-    */
-    enum double[q] weights = generateWeights!(d, q)();
-    /**
-       Speed of sound.
-    */
-    enum double css = 1.0/3.0;
-    /**
-       Show information about the layout of the grid of processes.
-    */
-    void show(VL vl)() {
-      import std.math;
-      writeLog!(vl, LRF.Root)("Connectivity D%dQ%d:\n  velocities: %s\n  bounce: %s\n  weights: %s\n  speed of sound: %f", d, q, velocities, bounce, weights, sqrt(css));
+    static if ( _q > 0 ) {
+      /**
+	 Type of a connecting vector.
+      */
+      alias vel_t = ptrdiff_t[_d];
+      /**
+	 Number of dimensions.
+      */
+      enum uint d = _d;
+      /// Ditto
+      alias dimensions = d;
+      /**
+	 Number of velocities.
+      */
+      enum uint q = _q;
+      /**
+	 Array of velocity vectors.
+      */
+      enum ptrdiff_t[d][q] velocities = generateVelocities!(d, q)();
+      /**
+	 Array of indices which point to the velocity vector in the opposite direction.
+      */
+      enum ptrdiff_t[q] bounce = generateBounce(generateVelocities!(d, q)());
+      /**
+	 Weigths of the velocity vectors.
+      */
+      enum double[q] weights = generateWeights!(d, q)();
+      /**
+	 Speed of sound.
+      */
+      enum double css = 1.0/3.0;
+      /**
+	 Show information about the layout of the grid of processes.
+      */
+      void show(VL vl)() {
+	import std.math;
+	writeLog!(vl, LRF.Root)("Connectivity D%dQ%d:\n  velocities: %s\n  bounce: %s\n  weights: %s\n  speed of sound: %f", d, q, velocities, bounce, weights, sqrt(css));
+      }
+    }
+    else {
+      /**
+	 Type of a connecting vector.
+      */
+      alias vel_t = ptrdiff_t[_d];
+      /**
+	 Number of dimensions.
+      */
+      enum uint d = _d;
+      /// Ditto
+      alias dimensions = d;
+      /**
+	 Number of velocities.
+      */
+      enum uint q = _q;
     }
   }
 }
@@ -83,6 +101,11 @@ alias d3q7 = Connectivity!(3,7);
 alias d3q1 = Connectivity!(3,1);
 
 /**
+   D3Q0 connectivity, i.e. no populations.
+*/
+alias d3q0 = Connectivity!(3,0);
+
+/**
    D2Q9 connectivity, i.e. the rest vector, plus connecting vectors of length 1,
    plus connecting vectors of length sqrt(2).
 */
@@ -94,9 +117,14 @@ alias d2q9 = Connectivity!(2,9);
 alias d2q5 = Connectivity!(2,5);
 
 /**
-   D2Q5 connectivity, i.e. only the rest vector.
+   D2Q1 connectivity, i.e. only the rest vector.
 */
 alias d2q1 = Connectivity!(2,1);
+
+/**
+   D2Q0 connectivity, i.e. no populations.
+*/
+alias d2q0 = Connectivity!(2,0);
 
 /**
    Global connectivity parameter.
@@ -115,7 +143,7 @@ else {
      conn = connectivity
 */
 template unconnectedOf(alias conn) {
-  alias unconnectedOf = Connectivity!(conn.d, 1);
+  alias unconnectedOf = Connectivity!(conn.d, 0);
 }
 
 private auto generateBounce(T)(const T velocities) @safe pure nothrow {
@@ -126,8 +154,8 @@ private auto generateBounce(T)(const T velocities) @safe pure nothrow {
     foreach(j, e2; velocities ) {
       diff[] = e1[] + e2[];
       if ( !any(diff[]) ) {
-	bounce[i] = j;
-	break;
+        bounce[i] = j;
+        break;
       }
     }
   }
@@ -149,7 +177,7 @@ private auto generateWeights(uint d, uint q)() @safe pure nothrow {
       return weights;
     }
     else static if ( q == 1 ) {
-	weights[0] = 1.0;
+        weights[0] = 1.0;
     }
     else {
       static assert(0);
@@ -187,7 +215,7 @@ private auto generateVelocities(uint d, uint q)() @safe pure nothrow {
     else static if ( q == 7 ) {
       return generateD3Q7();
     }
-    else static if ( q == 1) {
+    else static if ( q == 1 ) {
       return generateD3Q1();
     }
     else {
