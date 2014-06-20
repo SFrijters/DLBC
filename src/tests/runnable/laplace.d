@@ -35,7 +35,7 @@ version(unittest) {
                            [ 0.0, 0.45, 0.45, 0.0 ],
                            [ 0.0, 0.475, 0.475, 0.0 ],
                            [ 0.0, 0.5, 0.5, 0.0 ],
-			  ];
+                          ];
 
     enum volumeAverage = 2;
 
@@ -46,19 +46,19 @@ version(unittest) {
 
     foreach(g; gccArray) {
       foreach(immutable r; radii) {
-	dlbc.lb.init.sphereRadius.setParameter(r);
-	dlbc.lb.force.gcc.setParameter(g);
-	writeLogRN("Performing simulation with:\n    dlbc.lb.force.gcc = %s\n    dlbc.lb.init.sphereRadius = %f", dlbc.lb.force.gcc, dlbc.lb.init.sphereRadius);
-	initCommon();
+        dlbc.lb.init.sphereRadius.setParameter(r);
+        dlbc.lb.force.gcc.setParameter(g);
+        writeLogRN("Performing simulation with:\n    dlbc.lb.force.gcc = %s\n    dlbc.lb.init.sphereRadius = %f", dlbc.lb.force.gcc, dlbc.lb.init.sphereRadius);
+        initCommon();
 
-	auto L = Lattice!(gconn.d)(M);
-	timestep = 0;
-	initLattice(L);
-	L.calculateLaplace(volumeAverage);
-	runTimeloop(L);
-	L.calculateLaplace(volumeAverage);
-	// auto colour = colourField(L.fluids[0], L.fluids[1], L.mask);
-	// colour.dumpField("colour-"~fieldNames[0]~"-"~fieldNames[1],timestep);
+        auto L = Lattice!(gconn.d)(M);
+        timestep = 0;
+        initLattice(L);
+        L.calculateLaplace(volumeAverage);
+        runTimeloop(L);
+        L.calculateLaplace(volumeAverage);
+        // auto colour = colourField(L.fluids[0], L.fluids[1], L.mask);
+        // colour.dumpField("colour-"~fieldNames[0]~"-"~fieldNames[1],timestep);
       }
     }
 
