@@ -60,7 +60,7 @@ enum FluidInit {
   EqDistSphereFrac,
 }
 
-void initFluid(T)(ref T field, const size_t i) if ( isField!T ) {
+void initFluid(T)(ref T field, const size_t i) if ( isPopulationField!T ) {
   import dlbc.parameters: checkArrayParameterLength;
 
   alias conn = field.conn;

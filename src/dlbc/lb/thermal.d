@@ -47,7 +47,7 @@ void initThermal(T)(ref T L) if (isLattice!T) {
   initThermalWall(L.thermal, 3.0, 1.0, 1.0, L.mask);
 }
 
-private void initThermalWall(T, U)(ref T field, const double density1, const double density2, const double density3, const ref U mask) if ( isField!T && isMaskField!U ) {
+private void initThermalWall(T, U)(ref T field, const double density1, const double density2, const double density3, const ref U mask) if ( isPopulationField!T && isMaskField!U ) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
   import dlbc.lb.mask;
@@ -80,7 +80,7 @@ private void initThermalWall(T, U)(ref T field, const double density1, const dou
   }
 }
 
-void advectThermalField(T, U)(ref T field, const ref U mask, ref T tempField) if ( isField!T && isMaskField!U ) {
+void advectThermalField(T, U)(ref T field, const ref U mask, ref T tempField) if ( isPopulationField!T && isMaskField!U ) {
   if ( ! enableThermal ) return;
   import std.algorithm: swap;
   import dlbc.range: Iota;
@@ -115,7 +115,7 @@ void advectThermalField(T, U)(ref T field, const ref U mask, ref T tempField) if
   writeLogRD("T = %f", globalTemperature / ( 128 *128));
 }
 
-void collideThermalField(T, U, V)(ref T field, const ref U mask, ref V fluidField) if ( isField!T && isMaskField!U && isField!V ) {
+void collideThermalField(T, U, V)(ref T field, const ref U mask, ref V fluidField) if ( isPopulationField!T && isMaskField!U && isPopulationField!V ) {
   if ( ! enableThermal ) return;
   static assert(haveCompatibleDims!(field, mask, fluidField ));
   assert(haveCompatibleLengthsH(field, mask, fluidField));

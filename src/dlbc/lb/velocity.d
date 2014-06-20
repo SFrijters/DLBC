@@ -83,7 +83,7 @@ unittest {
    Returns:
      velocity field
 */
-auto velocityField(T, U)(const ref T field, const ref U mask) if ( isField!T && isMaskField!U ) {
+auto velocityField(T, U)(const ref T field, const ref U mask) if ( isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   alias conn = field.conn;
   auto velocity = Field!(double[conn.d], dimOf!conn, field.haloSize)(field.lengths);
@@ -101,7 +101,7 @@ auto velocityField(T, U)(const ref T field, const ref U mask) if ( isField!T && 
 }
 
 /// Ditto
-void velocityField(T, U, V)(const ref T field, const ref U mask, ref V velocity) if ( isField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
+void velocityField(T, U, V)(const ref T field, const ref U mask, ref V velocity) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
   static assert(haveCompatibleDims!(field, mask, velocity));
   assert(haveCompatibleLengthsH(field, mask, velocity));
   alias conn = field.conn;

@@ -218,6 +218,13 @@ template isField(T) {
 }
 
 /**
+   Template to check if a type is a Field and has non-zero connectivity.
+*/
+template isPopulationField(T) {
+  enum isPopulationField = ( isField!T && T.q > 0 );
+}
+
+/**
    Template to check if two types are Fields and have the same dimension and connectivity.
    Params:
      T = type to check

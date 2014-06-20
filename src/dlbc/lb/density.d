@@ -65,7 +65,7 @@ unittest {
    Returns:
      density field
 */
-auto densityField(T, U)(const ref T field, const ref U mask) if (isField!T && isMaskField!U ) {
+auto densityField(T, U)(const ref T field, const ref U mask) if (isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
 
   alias conn = field.conn;
@@ -80,7 +80,7 @@ auto densityField(T, U)(const ref T field, const ref U mask) if (isField!T && is
 }
 
 /// Ditto
-void densityField(T, U, V)(const ref T field, const ref U mask, ref V density) if (isField!T && isMaskField!U && isMatchingScalarField!(V,T) ) {
+void densityField(T, U, V)(const ref T field, const ref U mask, ref V density) if (isPopulationField!T && isMaskField!U && isMatchingScalarField!(V,T) ) {
   static assert(haveCompatibleDims!(field, mask, density));
   assert(haveCompatibleLengthsH(field, mask, density));
 
@@ -127,7 +127,7 @@ unittest {
    Returns:
      total mass of the field on the local process
 */
-auto localMass(T, U)(const ref T field, const ref U mask) if (isField!T && isMaskField!U ) {
+auto localMass(T, U)(const ref T field, const ref U mask) if (isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   assert(haveCompatibleLengthsH(field, mask));
 
@@ -164,7 +164,7 @@ unittest {
    Returns:
      global mass of the field
 */
-auto globalMass(T, U)(const ref T field, const ref U mask) if (isField!T && isMaskField!U ) {
+auto globalMass(T, U)(const ref T field, const ref U mask) if (isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   assert(haveCompatibleLengthsH(field, mask));
 
@@ -201,14 +201,14 @@ unittest {
    Returns:
      average density of the field on the local process
 */
-auto localDensity(T, U)(const ref T field, const ref U mask) if (isField!T && isMaskField!U ) {
+auto localDensity(T, U)(const ref T field, const ref U mask) if (isPopulationField!T && isMaskField!U ) {
   return localMass(field, mask) / field.size;
 }
 
 ///
 unittest {
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[gconn.q], dimOf!gconn, 2)(lengths);
+  auto field = Field!(double[gconn.q], gconn, 2)(lengths);
   field.initConst(0.1);
   auto mask = Field!(Mask, dimOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
@@ -228,7 +228,7 @@ unittest {
    Returns:
      global average density of the field
 */
-auto globalDensity(T, U)(const ref T field, const ref U mask) if (isField!T && isMaskField!U ) {
+auto globalDensity(T, U)(const ref T field, const ref U mask) if (isPopulationField!T && isMaskField!U ) {
   import dlbc.parallel;
   return globalMass(field, mask) / ( field.size * M.size);
 }
@@ -239,14 +239,14 @@ unittest {
   reorderMpi();
 
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[gconn.q], dimOf!gconn, 2)(lengths);
+  auto field = Field!(double[gconn.q], gconn, 2)(lengths);
   field.initConst(0.1);
   auto mask = Field!(Mask, dimOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
 
   auto density = globalDensity(field, mask);
 
-  assert(approxEqual(density,19*0.1));
+  assert(approxEqual(density,gconn.q*0.1));
 }
 
 /**
@@ -260,7 +260,7 @@ unittest {
    Returns:
      colour field
 */
-auto colourField(T, U)(const ref T field1, const ref T field2, const ref U mask) if (isField!T && isMaskField!U ) {
+auto colourField(T, U)(const ref T field1, const ref T field2, const ref U mask) if (isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field1, field2, mask));
   alias conn = field1.conn;
   auto colour = Field!(double, conn, field1.haloSize)(field1.lengths);
@@ -278,7 +278,7 @@ auto colourField(T, U)(const ref T field1, const ref T field2, const ref U mask)
 }
 
 /// Ditto
-void colourField(T, U, V)(const ref T field1, const ref T field2, const ref U mask, ref V colour ) if (isField!T && isMaskField!U && isMatchingScalarField!(V,T) ) {
+void colourField(T, U, V)(const ref T field1, const ref T field2, const ref U mask, ref V colour ) if (isPopulationField!T && isMaskField!U && isMatchingScalarField!(V,T) ) {
   static assert(haveCompatibleDims!(field1, field2, mask, colour));
   assert(haveCompatibleLengthsH(field1, field2, mask, colour));
 

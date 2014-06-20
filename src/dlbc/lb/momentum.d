@@ -64,7 +64,7 @@ auto momentum(alias conn, T)(const ref T population) {
    Returns:
      momentum field
 */
-auto momentumField(T, U)(const ref T field, const ref U mask) if ( isField!T && isMaskField!U ) {
+auto momentumField(T, U)(const ref T field, const ref U mask) if ( isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   alias conn = field.conn;
   auto momentum = Field!(double[conn.d], dimOf!conn, field.haloSize)(field.lengths);
@@ -82,7 +82,7 @@ auto momentumField(T, U)(const ref T field, const ref U mask) if ( isField!T && 
 }
 
 /// Ditto
-void momentumField(T, U, V)(const ref T field, const ref U mask, ref V momentum) if ( isField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
+void momentumField(T, U, V)(const ref T field, const ref U mask, ref V momentum) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
   static assert(haveCompatibleDims!(field, mask, momentum));
   assert(haveCompatibleLengthsH(field, mask, momentum));
   alias conn = field.conn;
@@ -129,7 +129,7 @@ unittest {
    Returns:
      total momentum of the field on the local process
 */
-auto localMomentum(T, U)(const ref T field, const ref U mask) if ( isField!T && isMaskField!U ) {
+auto localMomentum(T, U)(const ref T field, const ref U mask) if ( isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   assert(haveCompatibleLengthsH(field, mask));
   alias conn = field.conn;
@@ -171,7 +171,7 @@ unittest {
    Returns:
      global momentum of the field
 */
-auto globalMomentum(T, U)(const ref T field, const ref U mask) if ( isField!T && isMaskField!U ) {
+auto globalMomentum(T, U)(const ref T field, const ref U mask) if ( isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   assert(haveCompatibleLengthsH(field, mask));
   alias conn = field.conn;
