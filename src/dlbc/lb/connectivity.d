@@ -23,6 +23,12 @@ import dlbc.logging;
 /**
    The Connectivity struct contains information about the links between lattice sites.
    It is a static struct, so no need to instantiate it.
+   The case of _q = 0 is a special case: no connectivity exists at all. This is required for
+   non-population fields, like simple scalars, or vectors.
+
+   Params:
+     _d = number of dimensions
+     _q = number of connecting vectors
 */
 static immutable struct Connectivity(uint _d, uint _q) {
   static {

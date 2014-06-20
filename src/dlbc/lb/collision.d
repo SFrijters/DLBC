@@ -37,7 +37,6 @@ import dlbc.logging;
      field = field of populations
      mask = mask field
      force = force field
-     conn = connectivity
 */
 void collideField(T, U, V)(ref T field, const ref U mask, const ref V force) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
   static assert(haveCompatibleDims!(field, mask, force));

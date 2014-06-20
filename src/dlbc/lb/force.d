@@ -60,7 +60,6 @@ double[][] gccm;
 
    Params:
      L = lattice
-     conn = connectivity
 */
 void initForce(T)(ref T L) if ( isLattice!T ) {
   import dlbc.parameters: checkArrayParameterLength;
@@ -134,7 +133,6 @@ void resetForce(T)(ref T L) {
 
    Params:
      L = lattice
-     conn = connectivity
 
    Todo: add unittest.
 */
