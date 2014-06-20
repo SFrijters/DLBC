@@ -109,7 +109,7 @@ void initForce(T)(ref T L) if ( isLattice!T ) {
    Params:
      L = lattice
 */
-void resetForce(T)(ref T L) {
+void resetForce(T)(ref T L) if (isLattice!T) {
   foreach(ref e; L.force) {
     e.initConst(0.0);
   }
