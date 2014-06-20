@@ -68,7 +68,7 @@ unittest {
 auto densityField(T, U)(const ref T field, const ref U mask) if (isField!T && is(U.type == Mask) ) {
   static assert(haveCompatibleDims!(field, mask));
 
-  auto density = Field!(double, field.dimensions, field.haloSize)(field.lengths);
+  auto density = Field!(double, field.conn, field.haloSize)(field.lengths);
   assert(haveCompatibleLengthsH(field, mask, density));
 
   foreach(immutable p, pop; field.arr) {
@@ -90,8 +90,8 @@ void densityField(T, U, V)(const ref T field, const ref U mask, ref V density) i
 ///
 unittest {
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
-  auto mask = Field!(Mask, gconn.d, 2)(lengths);
+  auto field = Field!(double[gconn.q], gconn, 2)(lengths);
+  auto mask = Field!(Mask, unconnectedOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
 
   double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
@@ -108,7 +108,7 @@ unittest {
   assert(density1[2,0,1] == 1.9);
   assert(density1[0,1,3] == 0.0);
 
-  auto density2 = Field!(double, gconn.d, 2)(lengths);
+  auto density2 = Field!(double, gconn, 2)(lengths);
   densityField(field, mask, density2);
   assert(density2[1,2,3] == 0.5);
   assert(density2[2,0,1] == 1.9);
@@ -142,9 +142,9 @@ auto localMass(T, U)(const ref T field, const ref U mask) if (isField!T && is(U.
 ///
 unittest {
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
+  auto field = Field!(double[gconn.q], gconn, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(Mask, gconn.d, 2)(lengths);
+  auto mask = Field!(Mask, unconnectedOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
 
   auto mass = field.localMass(mask);
@@ -179,9 +179,9 @@ unittest {
   reorderMpi();
 
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
+  auto field = Field!(double[gconn.q], gconn, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(Mask, gconn.d, 2)(lengths);
+  auto mask = Field!(Mask, unconnectedOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
 
   auto mass = field.globalMass(mask);
@@ -206,9 +206,9 @@ auto localDensity(T, U)(const ref T field, const ref U mask) if (isField!T && is
 ///
 unittest {
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
+  auto field = Field!(double[gconn.q], gconn, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(Mask, gconn.d, 2)(lengths);
+  auto mask = Field!(Mask, unconnectedOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
 
   auto density = localDensity(field, mask);
@@ -237,9 +237,9 @@ unittest {
   reorderMpi();
 
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
+  auto field = Field!(double[gconn.q], gconn, 2)(lengths);
   field.initConst(0.1);
-  auto mask = Field!(Mask, gconn.d, 2)(lengths);
+  auto mask = Field!(Mask, unconnectedOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
 
   auto density = globalDensity(field, mask);
@@ -261,7 +261,7 @@ unittest {
 auto colourField(T, U)(const ref T field1, const ref T field2, const ref U mask) if (isField!T && is(U.type == Mask) ) {
   static assert(haveCompatibleDims!(field1, field2, mask));
 
-  auto colour = Field!(double, field1.dimensions, field1.haloSize)(field1.lengths);
+  auto colour = Field!(double, field1.conn, field1.haloSize)(field1.lengths);
   assert(haveCompatibleLengthsH(field1, field2, mask, colour));
 
   foreach(immutable p, ref pop; field1.arr) {

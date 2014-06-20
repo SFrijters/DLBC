@@ -86,7 +86,7 @@ unittest {
 auto velocityField(alias conn, T, U)(const ref T field, const ref U mask) if ( isField!T && is(U.type == Mask ) ) {
   static assert(haveCompatibleDims!(field, mask));
 
-  auto velocity = Field!(double[conn.d], field.dimensions, field.haloSize)(field.lengths);
+  auto velocity = Field!(double[conn.d], field.conn, field.haloSize)(field.lengths);
   assert(haveCompatibleLengthsH(field, mask, velocity));
 
   foreach(immutable p, pop; field.arr) {
@@ -121,8 +121,8 @@ unittest {
   import std.math: isNaN;
 
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[gconn.q], gconn.d, 2)(lengths);
-  auto mask = Field!(Mask, gconn.d, 2)(lengths);
+  auto field = Field!(double[gconn.q], gconn, 2)(lengths);
+  auto mask = Field!(Mask, unconnectedOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
 
   double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
@@ -137,7 +137,7 @@ unittest {
   assert(isNaN(velocity1[0,1,3][1]));
   assert(isNaN(velocity1[0,1,3][2]));
 
-  auto velocity2 = Field!(double[gconn.d], gconn.d, 2)(lengths);
+  auto velocity2 = Field!(double[gconn.d], gconn, 2)(lengths);
   velocityField!gconn(field, mask, velocity2);
   assert(velocity2[1,2,3] == [-0.2,-0.2, 0.2]);
   assert(isNaN(velocity2[0,1,3][0]));

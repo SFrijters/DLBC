@@ -20,6 +20,8 @@ module dlbc.fields.field;
 
 import dlbc.logging;
 
+import dlbc.lb.connectivity;
+
 import unstd.multidimarray;
 import unstd.generictuple;
 
@@ -30,13 +32,14 @@ import unstd.generictuple;
 
    Params:
      T = datatype to be held
-     dim = dimensionality of the field
+     c = connectivity of the field
      hs = size of the halo region
 */
-struct Field(T, uint dim, uint hs) {
-  enum uint dimensions = dim;
-  enum uint haloSize = hs;
+struct Field(T, alias c, uint hs) {
   alias type = T;
+  alias conn = c;
+  enum uint dimensions = conn.d;
+  enum uint haloSize = hs;
 
   /**
      Allows to access the underlying multidimensional array correctly.
@@ -44,13 +47,13 @@ struct Field(T, uint dim, uint hs) {
   alias arr this;
 
   private {
-    size_t[dim] _lengths;
-    size_t[dim] _lengthsH;
+    size_t[conn.d] _lengths;
+    size_t[conn.d] _lengthsH;
     size_t _size = 1;
     size_t _sizeH = 1;
   }
 
-  MultidimArray!(T, dim) arr, sbuffer, rbuffer;
+  MultidimArray!(T, conn.d) arr, sbuffer, rbuffer;
 
   /**
      Lengths of the physical dimensions of the field.
@@ -90,11 +93,11 @@ struct Field(T, uint dim, uint hs) {
      Params:
        lengths = lengths of the dimensions of the physical domain
   */
-  this (const size_t[dim] lengths) {
+  this (const size_t[conn.d] lengths) {
     import dlbc.range;
     writeLogRD("Initializing %s local field of type '%s' with halo of thickness %d.", lengths.makeLengthsString(), T.stringof, haloSize);
     this._lengths = lengths;
-    foreach(immutable i; Iota!(0, dim) ) {
+    foreach(immutable i; Iota!(0, conn.d) ) {
       this._size *= lengths[i];
       this._lengthsH[i] = lengths[i] + (2 * hs);
       this._sizeH *= lengthsH[i];
@@ -209,7 +212,7 @@ struct Field(T, uint dim, uint hs) {
    Template to check if a type is a field.
 */
 template isField(T) {
-  enum isField = is(T:Field!(U, dim, hs), U, uint dim, uint hs);
+  enum isField = is(T:Field!(U, Connectivity!(d,q), hs), U, uint d, uint q, uint hs);
 }
 
 /**

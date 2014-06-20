@@ -85,25 +85,25 @@ struct Lattice(alias conn) {
   /**
      Fluid fields.
   */
-  @Exchange Field!(double[conn.q], conn.d, 2)[] fluids;
+  @Exchange Field!(double[gconn.q], gconn, 2)[] fluids;
   /**
      Mask field.
   */
-  @Exchange Field!(Mask, conn.d, 2) mask;
+  @Exchange Field!(Mask, unconnectedOf!gconn, 2) mask;
   /**
      Temporary fields to store densities.
   */
-  Field!(double, conn.d, 2)[] density;
+  Field!(double, gconn, 2)[] density;
   /**
      Force fields.
   */
-  Field!(double[conn.d], conn.d, 2)[] force;
+  Field!(double[gconn.d], gconn, 2)[] force;
   /**
      Temporary field to store advected fluids.
   */
   BaseElementType!(typeof(fluids)) advection;
 
-  @Exchange Field!(double[tconn.q], tconn.d, 2) thermal;
+  @Exchange Field!(double[tconn.q], tconn, 2) thermal;
   typeof(thermal) advThermal;
 
   /**
