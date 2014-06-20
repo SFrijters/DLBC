@@ -10,10 +10,10 @@
    Authors: Stefan Frijters
 
    Macros:
-	TR = <tr>$0</tr>
-	TH = <th>$0</th>
-	TD = <td>$0</td>
-	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
 module dlbc.io.io;
@@ -232,8 +232,8 @@ void dumpData(T)(ref T L, uint t) {
   if (dumpNow(colourFreq,t)) {
     foreach(immutable i, ref e; L.fluids) {
       foreach(immutable j; i+1..L.fluids.length) {
-	auto colour = colourField(L.fluids[i], L.fluids[j], L.mask);
-	colour.dumpField("colour-"~fieldNames[i]~"-"~fieldNames[j],t);
+        auto colour = colourField(L.fluids[i], L.fluids[j], L.mask);
+        colour.dumpField("colour-"~fieldNames[i]~"-"~fieldNames[j],t);
       }
     }
   }

@@ -10,10 +10,10 @@
    Authors: Stefan Frijters
 
    Macros:
-	TR = <tr>$0</tr>
-	TH = <th>$0</th>
-	TD = <td>$0</td>
-	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
 module dlbc.lb.velocity;
@@ -59,13 +59,13 @@ auto velocity(alias conn, T)(const ref T population) {
 ///
 unittest {
   double[gconn.q] pop = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-  		     0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+                     0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
   auto den = density(pop);
   auto vel = velocity!gconn(pop);
   assert(vel == [1,1,0]);
 
   pop = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
-  		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
+                     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
 
   den = density(pop);
   vel = velocity!gconn(pop, den);
@@ -126,7 +126,7 @@ unittest {
   mask.initConst(Mask.None);
 
   double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
-  		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
+                     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
 
   field.initConst(0);
   field[1,2,3] = pop1;

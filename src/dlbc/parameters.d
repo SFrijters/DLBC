@@ -62,8 +62,8 @@
    Macros:
         TR = <tr>$0</tr>
         TH = <th>$0</th>
-	TD = <td>$0</td>
-	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
 module dlbc.parameters;
@@ -110,7 +110,7 @@ private alias parameterSourceModules = TypeTuple!(
                          "dlbc.io.checkpoint",
                          "dlbc.io.io",
                          "dlbc.io.hdf5",
-			 );
+                         );
 /**
    List of parameters that have been set in the input files.
 */
@@ -216,12 +216,12 @@ void checkArrayParameterLength(T)(ref T vector, const string name, const size_t 
     else {
       vector.length = len;
       static if ( is ( typeof(vector[0]) == string )) {
-	writeLogRW("Array parameter %s has zero length, initialising to empty strings.", name);
-	vector[] = "";
+        writeLogRW("Array parameter %s has zero length, initialising to empty strings.", name);
+        vector[] = "";
       }
       else {
-	writeLogRW("Array parameter %s has zero length, initialising to zeros.", name);
-	vector[] = cast(BaseElementType!T) 0;
+        writeLogRW("Array parameter %s has zero length, initialising to zeros.", name);
+        vector[] = cast(BaseElementType!T) 0;
       }
     }
   }

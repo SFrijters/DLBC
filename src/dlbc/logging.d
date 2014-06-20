@@ -10,10 +10,10 @@
    Authors: Stefan Frijters
 
    Macros:
-	TR = <tr>$0</tr>
-	TH = <th>$0</th>
-	TD = <td>$0</td>
-	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
 module dlbc.logging;
@@ -182,42 +182,42 @@ void writeLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
   case LRF.Any:
     if (globalVerbosityLevel >= vl) {
       static if (!T.length) {
-	writeln();
+        writeln();
       }
       else {
-	static if (is(T[0] : string)) {
-	  string outString = makeLogString!(vl, logRankFormat)(args);
-	  if (outString.length != 0) {
-	    if (outString[$-1..$] == "\n" ) {
-	      if (outString[0..1] == "\n" ) {
-		writeln(outString);
-	      }
-	      else {
-		writeln(stripLeft(outString));
-	      }
-	    }
-	    else {
-	      if (outString[0..1] == "\n" ) {
-		writeln(stripRight(outString));
-	      }
-	      else {
-		if ( (!outString.canFind("\n") ) && ( outString.length > columnWidth) ) {
-		  outString = stripRight(wrap(outString, columnWidth, null, indent));
-		}
-		writeln(strip(outString));
-	      }
-	    }
-	    break;
-	  }
-	  else {
-	    writeln();
-	    break;
-	  }
-	}
-	else {
-	  // not a string, or not a formatted string
-	  writeln(args);
-	}
+        static if (is(T[0] : string)) {
+          string outString = makeLogString!(vl, logRankFormat)(args);
+          if (outString.length != 0) {
+            if (outString[$-1..$] == "\n" ) {
+              if (outString[0..1] == "\n" ) {
+                writeln(outString);
+              }
+              else {
+                writeln(stripLeft(outString));
+              }
+            }
+            else {
+              if (outString[0..1] == "\n" ) {
+                writeln(stripRight(outString));
+              }
+              else {
+                if ( (!outString.canFind("\n") ) && ( outString.length > columnWidth) ) {
+                  outString = stripRight(wrap(outString, columnWidth, null, indent));
+                }
+                writeln(strip(outString));
+              }
+            }
+            break;
+          }
+          else {
+            writeln();
+            break;
+          }
+        }
+        else {
+          // not a string, or not a formatted string
+          writeln(args);
+        }
       }
     }
     break;
@@ -303,13 +303,13 @@ void owriteLog(VL vl, T...)(const T args) {
       logString = to!string(strbuf[0..strlen]);
       writeln(strip(logString));
       for (int srcRank = 1; srcRank < M.size; srcRank++ ) {
-	// Then receive from each process first a string length...
-	MPI_Recv(&strlen, 1, MPI_INT, srcRank, mpiTag, M.comm, &mpiStatus);
+        // Then receive from each process first a string length...
+        MPI_Recv(&strlen, 1, MPI_INT, srcRank, mpiTag, M.comm, &mpiStatus);
         strbuf.length = strlen;
-	// ...and then the char buffer.
-	MPI_Recv(strbuf.ptr, strlen, MPI_CHAR, srcRank, mpiTag, M.comm, &mpiStatus);
-	logString = to!string(strbuf[0..strlen]);
-	writeln(strip(logString));
+        // ...and then the char buffer.
+        MPI_Recv(strbuf.ptr, strlen, MPI_CHAR, srcRank, mpiTag, M.comm, &mpiStatus);
+        logString = to!string(strbuf[0..strlen]);
+        writeln(strip(logString));
       }
     }
     else {
@@ -526,7 +526,7 @@ debug {
     debug {
       import std.stdio;
       try {
-	writeLog!(vl, logRankFormat)(args);
+        writeLog!(vl, logRankFormat)(args);
       }
       catch (Exception e) {
       }

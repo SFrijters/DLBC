@@ -10,10 +10,10 @@
    Authors: Stefan Frijters
 
    Macros:
-	TR = <tr>$0</tr>
-	TH = <th>$0</th>
-	TD = <td>$0</td>
-	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
 module dlbc.fields.field;
@@ -139,16 +139,16 @@ struct Field(T, alias c, uint hs) {
 
     for(;;) {
       foreach_reverse(const plane, ref index; indices) {
-	if(++index < arr.lengths[plane] - haloSize)
-	  break;
-	else if(plane)
-	  index = haloSize;
-	else
-	  return 0;
+        if(++index < arr.lengths[plane] - haloSize)
+          break;
+        else if(plane)
+          index = haloSize;
+        else
+          return 0;
       }
 
       if(const res = dg(indices, arr._data[getOffset(indices)]))
-	return res;
+        return res;
     }
   }
 
@@ -162,16 +162,16 @@ struct Field(T, alias c, uint hs) {
 
     for(;;) {
       foreach_reverse(const plane, ref index; indices) {
-	if(++index < arr.lengths[plane] - haloSize)
-	  break;
-	else if(plane)
-	  index = haloSize;
-	else
-	  return 0;
+        if(++index < arr.lengths[plane] - haloSize)
+          break;
+        else if(plane)
+          index = haloSize;
+        else
+          return 0;
       }
 
       if(const res = dg(indices, arr._data[getOffset(indices)]))
-	return res;
+        return res;
     }
   }
 
@@ -185,16 +185,16 @@ struct Field(T, alias c, uint hs) {
 
     for(;;) {
       foreach_reverse(const plane, ref index; indices) {
-	if(++index < arr.lengths[plane] - haloSize)
-	  break;
-	else if(plane)
-	  index = haloSize;
-	else
-	  return 0;
+        if(++index < arr.lengths[plane] - haloSize)
+          break;
+        else if(plane)
+          index = haloSize;
+        else
+          return 0;
       }
 
       if(const res = dg(indices, arr._data[getOffset(indices)]))
-	return res;
+        return res;
     }
   }
 

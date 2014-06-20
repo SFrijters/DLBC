@@ -28,56 +28,56 @@ static immutable struct Connectivity(uint _d, uint _q) {
   static {
     static if ( _q > 0 ) {
       /**
-	 Type of a connecting vector.
+         Type of a connecting vector.
       */
       alias vel_t = ptrdiff_t[_d];
       /**
-	 Number of dimensions.
+         Number of dimensions.
       */
       enum uint d = _d;
       /// Ditto
       alias dimensions = d;
       /**
-	 Number of velocities.
+         Number of velocities.
       */
       enum uint q = _q;
       /**
-	 Array of velocity vectors.
+         Array of velocity vectors.
       */
       enum ptrdiff_t[d][q] velocities = generateVelocities!(d, q)();
       /**
-	 Array of indices which point to the velocity vector in the opposite direction.
+         Array of indices which point to the velocity vector in the opposite direction.
       */
       enum ptrdiff_t[q] bounce = generateBounce(generateVelocities!(d, q)());
       /**
-	 Weigths of the velocity vectors.
+         Weigths of the velocity vectors.
       */
       enum double[q] weights = generateWeights!(d, q)();
       /**
-	 Speed of sound.
+         Speed of sound.
       */
       enum double css = 1.0/3.0;
       /**
-	 Show information about the layout of the grid of processes.
+         Show information about the layout of the grid of processes.
       */
       void show(VL vl)() {
-	import std.math;
-	writeLog!(vl, LRF.Root)("Connectivity D%dQ%d:\n  velocities: %s\n  bounce: %s\n  weights: %s\n  speed of sound: %f", d, q, velocities, bounce, weights, sqrt(css));
+        import std.math;
+        writeLog!(vl, LRF.Root)("Connectivity D%dQ%d:\n  velocities: %s\n  bounce: %s\n  weights: %s\n  speed of sound: %f", d, q, velocities, bounce, weights, sqrt(css));
       }
     }
     else {
       /**
-	 Type of a connecting vector.
+         Type of a connecting vector.
       */
       alias vel_t = ptrdiff_t[_d];
       /**
-	 Number of dimensions.
+         Number of dimensions.
       */
       enum uint d = _d;
       /// Ditto
       alias dimensions = d;
       /**
-	 Number of velocities.
+         Number of velocities.
       */
       enum uint q = _q;
     }

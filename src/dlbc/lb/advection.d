@@ -10,10 +10,10 @@
    Authors: Stefan Frijters
 
    Macros:
-	TR = <tr>$0</tr>
-	TH = <th>$0</th>
-	TD = <td>$0</td>
-	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
 module dlbc.lb.advection;
@@ -51,15 +51,15 @@ void advectField(T, U)(ref T field, const ref U mask, ref T tempField) if ( isPo
       assert(pop.length == cv.length);
       foreach(immutable i, ref e; pop ) {
         conn.vel_t nb;
-	foreach(immutable j; Iota!(0, conn.d) ) {
-	  nb[j] = p[j] - cv[i][j];
-	}
-	if ( isBounceBack(mask[nb]) ) {
-	  e = field[p][conn.bounce[i]];
-	}
-	else {
-	  e = field[nb][i];
-      	}
+        foreach(immutable j; Iota!(0, conn.d) ) {
+          nb[j] = p[j] - cv[i][j];
+        }
+        if ( isBounceBack(mask[nb]) ) {
+          e = field[p][conn.bounce[i]];
+        }
+        else {
+          e = field[nb][i];
+        }
       }
     }
     else {

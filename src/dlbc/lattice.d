@@ -10,10 +10,10 @@
    Authors: Stefan Frijters
 
 Macros:
-	TR = <tr>$0</tr>
-	TH = <th>$0</th>
-	TD = <td>$0</td>
-	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
 module dlbc.lattice;
@@ -171,14 +171,14 @@ struct Lattice(uint dim) {
     import std.traits;
     foreach(e ; __traits(derivedMembers, Lattice)) {
       static if (isExchangeField!(e)) {
-	static if (isField!(typeof(mixin(e))) ) {
-	  mixin(e~".exchangeHalo!()();");
-	}
-	else {
-	  foreach(ref f; mixin(e) ) {
-	    f.exchangeHalo!()();
-	  }
-      	}
+        static if (isField!(typeof(mixin(e))) ) {
+          mixin(e~".exchangeHalo!()();");
+        }
+        else {
+          foreach(ref f; mixin(e) ) {
+            f.exchangeHalo!()();
+          }
+        }
       }
     }
   }

@@ -10,10 +10,10 @@
    Authors: Stefan Frijters
 
    Macros:
-	TR = <tr>$0</tr>
-	TH = <th>$0</th>
-	TD = <td>$0</td>
-	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
 module dlbc.lb.momentum;
@@ -104,7 +104,7 @@ unittest {
   mask.initConst(Mask.None);
 
   double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
-  		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
+                     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
 
   field.initConst(0.0);
   field[1,2,3] = pop1;
@@ -138,7 +138,7 @@ auto localMomentum(T, U)(const ref T field, const ref U mask) if ( isPopulationF
     if ( isFluid(mask[p]) ) {
       double[conn.d] pmomentum = pop.momentum!conn();
       foreach(immutable j; Iota!(0, conn.d) ) {
-	momentum[j] += pmomentum[j];
+        momentum[j] += pmomentum[j];
       }
     }
   }
@@ -152,7 +152,7 @@ unittest {
   auto mask = Field!(Mask, dimOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
   double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
-  		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
+                     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
   field.initConst(0.0);
   field[1,2,3] = pop1; // Inside the halo, this should not be counted!
   field[3,3,3] = pop1;
@@ -194,7 +194,7 @@ unittest {
   auto mask = Field!(Mask, dimOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
   double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
-  		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
+                     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
   field.initConst(0.0);
   field[1,2,3] = pop1; // Inside the halo, this should not be counted!
   field[3,3,3] = pop1;

@@ -11,10 +11,10 @@
    Authors: Stefan Frijters
 
    Macros:
-	TR = <tr>$0</tr>
-	TH = <th>$0</th>
-	TD = <td>$0</td>
-	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
 module dlbc.lb.collision;
@@ -56,13 +56,13 @@ void collideField(T, U, V)(ref T field, const ref U mask, const ref V force) if 
       immutable den = pop.density();
       //      Timers.collden.stop();
       foreach(immutable i; Iota!(0,conn.d) ) {
-	dv[i] = globalAcc[i] + force[p][i] / den;
+        dv[i] = globalAcc[i] + force[p][i] / den;
       }
       //      Timers.colleq.start();
       immutable eq = eqDist!conn(pop, dv);
       //      Timers.colleq.stop();
       foreach(immutable i; Iota!(0,conn.q) ) {
-	pop[i] -= omega * ( pop[i] - eq[i] );
+        pop[i] -= omega * ( pop[i] - eq[i] );
       }
     }
   }

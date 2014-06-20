@@ -10,10 +10,10 @@
    Authors: Stefan Frijters
 
    Macros:
-	TR = <tr>$0</tr>
-	TH = <th>$0</th>
-	TD = <td>$0</td>
-	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
 module dlbc.lb.force;
@@ -157,23 +157,23 @@ void addShanChenForce(T)(ref T L) if (isLattice!T) {
       if ( cc == 0.0 ) continue;
       foreach(immutable p, ref force ; L.force[nc1] ) {
         // Only do lattice sites on which collision will take place.
-	if ( isCollidable(L.mask[p]) ) {
-	  immutable psiden1 = psi(L.density[nc1][p]);
-	  foreach(immutable i; Iota!(0, conn.q) ) {
-	    conn.vel_t nb;
-	    // Todo: better array syntax.
-	    foreach(immutable j; Iota!(0, conn.d) ) {
-	      nb[j] = p[j] - cv[i][j];
-	    }
+        if ( isCollidable(L.mask[p]) ) {
+          immutable psiden1 = psi(L.density[nc1][p]);
+          foreach(immutable i; Iota!(0, conn.q) ) {
+            conn.vel_t nb;
+            // Todo: better array syntax.
+            foreach(immutable j; Iota!(0, conn.d) ) {
+              nb[j] = p[j] - cv[i][j];
+            }
             // Only do lattice sites that are not walls.
-	    immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi(L.density[nc2][p]) : psi(L.density[nc2][nb]));
-	    immutable prefactor = psiden1 * psiden2 * cc;
-	    // The SC force function.
-	    foreach(immutable j; Iota!(0, conn.d) ) {
-	      force[j] += prefactor * cv[i][j];
-	    }
-	  }
-	}
+            immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi(L.density[nc2][p]) : psi(L.density[nc2][nb]));
+            immutable prefactor = psiden1 * psiden2 * cc;
+            // The SC force function.
+            foreach(immutable j; Iota!(0, conn.d) ) {
+              force[j] += prefactor * cv[i][j];
+            }
+          }
+        }
       }
     }
 
@@ -183,21 +183,21 @@ void addShanChenForce(T)(ref T L) if (isLattice!T) {
     foreach(immutable p, ref force ; L.force[nc1] ) {
       // Only do lattice sites on which collision will take place.
       if ( isCollidable(L.mask[p]) ) {
-	immutable psiden1 = psi(L.density[nc1][p]);
-	foreach(immutable i; Iota!(0, conn.q) ) {
-	  conn.vel_t nb;
-	  // Todo: better array syntax.
-	  foreach(immutable j; Iota!(0, conn.d) ) {
-	    nb[j] = p[j] - cv[i][j];
-	  }
-	  if ( isBounceBack(L.mask[nb]) ) {
-	    immutable prefactor = psiden1 * L.density[nc1][nb] * wc;
-	    // The SC force function.
-	    foreach(immutable j; Iota!(0, conn.d) ) {
-	      force[j] += prefactor * cv[i][j];
-	    }
-	  }
-	}
+        immutable psiden1 = psi(L.density[nc1][p]);
+        foreach(immutable i; Iota!(0, conn.q) ) {
+          conn.vel_t nb;
+          // Todo: better array syntax.
+          foreach(immutable j; Iota!(0, conn.d) ) {
+            nb[j] = p[j] - cv[i][j];
+          }
+          if ( isBounceBack(L.mask[nb]) ) {
+            immutable prefactor = psiden1 * L.density[nc1][nb] * wc;
+            // The SC force function.
+            foreach(immutable j; Iota!(0, conn.d) ) {
+              force[j] += prefactor * cv[i][j];
+            }
+          }
+        }
       }
     }
   }

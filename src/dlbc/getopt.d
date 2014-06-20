@@ -13,10 +13,10 @@ License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - v
 Authors: Stefan Frijters
 
 Macros:
-	TR = <tr>$0</tr>
-	TH = <th>$0</th>
-	TD = <td>$0</td>
-	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
 module dlbc.getopt;
@@ -82,15 +82,15 @@ void processCLI(string[] args) {
 
   try {
     getopt( args,
-	    "h", &showHelp,
-	    "p|parameterfile", &parameterFileNames,
-	    "r|restore", &restoreString,
-	    "t|test", &testsToRun,
-	    "time", &showTime,
-	    "v|verbose", &verbosityLevel,
-	    "version", &showVersion,
-	    "W", &warningsAreFatal,
-	    );
+            "h", &showHelp,
+            "p|parameterfile", &parameterFileNames,
+            "r|restore", &restoreString,
+            "t|test", &testsToRun,
+            "time", &showTime,
+            "v|verbose", &verbosityLevel,
+            "version", &showVersion,
+            "W", &warningsAreFatal,
+            );
   }
   catch(GetOptException e) {
     import std.string;

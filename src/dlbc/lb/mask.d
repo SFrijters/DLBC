@@ -112,4 +112,3 @@ template isMaskField(T) {
   enum isMaskField = ( isField!T && is(T.type == Mask) );
 }
 
-

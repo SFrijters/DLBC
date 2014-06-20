@@ -14,7 +14,7 @@ void initRank(T)(ref T field) if ( isField!T ) {
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
-	c = M.rank;
+        c = M.rank;
       }
     }
     else {
@@ -27,7 +27,7 @@ void initConst(T, U)(ref T field, const U fill) if ( isField!T ) {
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
-	c = fill;
+        c = fill;
       }
     }
     else {
@@ -40,7 +40,7 @@ void initConstRandom(T)(ref T field, const double fill) if ( isField!T ) {
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
-	c = fill * uniform(0.0, 2.0, rng);
+        c = fill * uniform(0.0, 2.0, rng);
       }
     }
     else {
@@ -76,7 +76,7 @@ void initEqDistRandom(T)(ref T field, const double density) if ( isField!T ) {
 }
 
 void initEqDistSphere(T)(ref T field, const double density1, const double density2,
-				     const double initSphereRadius, const double[] initSphereOffset) if ( isField!T ) {
+                                     const double initSphereRadius, const double[] initSphereOffset) if ( isField!T ) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
   import std.math, std.conv, std.numeric;
   alias conn = field.conn;
@@ -102,7 +102,7 @@ void initEqDistSphere(T)(ref T field, const double density1, const double densit
 }
 
 void initEqDistSphereFrac(T)(ref T field, const double density1, const double density2,
-					 const double initSphereFrac, const double[] initSphereOffset) if ( isField!T ) {
+                                         const double initSphereFrac, const double[] initSphereOffset) if ( isField!T ) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range, dlbc.lattice;
   import std.math, std.conv, std.numeric;
   alias conn = field.conn;
@@ -145,5 +145,4 @@ void initEqDistWall(T, U)(ref T field, const double density, ref U mask) if ( is
     }
   }
 }
-
 

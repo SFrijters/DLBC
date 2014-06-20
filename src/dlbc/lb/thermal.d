@@ -10,10 +10,10 @@
    Authors: Stefan Frijters
 
    Macros:
-	TR = <tr>$0</tr>
-	TH = <th>$0</th>
-	TD = <td>$0</td>
-	TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
 module dlbc.lb.thermal;
@@ -65,13 +65,13 @@ private void initThermalWall(T, U)(ref T field, const double density1, const dou
 
       ptrdiff_t[field.dimensions] gn;
       foreach(immutable i; Iota!(0, field.dimensions) ) {
-	gn[i] = p[i] + M.c[i] * field.n[i] - field.haloSize;
+        gn[i] = p[i] + M.c[i] * field.n[i] - field.haloSize;
       }
       if ( gn[0]  < field.n[0] * M.nc[0] / 2 ) {
-	e = pop1;
+        e = pop1;
       }
       else {
-	e = pop2;
+        e = pop2;
       }
     }
     else {
@@ -98,13 +98,13 @@ void advectThermalField(T, U)(ref T field, const ref U mask, ref T tempField) if
     foreach(immutable i, ref e; pop ) {
       conn.vel_t nb;
       foreach(immutable j; Iota!(0, conn.d) ) {
-	nb[j] = p[j] - cv[i][j];
+        nb[j] = p[j] - cv[i][j];
       }
       if ( isAdvectable(mask[p]) || isAdvectable(mask[nb]) ) {
-	e = field[nb][i];
+        e = field[nb][i];
       }
       else {
-	e = field[p][i];
+        e = field[p][i];
       }
       localTemperature += e;
     }
@@ -129,7 +129,7 @@ void collideThermalField(T, U, V)(ref T field, const ref U mask, ref V fluidFiel
       immutable vel = fluidField[p].velocity!gconn();
       immutable eq = eqDist!conn(pop, vel);
       foreach(immutable i; Iota!(0,conn.q) ) {
-	pop[i] -= omega * ( pop[i] - eq[i] );
+        pop[i] -= omega * ( pop[i] - eq[i] );
       }
     }
   }
@@ -155,23 +155,23 @@ void addBuoyancyForce(T)(ref T L) if (isLattice!T) {
       if ( cc == 0.0 ) continue;
       foreach(immutable p, ref force ; L.force[nc1] ) {
         // Only do lattice sites on which collision will take place.
-	if ( isCollidable(L.mask[p]) ) {
-	  immutable psiden1 = psi(L.density[nc1][p]);
-	  foreach(immutable i; Iota!(0, conn.q) ) {
-	    conn.vel_t nb;
-	    // Todo: better array syntax.
-	    foreach(immutable j; Iota!(0, conn.d) ) {
-	      nb[j] = p[j] - cv[i][j];
-	    }
+        if ( isCollidable(L.mask[p]) ) {
+          immutable psiden1 = psi(L.density[nc1][p]);
+          foreach(immutable i; Iota!(0, conn.q) ) {
+            conn.vel_t nb;
+            // Todo: better array syntax.
+            foreach(immutable j; Iota!(0, conn.d) ) {
+              nb[j] = p[j] - cv[i][j];
+            }
             // Only do lattice sites that are not walls.
-	    immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi(L.density[nc2][p]) : psi(L.density[nc2][nb]));
-	    immutable prefactor = psiden1 * psiden2 * cc;
-	    // The SC force function.
-	    foreach(immutable j; Iota!(0, conn.d) ) {
-	      force[j] += prefactor * cv[i][j];
-	    }
-	  }
-	}
+            immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi(L.density[nc2][p]) : psi(L.density[nc2][nb]));
+            immutable prefactor = psiden1 * psiden2 * cc;
+            // The SC force function.
+            foreach(immutable j; Iota!(0, conn.d) ) {
+              force[j] += prefactor * cv[i][j];
+            }
+          }
+        }
       }
     }
 
@@ -181,21 +181,21 @@ void addBuoyancyForce(T)(ref T L) if (isLattice!T) {
     foreach(immutable p, ref force ; L.force[nc1] ) {
       // Only do lattice sites on which collision will take place.
       if ( isCollidable(L.mask[p]) ) {
-	immutable psiden1 = psi(L.density[nc1][p]);
-	foreach(immutable i; Iota!(0, conn.q) ) {
-	  conn.vel_t nb;
-	  // Todo: better array syntax.
-	  foreach(immutable j; Iota!(0, conn.d) ) {
-	    nb[j] = p[j] - cv[i][j];
-	  }
-	  if ( isBounceBack(L.mask[nb]) ) {
-	    immutable prefactor = psiden1 * L.density[nc1][nb] * wc;
-	    // The SC force function.
-	    foreach(immutable j; Iota!(0, conn.d) ) {
-	      force[j] += prefactor * cv[i][j];
-	    }
-	  }
-	}
+        immutable psiden1 = psi(L.density[nc1][p]);
+        foreach(immutable i; Iota!(0, conn.q) ) {
+          conn.vel_t nb;
+          // Todo: better array syntax.
+          foreach(immutable j; Iota!(0, conn.d) ) {
+            nb[j] = p[j] - cv[i][j];
+          }
+          if ( isBounceBack(L.mask[nb]) ) {
+            immutable prefactor = psiden1 * L.density[nc1][nb] * wc;
+            // The SC force function.
+            foreach(immutable j; Iota!(0, conn.d) ) {
+              force[j] += prefactor * cv[i][j];
+            }
+          }
+        }
       }
     }
   }
@@ -218,5 +218,4 @@ private auto eqDist(alias conn, T)(const ref T population, const double[conn.d] 
   }
   return dist;
 }
-
 
