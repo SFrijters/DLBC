@@ -137,13 +137,13 @@ else {
 }
 
 /**
-   For a connectivity DdQq returns the connectivity for DdQ1.
+   For a connectivity DdQq returns the connectivity for DdQ0.
 
    Params:
      conn = connectivity
 */
-template unconnectedOf(alias conn) {
-  alias unconnectedOf = Connectivity!(conn.d, 0);
+template dimOf(alias conn) {
+  alias dimOf = Connectivity!(conn.d, 0);
 }
 
 private auto generateBounce(T)(const T velocities) @safe pure nothrow {

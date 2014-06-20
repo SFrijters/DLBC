@@ -86,7 +86,7 @@ unittest {
 auto velocityField(T, U)(const ref T field, const ref U mask) if ( isField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   alias conn = field.conn;
-  auto velocity = Field!(double[conn.d], unconnectedOf!conn, field.haloSize)(field.lengths);
+  auto velocity = Field!(double[conn.d], dimOf!conn, field.haloSize)(field.lengths);
   assert(haveCompatibleLengthsH(field, mask, velocity));
 
   foreach(immutable p, pop; field.arr) {
@@ -107,7 +107,7 @@ void velocityField(T, U, V)(const ref T field, const ref U mask, ref V velocity)
   alias conn = field.conn;
   foreach(immutable p, pop; field.arr) {
     if ( isFluid(mask[p] ) ) {
-      velocity[p] = pop.velocity!(field.conn)();
+      velocity[p] = pop.velocity!conn();
     }
     else {
       velocity[p] = 0.0;
@@ -122,7 +122,7 @@ unittest {
 
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[gconn.q], gconn, 2)(lengths);
-  auto mask = Field!(Mask, unconnectedOf!gconn, 2)(lengths);
+  auto mask = Field!(Mask, dimOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
 
   double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
@@ -137,7 +137,7 @@ unittest {
   assert(isNaN(velocity1[0,1,3][1]));
   assert(isNaN(velocity1[0,1,3][2]));
 
-  auto velocity2 = Field!(double[gconn.d], gconn, 2)(lengths);
+  auto velocity2 = Field!(double[gconn.d], dimOf!gconn, 2)(lengths);
   velocityField(field, mask, velocity2);
   assert(velocity2[1,2,3] == [-0.2,-0.2, 0.2]);
   assert(isNaN(velocity2[0,1,3][0]));

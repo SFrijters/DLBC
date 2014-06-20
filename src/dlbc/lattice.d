@@ -91,15 +91,15 @@ struct Lattice(uint dim) {
   /**
      Mask field.
   */
-  @Exchange Field!(Mask, unconnectedOf!lbconn, 2) mask;
+  @Exchange Field!(Mask, dimOf!lbconn, 2) mask;
   /**
      Temporary fields to store densities.
   */
-  Field!(double, unconnectedOf!lbconn, 2)[] density;
+  Field!(double, dimOf!lbconn, 2)[] density;
   /**
      Force fields.
   */
-  Field!(double[lbconn.d], unconnectedOf!lbconn, 2)[] force;
+  Field!(double[lbconn.d], dimOf!lbconn, 2)[] force;
   /**
      Temporary field to store advected fluids.
   */

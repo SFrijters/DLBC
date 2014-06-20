@@ -238,7 +238,7 @@ template isMatchingField(T, U) {
 */
 template isMatchingScalarField(T, U) {
   import dlbc.range;
-  enum isMatchingScalarField = ( isField!T && isField!U && (T.d == U.d) && ( LengthOf!(T.type) == 1 ) );
+  enum isMatchingScalarField = ( isField!T && isField!U && (T.d == U.d) && (T.q == 0) && ( LengthOf!(T.type) == 1 ) );
 }
 
 /**
@@ -251,7 +251,7 @@ template isMatchingScalarField(T, U) {
 */
 template isMatchingVectorField(T, U) {
   import dlbc.range;
-  enum isMatchingVectorField = ( isField!T && isField!U && (T.d == U.d) && ( LengthOf!(T.type) == U.d ) );
+  enum isMatchingVectorField = ( isField!T && isField!U && (T.d == U.d) && (T.q == 0) && ( LengthOf!(T.type) == U.d ) );
 }
 
 /**

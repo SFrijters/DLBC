@@ -67,7 +67,7 @@ auto momentum(alias conn, T)(const ref T population) {
 auto momentumField(T, U)(const ref T field, const ref U mask) if ( isField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   alias conn = field.conn;
-  auto momentum = Field!(double[conn.d], unconnectedOf!conn, field.haloSize)(field.lengths);
+  auto momentum = Field!(double[conn.d], dimOf!conn, field.haloSize)(field.lengths);
   assert(haveCompatibleLengthsH(field, mask, momentum));
 
   foreach(immutable p, pop; field.arr) {
@@ -100,7 +100,7 @@ void momentumField(T, U, V)(const ref T field, const ref U mask, ref V momentum)
 unittest {
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[gconn.q], gconn, 2)(lengths);
-  auto mask = Field!(Mask, unconnectedOf!gconn, 2)(lengths);
+  auto mask = Field!(Mask, dimOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
 
   double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
@@ -113,7 +113,7 @@ unittest {
   assert(momentum1[1,2,3] == [-0.1,-0.1, 0.1]);
   assert(momentum1[0,1,3] == [0.0, 0.0, 0.0]);
 
-  auto momentum2 = Field!(double[gconn.d], gconn, 2)(lengths);
+  auto momentum2 = Field!(double[gconn.d], dimOf!gconn, 2)(lengths);
   momentumField(field, mask, momentum2);
   assert(momentum2[1,2,3] == [-0.1,-0.1, 0.1]);
   assert(momentum2[0,1,3] == [0.0, 0.0, 0.0]);
@@ -149,7 +149,7 @@ auto localMomentum(T, U)(const ref T field, const ref U mask) if ( isField!T && 
 unittest {
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[gconn.q], gconn, 2)(lengths);
-  auto mask = Field!(Mask, unconnectedOf!gconn, 2)(lengths);
+  auto mask = Field!(Mask, dimOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
   double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
   		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
@@ -191,7 +191,7 @@ unittest {
 
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[gconn.q], gconn, 2)(lengths);
-  auto mask = Field!(Mask, unconnectedOf!gconn, 2)(lengths);
+  auto mask = Field!(Mask, dimOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
   double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
   		     0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
