@@ -37,17 +37,17 @@ import dlbc.range;
    The lattice struct holds various fields, and information on the shape of these fields.
 
    Params:
-     conn = connectivity of the fluid fields
+     dim = dimensionality of the lattice
 */
-struct Lattice(alias conn) {
+struct Lattice(uint dim) {
 
   private enum Exchange;
 
-  enum uint dimensions = conn.d;
+  enum uint dimensions = dim;
 
   private {
-    size_t[conn.d] _lengths;
-    size_t[conn.d] _gn;
+    size_t[dim] _lengths;
+    size_t[dim] _gn;
     size_t _size = 1;
     size_t _gsize = 1;
   }
@@ -125,7 +125,7 @@ struct Lattice(alias conn) {
     }
 
     // Set the local sizes
-    foreach(immutable i; Iota!(0, conn.d) ) {
+    foreach(immutable i; Iota!(0, dimensions) ) {
       this._lengths[i] = to!int(gn[i] / M.nc[i]);
     }
 
@@ -195,7 +195,7 @@ struct Lattice(alias conn) {
    Template to check if a type is a lattice.
 */
 template isLattice(T) {
-  enum isLattice = is(T:Lattice!(Connectivity!(d,q)), uint d, uint q);
+  enum isLattice = is(T:Lattice!(dim), uint dim);
 }
 
 /**

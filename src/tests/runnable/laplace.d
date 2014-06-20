@@ -51,7 +51,7 @@ version(unittest) {
 	writeLogRN("Performing simulation with:\n    dlbc.lb.force.gcc = %s\n    dlbc.lb.init.sphereRadius = %f", dlbc.lb.force.gcc, dlbc.lb.init.sphereRadius);
 	initCommon();
 
-	auto L = Lattice!(gconn)(M);
+	auto L = Lattice!(gconn.d)(M);
 	timestep = 0;
 	initLattice(L);
 	L.calculateLaplace(volumeAverage);
