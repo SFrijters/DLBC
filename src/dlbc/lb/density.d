@@ -65,7 +65,7 @@ unittest {
    Returns:
      density field
 */
-auto densityField(T, U)(const ref T field, const ref U mask) if (isField!T && is(U.type == Mask) ) {
+auto densityField(T, U)(const ref T field, const ref U mask) if (isField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
 
   auto density = Field!(double, field.conn, field.haloSize)(field.lengths);
@@ -78,7 +78,7 @@ auto densityField(T, U)(const ref T field, const ref U mask) if (isField!T && is
 }
 
 /// Ditto
-void densityField(T, U, V)(const ref T field, const ref U mask, ref V density) if (isField!T && is(U.type == Mask) && isField!V ) {
+void densityField(T, U, V)(const ref T field, const ref U mask, ref V density) if (isField!T && isMaskField!U && isMatchingScalarField!(V,T) ) {
   static assert(haveCompatibleDims!(field, mask, density));
   assert(haveCompatibleLengthsH(field, mask, density));
 
@@ -125,7 +125,7 @@ unittest {
    Returns:
      total mass of the field on the local process
 */
-auto localMass(T, U)(const ref T field, const ref U mask) if (isField!T && is(U.type == Mask) ) {
+auto localMass(T, U)(const ref T field, const ref U mask) if (isField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   assert(haveCompatibleLengthsH(field, mask));
 
@@ -162,7 +162,7 @@ unittest {
    Returns:
      global mass of the field
 */
-auto globalMass(T, U)(const ref T field, const ref U mask) if (isField!T && is(U.type == Mask) ) {
+auto globalMass(T, U)(const ref T field, const ref U mask) if (isField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   assert(haveCompatibleLengthsH(field, mask));
 
@@ -199,7 +199,7 @@ unittest {
    Returns:
      average density of the field on the local process
 */
-auto localDensity(T, U)(const ref T field, const ref U mask) if (isField!T && is(U.type == Mask) ) {
+auto localDensity(T, U)(const ref T field, const ref U mask) if (isField!T && isMaskField!U ) {
   return localMass(field, mask) / field.size;
 }
 
@@ -226,7 +226,7 @@ unittest {
    Returns:
      global average density of the field
 */
-auto globalDensity(T, U)(const ref T field, const ref U mask) if (isField!T && is(U.type == Mask) ) {
+auto globalDensity(T, U)(const ref T field, const ref U mask) if (isField!T && isMaskField!U ) {
   import dlbc.parallel;
   return globalMass(field, mask) / ( field.size * M.size);
 }
@@ -258,7 +258,7 @@ unittest {
    Returns:
      colour field
 */
-auto colourField(T, U)(const ref T field1, const ref T field2, const ref U mask) if (isField!T && is(U.type == Mask) ) {
+auto colourField(T, U)(const ref T field1, const ref T field2, const ref U mask) if (isField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field1, field2, mask));
 
   auto colour = Field!(double, field1.conn, field1.haloSize)(field1.lengths);
@@ -276,7 +276,7 @@ auto colourField(T, U)(const ref T field1, const ref T field2, const ref U mask)
 }
 
 /// Ditto
-void colourField(T, U, V)(const ref T field1, const ref T field2, const ref U mask, ref V colour ) if (isField!T && is(U.type == Mask) && isField!V ) {
+void colourField(T, U, V)(const ref T field1, const ref T field2, const ref U mask, ref V colour ) if (isField!T && isMaskField!U && isMatchingScalarField!(V,T) ) {
   static assert(haveCompatibleDims!(field1, field2, mask, colour));
   assert(haveCompatibleLengthsH(field1, field2, mask, colour));
 

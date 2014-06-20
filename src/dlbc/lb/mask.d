@@ -21,7 +21,7 @@ enum Mask {
   Solid,
 }
 
-void initMask(T)(ref T mask) {
+void initMask(T)(ref T mask) if (isMaskField!T) {
   final switch(maskInit) {
   case(MaskInit.None):
     mask.initConst(Mask.None);
@@ -38,8 +38,7 @@ void initMask(T)(ref T mask) {
   }
 }
 
-void initTubeZ(T)(ref T field) {
-  static assert( is (T.type == Mask ) );
+void initTubeZ(T)(ref T field) if ( isMaskField!T ) {
   foreach(immutable p, ref e; field.arr) {
     ptrdiff_t[field.dimensions] gn;
     foreach(immutable i; Iota!(0, field.dimensions) ) {
@@ -54,9 +53,7 @@ void initTubeZ(T)(ref T field) {
   }
 }
 
-void initWallsX(T)(ref T field) {
-  static assert( is (T.type == Mask ) );
-
+void initWallsX(T)(ref T field) if ( isMaskField!T ) {
   foreach(immutable p, ref e; field.arr) {
     ptrdiff_t[field.dimensions] gn;
     foreach(immutable i; Iota!(0, field.dimensions) ) {
@@ -106,4 +103,13 @@ bool isCollidable(Mask bc) @safe pure nothrow {
     return false;
   }
 }
+
+/**
+   Template to check if a type is a mask.
+*/
+template isMaskField(T) {
+  import dlbc.fields.field;
+  enum isMaskField = ( isField!T && is(T.type == Mask) );
+}
+
 

@@ -38,7 +38,9 @@ import unstd.generictuple;
 struct Field(T, alias c, uint hs) {
   alias type = T;
   alias conn = c;
-  enum uint dimensions = conn.d;
+  enum uint d = conn.d;
+  alias dimensions = d;
+  enum uint q = conn.q;
   enum uint haloSize = hs;
 
   /**
@@ -209,19 +211,58 @@ struct Field(T, alias c, uint hs) {
 }
 
 /**
-   Template to check if a type is a field.
+   Template to check if a type is a Field.
 */
 template isField(T) {
   enum isField = is(T:Field!(U, Connectivity!(d,q), hs), U, uint d, uint q, uint hs);
 }
 
 /**
+   Template to check if two types are Fields and have the same dimension and connectivity.
+   Params:
+     T = type to check
+     U = field to check
+*/
+template isMatchingField(T, U) {
+  import dlbc.range;
+  enum isMatchingField = ( isField!T && isField!U && (T.d == U.d) && ( T.q == U.q ) );
+}
+
+/**
+   Template to check if two types are Fields and have the same dimension, and 
+   the first field has type length 1.
+
+   Params:
+     T = field to check
+     U = field to compare to
+*/
+template isMatchingScalarField(T, U) {
+  import dlbc.range;
+  enum isMatchingScalarField = ( isField!T && isField!U && (T.d == U.d) && ( LengthOf!(T.type) == 1 ) );
+}
+
+/**
+   Template to check if two types are Fields and have the same dimension,
+   and type length equal to the other field's dimensionality.
+
+   Params:
+     T = field to check
+     U = field to compare to
+*/
+template isMatchingVectorField(T, U) {
+  import dlbc.range;
+  enum isMatchingVectorField = ( isField!T && isField!U && (T.d == U.d) && ( LengthOf!(T.type) == U.d ) );
+}
+
+/**
    Checks if all arguments have the same (enum) dimensions.
    This is useful for some static asserts in functions that take
    fields as arguments.
+
+   Params:
+     T... = fields to check
 */
 template haveCompatibleDims(T...) {
-  // pragma(msg,T);
   static if ( T.length > 1 ) {
     static if ( T.length > 2 ) {
       enum haveCompatibleDims = haveCompatibleDims!(T[1..$]);

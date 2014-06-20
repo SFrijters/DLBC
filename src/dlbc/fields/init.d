@@ -10,7 +10,7 @@ import dlbc.range;
 
 import std.traits;
 
-void initRank(T)(ref T field) {
+void initRank(T)(ref T field) if ( isField!T ) {
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
@@ -23,7 +23,7 @@ void initRank(T)(ref T field) {
   }
 }
 
-void initConst(T, U)(ref T field, const U fill) {
+void initConst(T, U)(ref T field, const U fill) if ( isField!T ) {
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
@@ -36,7 +36,7 @@ void initConst(T, U)(ref T field, const U fill) {
   }
 }
 
-void initConstRandom(T)(ref T field, const double fill) {
+void initConstRandom(T)(ref T field, const double fill) if ( isField!T ) {
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
@@ -49,7 +49,7 @@ void initConstRandom(T)(ref T field, const double fill) {
   }
 }
 
-void initEqDist(T)(ref T field, const double density) {
+void initEqDist(T)(ref T field, const double density) if ( isField!T ) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
   alias conn = field.conn;
@@ -62,7 +62,7 @@ void initEqDist(T)(ref T field, const double density) {
   }
 }
 
-void initEqDistRandom(T)(ref T field, const double density) {
+void initEqDistRandom(T)(ref T field, const double density) if ( isField!T ) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
   alias conn = field.conn;
@@ -76,7 +76,7 @@ void initEqDistRandom(T)(ref T field, const double density) {
 }
 
 void initEqDistSphere(T)(ref T field, const double density1, const double density2,
-				     const double initSphereRadius, const double[] initSphereOffset) {
+				     const double initSphereRadius, const double[] initSphereOffset) if ( isField!T ) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
   import std.math, std.conv, std.numeric;
   alias conn = field.conn;
@@ -133,7 +133,7 @@ void initEqDistSphereFrac(T)(ref T field, const double density1, const double de
   }
 }
 
-void initEqDistWall(T, U)(ref T field, const double density, ref U mask) if ( isField!T && is(U.type == Mask ) ) {
+void initEqDistWall(T, U)(ref T field, const double density, ref U mask) if ( isField!T && isMaskField!U ) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
   import dlbc.lb.mask;
