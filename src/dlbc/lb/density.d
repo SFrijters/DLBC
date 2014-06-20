@@ -18,11 +18,11 @@
 
 module dlbc.lb.density;
 
+import dlbc.lb.connectivity;
 import dlbc.fields.field;
 import dlbc.lb.mask;
 
 version(unittest) {
-  import dlbc.lb.connectivity;
   import dlbc.fields.init;
   import dlbc.parallel;
   import std.math: approxEqual;
