@@ -240,7 +240,7 @@ void dumpData(T)(ref T L, uint t) {
 
   if (dumpNow(velocitiesFreq,t)) {
     foreach(immutable i, ref e; L.fluids) {
-      auto velocity = e.velocityField!gconn(L.mask);
+      auto velocity = e.velocityField(L.mask);
       velocity.dumpField("velocity-"~fieldNames[i], t);
     }
   }

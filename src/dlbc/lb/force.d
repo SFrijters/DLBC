@@ -62,9 +62,10 @@ double[][] gccm;
      L = lattice
      conn = connectivity
 */
-void initForce(alias conn, T)(ref T L) if ( isLattice!T ) {
+void initForce(T)(ref T L) if ( isLattice!T ) {
   import dlbc.parameters: checkArrayParameterLength;
   // Firstly, the acceleration vector is checked for length.
+  alias conn = L.lbconn;
   checkArrayParameterLength(globalAcc, "lb.force.globalAcc", conn.d);
 
   // If the Shan-Chen model is enabled, some more prep is needed.
@@ -137,9 +138,10 @@ void resetForce(T)(ref T L) {
 
    Todo: add unittest.
 */
-void addShanChenForce(alias conn, T)(ref T L) if (isLattice!T) {
+void addShanChenForce(T)(ref T L) if (isLattice!T) {
   if ( ! enableShanChen ) return;
   Timers.forceSC.start();
+  alias conn = L.lbconn;
   immutable cv = conn.velocities;
   immutable cw = conn.weights;
 

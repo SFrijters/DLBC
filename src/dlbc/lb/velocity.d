@@ -83,10 +83,10 @@ unittest {
    Returns:
      velocity field
 */
-auto velocityField(alias conn, T, U)(const ref T field, const ref U mask) if ( isField!T && is(U.type == Mask ) ) {
+auto velocityField(T, U)(const ref T field, const ref U mask) if ( isField!T && is(U.type == Mask ) ) {
   static assert(haveCompatibleDims!(field, mask));
-
-  auto velocity = Field!(double[conn.d], field.conn, field.haloSize)(field.lengths);
+  alias conn = field.conn;
+  auto velocity = Field!(double[conn.d], unconnectedOf!conn, field.haloSize)(field.lengths);
   assert(haveCompatibleLengthsH(field, mask, velocity));
 
   foreach(immutable p, pop; field.arr) {
@@ -101,13 +101,13 @@ auto velocityField(alias conn, T, U)(const ref T field, const ref U mask) if ( i
 }
 
 /// Ditto
-void velocityField(alias conn, T, U, V)(const ref T field, const ref U mask, ref V velocity) if ( isField!T && is(U.type == Mask ) && isField!V ) {
+void velocityField(T, U, V)(const ref T field, const ref U mask, ref V velocity) if ( isField!T && is(U.type == Mask ) && isField!V ) {
   static assert(haveCompatibleDims!(field, mask, velocity));
   assert(haveCompatibleLengthsH(field, mask, velocity));
-
+  alias conn = field.conn;
   foreach(immutable p, pop; field.arr) {
     if ( isFluid(mask[p] ) ) {
-      velocity[p] = pop.velocity!conn();
+      velocity[p] = pop.velocity!(field.conn)();
     }
     else {
       velocity[p] = 0.0;
@@ -131,14 +131,14 @@ unittest {
   field.initConst(0);
   field[1,2,3] = pop1;
 
-  auto velocity1 = velocityField!gconn(field, mask);
+  auto velocity1 = velocityField(field, mask);
   assert(velocity1[1,2,3] == [-0.2,-0.2, 0.2]);
   assert(isNaN(velocity1[0,1,3][0]));
   assert(isNaN(velocity1[0,1,3][1]));
   assert(isNaN(velocity1[0,1,3][2]));
 
   auto velocity2 = Field!(double[gconn.d], gconn, 2)(lengths);
-  velocityField!gconn(field, mask, velocity2);
+  velocityField(field, mask, velocity2);
   assert(velocity2[1,2,3] == [-0.2,-0.2, 0.2]);
   assert(isNaN(velocity2[0,1,3][0]));
   assert(isNaN(velocity2[0,1,3][1]));

@@ -60,8 +60,10 @@ enum FluidInit {
   EqDistSphereFrac,
 }
 
-void initFluid(alias conn, T)(ref T field, const size_t i) if ( isField!T ) {
+void initFluid(T)(ref T field, const size_t i) if ( isField!T ) {
   import dlbc.parameters: checkArrayParameterLength;
+
+  alias conn = field.conn;
 
   checkArrayParameterLength(fluidInit, "lb.init.fluidInit", components);
   checkArrayParameterLength(fluidDensity, "lb.init.fluidDensity", components);
@@ -75,19 +77,19 @@ void initFluid(alias conn, T)(ref T field, const size_t i) if ( isField!T ) {
     field.initConst(fluidDensity[i]);
     break;
   case(FluidInit.EqDist):
-    field.initEqDist!conn(fluidDensity[i]);
+    field.initEqDist(fluidDensity[i]);
     break;
   case(FluidInit.ConstRandom):
     field.initConstRandom(fluidDensity[i]);
     break;
   case(FluidInit.EqDistRandom):
-    field.initEqDistRandom!conn(fluidDensity[i]);
+    field.initEqDistRandom(fluidDensity[i]);
     break;
   case(FluidInit.EqDistSphere):
-    field.initEqDistSphere!conn(fluidDensity[i], fluidDensity2[i], sphereRadius, sphereOffset);
+    field.initEqDistSphere(fluidDensity[i], fluidDensity2[i], sphereRadius, sphereOffset);
     break;
   case(FluidInit.EqDistSphereFrac):
-    field.initEqDistSphereFrac!conn(fluidDensity[i], fluidDensity2[i], sphereRadius, sphereOffset);
+    field.initEqDistSphereFrac(fluidDensity[i], fluidDensity2[i], sphereRadius, sphereOffset);
     break;
   }
 }

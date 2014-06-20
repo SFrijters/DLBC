@@ -49,9 +49,10 @@ void initConstRandom(T)(ref T field, const double fill) {
   }
 }
 
-void initEqDist(alias conn, T)(ref T field, const double density) {
+void initEqDist(T)(ref T field, const double density) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
+  alias conn = field.conn;
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
   double[conn.d] dv = 0.0;
@@ -61,9 +62,10 @@ void initEqDist(alias conn, T)(ref T field, const double density) {
   }
 }
 
-void initEqDistRandom(alias conn, T)(ref T field, const double density) {
+void initEqDistRandom(T)(ref T field, const double density) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
+  alias conn = field.conn;
   double[conn.q] pop0;
   double[conn.d] dv = 0.0;
   foreach( ref e; field.byElementForward) {
@@ -73,10 +75,11 @@ void initEqDistRandom(alias conn, T)(ref T field, const double density) {
   }
 }
 
-void initEqDistSphere(alias conn, T)(ref T field, const double density1, const double density2,
+void initEqDistSphere(T)(ref T field, const double density1, const double density2,
 				     const double initSphereRadius, const double[] initSphereOffset) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
   import std.math, std.conv, std.numeric;
+  alias conn = field.conn;
   immutable r2 = initSphereRadius * initSphereRadius;
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
@@ -98,10 +101,11 @@ void initEqDistSphere(alias conn, T)(ref T field, const double density1, const d
   }
 }
 
-void initEqDistSphereFrac(alias conn, T)(ref T field, const double density1, const double density2,
-					 const double initSphereFrac, const double[] initSphereOffset) {
+void initEqDistSphereFrac(T)(ref T field, const double density1, const double density2,
+					 const double initSphereFrac, const double[] initSphereOffset) if ( isField!T ) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range, dlbc.lattice;
   import std.math, std.conv, std.numeric;
+  alias conn = field.conn;
   auto smallSize = gn[0];
   foreach(immutable i; 0..gn.length) {
     if ( gn[i] < smallSize ) {
@@ -129,12 +133,11 @@ void initEqDistSphereFrac(alias conn, T)(ref T field, const double density1, con
   }
 }
 
-void initEqDistWall(alias conn, T, U)(ref T field, const double density, ref U mask) {
-  static assert( is (U.type == Mask ) );
-
+void initEqDistWall(T, U)(ref T field, const double density, ref U mask) if ( isField!T && is(U.type == Mask ) ) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
   import dlbc.lb.mask;
+  alias conn = field.conn;
   foreach(immutable p, ref e; field.arr) {
     if ( mask[p] == Mask.Solid ) {
       e = 0.0;

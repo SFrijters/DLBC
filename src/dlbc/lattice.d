@@ -82,22 +82,24 @@ struct Lattice(uint dim) {
     return _gsize;
   }
 
+  alias lbconn = gconn;
+
   /**
      Fluid fields.
   */
-  @Exchange Field!(double[gconn.q], gconn, 2)[] fluids;
+  @Exchange Field!(double[lbconn.q], lbconn, 2)[] fluids;
   /**
      Mask field.
   */
-  @Exchange Field!(Mask, unconnectedOf!gconn, 2) mask;
+  @Exchange Field!(Mask, unconnectedOf!lbconn, 2) mask;
   /**
      Temporary fields to store densities.
   */
-  Field!(double, gconn, 2)[] density;
+  Field!(double, unconnectedOf!lbconn, 2)[] density;
   /**
      Force fields.
   */
-  Field!(double[gconn.d], gconn, 2)[] force;
+  Field!(double[lbconn.d], unconnectedOf!lbconn, 2)[] force;
   /**
      Temporary field to store advected fluids.
   */
@@ -206,7 +208,7 @@ template isLattice(T) {
      L = the lattice
 */
 void initLattice(T)(ref T L) if (isLattice!T) {
-  L.initForce!gconn();
+  L.initForce();
 
   if ( isRestoring() ) {
     L.readCheckpoint();
@@ -215,10 +217,10 @@ void initLattice(T)(ref T L) if (isLattice!T) {
   else {
     L.mask.initMask();
     foreach(immutable i, ref e; L.fluids) {
-      e.initFluid!gconn(i);
+      e.initFluid(i);
       // Coloured walls.
       import dlbc.fields.init: initEqDistWall;
-      e.initEqDistWall!gconn(1.0, L.mask);
+      e.initEqDistWall(1.0, L.mask);
     }
     L.initThermal();
     L.exchangeHalo();

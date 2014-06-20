@@ -64,10 +64,10 @@ auto momentum(alias conn, T)(const ref T population) {
    Returns:
      momentum field
 */
-auto momentumField(alias conn, T, U)(const ref T field, const ref U mask) if ( isField!T && is(U.type == Mask ) ) {
+auto momentumField(T, U)(const ref T field, const ref U mask) if ( isField!T && is(U.type == Mask ) ) {
   static assert(haveCompatibleDims!(field, mask));
-
-  auto momentum = Field!(double[conn.d], field.conn, field.haloSize)(field.lengths);
+  alias conn = field.conn;
+  auto momentum = Field!(double[conn.d], unconnectedOf!conn, field.haloSize)(field.lengths);
   assert(haveCompatibleLengthsH(field, mask, momentum));
 
   foreach(immutable p, pop; field.arr) {
@@ -82,10 +82,10 @@ auto momentumField(alias conn, T, U)(const ref T field, const ref U mask) if ( i
 }
 
 /// Ditto
-void momentumField(alias conn, T, U, V)(const ref T field, const ref U mask, ref V momentum) if ( isField!T && is (U.type == Mask ) && isField!V ) {
+void momentumField(T, U, V)(const ref T field, const ref U mask, ref V momentum) if ( isField!T && is (U.type == Mask ) && isField!V ) {
   static assert(haveCompatibleDims!(field, mask, momentum));
   assert(haveCompatibleLengthsH(field, mask, momentum));
-
+  alias conn = field.conn;
   foreach(immutable p, pop; field.arr) {
     if ( isFluid(mask[p]) ) {
       momentum[p] = pop.momentum!conn();
@@ -109,12 +109,12 @@ unittest {
   field.initConst(0.0);
   field[1,2,3] = pop1;
 
-  auto momentum1 = momentumField!gconn(field, mask);
+  auto momentum1 = momentumField(field, mask);
   assert(momentum1[1,2,3] == [-0.1,-0.1, 0.1]);
   assert(momentum1[0,1,3] == [0.0, 0.0, 0.0]);
 
   auto momentum2 = Field!(double[gconn.d], gconn, 2)(lengths);
-  momentumField!gconn(field, mask, momentum2);
+  momentumField(field, mask, momentum2);
   assert(momentum2[1,2,3] == [-0.1,-0.1, 0.1]);
   assert(momentum2[0,1,3] == [0.0, 0.0, 0.0]);
 }
@@ -129,10 +129,10 @@ unittest {
    Returns:
      total momentum of the field on the local process
 */
-auto localMomentum(alias conn, T, U)(const ref T field, const ref U mask) if ( isField!T && is(U.type == Mask ) ) {
+auto localMomentum(T, U)(const ref T field, const ref U mask) if ( isField!T && is(U.type == Mask ) ) {
   static assert(haveCompatibleDims!(field, mask));
   assert(haveCompatibleLengthsH(field, mask));
-
+  alias conn = field.conn;
   double[conn.d] momentum = 0.0;
   foreach(immutable p, pop; field) {
     if ( isFluid(mask[p]) ) {
@@ -157,7 +157,7 @@ unittest {
   field[1,2,3] = pop1; // Inside the halo, this should not be counted!
   field[3,3,3] = pop1;
 
-  auto momentum = localMomentum!gconn(field, mask);
+  auto momentum = localMomentum(field, mask);
   assert(momentum == [-0.1,-0.1, 0.1]);
 }
 
@@ -171,12 +171,12 @@ unittest {
    Returns:
      global momentum of the field
 */
-auto globalMomentum(alias conn, T, U)(const ref T field, const ref U mask) if ( isField!T && is(U.type == Mask ) ) {
+auto globalMomentum(T, U)(const ref T field, const ref U mask) if ( isField!T && is(U.type == Mask ) ) {
   static assert(haveCompatibleDims!(field, mask));
   assert(haveCompatibleLengthsH(field, mask));
-
+  alias conn = field.conn;
   import dlbc.parallel;
-  auto localMomentum = field.localMomentum!conn(mask);
+  auto localMomentum = field.localMomentum(mask);
   typeof(localMomentum) globalMomentum;
   MPI_Allreduce(&localMomentum, &globalMomentum, conn.d, MPI_DOUBLE, MPI_SUM, M.comm);
   return globalMomentum;
@@ -199,7 +199,7 @@ unittest {
   field[1,2,3] = pop1; // Inside the halo, this should not be counted!
   field[3,3,3] = pop1;
 
-  auto momentum = field.globalMomentum!gconn(mask);
+  auto momentum = field.globalMomentum(mask);
   assert(approxEqual(momentum[0], M.size * -0.1));
   assert(approxEqual(momentum[1], M.size * -0.1));
   assert(approxEqual(momentum[2], M.size *  0.1));

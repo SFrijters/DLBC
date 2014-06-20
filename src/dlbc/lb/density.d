@@ -206,7 +206,7 @@ auto localDensity(T, U)(const ref T field, const ref U mask) if (isField!T && is
 ///
 unittest {
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[gconn.q], gconn, 2)(lengths);
+  auto field = Field!(double[gconn.q], unconnectedOf!gconn, 2)(lengths);
   field.initConst(0.1);
   auto mask = Field!(Mask, unconnectedOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);
@@ -237,7 +237,7 @@ unittest {
   reorderMpi();
 
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[gconn.q], gconn, 2)(lengths);
+  auto field = Field!(double[gconn.q], unconnectedOf!gconn, 2)(lengths);
   field.initConst(0.1);
   auto mask = Field!(Mask, unconnectedOf!gconn, 2)(lengths);
   mask.initConst(Mask.None);

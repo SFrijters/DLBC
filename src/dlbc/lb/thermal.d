@@ -44,16 +44,15 @@ alias tconn = thermalConnOf!gconn;
 
 void initThermal(T)(ref T L) if (isLattice!T) {
   if ( ! enableThermal ) return;
-  initThermalWall!tconn(L.thermal, 3.0, 1.0, 1.0, L.mask);
+  initThermalWall(L.thermal, 3.0, 1.0, 1.0, L.mask);
 }
 
-private void initThermalWall(alias conn, T, U)(ref T field, const double density1, const double density2, const double density3, const ref U mask) {
-  static assert( is (U.type == Mask ) );
-
+private void initThermalWall(T, U)(ref T field, const double density1, const double density2, const double density3, const ref U mask) if ( isField!T && is(U.type == Mask ) ) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
   import dlbc.lb.mask;
 
+  alias conn = field.conn;
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
   double[conn.d] dv = 0.0;
@@ -81,13 +80,14 @@ private void initThermalWall(alias conn, T, U)(ref T field, const double density
   }
 }
 
-void advectThermalField(alias conn, T, U)(ref T field, const ref U mask, ref T tempField) if ( isField!T && is(U.type == Mask) ) {
+void advectThermalField(T, U)(ref T field, const ref U mask, ref T tempField) if ( isField!T && is(U.type == Mask) ) {
   if ( ! enableThermal ) return;
   import std.algorithm: swap;
   import dlbc.range: Iota;
-
   static assert(haveCompatibleDims!(field, mask, tempField));
   assert(haveCompatibleLengthsH(field, mask, tempField));
+
+  alias conn = field.conn;
 
   double localTemperature = 0.0;
 
@@ -115,10 +115,12 @@ void advectThermalField(alias conn, T, U)(ref T field, const ref U mask, ref T t
   writeLogRD("T = %f", globalTemperature / ( 128 *128));
 }
 
-void collideThermalField(alias conn, T, U, V)(ref T field, const ref U mask, ref V fluidField) if ( isField!T && is(U.type == Mask) && isField!V ) {
+void collideThermalField(T, U, V)(ref T field, const ref U mask, ref V fluidField) if ( isField!T && is(U.type == Mask) && isField!V ) {
   if ( ! enableThermal ) return;
-  static assert(haveCompatibleDims!(conn, field, mask, fluidField ));
+  static assert(haveCompatibleDims!(field, mask, fluidField ));
   assert(haveCompatibleLengthsH(field, mask, fluidField));
+
+  alias conn = field.conn;
 
   enum omega = 1.0;
   foreach(immutable p, ref pop; field) {
@@ -133,8 +135,10 @@ void collideThermalField(alias conn, T, U, V)(ref T field, const ref U mask, ref
   }
 }
 
-void addBuoyancyForce(alias conn, T)(ref T L) if (isLattice!T) {
+void addBuoyancyForce(T)(ref T L) if (isLattice!T) {
   if ( ! enableThermal ) return;
+
+  alias conn = L.lbconn;
   immutable cv = conn.velocities;
   immutable cw = conn.weights;
 
