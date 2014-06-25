@@ -129,6 +129,7 @@ void initSimulationId() {
    Give early warnings about problems with various paths that may be used later.
 */
 void checkPaths() {
+  if ( ! enableIO ) return;
   import dlbc.parallel: M;
   if (M.isRoot() ) {
     string[] paths = [ outputPath, outputPath~"/"~cpPath ];
