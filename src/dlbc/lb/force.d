@@ -210,7 +210,7 @@ void addShanChenForce(T)(ref T L) if (isLattice!T) {
 
    Returns: \(\Psi(\rho)\).
 */
-double psi(const double den) pure nothrow @safe {
+double psi(const double den) @safe pure nothrow {
   import std.math;
   return ( 1.0 - exp(-den) );
 }

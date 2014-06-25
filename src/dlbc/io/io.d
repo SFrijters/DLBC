@@ -277,7 +277,7 @@ void dumpData(T)(ref T L, uint t) {
      freq = dumping frequency
      t = current timestep
 */
-private bool dumpNow(uint freq, uint t) {
+private bool dumpNow(uint freq, uint t) @safe pure nothrow {
   return ( freq > 0 && ( t % freq == 0 ));
 }
 
