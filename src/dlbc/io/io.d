@@ -29,6 +29,10 @@ import dlbc.io.hdf5;
 import dlbc.timers;
 
 /**
+   Completely enable / disable IO.
+*/
+@("param") bool enableIO = true;
+/**
    Name of the simulation, to be used in file names for the output.
 */
 @("param") string simulationName;
@@ -212,7 +216,7 @@ void removeFile(const string fileName) {
      t = current timestep
 */
 void dumpData(T)(ref T L, uint t) {
-  if ( t < startOutput ) {
+  if ( ! enableIO || t < startOutput ) {
     return;
   }
 
