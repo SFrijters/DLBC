@@ -23,6 +23,7 @@ public import hdf5.hdf5;
 import std.string: toStringz;
 import std.traits;
 
+import dlbc.fields.field;
 import dlbc.io.checkpoint;
 import dlbc.io.io;
 import dlbc.lattice;
@@ -127,7 +128,7 @@ size_t hdf5Lengthof(T)() @property {
      time = current timestep
      isCheckpoint = whether this is checkpoint-related (different file name, write globals)
 */
-void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const bool isCheckpoint = false) {
+void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const bool isCheckpoint = false) if ( isField!T ) {
   hsize_t[] dimsg;
   hsize_t[] dimsl;
   hsize_t[] count;
@@ -136,11 +137,10 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
   hsize_t[] start;
   hsize_t[] arrstart;
 
-  auto type_id = hdf5Typeof!(T.type);
+  immutable type_id = hdf5Typeof!(T.type);
+  immutable typeLen = LengthOf!(T.type);
 
   auto dim = field.dimensions;
-
-  auto typeLen = LengthOf!(T.type);
 
   static if ( field.dimensions == 3 ) {
     if ( typeLen > 1 ) {
@@ -290,8 +290,7 @@ void dumpMetadata(const hid_t root_id) {
      fileNameString = name of the file to be read from
      isCheckpoint = whether this is checkpoint related (reads checkpoint globals)
 */
-void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isCheckpoint = false) {
-  auto dim = field.dimensions;
+void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isCheckpoint = false) if ( isField!T ) {
   hsize_t[] dimsg;
   hsize_t[] dimsl;
   hsize_t[] count;
@@ -300,9 +299,10 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
   hsize_t[] start;
   hsize_t[] arrstart;
 
-  alias type_id = hdf5Typeof!(T.type);
+  immutable type_id = hdf5Typeof!(T.type);
+  immutable typeLen = LengthOf!(T.type);
 
-  alias typeLen = LengthOf!(T.type);
+  auto dim = field.dimensions;
 
   static if ( field.dimensions == 3 ) {
     if ( typeLen > 1 ) {
@@ -493,7 +493,7 @@ void dumpInputFileAttributes(hid_t loc_id) {
 
   immutable(char)*[] stringz;
   stringz.length = inputFileData.length;
-  foreach(i, e; inputFileData) {
+  foreach(immutable i, e; inputFileData) {
     stringz[i] = e.toStringz();
   }
   type = H5Tcopy(H5T_C_S1);

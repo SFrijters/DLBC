@@ -20,6 +20,7 @@ module dlbc.io.io;
 
 import std.datetime;
 
+import dlbc.fields.field;
 import dlbc.lb.lb;
 import dlbc.lattice;
 import dlbc.logging;
@@ -141,6 +142,7 @@ void checkPaths() {
 
 /**
    Check whether a string represents a valid path: it should exist and be a directory.
+   This function should only be used by root.
 
    Params:
      path = path to check
@@ -216,7 +218,7 @@ void removeFile(const string fileName) {
      L = current lattice
      t = current timestep
 */
-void dumpData(T)(ref T L, uint t) {
+void dumpData(T)(ref T L, uint t)  if ( isLattice!T ) {
   if ( ! enableIO || t < startOutput ) {
     return;
   }
@@ -279,7 +281,7 @@ void dumpData(T)(ref T L, uint t) {
      t = current timestep
 */
 private bool dumpNow(uint freq, uint t) @safe pure nothrow {
-  return ( freq > 0 && ( t % freq == 0 ));
+  return ( freq > 0 && ( t % freq == 0 ) );
 }
 
 /**
@@ -292,7 +294,7 @@ private bool dumpNow(uint freq, uint t) @safe pure nothrow {
      name = name of the field, to be used in the file name
      time = current timestep
 */
-void dumpField(T)(ref T field, const string name, const uint time = 0) {
+void dumpField(T)(ref T field, const string name, const uint time = 0) if (isField!T) {
   Timers.io.start();
   final switch(outputFormat) {
   case FileFormat.Ascii:
@@ -313,7 +315,7 @@ void dumpField(T)(ref T field, const string name, const uint time = 0) {
      field = field to be read
      fileName = name of the file
 */
-void readField(T)(ref T field, const string fileName) {
+void readField(T)(ref T field, const string fileName) if (isField!T) {
   Timers.io.start();
   final switch(outputFormat) {
   case FileFormat.Ascii:
