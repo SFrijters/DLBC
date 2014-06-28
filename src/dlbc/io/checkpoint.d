@@ -26,6 +26,7 @@ import dlbc.io.io;
 import dlbc.lb.lb: fieldNames;
 import dlbc.logging;
 import dlbc.parallel;
+import dlbc.timers;
 import std.typecons;
 
 mixin(createImports());
@@ -69,6 +70,7 @@ private alias globalsSourceModules = TypeTuple!(
      t = current time step
 */
 void dumpCheckpoint(T)(ref T L, uint t) {
+  Timers.cpio.start();
   writeLogRN("Writing checkpoint for t = %d.", t);
   foreach(i, ref e; L.fluids) {
     e.dumpFieldHDF5("cp-"~fieldNames[i], t, true);
@@ -77,6 +79,7 @@ void dumpCheckpoint(T)(ref T L, uint t) {
   if ( enableThermal ) {
     L.thermal.dumpFieldHDF5("cp-thermal", t, true);
   }
+  Timers.cpio.stop();
 }
 
 /**
@@ -90,6 +93,7 @@ void dumpCheckpoint(T)(ref T L, uint t) {
 */
 void removeCheckpoint(T)(ref T L, int t) {
   if ( t < 0 ) return;
+  Timers.cpio.start();
   string fileName;
   writeLogRN("Removing checkpoint for t = %d.", t);
   foreach(i, ref e; L.fluids) {
@@ -98,6 +102,7 @@ void removeCheckpoint(T)(ref T L, int t) {
   }
   fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-mask", t);
   fileName.removeFile();
+  Timers.cpio.stop();
 }
 
 /**
@@ -111,6 +116,7 @@ void removeCheckpoint(T)(ref T L, int t) {
 */
 void readCheckpoint(T)(ref T L) {
   string fileName;
+  Timers.cpio.start();
   writeLogRI("The simulation will be restored from checkpoint `%s'.", restoreString);
   foreach(i, ref e; L.fluids) {
     fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-"~fieldNames[i], restoreString);
@@ -124,6 +130,7 @@ void readCheckpoint(T)(ref T L) {
   }
 
   writeLogRI("The simulation has been restored and will continue at the next timestep.");
+  Timers.cpio.stop();
 }
 
 
