@@ -23,6 +23,7 @@ module dlbc.getopt;
 
 import std.getopt;
 
+import dlbc.lb.connectivity: gconn;
 import dlbc.io.io: restoreString;
 import dlbc.logging;
 import dlbc.parameters: parameterFileNames;
@@ -33,7 +34,7 @@ import tests.test: testsToRun;
    Usage help text.
 */
 private auto usage = `
-DLBC (version %s): a parallel implementation of the lattice Boltzmann method
+DLBC (version %s, D%dQ%d): a parallel implementation of the lattice Boltzmann method
 for the simulation of fluid dynamics.
 
 Usage:
@@ -104,7 +105,7 @@ void processCLI(string[] args) {
   if ( showHelp ) {
     import std.stdio: writefln;
     import std.c.stdlib: exit;
-    writefln(usage, revisionDesc, args[0], verbosityLevel);
+    writefln(usage, revisionDesc, gconn.d, gconn.q, args[0], verbosityLevel);
     exit(0);
   }
 
