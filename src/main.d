@@ -15,8 +15,8 @@
      -r <name>          = restore a simulation from a checkpoint; name consists
                           of the name, time, and id of the simulation (e.g. if
                           the file names are of the form
-                          "cp-red-foobar-t00000060-20140527T135106.h5", name is
-                          "foobar-t00000060-20140527T135106")
+                          "cp-red-foobar-20140527T135106-t00000060.h5", name is
+                          "foobar-20140527T135106-t00000060")
      -t <name> | All    = run a specific test, or all tests  (only when compiled
                           with -unittest)
      --time             = show current time when logging messages
