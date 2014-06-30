@@ -1,3 +1,8 @@
+DMD=dmd
+LMPICH=/usr/local/stow/mpich-3.1/lib64
+LHDF5=/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/
+DFILES=src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d
+
 all: dlbc-dmd
 
 test: test-dmd
@@ -6,7 +11,11 @@ release: release-dmd
 
 revision: src/dlbc/revision.d
 
-d2q9: release-d2q9-dmd
+# test-d2q9: test-d2q9-dmd
+
+d2q9: dlbc-d2q9-dmd
+
+release-d2q9: release-d2q9-dmd
 
 doc: revision doc/*ddoc
 	cd doc/ ; rdmd bootDoc/generate.d ./../src --output=./html --bootdoc=.
@@ -15,25 +24,28 @@ src/dlbc/revision.d: .git/HEAD .git/index
 	./get-revision.sh > $@
 
 src/unstd/generictuple.o: src/unstd/generictuple.d
-	dmd src/unstd/generictuple.d -I./src -c -ofsrc/unstd/generictuple.o
+	${DMD} src/unstd/generictuple.d -I./src -c -ofsrc/unstd/generictuple.o
 
 src/unstd/multidimarray.o: src/unstd/generictuple.o src/unstd/multidimarray.d
-	dmd src/unstd/multidimarray.d -I./src -c -ofsrc/unstd/multidimarray.o
-
-dlbc-dmd: revision src/unstd/multidimarray.o
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d -ofdlbc -I./src -g -w -de
-
-release-dmd: revision src/unstd/multidimarray.o
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d -ofdlbc -I./src -g -w -dw -O -inline -noboundscheck -release
+	${DMD} src/unstd/multidimarray.d -I./src -c -ofsrc/unstd/multidimarray.o
 
 test-dmd: revision src/unstd/multidimarray.o
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d src/tests/runnable/*.d -ofdlbc -I./src -g -w -de -unittest -debug -cov
+	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} src/tests/runnable/*.d -ofdlbc -g -w -de -unittest -debug -cov
+
+dlbc-dmd: revision src/unstd/multidimarray.o
+	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc -g -w -de
+
+release-dmd: revision src/unstd/multidimarray.o
+	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc -g -w -dw -O -inline -noboundscheck -release
+
+# test-d2q9-dmd: revision src/unstd/multidimarray.o
+# 	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} src/tests/runnable/*.d -ofdlbc -g -w -de -unittest -debug -cov -version=D2Q9
+
+dlbc-d2q9-dmd: revision src/unstd/multidimarray.o
+	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc -g -w -de -version=D2Q9
 
 release-d2q9-dmd: revision src/unstd/multidimarray.o
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d src/tests/runnable/*.d -ofdlbc -I./src -g -w -dw -O -inline -noboundscheck -release -version=D2Q9
-
-test-d2q9-dmd: revision src/unstd/multidimarray.o
-	dmd -L-L/usr/local/stow/mpich-3.1/lib64 -L-lmpich -L-L/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/ -L-lhdf5 -L-ldl src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d src/tests/runnable/*.d -ofdlbc -I./src -g -w -de -debug -cov -version=D2Q9
+	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc -g -w -dw -O -inline -noboundscheck -release -version=D2Q9
 
 clean:
 	rm -f src/dlbc/revision.d
