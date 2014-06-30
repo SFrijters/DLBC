@@ -383,7 +383,10 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
   auto dxpl_id = H5Pcreate(H5P_DATASET_XFER);
   H5Pset_dxpl_mpio(dxpl_id, H5FD_mpio_xfer_t.H5FD_MPIO_COLLECTIVE);
 
-  H5Dread(dataset_id, type_id, memspace, filespace, dxpl_id, field.arr._data.ptr);
+  auto e = H5Dread(dataset_id, type_id, memspace, filespace, dxpl_id, field.arr._data.ptr);
+  if ( e != 0 ) {
+    writeLogF("Unable to open '%s'.", fileNameString);
+  }
 
   // Close all remaining handles.
   H5Sclose(filespace);
