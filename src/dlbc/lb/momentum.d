@@ -98,12 +98,12 @@ void momentumField(T, U, V)(const ref T field, const ref U mask, ref V momentum)
 
 ///
 unittest {
-  size_t[gconn.d] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[gconn.q], gconn, 2)(lengths);
+  size_t[d3q19.d] lengths = [ 4, 4 ,4 ];
+  auto field = Field!(double[d3q19.q], d3q19, 2)(lengths);
   auto mask = MaskFieldOf!(typeof(field))(lengths);
   mask.initConst(Mask.None);
 
-  double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
+  double[d3q19.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
                      0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
 
   field.initConst(0.0);
@@ -147,11 +147,11 @@ auto localMomentum(T, U)(const ref T field, const ref U mask) if ( isPopulationF
 
 ///
 unittest {
-  size_t[gconn.d] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[gconn.q], gconn, 2)(lengths);
+  size_t[d3q19.d] lengths = [ 4, 4 ,4 ];
+  auto field = Field!(double[d3q19.q], d3q19, 2)(lengths);
   auto mask = MaskFieldOf!(typeof(field))(lengths);
   mask.initConst(Mask.None);
-  double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
+  double[d3q19.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
                      0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
   field.initConst(0.0);
   field[1,2,3] = pop1; // Inside the halo, this should not be counted!
@@ -189,11 +189,11 @@ unittest {
 
   import dlbc.fields.init;
 
-  size_t[gconn.d] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[gconn.q], gconn, 2)(lengths);
+  size_t[d3q19.d] lengths = [ 4, 4 ,4 ];
+  auto field = Field!(double[d3q19.q], d3q19, 2)(lengths);
   auto mask = MaskFieldOf!(typeof(field))(lengths);
   mask.initConst(Mask.None);
-  double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
+  double[d3q19.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
                      0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
   field.initConst(0.0);
   field[1,2,3] = pop1; // Inside the halo, this should not be counted!

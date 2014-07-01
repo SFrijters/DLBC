@@ -58,17 +58,17 @@ auto velocity(alias conn, T)(const ref T population) {
 
 ///
 unittest {
-  double[gconn.q] pop = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+  double[d3q19.q] pop = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                      0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
   auto den = density(pop);
-  auto vel = velocity!gconn(pop);
+  auto vel = velocity!d3q19(pop);
   assert(vel == [1,1,0]);
 
   pop = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
                      0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
 
   den = density(pop);
-  vel = velocity!gconn(pop, den);
+  vel = velocity!d3q19(pop, den);
   assert(den == 0.5);
   assert(vel == [-0.2,-0.2,0.2]);
 }
@@ -120,12 +120,12 @@ unittest {
   import dlbc.fields.init;
   import std.math: isNaN;
 
-  size_t[gconn.d] lengths = [ 4, 4 ,4 ];
-  auto field = Field!(double[gconn.q], gconn, 2)(lengths);
+  size_t[d3q19.d] lengths = [ 4, 4 ,4 ];
+  auto field = Field!(double[d3q19.q], d3q19, 2)(lengths);
   auto mask = MaskFieldOf!(typeof(field))(lengths);
   mask.initConst(Mask.None);
 
-  double[gconn.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
+  double[d3q19.q] pop1 = [ 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
                      0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
 
   field.initConst(0);
