@@ -84,7 +84,7 @@ int main(string[] args ) {
   processCLI(args);
 
   // Any output before startMpi() has been called will be very spammy, so better avoid it.
-  startMpi(args);
+  startMpi(M, args);
 
   writeLogRN(makeHeaderString("Starting DLBC on %d CPUs.", M.size));
 
@@ -176,7 +176,7 @@ void initCommon() {
   checkPaths();
 
   // Make cartesian grid now that we have values ncx, ncy, ncz everywhere.
-  reorderMpi();
+  reorderMpi(M, nc);
 
   // Initialize random number generator.
   initRNG();

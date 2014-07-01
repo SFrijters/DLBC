@@ -34,30 +34,26 @@ import dlbc.lb.connectivity: gconn;
 @("param") bool showTopology;
 
 /**
-    Dimensionality of the MPI grid.
-*/
-private enum dim = gconn.d;
-
-/**
    Parameters related to MPI are nicely packed into a globally available struct.
 */
-MpiParams M;
+MpiParams!(gconn.d) M;
+
+private bool mpiHasStarted = false;
 
 /**
    Collection of parameters related to MPI.
 */
-struct MpiParams {
-
+struct MpiParams(uint d) {
+  enum dim = d;
   private {
     int _ver, _subver;
-    int[] _nc;
+    int[dim] _nc;
     int[dim] _c;
     int[2][dim] _nb;
     int _size;
     int _rank;
     MPI_Comm _comm;
     string _hostname;
-    bool _hasStarted = false;
   }
 
   /**
@@ -115,13 +111,6 @@ struct MpiParams {
   }
 
   /**
-     Keep track of whether MPI has been started yet.
-  */
-  @property const hasStarted() @safe pure nothrow {
-    return _hasStarted;
-  }
-
-  /**
      MPI version
   */
   @property const ver() @safe pure nothrow {
@@ -163,11 +152,11 @@ struct MpiParams {
     Params:
       args = command line arguments
 */
-void startMpi(const string[] args) {
+void startMpi(T)(ref T M, const string[] args) if ( isMpiParams!T ) {
   import std.conv, std.string, std.algorithm, std.array;
 
   // Only run once
-  if ( M.hasStarted ) {
+  if ( mpiHasStarted ) {
     return;
   }
 
@@ -195,37 +184,36 @@ void startMpi(const string[] args) {
   MPI_Get_processor_name( pname.ptr, &pnlen );
   M._hostname = to!string(pname[0..pnlen]);
 
-  M._hasStarted = true;
+  mpiHasStarted = true;
   writeLogRN("\nInitialized MPI v%d.%d on %d CPUs.", M.ver, M.subver, M.size);
 }
 
 /**
    Reorders MPI to use a cartesian grid based on the suggestion parallel.nc.
 */
-void reorderMpi() {
+void reorderMpi(T)(ref T M, int[] nc) if ( isMpiParams!T ) {
   import dlbc.parameters: checkArrayParameterLength;
   import dlbc.range: Iota;
   int rank, size;
-  int[] dims;
-  int[dim] periodic = true;
-  int[dim] pos;
+  int[M.dim] dims;
+  int[M.dim] periodic = true;
+  int[M.dim] pos;
   int reorder = true;
   int srcRank, destRank;
   MPI_Comm comm;
 
-  checkArrayParameterLength(nc, "parallel.nc", dim);
+  checkArrayParameterLength(nc, "parallel.nc", M.dim);
 
   writeLogRD("Creating MPI dims from suggestion %s.", makeLengthsString(dims));
 
   // Create cartesian grid of dimensions 'dims'
-  dims.length = dim;
-  MPI_Dims_create(M.size, dim, dims.ptr);
+  MPI_Dims_create(M.size, M.dim, dims.ptr);
   M._nc = dims;
 
   writeLogRN("Reordering MPI communicator to form a %s grid.", makeLengthsString(M.nc));
 
   // Create a new communicator with the grid
-  MPI_Cart_create(M.comm, dim, dims.ptr, periodic.ptr, reorder, &comm);
+  MPI_Cart_create(M.comm, M.dim, dims.ptr, periodic.ptr, reorder, &comm);
   M._comm = comm;
 
   // Recalculate rank (size shouldn't change)
@@ -236,11 +224,11 @@ void reorderMpi() {
   M._size = size;
 
   // Get position in the cartesian grid
-  MPI_Cart_get(M.comm, dim, dims.ptr, periodic.ptr, pos.ptr);
+  MPI_Cart_get(M.comm, M.dim, dims.ptr, periodic.ptr, pos.ptr);
   M._c = pos;
 
   // Calculate nearest neighbours
-  foreach(immutable i; Iota!(0, dim) ) {
+  foreach(immutable i; Iota!(0, M.dim) ) {
     MPI_Cart_shift(M.comm, i, 1, &srcRank, &destRank);
     M._nb[i][0] = srcRank;
     M._nb[i][1] = destRank;
@@ -338,6 +326,12 @@ void MpiBcastString(ref string str) {
   }
 }
 
+/**
+   Broadcast any parameter over MPI.
+
+   Params:
+     parameter = parameter to be broadcast
+*/
 void broadcastParameter(T)(ref T parameter) {
   import std.traits;
   import std.conv: to;
@@ -365,3 +359,12 @@ void broadcastParameter(T)(ref T parameter) {
   }
 }
 
+/**
+   Template to check if a type is MpiParams.
+
+   Params:
+     T = type to check
+*/
+template isMpiParams(T) {
+  enum isMpiParams = is(T == MpiParams!d, uint d);
+}

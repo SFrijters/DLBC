@@ -87,8 +87,8 @@ unittest {
   import dlbc.parallel;
   import dlbc.fields.parallel;
 
-  startMpi([]);
-  reorderMpi();
+  startMpi(M, []);
+  reorderMpi(M, nc);
 
   if ( M.size == 8 ) {
     size_t[d3q19.d] lengths = [ 16, 16 ,16 ];

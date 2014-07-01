@@ -48,8 +48,8 @@ struct Lattice(uint dim) {
   private {
     size_t[dim] _lengths;
     size_t[dim] _gn;
-    string[dim] _fieldNames;
-    MpiParams _M;
+    string[] _fieldNames;
+    MpiParams!dim _M;
     size_t _size = 1;
     size_t _gsize = 1;
   }
@@ -62,21 +62,24 @@ struct Lattice(uint dim) {
   }
   /// Ditto
   alias n = lengths;
-
   /**
      Vector containing the size of the global lattice
   */
   @property const gn() @safe pure nothrow {
     return _gn;
   }
-
+  /**
+     Names of the fluid fields.
+  */
+  @property const fieldNames() @safe pure nothrow {
+    return _fieldNames;
+  }
   /**
      Number of physical sites of the local lattice.
   */
   @property const size() @safe pure nothrow {
     return _size;
   }
-
   /**
      Number of physical sites of the local lattice.
   */
@@ -84,12 +87,6 @@ struct Lattice(uint dim) {
     return _gsize;
   }
 
-  /**
-     Names of the fluid fields.
-  */
-  @property const fieldNames() @safe pure nothrow {
-    return _fieldNames;
-  }
 
   /**
      Parallelization properties.
@@ -139,7 +136,7 @@ struct Lattice(uint dim) {
        fieldNames = names of the fluid fields
        M = MPI parameters
   */
-  this ( size_t[] gn, uint components, string[] fieldNames, MpiParams M ) {
+  this (T)( size_t[] gn, uint components, string[] fieldNames, T M ) if ( isMpiParams!T ) {
     import dlbc.parameters: checkArrayParameterLength;
     import std.conv: to;
 

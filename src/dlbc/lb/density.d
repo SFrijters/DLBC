@@ -177,8 +177,8 @@ auto globalMass(T, U)(const ref T field, const ref U mask) if (isPopulationField
 
 ///
 unittest {
-  startMpi([]);
-  reorderMpi();
+  startMpi(M, []);
+  reorderMpi(M, nc);
 
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[gconn.q], gconn, 2)(lengths);
@@ -235,8 +235,8 @@ auto globalDensity(T, U)(const ref T field, const ref U mask) if (isPopulationFi
 
 ///
 unittest {
-  startMpi([]);
-  reorderMpi();
+  startMpi(M, []);
+  reorderMpi(M, nc);
 
   size_t[gconn.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[gconn.q], gconn, 2)(lengths);

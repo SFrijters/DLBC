@@ -184,8 +184,8 @@ auto globalMomentum(T, U)(const ref T field, const ref U mask) if ( isPopulation
 
 ///
 unittest {
-  startMpi([]);
-  reorderMpi();
+  startMpi(M, []);
+  reorderMpi(M, nc);
 
   import dlbc.fields.init;
 
