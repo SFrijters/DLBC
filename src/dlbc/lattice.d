@@ -48,6 +48,8 @@ struct Lattice(uint dim) {
   private {
     size_t[dim] _lengths;
     size_t[dim] _gn;
+    string[dim] _fieldNames;
+    MpiParams _M;
     size_t _size = 1;
     size_t _gsize = 1;
   }
@@ -55,7 +57,7 @@ struct Lattice(uint dim) {
   /**
      Size of the local lattice.
   */
-  @property const lengths() {
+  @property const lengths() @safe pure nothrow {
     return _lengths;
   }
   /// Ditto
@@ -64,24 +66,38 @@ struct Lattice(uint dim) {
   /**
      Vector containing the size of the global lattice
   */
-  @property const gn() {
+  @property const gn() @safe pure nothrow {
     return _gn;
   }
 
   /**
      Number of physical sites of the local lattice.
   */
-  @property const size() {
+  @property const size() @safe pure nothrow {
     return _size;
   }
 
   /**
      Number of physical sites of the local lattice.
   */
-  @property const gsize() {
+  @property const gsize() @safe pure nothrow {
     return _gsize;
   }
 
+  /**
+     Names of the fluid fields.
+  */
+  @property const fieldNames() @safe pure nothrow {
+    return _fieldNames;
+  }
+
+  /**
+     Parallelization properties.
+  */
+  @property const M() @safe pure nothrow {
+    return _M;
+  }
+ 
   alias lbconn = gconn;
 
   /**
@@ -116,15 +132,23 @@ struct Lattice(uint dim) {
   /**
      The constructor will verify that the local lattices can be set up correctly
      with respect to the parallel decomposition, and allocate the fields.
+
+     Params:
+       gn = global size of the lattice
+       components = number of fluid components
+       fieldNames = names of the fluid fields
+       M = MPI parameters
   */
-  this ( MpiParams M ) {
+  this ( size_t[] gn, uint components, string[] fieldNames, MpiParams M ) {
     import dlbc.parameters: checkArrayParameterLength;
     import std.conv: to;
 
-    checkArrayParameterLength(.gn, "lattice.gn", dimensions, true);
+    checkArrayParameterLength(gn, "lattice.gn", dimensions, true);
     checkArrayParameterLength(fieldNames, "lb.fieldNames", components, true);
 
-    _gn = .gn;
+    _gn = gn;
+    _fieldNames = fieldNames;
+    _M = M;
 
     // Check if we can reconcile global lattice size with CPU grid
     if (! canDivide(gn, M.nc) ) {
@@ -154,6 +178,7 @@ struct Lattice(uint dim) {
     mask = typeof(mask)(lengths);
     advection = typeof(advection)(lengths);
 
+    // Global boolean
     if ( enableThermal ) {
       thermal = typeof(thermal)(lengths);
       advThermal = typeof(advThermal)(lengths);
