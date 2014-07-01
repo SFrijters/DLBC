@@ -41,7 +41,7 @@ import unstd.multidimarray;
 
    Todo: add unittest
 */
-void exchangeHalo(T)(ref T field , uint haloSize) if (isField!T) {
+void exchangeHalo(T, U)(ref T field, ref U M, uint haloSize) if ( isField!T && isMpiParams!U ) {
   import std.conv: to;
 
   if ( ! field.canExchange() ) return;
@@ -135,6 +135,11 @@ void exchangeHalo(T)(ref T field , uint haloSize) if (isField!T) {
 }
 
 /// Ditto
+void exchangeHalo(T)(ref T field, uint haloSize) if (isField!T) {
+  field.exchangeHalo(.M, field.haloSize);
+}
+
+/// Ditto
 void exchangeHalo(T)(ref T field) if (isField!T) {
   field.exchangeHalo(field.haloSize);
 }
@@ -152,4 +157,5 @@ private bool canExchange(T)(ref T field) @safe pure nothrow {
   }
   return true;
 }
+
 
