@@ -124,7 +124,7 @@ else {
 private VL squelchedGlobalVL;
 private bool isSquelched = false;
 
-void squelchLog() {
+void squelchLog() @safe nothrow {
   if ( ! isSquelched ) {
     squelchedGlobalVL = globalVerbosityLevel;
     globalVerbosityLevel = VL.Off;
@@ -132,7 +132,7 @@ void squelchLog() {
   }
 }
 
-void unsquelchLog() {
+void unsquelchLog() @safe nothrow {
   globalVerbosityLevel = squelchedGlobalVL;
 }
 
@@ -142,7 +142,7 @@ void unsquelchLog() {
    Params:
      newVL = new verbosity level
 */
-void setGlobalVerbosityLevel(const VL newVL) {
+void setGlobalVerbosityLevel(const VL newVL) @safe nothrow {
   globalVerbosityLevel = newVL;
 }
 
@@ -151,7 +151,7 @@ void setGlobalVerbosityLevel(const VL newVL) {
 
    Returns: the current global verbosity level
 */
-VL getGlobalVerbosityLevel() {
+VL getGlobalVerbosityLevel() @safe nothrow {
   return globalVerbosityLevel;
 }
 
@@ -414,7 +414,7 @@ private string makeLogString(VL vl, LRF logRankFormat, T...)(T args) {
 
    Returns: a string prefix containing the current process rank, if applicable.
 */
-private string makeRankString(LogRankFormat logRankFormat)() {
+private string makeRankString(LogRankFormat logRankFormat)() @safe {
   final switch(logRankFormat) {
   case LRF.None:
     return "";
@@ -484,7 +484,7 @@ string makeHeaderString(T...)(const T args) pure {
 
    Returns: a string with the values in $(D lengths) separated by "x" to denote grid size.
 */
-string makeLengthsString(T : size_t)(const T[] lengths) pure {
+string makeLengthsString(T : size_t)(const T[] lengths) @safe pure {
   string str;
   foreach( l ; lengths ) {
     if ( str.length > 0 ) {

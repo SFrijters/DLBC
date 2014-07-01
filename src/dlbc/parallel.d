@@ -68,77 +68,77 @@ struct MpiParams {
   /**
      Total number of processes.
   */
-  @property const size() {
+  @property const size() @safe pure nothrow {
     return _size;
   }
 
   /**
      Vector containing the number of processes in each cardinal direction.
   */
-  @property const nc() {
+  @property const nc() @safe pure nothrow {
     return _nc;
   }
 
   /**
      Vector containing the ranks of neighbour processes in each cardinal direction.
   */
-  @property const nb() {
+  @property const nb() @safe pure nothrow {
     return _nb;
   }
 
   /**
      Vector containing the coordinates of the process.
   */
-  @property const c() {
+  @property const c() @safe pure nothrow {
     return _c;
   }
 
   /**
      Rank of the process.
   */
-  @property const rank() {
+  @property const rank() @safe pure nothrow {
     return _rank;
   }
 
   /**
      MPI Communicator.
   */
-  @property const comm() {
+  @property const comm() @safe pure nothrow {
     return _comm;
   }
 
   /**
      Hostname of the host on which the process resides.
   */
-  @property const hostname() {
+  @property const hostname() @safe pure nothrow {
     return _hostname;
   }
 
   /**
      Keep track of whether MPI has been started yet.
   */
-  @property const hasStarted() {
+  @property const hasStarted() @safe pure nothrow {
     return _hasStarted;
   }
 
   /**
      MPI version
   */
-  @property const ver() {
+  @property const ver() @safe pure nothrow {
     return _ver;
   }
 
   /**
      MPI subversion
   */
-  @property const subver() {
+  @property const subver() @safe pure nothrow {
     return _subver;
   }
 
   /**
      Returns whether the current process is the root process.
   */
-  @property bool isRoot() {
+  @property bool isRoot() @safe pure nothrow {
     return ( rank == root );
   }
 
