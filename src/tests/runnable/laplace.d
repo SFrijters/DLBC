@@ -51,7 +51,9 @@ version(unittest) {
         writeLogRN("Performing simulation with:\n    dlbc.lb.force.gcc = %s\n    dlbc.lb.init.sphereRadius = %f", dlbc.lb.force.gcc, dlbc.lb.init.sphereRadius);
         initCommon();
 
-        auto L = Lattice!(gconn.d)(gn, components, fieldNames, M);
+        MpiParams!(d3q19.d) M;
+        reorderMpi(M, nc);
+        auto L = Lattice!(d3q19)(gn, components, fieldNames, M);
         timestep = 0;
         initLattice(L);
         L.calculateLaplace(volumeAverage);
@@ -92,8 +94,8 @@ version(unittest) {
     double measuredR = pow(rpow3, 1.0/3.0);
     //writeLogRD("%f %f %f", effMass, rpow3, measuredR);
 
-    auto inPres = pressure!gconn(inDen);
-    auto outPres = pressure!gconn(outDen);
+    auto inPres = pressure!d3q19(inDen);
+    auto outPres = pressure!d3q19(outDen);
 
     double sigma = measuredR * ( inPres - outPres ) / 2;
 

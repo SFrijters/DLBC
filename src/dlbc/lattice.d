@@ -39,17 +39,18 @@ import dlbc.range;
    Params:
      dim = dimensionality of the lattice
 */
-struct Lattice(uint dim) {
+struct Lattice(alias conn) {
 
   private enum Exchange;
 
-  enum uint dimensions = dim;
+  alias lbconn = conn;
+  enum uint dimensions = conn.d;
 
   private {
-    size_t[dim] _lengths;
-    size_t[dim] _gn;
+    size_t[conn.d] _lengths;
+    size_t[conn.d] _gn;
     string[] _fieldNames;
-    MpiParams!dim _M;
+    MpiParams!(conn.d) _M;
     size_t _size = 1;
     size_t _gsize = 1;
   }
@@ -94,8 +95,6 @@ struct Lattice(uint dim) {
   @property const M() @safe pure nothrow {
     return _M;
   }
- 
-  alias lbconn = gconn;
 
   /**
      Fluid fields.
@@ -224,7 +223,7 @@ struct Lattice(uint dim) {
    Template to check if a type is a lattice.
 */
 template isLattice(T) {
-  enum isLattice = is(T:Lattice!(dim), uint dim);
+  enum isLattice = is(T:Lattice!(Connectivity!(d,q)), uint d, uint q);
 }
 
 /**
