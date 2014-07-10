@@ -1,7 +1,7 @@
 DMD=dmd
 LMPICH=/usr/local/stow/mpich-3.1/lib64
 LHDF5=/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/
-DFILES=src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/multidimarray.o src/unstd/generictuple.o src/tests/*.d
+DFILES=src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/unstd.o src/tests/*.d
 
 all: dlbc-dmd
 
@@ -23,28 +23,25 @@ doc: revision doc/*ddoc
 src/dlbc/revision.d: .git/HEAD .git/index
 	./get-revision.sh > $@
 
-src/unstd/generictuple.o: src/unstd/generictuple.d
-	${DMD} src/unstd/generictuple.d -I./src -c -ofsrc/unstd/generictuple.o
+unstd:
+	${DMD} src/unstd/*.d src/unstd/c/*.d src/unstd/memory/*.d -I/.src -c -ofsrc/unstd/unstd.o
 
-src/unstd/multidimarray.o: src/unstd/generictuple.o src/unstd/multidimarray.d
-	${DMD} src/unstd/multidimarray.d -I./src -c -ofsrc/unstd/multidimarray.o
-
-test-dmd: revision src/unstd/multidimarray.o
+test-dmd: revision unstd
 	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} src/tests/runnable/*.d -ofdlbc -g -w -de -unittest -debug -cov
 
-dlbc-dmd: revision src/unstd/multidimarray.o
+dlbc-dmd: revision unstd
 	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc -g -w -de
 
-release-dmd: revision src/unstd/multidimarray.o
+release-dmd: revision unstd
 	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc -g -w -dw -O -inline -noboundscheck -release
 
 # test-d2q9-dmd: revision src/unstd/multidimarray.o
 # 	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} src/tests/runnable/*.d -ofdlbc -g -w -de -unittest -debug -cov -version=D2Q9
 
-dlbc-d2q9-dmd: revision src/unstd/multidimarray.o
+dlbc-d2q9-dmd: revision unstd
 	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc -g -w -de -version=D2Q9
 
-release-d2q9-dmd: revision src/unstd/multidimarray.o
+release-d2q9-dmd: revision unstd
 	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc -g -w -dw -O -inline -noboundscheck -release -version=D2Q9
 
 clean:
