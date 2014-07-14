@@ -1,11 +1,18 @@
 module dlbc.elec.init;
 
-@("param") ElecQInit elecQInit;
+@("param") ElecQInit qInit;
 
-@("param") ElecDielInit elecDielInit;
+@("param") double qWall;
+@("param") double saltConc;
+
+@("param") ElecDielInit dielInit;
+
+@("param") double dielUniform;
 
 import dlbc.elec.elec;
+import dlbc.fields.field;
 import dlbc.fields.init;
+import dlbc.lb.mask;
 import dlbc.lattice;
 import dlbc.logging;
 
@@ -17,6 +24,11 @@ enum ElecQInit {
      No-op, use this only when a routine other than initElec takes care of things.
   */
   None,
+  /**
+     Distribute total charge $(D qWall) evenly over wall sites, and distribute an opposite
+     charge evenly over fluid sites, with an additional salt concentration $(D saltConc).
+  */
+  Uniform,
 }
 
 /**
@@ -27,6 +39,10 @@ enum ElecDielInit {
      No-op, use this only when a routine other than initElec takes care of things.
   */
   None,
+  /**
+     Uniform dielectric constant $(D dielUniform) everywhere.
+  */
+  Uniform,
 }
 
 void initElec(T)(ref T L) if ( isLattice!T ) {
@@ -36,28 +52,36 @@ void initElec(T)(ref T L) if ( isLattice!T ) {
 
   L.elPot.initConst(0);
   L.elField.initConst(0);
+  L.elDiel.initDielElec();
 
-  // final switch(fluidInit[i]) {
-  // case(FluidInit.None):
-  //   break;
-  // case(FluidInit.Const):
-  //   field.initConst(fluidDensity[i]);
-  //   break;
-  // case(FluidInit.EqDist):
-  //   field.initEqDist(fluidDensity[i]);
-  //   break;
-  // case(FluidInit.ConstRandom):
-  //   field.initConstRandom(fluidDensity[i]);
-  //   break;
-  // case(FluidInit.EqDistRandom):
-  //   field.initEqDistRandom(fluidDensity[i]);
-  //   break;
-  // case(FluidInit.EqDistSphere):
-  //   field.initEqDistSphere(fluidDensity[i], fluidDensity2[i], sphereRadius, sphereOffset);
-  //   break;
-  // case(FluidInit.EqDistSphereFrac):
-  //   field.initEqDistSphereFrac(fluidDensity[i], fluidDensity2[i], sphereRadius, sphereOffset);
-  //   break;
-  // }
+  L.initQElec();
+}
+
+void initQElec(T)(ref T L) if ( isLattice!T ) {
+  final switch(qInit) {
+  case(ElecQInit.None):
+    break;
+  case(ElecQInit.Uniform):
+    L.initQElecUniform();
+    break;
+  }
+}
+
+void initDielElec(T)(ref T diel) if ( isField!T ) {
+  final switch(dielInit) {
+  case(ElecDielInit.None):
+    break;
+  case(ElecDielInit.Uniform):
+    diel.initConst(dielUniform);
+    break;
+  }
+}
+
+void initQElecUniform(T)(ref T L) if ( isLattice!T ) {
+  auto nFluidSites = L.mask.countFluidSites();
+  auto nSolidSites = L.mask.countSolidSites();
+
+  writeLogD("Fluid sites: %d wall sites: %d",nFluidSites, nSolidSites);
+
 }
 

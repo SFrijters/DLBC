@@ -21,19 +21,19 @@ module dlbc.elec.io;
 /**
    Frequency at which electric charge fields should be written to disk.
 */
-@("param") int elecQFreq;
+@("param") int chargeFreq;
 /**
    Frequency at which electric potentials should be written to disk.
 */
-@("param") int elecPotFreq;
+@("param") int potFreq;
 /**
    Frequency at which dielectric constants should be written to disk.
 */
-@("param") int elecDielFreq;
+@("param") int dielFreq;
 /**
    Frequency at which electric fields should be written to disk.
 */
-@("param") int elecFieldFreq;
+@("param") int fieldFreq;
 
 import dlbc.elec.elec;
 import dlbc.io.io;
@@ -49,20 +49,20 @@ import dlbc.lattice;
 void dumpElecData(T)(ref T L, uint t) if ( isLattice!T ) {
   if ( ! enableElec ) return;
 
-  if ( dumpNow(elecQFreq,t) ) {
+  if ( dumpNow(chargeFreq,t) ) {
     L.elQp.dumpField("elQp", t);
     L.elQn.dumpField("elQn", t);
   }
 
-  if ( dumpNow(elecPotFreq,t) ) {
+  if ( dumpNow(potFreq,t) ) {
     L.elPot.dumpField("elPot", t);
   }
 
-  if ( dumpNow(elecDielFreq,t) ) {
+  if ( dumpNow(dielFreq,t) ) {
     L.elDiel.dumpField("elDiel", t);
   }
 
-  if ( dumpNow(elecFieldFreq,t) ) {
+  if ( dumpNow(fieldFreq,t) ) {
     L.elField.dumpField("elField", t);
   }
 }
