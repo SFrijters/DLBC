@@ -18,6 +18,7 @@
 
 module dlbc.io.ascii;
 
+/++
 import dlbc.io.io;
 import dlbc.logging;
 import dlbc.timers;
@@ -33,4 +34,5 @@ void dumpProfiles(T)(ref T L, const string name, const uint time) {
   f.writeln("Not yet implemented!");
   Timers.io.stop();
 }
++/
 

@@ -15,6 +15,7 @@ MODULES =
         $(MODULE dlbc.lb.density, "LB densities.")
         $(MODULE dlbc.lb.force, "LB forces and accelerations.")
         $(MODULE dlbc.lb.init, "LB field initialisations.")
+        $(MODULE dlbc.lb.io, "LB output.")
         $(MODULE dlbc.lb.lb, "LB container module.")
         $(MODULE dlbc.lb.mask, "LB masks.")
         $(MODULE dlbc.lb.momentum, "LB momentum.")
