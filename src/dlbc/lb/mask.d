@@ -21,6 +21,26 @@ enum Mask {
   Solid,
 }
 
+auto countSites(Mask mask, T)(ref T field) {
+  int localCount = 0;
+  foreach(immutable p, ref e; field) {
+    if ( e == mask ) {
+      localCount++;
+    }
+  }
+  int globalCount;
+  MPI_Allreduce(&localCount, &globalCount, 1, MPI_INT, MPI_SUM, M.comm);
+  return globalCount;
+}
+
+auto countFluidSites(T)(ref T field) {
+  return countSites!(Mask.None)(field);
+}
+
+auto countSolidSites(T)(ref T field) {
+  return countSites!(Mask.Solid)(field);
+}
+
 void initMask(T)(ref T mask) if (isMaskField!T) {
   final switch(maskInit) {
   case(MaskInit.None):
