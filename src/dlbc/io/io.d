@@ -20,6 +20,7 @@ module dlbc.io.io;
 
 import std.datetime;
 
+import dlbc.elec.io;
 import dlbc.fields.field;
 import dlbc.lb.lb;
 import dlbc.lattice;
@@ -206,6 +207,7 @@ void dumpData(T)(ref T L, uint t) if ( isLattice!T ) {
   }
 
   L.dumpLBData(t);
+  L.dumpElecData(t);
 
   if ( enableThermal && dumpNow(thermalFreq,t) ) {
     auto T = L.thermal.densityField(L.mask);

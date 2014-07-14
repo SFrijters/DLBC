@@ -18,6 +18,7 @@ Macros:
 
 module dlbc.lattice;
 
+import dlbc.elec.elec;
 import dlbc.fields.field;
 import dlbc.fields.parallel;
 import dlbc.io.checkpoint;
@@ -116,6 +117,7 @@ struct Lattice(alias conn) {
      Temporary field to store advected fluids.
   */
   BaseElementType!(typeof(fluids)) advection;
+
   /**
      Thermal population field.
   */
@@ -124,6 +126,27 @@ struct Lattice(alias conn) {
      Temporary field to store advected thermal populations.
   */
   typeof(thermal) advThermal;
+
+  /**
+     Density of positive ions (used by elec only).
+  */
+  @Exchange ScalarFieldOf!(typeof(fluids)) elQp;
+  /**
+     Density of negative ions (used by elec only).
+  */
+  @Exchange ScalarFieldOf!(typeof(fluids)) elQn;
+  /**
+     Electric potential (used by elec only).
+  */
+  @Exchange ScalarFieldOf!(typeof(fluids)) elPot;
+  /**
+     Dielectric constant (used by elec only).
+  */
+  @Exchange ScalarFieldOf!(typeof(fluids)) elDiel;
+  /**
+     Electric field (used by elec only).
+  */
+  @Exchange VectorFieldOf!(typeof(fluids)) elField;
 
   /**
      The constructor will verify that the local lattices can be set up correctly
@@ -179,6 +202,15 @@ struct Lattice(alias conn) {
       thermal = typeof(thermal)(lengths);
       advThermal = typeof(advThermal)(lengths);
     }
+
+    // Global boolean
+    if ( enableElec ) {
+      elQp = typeof(elQp)(lengths);
+      elQn = typeof(elQn)(lengths);
+      elPot = typeof(elPot)(lengths);
+      elDiel = typeof(elDiel)(lengths);
+      elField = typeof(elField)(lengths);
+    }
   }
 
   private static bool isExchangeField (string field)() @safe pure nothrow {
@@ -188,9 +220,8 @@ struct Lattice(alias conn) {
   }
 
   /**
-     Calls exchangeHalo on all member fields of the lattice.
-
-     Todo: implement UDA to only exchange necessary fields when this function is called.
+     Calls exchangeHalo on all member fields of the lattice that are marked as @Exchange,
+     and on all members of arrays of fields that are marked as @Exchange.
   */
   void exchangeHalo() {
     import std.algorithm: startsWith;
@@ -248,6 +279,7 @@ void initLattice(T)(ref T L) if (isLattice!T) {
       import dlbc.fields.init: initEqDistWall;
       e.initEqDistWall(1.0, L.mask);
     }
+    L.initElec();
     L.initThermal();
     L.exchangeHalo();
   }

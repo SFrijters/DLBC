@@ -108,9 +108,12 @@ private alias parameterSourceModules = TypeTuple!(
                          "dlbc.lb.thermal",
                          "dlbc.parallel",
                          "dlbc.random",
-                         "dlbc.io.checkpoint",
                          "dlbc.io.io",
+                         "dlbc.io.checkpoint",
                          "dlbc.io.hdf5",
+                         "dlbc.elec.elec",
+                         "dlbc.elec.init",
+                         "dlbc.elec.io",
                          );
 /**
    List of parameters that have been set in the input files.

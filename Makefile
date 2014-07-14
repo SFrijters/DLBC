@@ -1,7 +1,7 @@
 DMD=dmd
 LMPICH=/usr/local/stow/mpich-3.1/lib64
 LHDF5=/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/
-DFILES=src/main.d src/dlbc/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/unstd.o src/tests/*.d
+DFILES=src/main.d src/dlbc/*.d src/dlbc/elec/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/unstd.o src/tests/*.d
 
 all: dlbc-dmd
 
