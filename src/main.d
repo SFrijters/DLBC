@@ -149,6 +149,9 @@ void runTimeloop(T)(ref T L) {
     }
     L.thermal.advectThermalField(L.mask, L.advThermal);
 
+    L.solvePoisson();
+    L.calculateElectricField();
+
     L.resetForce();
     L.addShanChenForce();
     L.addElecForce();
