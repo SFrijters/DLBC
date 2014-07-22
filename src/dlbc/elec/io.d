@@ -50,8 +50,8 @@ void dumpElecData(T)(ref T L, uint t) if ( isLattice!T ) {
   if ( ! enableElec ) return;
 
   if ( dumpNow(chargeFreq,t) ) {
-    L.elQp.dumpField("elQp", t);
-    L.elQn.dumpField("elQn", t);
+    L.elChargeP.dumpField("elChargeP", t);
+    L.elChargeN.dumpField("elChargeN", t);
   }
 
   if ( dumpNow(potFreq,t) ) {

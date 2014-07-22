@@ -1,8 +1,9 @@
 module dlbc.elec.init;
 
-@("param") ElecQInit qInit;
+@("param") ElecChargeInit chargeInit;
 
-@("param") double qWall;
+@("param") double chargeSolid;
+@("param") double chargeDensitySolid;
 @("param") double saltConc;
 
 @("param") ElecDielInit dielInit;
@@ -19,13 +20,13 @@ import dlbc.logging;
 /**
    Electric charge initial conditions.
 */
-enum ElecQInit {
+enum ElecChargeInit {
   /**
      No-op, use this only when a routine other than initElec takes care of things.
   */
   None,
   /**
-     Distribute total charge $(D qWall) evenly over wall sites, and distribute an opposite
+     Distribute total charge $(D chargeSolid) evenly over solid sites, and distribute an opposite
      charge evenly over fluid sites, with an additional salt concentration $(D saltConc).
   */
   Uniform,

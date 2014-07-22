@@ -89,7 +89,6 @@ struct Lattice(alias conn) {
     return _gsize;
   }
 
-
   /**
      Parallelization properties.
   */
@@ -130,11 +129,11 @@ struct Lattice(alias conn) {
   /**
      Density of positive ions (used by elec only).
   */
-  @Exchange ScalarFieldOf!(typeof(fluids)) elQp;
+  @Exchange ScalarFieldOf!(typeof(fluids)) elChargeP;
   /**
      Density of negative ions (used by elec only).
   */
-  @Exchange ScalarFieldOf!(typeof(fluids)) elQn;
+  @Exchange ScalarFieldOf!(typeof(fluids)) elChargeN;
   /**
      Electric potential (used by elec only).
   */
@@ -205,8 +204,8 @@ struct Lattice(alias conn) {
 
     // Global boolean
     if ( enableElec ) {
-      elQp = typeof(elQp)(lengths);
-      elQn = typeof(elQn)(lengths);
+      elChargeP = typeof(elChargeP)(lengths);
+      elChargeN = typeof(elChargeN)(lengths);
       elPot = typeof(elPot)(lengths);
       elDiel = typeof(elDiel)(lengths);
       elField = typeof(elField)(lengths);
