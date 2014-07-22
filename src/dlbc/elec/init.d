@@ -9,6 +9,7 @@ module dlbc.elec.init;
 @("param") ElecDielInit dielInit;
 
 @("param") double dielUniform;
+@("param") double bjerrumLength;
 
 import dlbc.elec.elec;
 import dlbc.fields.field;
@@ -49,6 +50,7 @@ enum ElecDielInit {
      Uniform dielectric constant $(D dielUniform) everywhere.
   */
   Uniform,
+  UniformFromBjerrumLength,
 }
 
 void initElec(T)(ref T L) if ( isLattice!T ) {
@@ -86,6 +88,14 @@ private void initDielElec(T)(ref T diel) if ( isField!T ) {
   case(ElecDielInit.None):
     break;
   case(ElecDielInit.Uniform):
+    diel.initConst(dielUniform);
+    break;
+  case(ElecDielInit.UniformFromBjerrumLength):
+    enum beta = 1.0;
+    enum ec = 1.0;
+    import std.math: PI;
+    dielUniform = beta * ec * ec / ( 4.0 * PI * bjerrumLength );
+    writeLogRI("Setting dielUniform = %e from Bjerrum length.", dielUniform);
     diel.initConst(dielUniform);
     break;
   }

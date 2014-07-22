@@ -25,8 +25,6 @@ import dlbc.lb.connectivity;
 
 @("param") bool enableElec;
 
-@("param") PoissonSolver poissonSolver;
-
 @("param") bool localDiel;
 
 @("param") bool fluidOnElec;
