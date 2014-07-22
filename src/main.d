@@ -48,6 +48,7 @@
 
 module main;
 
+public import dlbc.elec.elec;
 public import dlbc.fields.field;
 public import dlbc.fields.init;
 public import dlbc.fields.parallel;
@@ -150,6 +151,7 @@ void runTimeloop(T)(ref T L) {
 
     L.resetForce();
     L.addShanChenForce();
+    L.addElecForce();
     L.addBuoyancyForce();
 
     foreach(immutable i, ref e; L.fluids) {

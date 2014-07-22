@@ -17,6 +17,7 @@ import dlbc.fields.init;
 import dlbc.lb.mask;
 import dlbc.lattice;
 import dlbc.logging;
+import dlbc.parameters;
 
 /**
    Electric charge initial conditions.
@@ -55,8 +56,26 @@ enum ElecDielInit {
 
 void initElec(T)(ref T L) if ( isLattice!T ) {
   if ( ! enableElec ) return;
-  // import dlbc.parameters: checkArrayParameterLength;
-  // checkArrayParameterLength(sphereOffset, "lb.init.sphereOffset", conn.d);
+
+  import dlbc.lb.lb: components;
+  import std.algorithm: sum;
+  import std.conv: to;
+
+  checkArrayParameterLength(externalField, "lb.elec.externalField", L.lbconn.d);
+  checkArrayParameterLength(fluidDiel, "lb.elec.fluidDiel", components);
+
+  averageDiel = sum(fluidDiel) / to!double(components);
+  if ( localDiel && components > 2 ) {
+    writeLogF("Warning: local dielectric not supported with components > 2.");
+  }
+  else {
+    if ( components == 2 ) {
+      dielContrast = ( fluidDiel[1] - fluidDiel[0] ) / ( fluidDiel[1] + fluidDiel[0] );
+    }
+    else {
+      dielContrast = 1.0;
+    }
+  }
 
   L.initPoissonSolver();
 
@@ -93,10 +112,8 @@ private void initDielElec(T)(ref T diel) if ( isField!T ) {
     diel.initConst(dielUniform);
     break;
   case(ElecDielInit.UniformFromBjerrumLength):
-    enum beta = 1.0;
-    enum ec = 1.0;
     import std.math: PI;
-    dielUniform = beta * ec * ec / ( 4.0 * PI * bjerrumLength );
+    dielUniform = beta * elementaryCharge * elementaryCharge / ( 4.0 * PI * bjerrumLength );
     writeLogRI("Setting dielUniform = %e from Bjerrum length.", dielUniform);
     diel.initConst(dielUniform);
     break;

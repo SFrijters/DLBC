@@ -18,6 +18,7 @@
 
 module dlbc.elec.elec;
 
+public import dlbc.elec.force;
 public import dlbc.elec.init;
 public import dlbc.elec.poisson;
 
@@ -30,6 +31,19 @@ import dlbc.lb.connectivity;
 @("param") bool fluidOnElec;
 
 @("param") bool elecOnFluid;
+
+@("param") double beta = 1.0;
+
+@("param") double[] externalField;
+
+@("param") double[] fluidDiel;
+
+@("param") double solidDiel = 1.0;
+
+double dielContrast;
+double averageDiel;
+
+enum elementaryCharge = 1.0;
 
 private template elecConnOf(alias conn) {
   static if ( conn.d == 3 ) {

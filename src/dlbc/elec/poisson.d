@@ -224,10 +224,30 @@ void solvePoissonP3M(T)(ref T L) if ( isLattice!T ) {
    Todo: should not need to pass dims parameter explicitly; why not use T.dimensions?
 */
 double getLocalDiel(uint dims, T)(ref T L, const ptrdiff_t[dims] p) if ( isLattice!T ) {
+  import dlbc.lb.mask;
   if ( fluidOnElec ) {
-    assert(0, "fluidOnElec not yet implemented.");
+    if ( L.mask[p] == Mask.Solid ) {
+      return solidDiel;
+    }
+    else {
+      return averageDiel * ( 1.0 - dielContrast * L.getLocalOP!(T.dimensions)(p) );
+    }
   }
   else {
     return L.elDiel[p];
   }
 }
+
+double getLocalOP(uint dims, T)(ref T L, const ptrdiff_t[dims] p) if ( isLattice!T ) {
+  import dlbc.lb.density;
+  if ( components < 2 ) {
+    return 1.0;
+  }
+  else if ( components == 2 ) {
+    return ( L.fluids[0][p].density() - L.fluids[1][p].density() /  L.fluids[0][p].density() + L.fluids[1][p].density() );
+  }
+  else {
+    assert(0);
+  }
+}
+
