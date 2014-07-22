@@ -59,11 +59,21 @@ void dumpElecData(T)(ref T L, uint t) if ( isLattice!T ) {
   }
 
   if ( dumpNow(dielFreq,t) ) {
+    if ( fluidOnElec ) {
+      L.calculateDielField();
+    }
     L.elDiel.dumpField("elDiel", t);
   }
 
   if ( dumpNow(fieldFreq,t) ) {
     L.elField.dumpField("elField", t);
+  }
+}
+
+void calculateDielField(T)(ref T L) if ( isLattice!T ) {
+  import dlbc.elec.poisson;
+  foreach(immutable p, e; L.elDiel) {
+    L.elDiel[p] = L.getLocalDiel(p);
   }
 }
 
