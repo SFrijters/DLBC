@@ -48,7 +48,7 @@ void initPoissonSolver(T)(ref T L) if( isLattice!T ) {
   }
 }
 
-void initPoissonSolverSOR(T)(ref T L) if( isLattice!T ) {
+private void initPoissonSolverSOR(T)(ref T L) if( isLattice!T ) {
   import std.math: PI;
   size_t maxLength = L.lengths[0];
   foreach(immutable i; Iota!(0,econn.d) ) {
@@ -61,6 +61,7 @@ void initPoissonSolverSOR(T)(ref T L) if( isLattice!T ) {
 }
 
 void solvePoisson(T)(ref T L) if( isLattice!T ) {
+  if ( ! enableElec ) return;
   final switch(solver) {
   case(PoissonSolver.None):
     writeLogF("elec calculations require elec.poisson.solver to be set.");
@@ -74,7 +75,7 @@ void solvePoisson(T)(ref T L) if( isLattice!T ) {
   }
 }
 
-void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
+private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
   import std.math: abs;
   immutable cv = econn.velocities;
 
@@ -165,7 +166,7 @@ void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
                 residual = dielUniform * ( depsphi - 6.0 * curPhi ) + curRho;
                 L.elPot[p] += omega * residual / ( 6.0 * dielUniform);
               }
-              // writeLogD("L.elPot%s = %e %e %e %e %e %e",p, L.elPot[p], curPhi, curRho, depsphi, residual, dielUniform);
+              if ( timestep == 2 ) writeLogD("L.elPot%s = %e %e %e %e %e %e",p, L.elPot[p], curPhi, curRho, depsphi, residual, dielUniform);
               localRnorm[1] += abs(residual);
             }
             isw = 1 - isw;
@@ -196,7 +197,7 @@ void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
           return;
         }
         else {
-          if ( sorShowIterations > 0 && ( it % sorShowIterations == 0 ) ) {
+          if ( sorShowIterations > 0 && ( it % sorShowIterations == 0 ) || timestep == 2 ) {
             writeLogRI("Performed SOR iteration = %d at t = %d, rnorm = %e, tolA = %e, tolR = %e.", it + 1, timestep, globalRnorm[1], sorToleranceAbs, sorToleranceRel);
           }
         }
@@ -207,18 +208,19 @@ void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
     assert(0);
   }
 
-  writeLogD("SOR won't converge.");
+  writeLogF("SOR won't converge.");
 }
 
-void solvePoissonP3M(T)(ref T L) if ( isLattice!T ) {
+private void solvePoissonP3M(T)(ref T L) if ( isLattice!T ) {
   assert(0, "elec.poissonSolver == P3M is not yet implemented.");
 }
 
 void calculateElectricField(T)(ref T L) if ( isLattice!T ) {
+  if ( ! enableElec ) return;
   L.calculateElectricFieldFD();
 }
 
-void calculateElectricFieldFD(T)(ref T L) if ( isLattice!T ) {
+private void calculateElectricFieldFD(T)(ref T L) if ( isLattice!T ) {
   import dlbc.lb.advection: isOnEdge;
   immutable cv = econn.velocities;
   foreach(immutable p, ref e; L.elField.arr) {
@@ -257,7 +259,7 @@ double getLocalOP(alias dims = T.dimensions, T)(ref T L, const ptrdiff_t[dims] p
     return 1.0;
   }
   else if ( components == 2 ) {
-    return ( L.fluids[0][p].density() - L.fluids[1][p].density() /  L.fluids[0][p].density() + L.fluids[1][p].density() );
+    return ( ( L.fluids[0][p].density() - L.fluids[1][p].density() ) / ( L.fluids[0][p].density() + L.fluids[1][p].density() ) );
   }
   else {
     assert(0);

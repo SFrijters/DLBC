@@ -265,6 +265,7 @@ template isLattice(T) {
 */
 void initLattice(T)(ref T L) if (isLattice!T) {
   L.initForce();
+  L.initElecConstants();
 
   if ( isRestoring() ) {
     L.readCheckpoint();

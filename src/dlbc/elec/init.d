@@ -57,10 +57,20 @@ enum ElecDielInit {
 void initElec(T)(ref T L) if ( isLattice!T ) {
   if ( ! enableElec ) return;
 
+  L.elPot.initConst(0);
+  L.elField.initConst(0);
+  L.elDiel.initDielElec();
+
+  L.initChargeElec();
+  L.equilibrateElec();
+}
+
+void initElecConstants(T)(ref T L) if ( isLattice!T ) {
+  if ( ! enableElec ) return;
+
   import dlbc.lb.lb: components;
   import std.algorithm: sum;
   import std.conv: to;
-
   checkArrayParameterLength(externalField, "lb.elec.externalField", L.lbconn.d);
   checkArrayParameterLength(fluidDiel, "lb.elec.fluidDiel", components);
   checkArrayParameterLength(boundaryPhi, "lb.elec.boundaryPhi", 2*L.lbconn.d);
@@ -78,15 +88,10 @@ void initElec(T)(ref T L) if ( isLattice!T ) {
       dielContrast = 1.0;
     }
   }
+  writeLogRI("averageDiel = %e, dielContrast = %e", averageDiel, dielContrast);
 
   L.initPoissonSolver();
 
-  L.elPot.initConst(0);
-  L.elField.initConst(0);
-  L.elDiel.initDielElec();
-
-  L.initChargeElec();
-  L.equilibrateElec();
 }
 
 private void equilibrateElec(T)(ref T L) if ( isLattice!T ) {
@@ -193,7 +198,7 @@ private void initChargeElecUniform(T)(ref T L, bool asDensity) if ( isLattice!T 
   assert(approxEqual(globalCharge, 0.0));
 }
 
-double calculateGlobalCharge(T)(ref T L) if ( isLattice!T ) {
+private double calculateGlobalCharge(T)(ref T L) if ( isLattice!T ) {
   import dlbc.parallel;
   double localChargeP = 0;
   foreach(immutable p, e; L.elChargeP) {
