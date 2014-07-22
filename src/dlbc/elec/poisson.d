@@ -166,7 +166,7 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
                 residual = dielUniform * ( depsphi - 6.0 * curPhi ) + curRho;
                 L.elPot[p] += omega * residual / ( 6.0 * dielUniform);
               }
-              if ( timestep == 2 ) writeLogD("L.elPot%s = %e %e %e %e %e %e",p, L.elPot[p], curPhi, curRho, depsphi, residual, dielUniform);
+              // writeLogD("L.elPot%s = %e %e %e %e %e %e",p, L.elPot[p], curPhi, curRho, depsphi, residual, dielUniform);
               localRnorm[1] += abs(residual);
             }
             isw = 1 - isw;
@@ -197,7 +197,7 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
           return;
         }
         else {
-          if ( sorShowIterations > 0 && ( it % sorShowIterations == 0 ) || timestep == 2 ) {
+          if ( sorShowIterations > 0 && ( it % sorShowIterations == 0 ) ) {
             writeLogRI("Performed SOR iteration = %d at t = %d, rnorm = %e, tolA = %e, tolR = %e.", it + 1, timestep, globalRnorm[1], sorToleranceAbs, sorToleranceRel);
           }
         }
