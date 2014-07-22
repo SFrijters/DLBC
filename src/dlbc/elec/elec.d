@@ -19,6 +19,31 @@
 module dlbc.elec.elec;
 
 public import dlbc.elec.init;
+public import dlbc.elec.poisson;
+
+import dlbc.lb.connectivity;
 
 @("param") bool enableElec;
+
+@("param") PoissonSolver poissonSolver;
+
+@("param") bool localDiel;
+
+@("param") bool fluidOnElec;
+
+@("param") bool elecOnFluid;
+
+private template elecConnOf(alias conn) {
+  static if ( conn.d == 3 ) {
+    alias elecConnOf = d3q7;
+  }
+  else static if ( conn.d == 2 ) {
+    alias elecConnOf = d2q5;
+  }
+  else {
+    static assert(0);
+  }
+}
+
+alias econn = elecConnOf!gconn;
 
