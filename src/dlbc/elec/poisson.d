@@ -214,11 +214,25 @@ void solvePoissonP3M(T)(ref T L) if ( isLattice!T ) {
   assert(0, "elec.poissonSolver == P3M is not yet implemented.");
 }
 
+void calculateElectricField(T)(ref T L) if ( isLattice!T ) {
+  L.calculateElectricFieldFD();
+}
 
 void calculateElectricFieldFD(T)(ref T L) if ( isLattice!T ) {
-  foreach(immutable p, ref pop; tempField.arr) {
-    if ( p.isOnEdge!conn(field.lengthsH) ) continue;
-    
+  import dlbc.lb.advection: isOnEdge;
+  immutable cv = econn.velocities;
+  foreach(immutable p, ref e; L.elField.arr) {
+    if ( p.isOnEdge!econn(L.elField.lengthsH) ) continue;
+    e = 0.0;
+    foreach(immutable iv; 1..cv.length) { // Do not iterate over self vector!
+      double nbPhi = L.getNbPot(p, cv[iv]);
+      foreach(immutable jv; Iota!(0, econn.d) ) {
+        e[jv] += -0.5 * cv[iv][jv] * nbPhi;
+      }
+    }
+    foreach(immutable jv; Iota!(0, econn.d) ) {
+      e[jv] += externalField[jv];
+    }
   }
 }
 

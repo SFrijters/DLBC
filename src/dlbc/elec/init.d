@@ -91,6 +91,7 @@ void initElec(T)(ref T L) if ( isLattice!T ) {
 
 private void equilibrateElec(T)(ref T L) if ( isLattice!T ) {
   L.solvePoisson();
+  L.calculateElectricField();
 }
 
 private void initChargeElec(T)(ref T L) if ( isLattice!T ) {
