@@ -30,6 +30,11 @@ enum ElecChargeInit {
      charge evenly over fluid sites, with an additional salt concentration $(D saltConc).
   */
   Uniform,
+  /**
+     Place charge $(D chargeDensitySolid) on solid sites, and distribute an opposite
+     charge evenly over fluid sites, with an additional salt concentration $(D saltConc).
+  */
+  UniformDensity,
 }
 
 /**
@@ -55,20 +60,28 @@ void initElec(T)(ref T L) if ( isLattice!T ) {
   L.elField.initConst(0);
   L.elDiel.initDielElec();
 
-  L.initQElec();
+  L.initChargeElec();
+  L.equilibrateElec();
 }
 
-void initQElec(T)(ref T L) if ( isLattice!T ) {
-  final switch(qInit) {
-  case(ElecQInit.None):
+private void equilibrateElec(T)(ref T L) if ( isLattice!T ) {
+  L.solvePoisson();
+}
+
+private void initChargeElec(T)(ref T L) if ( isLattice!T ) {
+  final switch(chargeInit) {
+  case(ElecChargeInit.None):
     break;
-  case(ElecQInit.Uniform):
-    L.initQElecUniform();
+  case(ElecChargeInit.Uniform):
+    L.initChargeElecUniform(false);
+    break;
+  case(ElecChargeInit.UniformDensity):
+    L.initChargeElecUniform(true);
     break;
   }
 }
 
-void initDielElec(T)(ref T diel) if ( isField!T ) {
+private void initDielElec(T)(ref T diel) if ( isField!T ) {
   final switch(dielInit) {
   case(ElecDielInit.None):
     break;
@@ -78,11 +91,90 @@ void initDielElec(T)(ref T diel) if ( isField!T ) {
   }
 }
 
-void initQElecUniform(T)(ref T L) if ( isLattice!T ) {
+private void initChargeElecUniform(T)(ref T L, bool asDensity) if ( isLattice!T ) {
+  import std.conv: to;
   auto nFluidSites = L.mask.countFluidSites();
   auto nSolidSites = L.mask.countSolidSites();
 
-  writeLogD("Fluid sites: %d wall sites: %d",nFluidSites, nSolidSites);
+  writeLogRD("Fluid sites: %d wall sites: %d",nFluidSites, nSolidSites);
 
+  double rhoSolid, rhoSolidP, rhoSolidN;
+  if ( nSolidSites > 0 ) {
+    if ( asDensity ) {
+      rhoSolid = chargeDensitySolid;
+      chargeSolid = chargeDensitySolid *  to!double(nSolidSites);
+    }
+    else {
+      chargeDensitySolid = chargeSolid / to!double(nSolidSites);
+      rhoSolid = chargeDensitySolid;
+    }
+    
+    rhoSolidP =  0.5*rhoSolid;
+    rhoSolidN = -0.5*rhoSolid;
+  }
+  else {
+    chargeSolid = 0.0;
+    rhoSolid = 0.0;
+    rhoSolidP = 0.0;
+    rhoSolidN = 0.0;
+  }
+
+  double chargeFluid, rhoFluid, rhoFluidP, rhoFluidN;
+  if ( nFluidSites > 0 ) {
+    chargeFluid = -chargeSolid;
+    rhoFluid = chargeFluid / to!double(nFluidSites);
+  }
+  else {
+    chargeFluid = 0.0;
+    rhoFluid = 0.0;
+  }
+
+  if ( rhoFluid > 0 ) {
+    rhoFluidP = 0.5*saltConc + rhoFluid;
+    rhoFluidN = 0.5*saltConc;
+  }
+  else {
+    rhoFluidP = 0.5*saltConc;
+    rhoFluidN = 0.5*saltConc - rhoFluid;
+  }
+
+  foreach(immutable p, ref e; L.elChargeP) {
+    if ( L.mask[p] == Mask.Solid ) {
+      e = rhoSolidP;
+    }
+    else {
+      e = rhoFluidP;
+    }
+  }
+
+  foreach(immutable p, ref e; L.elChargeN) {
+    if ( L.mask[p] == Mask.Solid ) {
+      e = rhoSolidN;
+    }
+    else {
+      e = rhoFluidN;
+    }
+  }
+
+  import std.math: approxEqual;  
+  auto globalCharge = L.calculateGlobalCharge();
+  assert(approxEqual(globalCharge, 0.0));
+}
+
+double calculateGlobalCharge(T)(ref T L) if ( isLattice!T ) {
+  import dlbc.parallel;
+  double localChargeP = 0;
+  foreach(immutable p, e; L.elChargeP) {
+    localChargeP += e;
+  }
+  double localChargeN = 0;
+  foreach(immutable p, e; L.elChargeN) {
+    localChargeN += e;
+  }
+  double globalChargeP, globalChargeN;
+  MPI_Allreduce(&localChargeP, &globalChargeP, 1, MPI_DOUBLE, MPI_SUM, M.comm);
+  MPI_Allreduce(&localChargeN, &globalChargeN, 1, MPI_DOUBLE, MPI_SUM, M.comm);
+  
+  return globalChargeP - globalChargeN;
 }
 
