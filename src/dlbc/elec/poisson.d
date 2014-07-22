@@ -89,25 +89,22 @@ void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
     double curPhi = e;
     
     if ( localDiel ) {
-      double curDiel = L.getLocalDiel!(T.dimensions)(p);
+      double curDiel = L.getLocalDiel(p);
       foreach(immutable i; 1..cv.length) { // Do not iterate over self vector!
         econn.vel_t nb;
         foreach(immutable j; Iota!(0, econn.d) ) {
           nb[j] = p[j] - cv[i][j];
         }
-        double nbPhi = L.elPot[nb];
-        double nbDiel = L.getLocalDiel!(T.dimensions)(nb);
+        double nbPhi = L.getNbPot(p, cv[i]);
+        // writeLogRD("%s %s %s", nb, L.elPot[nb], nbPhi);
+        double nbDiel = L.getLocalDiel(nb);
         depsphi += ( nbDiel + curDiel ) * ( nbPhi - curPhi );
       }
       depsphi *= 0.5;
     }
     else {
       foreach(immutable i; 1..cv.length) { // Do not iterate over self vector!
-        econn.vel_t nb;
-        foreach(immutable j; Iota!(0, econn.d) ) {
-          nb[j] = p[j] - cv[i][j];
-        }
-        double nbPhi = L.elPot[nb];
+        double nbPhi = L.getNbPot(p, cv[i]);
         depsphi += nbPhi;
       }
       depsphi = dielUniform * ( depsphi - 6.0 * curPhi );
@@ -145,14 +142,15 @@ void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
               double curPhi = L.elPot[p];
               if ( localDiel ) {
                 double dielTot = 0.0;
-                double curDiel = L.getLocalDiel!(T.dimensions)(p);
+                double curDiel = L.getLocalDiel(p);
                 foreach(immutable iv; 1..cv.length) { // Do not iterate over self vector!
                   econn.vel_t nb;
                   foreach(immutable jv; Iota!(0, econn.d) ) {
                     nb[jv] = p[jv] - cv[iv][jv];
                   }
-                  double nbPhi = L.elPot[nb];
-                  double dielH = 0.5* ( L.getLocalDiel!(T.dimensions)(nb) + curDiel );
+                  double nbPhi = L.getNbPot(p, cv[iv]);
+                  // writeLogRD("%s %s %s", nb, nbPhi, L.elPot[nb]);
+                  double dielH = 0.5* ( L.getLocalDiel(nb) + curDiel );
                   dielTot += dielH;
                   depsphi += dielH * ( nbPhi - curPhi );
                 }
@@ -161,11 +159,7 @@ void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
               }
               else {
                 foreach(immutable iv; 1..cv.length) { // Do not iterate over self vector!
-                  econn.vel_t nb;
-                  foreach(immutable jv; Iota!(0, econn.d) ) {
-                    nb[jv] = p[jv] - cv[iv][jv];
-                  }
-                  double nbPhi = L.elPot[nb];
+                  double nbPhi = L.getNbPot(p, cv[iv]);
                   depsphi += nbPhi;
                 }
                 residual = dielUniform * ( depsphi - 6.0 * curPhi ) + curRho;
@@ -220,17 +214,22 @@ void solvePoissonP3M(T)(ref T L) if ( isLattice!T ) {
   assert(0, "elec.poissonSolver == P3M is not yet implemented.");
 }
 
-/**
-   Todo: should not need to pass dims parameter explicitly; why not use T.dimensions?
-*/
-double getLocalDiel(uint dims, T)(ref T L, const ptrdiff_t[dims] p) if ( isLattice!T ) {
+
+void calculateElectricFieldFD(T)(ref T L) if ( isLattice!T ) {
+  foreach(immutable p, ref pop; tempField.arr) {
+    if ( p.isOnEdge!conn(field.lengthsH) ) continue;
+    
+  }
+}
+
+double getLocalDiel(alias dims = T.dimensions, T)(ref T L, const ptrdiff_t[dims] p) if ( isLattice!T ) {
   import dlbc.lb.mask;
   if ( fluidOnElec ) {
     if ( L.mask[p] == Mask.Solid ) {
       return solidDiel;
     }
     else {
-      return averageDiel * ( 1.0 - dielContrast * L.getLocalOP!(T.dimensions)(p) );
+      return averageDiel * ( 1.0 - dielContrast * L.getLocalOP(p) );
     }
   }
   else {
@@ -238,7 +237,7 @@ double getLocalDiel(uint dims, T)(ref T L, const ptrdiff_t[dims] p) if ( isLatti
   }
 }
 
-double getLocalOP(uint dims, T)(ref T L, const ptrdiff_t[dims] p) if ( isLattice!T ) {
+double getLocalOP(alias dims = T.dimensions, T)(ref T L, const ptrdiff_t[dims] p) if ( isLattice!T ) {
   import dlbc.lb.density;
   if ( components < 2 ) {
     return 1.0;
@@ -249,5 +248,51 @@ double getLocalOP(uint dims, T)(ref T L, const ptrdiff_t[dims] p) if ( isLattice
   else {
     assert(0);
   }
+}
+
+double getNbPot(alias dims = T.dimensions, T)(ref T L, const ptrdiff_t[dims] p, const ptrdiff_t[dims] cv) if ( isLattice!T ) {
+
+  econn.vel_t nb;
+  econn.vel_t gp;
+  double potShift = 0.0;
+
+  foreach(immutable i; Iota!(0, econn.d) ) {
+    gp[i] = p[i] + cv[i] + M.c[i] * L.elPot.n[i] - L.elPot.haloSize;
+
+    if ( gp[i] < 0 ) {
+      final switch(boundaryPhi[2*i]) {
+        case(BoundaryPhi.Periodic):
+          nb[i] = p[i] + cv[i];
+          break;
+        case(BoundaryPhi.Neumann):
+          nb[i] = p[i];
+          break;
+        case(BoundaryPhi.Drop):
+          nb[i] = p[i] + cv[i];
+          potShift += dropPhi[2*i];
+          break;
+        }
+    }
+    else if ( gp[i] >= L.gn[i] ) {
+      final switch(boundaryPhi[2*i+1]) {
+        case(BoundaryPhi.Periodic):
+          nb[i] = p[i] + cv[i];
+          break;
+        case(BoundaryPhi.Neumann):
+          nb[i] = p[i];
+          break;
+        case(BoundaryPhi.Drop):
+          nb[i] = p[i] + cv[i];
+          potShift -= dropPhi[2*i+1];
+          break;
+        }
+    }
+    else {
+      nb[i] = p[i] + cv[i];
+    }
+  }
+  double pot = L.elPot[nb] + potShift;
+  //writeLogRD("p = %s, cv = %s, nb = %s %s, gp = %s, L.gn = %s",p,cv,nb, pot, gp, L.gn);
+  return pot;
 }
 

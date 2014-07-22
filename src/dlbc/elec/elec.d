@@ -40,6 +40,10 @@ import dlbc.lb.connectivity;
 
 @("param") double solidDiel = 1.0;
 
+@("param") BoundaryPhi[] boundaryPhi;
+
+@("param") double[] dropPhi;
+
 double dielContrast;
 double averageDiel;
 
@@ -58,4 +62,10 @@ private template elecConnOf(alias conn) {
 }
 
 alias econn = elecConnOf!gconn;
+
+enum BoundaryPhi {
+  Periodic,
+  Neumann,
+  Drop,
+}
 

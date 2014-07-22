@@ -63,6 +63,8 @@ void initElec(T)(ref T L) if ( isLattice!T ) {
 
   checkArrayParameterLength(externalField, "lb.elec.externalField", L.lbconn.d);
   checkArrayParameterLength(fluidDiel, "lb.elec.fluidDiel", components);
+  checkArrayParameterLength(boundaryPhi, "lb.elec.boundaryPhi", 2*L.lbconn.d);
+  checkArrayParameterLength(dropPhi, "lb.elec.dropPhi", 2*L.lbconn.d);
 
   averageDiel = sum(fluidDiel) / to!double(components);
   if ( localDiel && components > 2 ) {
