@@ -58,6 +58,8 @@ void initElec(T)(ref T L) if ( isLattice!T ) {
   // import dlbc.parameters: checkArrayParameterLength;
   // checkArrayParameterLength(sphereOffset, "lb.init.sphereOffset", conn.d);
 
+  L.initPoissonSolver();
+
   L.elPot.initConst(0);
   L.elField.initConst(0);
   L.elDiel.initDielElec();

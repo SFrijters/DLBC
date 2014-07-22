@@ -15,6 +15,8 @@ import dlbc.range;
 @("param") sorShowIterations = 0;
 @("param") sorToleranceRel = 0.0;
 
+private double radiusSOR;
+
 /**
    Poisson solver to be used.
 */
@@ -33,6 +35,31 @@ enum PoissonSolver {
   P3M,
 }
 
+void initPoissonSolver(T)(ref T L) if( isLattice!T ) {
+  final switch(solver) {
+  case(PoissonSolver.None):
+    writeLogF("elec calculations require elec.poisson.solver to be set.");
+    break;
+  case(PoissonSolver.SOR):
+    L.initPoissonSolverSOR();
+    break;
+  case(PoissonSolver.P3M):
+    break;
+  }
+}
+
+void initPoissonSolverSOR(T)(ref T L) if( isLattice!T ) {
+  import std.math: PI;
+  size_t maxLength = L.lengths[0];
+  foreach(immutable i; Iota!(0,econn.d) ) {
+    if ( L.lengths[i] > maxLength ) {
+      maxLength = L.lengths[i];
+    }
+  }
+  radiusSOR = 1.0 - ( 0.5* ( PI / maxLength ) * ( PI / maxLength ) );
+  writeLogRI("Initialised SOR Poisson solver with radiusSOR = %e.", radiusSOR);
+}
+
 void solvePoisson(T)(ref T L) if( isLattice!T ) {
   final switch(solver) {
   case(PoissonSolver.None):
@@ -48,25 +75,13 @@ void solvePoisson(T)(ref T L) if( isLattice!T ) {
 }
 
 void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
-  import std.math: abs, PI;
-  import std.algorithm;
+  import std.math: abs;
   immutable cv = econn.velocities;
 
   double[2] globalRnorm, localRnorm;
   double sorToleranceAbs = 0.01 * sorToleranceRel;
 
   localRnorm[0] = 0.0;
-
-  size_t maxLength = L.lengths[0];
-  foreach(immutable i; Iota!(0,econn.d) ) {
-    if ( L.lengths[i] > maxLength ) {
-      maxLength = L.lengths[i];
-    }
-  }
-
-  immutable radiusSOR = 1.0 - ( 0.5* ( PI / maxLength ) * ( PI / maxLength ) );
-
-  writeLogD("maxLength = %s, PI = %s, radiusSor = %s", maxLength, PI, radiusSOR);
 
   foreach(immutable p, ref e; L.elPot) {
     double depsphi = 0.0;
@@ -75,7 +90,7 @@ void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
     
     if ( localDiel ) {
       double curDiel = L.getLocalDiel!(T.dimensions)(p);
-      foreach(immutable i; 0..cv.length) {
+      foreach(immutable i; 1..cv.length) { // Do not iterate over self vector!
         econn.vel_t nb;
         foreach(immutable j; Iota!(0, econn.d) ) {
           nb[j] = p[j] - cv[i][j];
@@ -87,7 +102,7 @@ void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
       depsphi *= 0.5;
     }
     else {
-      foreach(immutable i; 0..cv.length) {
+      foreach(immutable i; 1..cv.length) { // Do not iterate over self vector!
         econn.vel_t nb;
         foreach(immutable j; Iota!(0, econn.d) ) {
           nb[j] = p[j] - cv[i][j];
@@ -100,7 +115,7 @@ void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
     localRnorm[0] += abs(depsphi + curRho);
   }
 
-  writeLogD("localRnorm[0] = %e", localRnorm[0]);
+  // writeLogD("localRnorm[0] = %e", localRnorm[0]);
 
   int oddity = 0;
   foreach(immutable i; 0..L.M.dim) {
@@ -129,20 +144,20 @@ void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
               double curRho = L.elChargeP[p] - L.elChargeN[p];
               double curPhi = L.elPot[p];
               if ( localDiel ) {
-                // double dielTot = 0.0;
-                // double curDiel = L.getLocalDiel!(T.dimensions)(p);
-                // foreach(immutable iv; 1..cv.length) {  // Do not iterate over self vector!
-                //   econn.vel_t nb;
-                //   foreach(immutable jv; Iota!(0, econn.d) ) {
-                //     nb[jv] = p[jv] - cv[iv][jv];
-                //   }
-                //   double nbPhi = L.elPot[nb];
-                //   double dielH = 0.5* ( L.getLocalDiel!(T.dimensions)(nb) + curDiel );
-                //   dielTot += dielH;
-                //   depsphi += dielH * ( nbPhi - curPhi );
-                // }
-                // residual = depsphi + curRho;
-                // L.elPot[p] += omega * residual / dielTot;
+                double dielTot = 0.0;
+                double curDiel = L.getLocalDiel!(T.dimensions)(p);
+                foreach(immutable iv; 1..cv.length) { // Do not iterate over self vector!
+                  econn.vel_t nb;
+                  foreach(immutable jv; Iota!(0, econn.d) ) {
+                    nb[jv] = p[jv] - cv[iv][jv];
+                  }
+                  double nbPhi = L.elPot[nb];
+                  double dielH = 0.5* ( L.getLocalDiel!(T.dimensions)(nb) + curDiel );
+                  dielTot += dielH;
+                  depsphi += dielH * ( nbPhi - curPhi );
+                }
+                residual = depsphi + curRho;
+                L.elPot[p] += omega * residual / dielTot;
               }
               else {
                 foreach(immutable iv; 1..cv.length) { // Do not iterate over self vector!
@@ -151,14 +166,12 @@ void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
                     nb[jv] = p[jv] - cv[iv][jv];
                   }
                   double nbPhi = L.elPot[nb];
-                  //writeLogD("nbPhi%s = %e",nb,nbPhi);
                   depsphi += nbPhi;
                 }
                 residual = dielUniform * ( depsphi - 6.0 * curPhi ) + curRho;
                 L.elPot[p] += omega * residual / ( 6.0 * dielUniform);
-                //writeLogD("L.elPot%s = %e %e %e %e %e %e",p, L.elPot[p], curPhi, curRho, depsphi, residual, dielUniform);
               }
-              // writeLogD("residual = %e",residual);
+              // writeLogD("L.elPot%s = %e %e %e %e %e %e",p, L.elPot[p], curPhi, curRho, depsphi, residual, dielUniform);
               localRnorm[1] += abs(residual);
             }
             isw = 1 - isw;
@@ -173,7 +186,7 @@ void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
         else {
           omega = 1.0 / ( 1.0 - 0.25 * radiusSOR * radiusSOR * omega);
         }
-        writeLogRD("omega = %e",omega);
+        // writeLogRD("omega = %e",omega);
 
         L.elPot.exchangeHalo();
       }
