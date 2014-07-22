@@ -24,6 +24,7 @@ module dlbc.io.checkpoint;
 import dlbc.io.hdf5;
 import dlbc.io.io;
 import dlbc.lb.lb: fieldNames;
+import dlbc.elec.elec: enableElec;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.timers;
@@ -79,6 +80,13 @@ void dumpCheckpoint(T)(ref T L, uint t) {
   if ( enableThermal ) {
     L.thermal.dumpFieldHDF5("cp-thermal", t, true);
   }
+  if ( enableElec ) {
+    L.elChargeP.dumpFieldHDF5("cp-elChargeP", t, true);
+    L.elChargeN.dumpFieldHDF5("cp-elChargeN", t, true);
+    L.elPot.dumpFieldHDF5("cp-elPot", t, true);
+    L.elDiel.dumpFieldHDF5("cp-elDiel", t, true);
+    L.elField.dumpFieldHDF5("cp-elField", t, true);
+  }
   Timers.cpio.stop();
 }
 
@@ -102,6 +110,24 @@ void removeCheckpoint(T)(ref T L, int t) {
   }
   fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-mask", t);
   fileName.removeFile();
+  if ( enableThermal ) {
+    fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-thermal", t);
+    fileName.removeFile();
+  }
+  if ( enableElec ) {
+    fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-elChargeP", t);
+    fileName.removeFile();
+    fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-elChargeN", t);
+    fileName.removeFile();
+    fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-elPot", t);
+    fileName.removeFile();
+    fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-elDiel", t);
+    fileName.removeFile();
+    fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-elField", t);
+    fileName.removeFile();
+  }
+
+
   Timers.cpio.stop();
 }
 
@@ -127,6 +153,18 @@ void readCheckpoint(T)(ref T L) {
   if ( enableThermal ) {
     fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-thermal", restoreString);
     L.thermal.readFieldHDF5(fileName, true);
+  }
+  if ( enableElec ) {
+    fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-elChargeP", restoreString);
+    L.elChargeP.readFieldHDF5(fileName, true);
+    fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-elChargeN", restoreString);
+    L.elChargeN.readFieldHDF5(fileName, true);
+    fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-elPot", restoreString);
+    L.elPot.readFieldHDF5(fileName, true);
+    fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-elDiel", restoreString);
+    L.elDiel.readFieldHDF5(fileName, true);
+    fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-elField", restoreString);
+    L.elField.readFieldHDF5(fileName, true);
   }
 
   writeLogRI("The simulation has been restored and will continue at the next timestep.");
