@@ -74,7 +74,7 @@ enum LogRankFormat {
      which will display all output in order of process rank.
   */
   Ordered = 3,
-};
+}
 /// Ditto
 alias LRF = LogRankFormat;
 
@@ -110,7 +110,7 @@ enum VerbosityLevel {
      Log all output.
   */
   Debug        = 6,
-};
+}
 /// Ditto
 alias VL = VerbosityLevel;
 

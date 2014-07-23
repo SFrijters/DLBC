@@ -301,7 +301,7 @@ void colourField(T, U, V)(const ref T field1, const ref T field2, const ref U ma
    Returns:
      local pressure \(P\)
 */
-auto pressure(alias conn, T)(const ref T density[]) {
+auto pressure(alias conn, T)(const ref T[] density) {
   import std.algorithm;
   import dlbc.lb.force;
   double pressure = 0.0;
