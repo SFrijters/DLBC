@@ -30,9 +30,20 @@ public import dlbc.lb.momentum;
 public import dlbc.lb.thermal;
 public import dlbc.lb.velocity;
 
+/**
+   Number of timesteps that the simulation should run.
+*/
 @("param") int timesteps;
+/**
+   Number of fluid components.
+*/
 @("param") int components = 1;
+/**
+   Human-readable names of the fluid components.
+*/
 @("param") string[] fieldNames;
-
+/**
+   Current timestep of the simulation.
+*/
 @("global") uint timestep = 0;
 

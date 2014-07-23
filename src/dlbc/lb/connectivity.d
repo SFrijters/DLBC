@@ -90,9 +90,21 @@ static immutable struct Connectivity(uint _d, uint _q) {
   }
 }
 
+/**
+   Human readable axis identifiers.
+*/
 enum Axis {
+  /**
+     x-axis (first axis).
+  */
   X,
+  /**
+     y-axis (second axis).
+  */
   Y,
+  /**
+     z-axis (third axis).
+  */
   Z,
 }
 
@@ -158,6 +170,10 @@ template dimOf(alias conn) {
   alias dimOf = Connectivity!(conn.d, 0);
 }
 
+/**
+   Find velocity vectors pointing in the opposite direction and
+   fill an array such that $(D velocities[bounce[i]] = -velocities[i]).
+*/
 private auto generateBounce(T)(const T velocities) @safe pure nothrow {
   import std.algorithm: any;
   size_t[velocities.length] bounce;

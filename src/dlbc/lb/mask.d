@@ -1,7 +1,30 @@
+// Written in the D programming language.
+
+/**
+   Implementation of mask fields. These can be used to implement boundary conditions.
+
+   Copyright: Stefan Frijters 2011-2014
+
+   License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
+
+   Authors: Stefan Frijters
+
+   Macros:
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+*/
+
 module dlbc.lb.mask;
 
+/**
+   How to initialize the mask field.
+*/
 @("param") MaskInit maskInit;
-
+/**
+   If $(D maskInit = File), this speficies the file to read from.
+*/
 @("param") string maskFile;
 
 import dlbc.fields.init;
@@ -9,18 +32,46 @@ import dlbc.io.io;
 import dlbc.parallel;
 import dlbc.range;
 
+/**
+   Possible initialisations for the mask field.
+*/
 enum MaskInit {
+  /**
+     Initialise the mask field with $(D Mask.None) everywhere.
+  */
   None,
+  /**
+     Read the mask field from a file.
+  */
   File,
   TubeZ,
   WallsX,
 }
 
+/**
+   Boundary conditions that can be speficied per lattice site.
+*/
 enum Mask {
+  /**
+     No boundary condition.
+  */
   None,
+  /**
+     Site is treated as a solid site.
+  */
   Solid,
 }
 
+/**
+   Count the global number of sites with a particular $(D Mask) set.
+
+   Params:
+     mask = mask to check for.
+     field = (mask) field to check.
+
+   Returns:
+     Global number of lattice sites which have the particular $(D Mask).
+*/
 auto countSites(Mask mask, T)(ref T field) {
   int localCount = 0;
   foreach(immutable p, ref e; field) {
@@ -33,14 +84,22 @@ auto countSites(Mask mask, T)(ref T field) {
   return globalCount;
 }
 
+/// Ditto
 auto countFluidSites(T)(ref T field) {
   return countSites!(Mask.None)(field);
 }
 
+/// Ditto
 auto countSolidSites(T)(ref T field) {
   return countSites!(Mask.Solid)(field);
 }
 
+/**
+   Initialise the mask field depending on the $(D maskInit) parameter.
+
+   Params:
+     mask = mask field to be initialised.
+*/
 void initMask(T)(ref T mask) if (isMaskField!T) {
   final switch(maskInit) {
   case(MaskInit.None):
@@ -88,6 +147,12 @@ void initWallsX(T)(ref T field) if ( isMaskField!T ) {
   }
 }
 
+/**
+   Wrapper functions to check if a $(D Mask) can be treated as another property.
+
+   Params:
+     bc = boundary condition to check
+*/
 bool isFluid(Mask bc) @safe pure nothrow {
   final switch(bc) {
   case Mask.None:
@@ -96,7 +161,7 @@ bool isFluid(Mask bc) @safe pure nothrow {
     return false;
   }
 }
-
+/// Ditto
 bool isAdvectable(Mask bc) @safe pure nothrow {
   final switch(bc) {
   case Mask.None:
@@ -105,7 +170,7 @@ bool isAdvectable(Mask bc) @safe pure nothrow {
     return false;
   }
 }
-
+/// Ditto
 bool isBounceBack(Mask bc) @safe pure nothrow {
   final switch(bc) {
   case Mask.None:
@@ -114,7 +179,7 @@ bool isBounceBack(Mask bc) @safe pure nothrow {
     return true;
   }
 }
-
+/// Ditto
 bool isCollidable(Mask bc) @safe pure nothrow {
   final switch(bc) {
   case Mask.None:
