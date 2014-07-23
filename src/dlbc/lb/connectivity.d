@@ -90,6 +90,12 @@ static immutable struct Connectivity(uint _d, uint _q) {
   }
 }
 
+enum Axis {
+  X,
+  Y,
+  Z,
+}
+
 /**
    D3Q19 connectivity, i.e. the rest vector, plus connecting vectors of length 1,
    plus connecting vectors of length sqrt(2).

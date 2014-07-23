@@ -10,6 +10,8 @@ module dlbc.lb.init;
 
 @("param") double[] sphereOffset;
 
+@("param") Axis preferredAxis;
+
 import dlbc.fields.field;
 import dlbc.lb.lb;
 import dlbc.fields.init;
@@ -58,6 +60,21 @@ enum FluidInit {
      axis of the system.
   */
   EqDistSphereFrac,
+  /**
+     Initialize all sites of fluid i within a radius $(D sphereRadius) from the centre
+     $(D preferredAxis)-axis of the system with the equilibrium population for density
+     $(D fluidDensity[i]), and all other sites  with the equilibrium population for
+     density $(D fluidDensity2[i]).
+  */
+  EqDistCylinder,
+  /**
+     Initialize all sites of fluid i within a radius $(D sphereRadius * system size)
+     from the centre $(D preferredAxis)-axis of the system with the equilibrium
+     population for density $(D fluidDensity[i]), and all other sites  with the
+     equilibrium population for density $(D fluidDensity2[i]). Here, system size is
+     taken to be the shortest remaining axis of the system.
+  */
+  EqDistCylinderFrac,
 }
 
 void initFluid(T)(ref T field, const size_t i) if ( isPopulationField!T ) {
@@ -90,6 +107,12 @@ void initFluid(T)(ref T field, const size_t i) if ( isPopulationField!T ) {
     break;
   case(FluidInit.EqDistSphereFrac):
     field.initEqDistSphereFrac(fluidDensity[i], fluidDensity2[i], sphereRadius, sphereOffset);
+    break;
+  case(FluidInit.EqDistCylinder):
+    field.initEqDistCylinder(fluidDensity[i], fluidDensity2[i], preferredAxis, sphereRadius, sphereOffset);
+    break;
+  case(FluidInit.EqDistCylinderFrac):
+    field.initEqDistCylinderFrac(fluidDensity[i], fluidDensity2[i], preferredAxis, sphereRadius, sphereOffset);
     break;
   }
 }

@@ -2,6 +2,7 @@ module dlbc.fields.init;
 
 import dlbc.fields.field;
 import dlbc.lb.mask;
+import dlbc.lb.connectivity: Axis;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.random;
@@ -123,6 +124,76 @@ void initEqDistSphereFrac(T)(ref T field, const double density1, const double de
     foreach(immutable i; Iota!(0, conn.d) ) {
       gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
       offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * ( 0.5 + initSphereOffset[i]) ) + 0.5;
+    }
+    if ( offset.dotProduct(offset) < r2 ) {
+      e = pop1;
+    }
+    else {
+      e = pop2;
+    }
+  }
+}
+
+void initEqDistCylinder(T)(ref T field, const double density1, const double density2, Axis preferredAxis,
+                                     const double initSphereRadius, const double[] initSphereOffset) if ( isField!T ) {
+  import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
+  import std.math, std.conv, std.numeric;
+  alias conn = field.conn;
+  immutable r2 = initSphereRadius * initSphereRadius;
+  double[conn.q] pop0 = 0.0;
+  pop0[0] = 1.0;
+  double[conn.d] dv = 0.0;
+  typeof(pop0) pop1 = density1*eqDist!conn(pop0, dv)[];
+  typeof(pop0) pop2 = density2*eqDist!conn(pop0, dv)[];
+  foreach(immutable p, ref e; field.arr) {
+    double[conn.d] gn, offset;
+    foreach(immutable i; Iota!(0, conn.d) ) {
+      if ( i == to!int(preferredAxis) ) {
+        offset[i] = 0.0;
+      }
+      else {
+        gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
+        offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * 0.5 + initSphereOffset[i]) + 0.5;
+      }
+    }
+    if ( offset.dotProduct(offset) < r2 ) {
+      e = pop1;
+    }
+    else {
+      e = pop2;
+    }
+  }
+}
+
+void initEqDistCylinderFrac(T)(ref T field, const double density1, const double density2, Axis preferredAxis,
+                                         const double initSphereFrac, const double[] initSphereOffset) if ( isField!T ) {
+  import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range, dlbc.lattice;
+  import std.math, std.conv, std.numeric;
+  alias conn = field.conn;
+  size_t smallSize = 0;
+  foreach(immutable i; 0..gn.length) {
+    if ( i != to!int(preferredAxis) ) {
+      if ( gn[i] < smallSize || smallSize == 0  ) {
+        smallSize = gn[i];
+      }
+    }
+  }
+  immutable r2 = initSphereFrac * initSphereFrac * smallSize * smallSize;
+  double[conn.q] pop0 = 0.0;
+  pop0[0] = 1.0;
+  double[conn.d] dv = 0.0;
+  typeof(pop0) pop1 = density1*eqDist!conn(pop0, dv)[];
+  typeof(pop0) pop2 = density2*eqDist!conn(pop0, dv)[];
+  foreach(immutable p, ref e; field.arr) {
+    double[conn.d] gn, offset;
+    foreach(immutable i; Iota!(0, conn.d) ) {
+      if ( i == to!int(preferredAxis) ) {
+        offset[i] = 0.0;
+      }
+      else {
+        gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
+        offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * ( 0.5 + initSphereOffset[i]) ) + 0.5;
+      }
     }
     if ( offset.dotProduct(offset) < r2 ) {
       e = pop1;
