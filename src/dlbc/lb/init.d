@@ -1,21 +1,44 @@
+// Written in the D programming language.
+
+/**
+   Initialisation choices for fluid fields.
+
+   Copyright: Stefan Frijters 2011-2014
+
+   License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
+
+   Authors: Stefan Frijters
+
+   Macros:
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+*/
+
 module dlbc.lb.init;
 
+/**
+   Array of initialisation options, chosen per fluid component.
+*/
 @("param") FluidInit[] fluidInit;
-
+/**
+   Depending on the choice of $(D fluidInit), these parameters may have slightly
+   different interpretations. Cf. the description of the $(D FluidInit) enum for details.
+*/
 @("param") double[] fluidDensity;
-
+/// Ditto
 @("param") double[] fluidDensity2;
-
-@("param") double sphereRadius;
-
-@("param") double[] sphereOffset;
-
-@("param") Axis preferredAxis;
+/// Ditto
+@("param") double initRadius;
+/// Ditto
+@("param") double[] initOffset;
+/// Ditto
+@("param") Axis initAxis;
 
 import dlbc.fields.field;
 import dlbc.lb.lb;
 import dlbc.fields.init;
-
 import dlbc.logging;
 
 /**
@@ -31,52 +54,62 @@ enum FluidInit {
   */
   Const,
   /**
-     Initialize all sites of fluid i with the equilibrium population for density $(D fluidDensity[i]).
+     Initialize all sites of fluid i with the equilibrium population for density
+     $(D fluidDensity[i]).
   */
   EqDist,
   /**
      Initialize all sites of fluid i with values chosen at random from the interval
-     $(D 0.. 2 fluidDensity[i]) on all populations, such that the average density
+     $(D 0.. 2 * fluidDensity[i]) on all populations, such that the average density
      is $(D fluidDensity[i]) per population.
   */
   ConstRandom,
   /**
      Initialize all sites of fluid i with the equilibrium population for
-     a random density in the interval $(D 0..2 fluidDensity[i]), such that
+     a random density in the interval $(D 0..2 * fluidDensity[i]), such that
      the average density is $(D fluidDensity[i]).
   */
   EqDistRandom,
   /**
-     Initialize all sites of fluid i within a radius $(D sphereRadius) from the centre
-     of the system with the equilibrium population for density $(D fluidDensity[i]), and 
-     all other sites  with the equilibrium population for density $(D fluidDensity2[i]).
+     Initialize all sites of fluid i within a radius $(D initRadius) from the centre
+     of the system with offset $(D initOffset) the equilibrium population for density
+     $(D fluidDensity[i]), and all other sites  with the equilibrium population
+     for density $(D fluidDensity2[i]).
   */
   EqDistSphere,
   /**
-     Initialize all sites of fluid i within a radius $(D sphereRadius * system size)
-     from the centre of the system with the equilibrium population for density
-     $(D fluidDensity[i]), and all other sites  with the equilibrium population
-     for density $(D fluidDensity2[i]). Here, system size is taken to be the shortest
-     axis of the system.
+     Initialize all sites of fluid i within a radius $(D initRadius) * system size
+     from the centre of the system with offset $(D initOffset) * system size
+     with the equilibrium population for density $(D fluidDensity[i]), and all other
+     sites with the equilibrium population for density $(D fluidDensity2[i]).
+     Here, system size is taken to be the shortest axis of the system.
   */
   EqDistSphereFrac,
   /**
-     Initialize all sites of fluid i within a radius $(D sphereRadius) from the centre
-     $(D preferredAxis)-axis of the system with the equilibrium population for density
-     $(D fluidDensity[i]), and all other sites  with the equilibrium population for
-     density $(D fluidDensity2[i]).
+     Initialize all sites of fluid i within a radius $(D initRadius) from the centre
+     $(D preferredAxis)-axis of the system with offset $(D initOffset) with the
+     equilibrium population for density $(D fluidDensity[i]), and all other sites
+     with the equilibrium population for density $(D fluidDensity2[i]).
   */
   EqDistCylinder,
   /**
-     Initialize all sites of fluid i within a radius $(D sphereRadius * system size)
-     from the centre $(D preferredAxis)-axis of the system with the equilibrium
-     population for density $(D fluidDensity[i]), and all other sites  with the
-     equilibrium population for density $(D fluidDensity2[i]). Here, system size is
-     taken to be the shortest remaining axis of the system.
+     Initialize all sites of fluid i within a radius $(D initRadius) * system size
+     from the centre $(D preferredAxis)-axis of the system  with offset $(D initOffset)
+     * system size with the equilibrium population for density $(D fluidDensity[i]),
+     and all other sites  with the equilibrium population for density
+     $(D fluidDensity2[i]). Here, system size is taken to be the shortest remaining
+     axis of the system.
   */
   EqDistCylinderFrac,
 }
 
+/**
+   Initialize a field according to the choice of $(D fluidInit).
+
+   Params:
+     field = fluid field to initialize
+     i = number of the fluid field
+*/
 void initFluid(T)(ref T field, const size_t i) if ( isPopulationField!T ) {
   import dlbc.parameters: checkArrayParameterLength;
 
@@ -85,7 +118,7 @@ void initFluid(T)(ref T field, const size_t i) if ( isPopulationField!T ) {
   checkArrayParameterLength(fluidInit, "lb.init.fluidInit", components);
   checkArrayParameterLength(fluidDensity, "lb.init.fluidDensity", components);
   checkArrayParameterLength(fluidDensity2, "lb.init.fluidDensity2", components);
-  checkArrayParameterLength(sphereOffset, "lb.init.sphereOffset", conn.d);
+  checkArrayParameterLength(initOffset, "lb.init.sphereOffset", conn.d);
 
   final switch(fluidInit[i]) {
   case(FluidInit.None):
@@ -103,16 +136,16 @@ void initFluid(T)(ref T field, const size_t i) if ( isPopulationField!T ) {
     field.initEqDistRandom(fluidDensity[i]);
     break;
   case(FluidInit.EqDistSphere):
-    field.initEqDistSphere(fluidDensity[i], fluidDensity2[i], sphereRadius, sphereOffset);
+    field.initEqDistSphere(fluidDensity[i], fluidDensity2[i], initRadius, initOffset);
     break;
   case(FluidInit.EqDistSphereFrac):
-    field.initEqDistSphereFrac(fluidDensity[i], fluidDensity2[i], sphereRadius, sphereOffset);
+    field.initEqDistSphereFrac(fluidDensity[i], fluidDensity2[i], initRadius, initOffset);
     break;
   case(FluidInit.EqDistCylinder):
-    field.initEqDistCylinder(fluidDensity[i], fluidDensity2[i], preferredAxis, sphereRadius, sphereOffset);
+    field.initEqDistCylinder(fluidDensity[i], fluidDensity2[i], initAxis, initRadius, initOffset);
     break;
   case(FluidInit.EqDistCylinderFrac):
-    field.initEqDistCylinderFrac(fluidDensity[i], fluidDensity2[i], preferredAxis, sphereRadius, sphereOffset);
+    field.initEqDistCylinderFrac(fluidDensity[i], fluidDensity2[i], initAxis, initRadius, initOffset);
     break;
   }
 }
