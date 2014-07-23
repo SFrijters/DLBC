@@ -112,6 +112,8 @@ struct Lattice(alias conn) {
      Force fields.
   */
   VectorFieldOf!(typeof(fluids))[] force;
+  /// Ditto
+  VectorFieldOf!(typeof(fluids)) forceDistributed;
   /**
      Temporary field to store advected fluids.
   */
@@ -190,6 +192,7 @@ struct Lattice(alias conn) {
     foreach(ref e; force ) {
       e = typeof(e)(lengths);
     }
+    forceDistributed = typeof(forceDistributed)(lengths);
     foreach(ref e; density ) {
       e = typeof(e)(lengths);
     }

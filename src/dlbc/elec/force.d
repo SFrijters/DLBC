@@ -4,6 +4,8 @@ import dlbc.elec.elec;
 import dlbc.lb.lb: components;
 import dlbc.lattice;
 
+import dlbc.logging;
+
 import dlbc.range;
 
 @("param") bool enableElectrostatic = true;
@@ -20,9 +22,7 @@ void addElecForce(T)(ref T L) if (isLattice!T) {
     if ( enableElectrostatic ) {
       foreach(immutable j; Iota!(0, econn.d) ) {
         double[econn.d] electrostatic = elementaryCharge * ( L.elChargeP[p] - L.elChargeN[p] ) * L.elField[p][j];
-        foreach(immutable nc1; 0..L.fluids.length ) {
-          L.force[nc1][p][j] += electrostatic[j];
-        }
+        L.forceDistributed[p][j] += electrostatic[j];
       }
     }
 
@@ -43,13 +43,12 @@ void addElecForce(T)(ref T L) if (isLattice!T) {
         }
         // Add forces
         foreach(immutable j; Iota!(0, econn.d) ) {
-          foreach(immutable nc1; 0..L.fluids.length ) {
-            L.force[nc1][p][j] -= 0.5 * ( L.getLocalDiel!(T.dimensions)(p) - averageDiel ) * grad_E2[j];
-          }
+          L.forceDistributed[p][j] += 0.5 * ( L.getLocalDiel(p) - averageDiel ) * grad_E2[j];
+            // writeLogRI("force = %s",-0.5 * ( L.getLocalDiel!(T.dimensions)(p) - averageDiel ) * grad_E2[j]);
         }
-      }        
+      }
     }
-
   }
 }
+
 

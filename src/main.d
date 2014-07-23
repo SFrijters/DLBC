@@ -157,6 +157,7 @@ void runTimeloop(T)(ref T L) {
     L.addElecForce();
     L.addBuoyancyForce();
 
+    L.distributeForce();
     foreach(immutable i, ref e; L.fluids) {
       e.collideField(L.mask, L.force[i]);
     }

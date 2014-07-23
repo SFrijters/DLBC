@@ -113,6 +113,21 @@ void resetForce(T)(ref T L) if (isLattice!T) {
   foreach(ref e; L.force) {
     e.initConst(0.0);
   }
+  L.forceDistributed.initConst(0.0);
+}
+
+void distributeForce(T)(ref T L) if (isLattice!T) {
+  foreach(immutable p, ref e; L.forceDistributed) {
+    double totalDensity = 0.0;
+    foreach(immutable i; 0..components ) {
+      totalDensity += L.fluids[i][p].density();
+    }
+    foreach(immutable i; 0..components ) {
+      foreach(immutable j; 0..L.lbconn.d ) {
+        L.force[i][p][j] += L.forceDistributed[p][j] * ( L.fluids[i][p].density() / totalDensity );
+      }
+    }
+  }
 }
 
 /**
