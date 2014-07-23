@@ -372,7 +372,7 @@ private void parseParameter(const string keyString, const string valueString, co
   switch(keyString) {
     mixin(parameterMixins[0]);
   default:
-    writeLogRW("Unknown key at line %d: '%s'.", ln, keyString);
+    writeLogF("Unknown key at line %d: '%s'.", ln, keyString);
   }
 }
 
