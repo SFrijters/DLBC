@@ -26,9 +26,17 @@ module dlbc.lb.mask;
    If $(D maskInit = File), this speficies the file to read from.
 */
 @("param") string maskFile;
+/**
+   Depending on the choice of $(D maskInit), these parameters may have slightly
+   different interpretations. Cf. the description of the $(D MaskInit) enum for details.
+*/
+@("param") Axis initAxis;
+
+import std.conv: to;
 
 import dlbc.fields.init;
 import dlbc.io.io;
+import dlbc.logging;
 import dlbc.parallel;
 import dlbc.range;
 
@@ -44,8 +52,16 @@ enum MaskInit {
      Read the mask field from a file.
   */
   File,
-  TubeZ,
-  WallsX,
+  /**
+     Add walls of $(D Mask.Solid) sites of thickness 1 to the edges of the
+     system, forming a tube in the direction $(D initAxis).
+  */
+  Tube,
+  /**
+     Add walls of $(D Mask.Solid) sites of thickness 1 perpendicular to the
+     $(D initAxis) direction.
+  */
+  Walls,
 }
 
 /**
@@ -101,6 +117,10 @@ auto countSolidSites(T)(ref T field) {
      mask = mask field to be initialised.
 */
 void initMask(T)(ref T mask) if (isMaskField!T) {
+  if ( to!int(initAxis) >= mask.dimensions ) {
+    writeLogF("lb.mask.initAxis = %s is out of range (max is %s).", initAxis, to!Axis(mask.dimensions - 1));
+  }
+
   final switch(maskInit) {
   case(MaskInit.None):
     mask.initConst(Mask.None);
@@ -108,41 +128,53 @@ void initMask(T)(ref T mask) if (isMaskField!T) {
   case(MaskInit.File):
     mask.readField(maskFile);
     break;
-  case(MaskInit.TubeZ):
-    mask.initTubeZ();
+  case(MaskInit.Tube):
+    mask.initTube(initAxis);
     break;
-  case(MaskInit.WallsX):
-    mask.initWallsX();
+  case(MaskInit.Walls):
+    mask.initWalls(initAxis);
     break;
   }
 }
 
-void initTubeZ(T)(ref T field) if ( isMaskField!T ) {
+/**
+   Initialises walls of thickness 1 of $(D Mask.Solid) to form a tube in
+   the direction of $(D initAxis).
+
+   Params:
+     field = (mask) field to initialise
+     initAxis = direction of the tube
+*/
+void initTube(T)(ref T field, const Axis initAxis) if ( isMaskField!T ) {
   foreach(immutable p, ref e; field.arr) {
     ptrdiff_t[field.dimensions] gn;
+    e = Mask.None;
     foreach(immutable i; Iota!(0, field.dimensions) ) {
       gn[i] = p[i] + M.c[i] * field.n[i] - field.haloSize;
-    }
-    if ( gn[0] == 0 || gn[0] == (field.n[0] * M.nc[0] - 1) || gn[1] == 0 || gn[1] == (field.n[1] * M.nc[1] - 1 ) ) {
-      e = Mask.Solid;
-    }
-    else {
-      e = Mask.None;
+      if ( i != to!int(initAxis) && ( ( gn[i] == 0 || gn[i] == (field.n[i] * M.nc[i] - 1) ) ) ) {
+        e = Mask.Solid;
+      }
     }
   }
 }
 
-void initWallsX(T)(ref T field) if ( isMaskField!T ) {
+/**
+   Initialises walls of thickness 1 of $(D Mask.Solid) to form solid planes
+   perpendicular to the $(D initAxis) direction.
+
+   Params:
+     field = (mask) field to initialise
+     initAxis = walls are placed perpendicular to this axis
+*/
+void initWalls(T)(ref T field, const Axis initAxis) if ( isMaskField!T ) {
   foreach(immutable p, ref e; field.arr) {
     ptrdiff_t[field.dimensions] gn;
+    e = Mask.None;
     foreach(immutable i; Iota!(0, field.dimensions) ) {
       gn[i] = p[i] + M.c[i] * field.n[i] - field.haloSize;
-    }
-    if ( gn[0] == 0 || gn[0] == (field.n[0] * M.nc[0] - 1) ) {
-      e = Mask.Solid;
-    }
-    else {
-      e = Mask.None;
+      if ( i == to!int(initAxis) && ( gn[i] == 0 || gn[i] == (field.n[i] * M.nc[i] - 1) ) ) {
+        e = Mask.Solid;
+      }
     }
   }
 }
