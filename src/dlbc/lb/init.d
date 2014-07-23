@@ -112,6 +112,7 @@ enum FluidInit {
 */
 void initFluid(T)(ref T field, const size_t i) if ( isPopulationField!T ) {
   import dlbc.parameters: checkArrayParameterLength;
+  import std.conv: to;
 
   alias conn = field.conn;
 
@@ -119,6 +120,10 @@ void initFluid(T)(ref T field, const size_t i) if ( isPopulationField!T ) {
   checkArrayParameterLength(fluidDensity, "lb.init.fluidDensity", components);
   checkArrayParameterLength(fluidDensity2, "lb.init.fluidDensity2", components);
   checkArrayParameterLength(initOffset, "lb.init.sphereOffset", conn.d);
+
+  if ( to!int(initAxis) >= field.dimensions ) {
+    writeLogF("lb.init.initAxis = %s is out of range (max is %s).", initAxis, to!Axis(field.dimensions - 1));
+  }
 
   final switch(fluidInit[i]) {
   case(FluidInit.None):

@@ -134,7 +134,7 @@ void initEqDistSphereFrac(T)(ref T field, const double density1, const double de
   }
 }
 
-void initEqDistCylinder(T)(ref T field, const double density1, const double density2, Axis preferredAxis,
+void initEqDistCylinder(T)(ref T field, const double density1, const double density2, const Axis preferredAxis,
                                      const double initSphereRadius, const double[] initSphereOffset) if ( isField!T ) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
   import std.math, std.conv, std.numeric;
@@ -165,10 +165,11 @@ void initEqDistCylinder(T)(ref T field, const double density1, const double dens
   }
 }
 
-void initEqDistCylinderFrac(T)(ref T field, const double density1, const double density2, Axis preferredAxis,
+void initEqDistCylinderFrac(T)(ref T field, const double density1, const double density2, const Axis preferredAxis,
                                          const double initSphereFrac, const double[] initSphereOffset) if ( isField!T ) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range, dlbc.lattice;
   import std.math, std.conv, std.numeric;
+
   alias conn = field.conn;
   size_t smallSize = 0;
   foreach(immutable i; 0..gn.length) {
