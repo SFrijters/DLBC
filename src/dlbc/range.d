@@ -35,7 +35,7 @@ size_t LengthOf(T)() @property {
 
 template Iota(ptrdiff_t i, ptrdiff_t n) {
   import std.typetuple : TypeTuple;
-  static if (n == 0) alias TypeTuple!() Iota;
-  else alias TypeTuple!(i, Iota!(i + 1, n - 1)) Iota;
+  static if (n == 0) alias Iota = TypeTuple!();
+  else alias Iota = TypeTuple!(i, Iota!(i + 1, n - 1));
 }
 

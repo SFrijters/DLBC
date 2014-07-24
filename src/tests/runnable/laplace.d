@@ -46,9 +46,9 @@ version(unittest) {
 
     foreach(g; gccArray) {
       foreach(immutable r; radii) {
-        dlbc.lb.init.sphereRadius.setParameter(r);
+        dlbc.lb.init.initRadius.setParameter(r);
         dlbc.lb.force.gcc.setParameter(g);
-        writeLogRN("Performing simulation with:\n    dlbc.lb.force.gcc = %s\n    dlbc.lb.init.sphereRadius = %f", dlbc.lb.force.gcc, dlbc.lb.init.sphereRadius);
+        writeLogRN("Performing simulation with:\n    dlbc.lb.force.gcc = %s\n    dlbc.lb.init.initRadius = %f", dlbc.lb.force.gcc, dlbc.lb.init.initRadius);
         initCommon();
 
         MpiParams!(d3q19.d) M;
@@ -103,11 +103,11 @@ version(unittest) {
       assert(approxEqual(sigma, 0.0));
     }
 
-    writeLogRD("<LAPLACE> %8d %f %f %f %f %f %f", timestep, gccm[0][1], sphereRadius, sigma, measuredR, inPres, outPres );
+    writeLogRD("<LAPLACE> %8d %f %f %f %f %f %f", timestep, gccm[0][1], initRadius, sigma, measuredR, inPres, outPres );
 
     if ( M.isRoot() ) {
       auto f = File(resultsFile, "a");
-      f.writefln("%8d %+e %+e %+e %+e %+e %+e", timestep, gccm[0][1], sphereRadius, sigma, measuredR, inPres, outPres );
+      f.writefln("%8d %+e %+e %+e %+e %+e %+e", timestep, gccm[0][1], initRadius, sigma, measuredR, inPres, outPres );
     }
   }
 
