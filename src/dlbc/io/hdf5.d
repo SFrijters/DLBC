@@ -140,6 +140,8 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
   immutable type_id = hdf5Typeof!(T.type);
   immutable typeLen = LengthOf!(T.type);
 
+  if ( field.size <= 1 ) return;
+
   auto dim = field.dimensions;
 
   static if ( field.dimensions == 3 ) {
@@ -301,6 +303,8 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
 
   immutable type_id = hdf5Typeof!(T.type);
   immutable typeLen = LengthOf!(T.type);
+
+  if ( field.size <= 1 ) return;
 
   auto dim = field.dimensions;
 

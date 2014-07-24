@@ -34,6 +34,8 @@ import dlbc.range;
 */
 @("param") size_t[] gn;
 
+enum Exchange;
+
 /**
    The lattice struct holds various fields, and information on the shape of these fields.
 
@@ -41,9 +43,6 @@ import dlbc.range;
      dim = dimensionality of the lattice
 */
 struct Lattice(alias conn) {
-
-  private enum Exchange;
-
   alias lbconn = conn;
   enum uint dimensions = conn.d;
 
@@ -226,7 +225,6 @@ struct Lattice(alias conn) {
      and on all members of arrays of fields that are marked as @Exchange.
   */
   void exchangeHalo() {
-    import std.algorithm: startsWith;
     import std.traits;
     foreach(e ; __traits(derivedMembers, Lattice)) {
       static if (isExchangeField!(e)) {
