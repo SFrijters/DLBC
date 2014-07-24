@@ -63,37 +63,6 @@ private alias globalsSourceModules = TypeTuple!(
                          "dlbc.parameters",
                          );
 
-/**
-   Write a checkpoint to disk. A full checkpoint currently includes:
-   - The full populations of all fluid components.
-   - The mask.
-
-   Params:
-     L = the lattice
-     t = current time step
-*/
-void dumpCheckpoint(T)(ref T L, uint t) {
-  Timers.cpio.start();
-  writeLogRN("Writing checkpoint for t = %d.", t);
-  mixin(checkpointMixins[0]);
-  // foreach(immutable i, ref e; L.fluids) {
-  //   e.dumpFieldHDF5("cp-"~fieldNames[i], t, true);
-  // }
-  // L.mask.dumpFieldHDF5("cp-mask", t, true);
-  // if ( enableThermal ) {
-  //   L.thermal.dumpFieldHDF5("cp-thermal", t, true);
-  // }
-  // if ( enableElec ) {
-  //   L.elChargeP.dumpFieldHDF5("cp-elChargeP", t, true);
-  //   L.elChargeN.dumpFieldHDF5("cp-elChargeN", t, true);
-  //   L.elPot.dumpFieldHDF5("cp-elPot", t, true);
-  //   L.elDiel.dumpFieldHDF5("cp-elDiel", t, true);
-  //   L.elField.dumpFieldHDF5("cp-elField", t, true);
-  // }
-  
-  Timers.cpio.stop();
-}
-
 private bool hasAttribute(alias attr, string field)() @safe pure nothrow {
   import std.typetuple;
   static if(__traits(compiles, __traits(getAttributes, mixin(field)))) {
@@ -118,16 +87,13 @@ private auto createCheckpointMixins() {
 
   foreach(e ; __traits(derivedMembers, dlbc.lattice.Lattice!gconn)) {
     enum s = "Lattice!gconn."~e;
-    //pragma(msg,s);
     static if (isCpField!(s)) {
       static if (isField!(typeof(mixin(s))) ) {
-        pragma(msg, "Field " ~ s);
         mixinStringDump ~= "L." ~ e ~ ".dumpFieldHDF5(\"cp-"~e~"\", t, true);";
         mixinStringRead ~= "fileName = makeFilenameCpRestore!(FileFormat.HDF5)(\"cp-"~e~"\", restoreString);\n  L."~e~".readFieldHDF5(fileName, true);\n";
         mixinStringRemove ~= "makeFilenameCpOutput!(FileFormat.HDF5)(\"cp-"~e~"\", t).removeFile();";
       }
       else {
-        pragma(msg, "Not field " ~ s);
         mixinStringDump ~= "foreach(immutable i, ref e; L."~e~") { e.dumpFieldHDF5(\"cp-"~e~"\"~to!string(i), t, true); }";
         mixinStringRead ~= "foreach(immutable i, ref e; L."~e~") {\n  fileName = makeFilenameCpRestore!(FileFormat.HDF5)(\"cp-"~e~"\"~to!string(i), restoreString);\n  e.readFieldHDF5(fileName, true);\n}\n";
         mixinStringRemove ~= "foreach(immutable i, ref e; L."~e~") { makeFilenameCpOutput!(FileFormat.HDF5)(\"cp-"~e~"\"~to!string(i), t).removeFile(); }";
@@ -140,43 +106,18 @@ private auto createCheckpointMixins() {
 private immutable checkpointMixins = createCheckpointMixins();
 
 /**
-   Delete a checkpoint from disk. A full checkpoint currently includes:
+   Write a checkpoint to disk. A full checkpoint currently includes:
    - The full populations of all fluid components.
    - The mask.
 
    Params:
      L = the lattice
-     t = time step to delete
+     t = current time step
 */
-void removeCheckpoint(T)(ref T L, int t) {
-  if ( t < 0 ) return;
+void dumpCheckpoint(T)(ref T L, uint t) {
   Timers.cpio.start();
-  //string fileName;
-  writeLogRN("Removing checkpoint for t = %d.", t);
-  // foreach(i, ref e; L.fluids) {
-  //   fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-"~fieldNames[i], t);
-  //   fileName.removeFile();
-  // }
-  // fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-mask", t);
-  // fileName.removeFile();
-  // if ( enableThermal ) {
-  //   fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-thermal", t);
-  //   fileName.removeFile();
-  // }
-  // if ( enableElec ) {
-  //   fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-elChargeP", t);
-  //   fileName.removeFile();
-  //   fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-elChargeN", t);
-  //   fileName.removeFile();
-  //   fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-elPot", t);
-  //   fileName.removeFile();
-  //   fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-elDiel", t);
-  //   fileName.removeFile();
-  //   fileName = makeFilenameCpOutput!(FileFormat.HDF5)("cp-elField", t);
-  //   fileName.removeFile();
-  // }
-  mixin(checkpointMixins[2]);
-
+  writeLogRN("Writing checkpoint for t = %d.", t);
+  mixin(checkpointMixins[0]);
   Timers.cpio.stop();
 }
 
@@ -193,33 +134,25 @@ void readCheckpoint(T)(ref T L) {
   string fileName;
   Timers.cpio.start();
   writeLogRI("The simulation will be restored from checkpoint `%s'.", restoreString);
-  // foreach(i, ref e; L.fluids) {
-  //   fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-"~fieldNames[i], restoreString);
-  //   e.readFieldHDF5(fileName, true);
-  // }
-  // fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-mask", restoreString);
-  // L.mask.readFieldHDF5(fileName, true);
-  // if ( enableThermal ) {
-  //   fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-thermal", restoreString);
-  //   L.thermal.readFieldHDF5(fileName, true);
-  // }
-  // if ( enableElec ) {
-  //   fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-elChargeP", restoreString);
-  //   L.elChargeP.readFieldHDF5(fileName, true);
-  //   fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-elChargeN", restoreString);
-  //   L.elChargeN.readFieldHDF5(fileName, true);
-  //   fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-elPot", restoreString);
-  //   L.elPot.readFieldHDF5(fileName, true);
-  //   fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-elDiel", restoreString);
-  //   L.elDiel.readFieldHDF5(fileName, true);
-  //   fileName = makeFilenameCpRestore!(FileFormat.HDF5)("cp-elField", restoreString);
-  //   L.elField.readFieldHDF5(fileName, true);
-  // }
-
-  // pragma(msg, checkpointMixins[1]);
   mixin(checkpointMixins[1]);
-
   writeLogRI("The simulation has been restored and will continue at the next timestep.");
+  Timers.cpio.stop();
+}
+
+/**
+   Delete a checkpoint from disk. A full checkpoint currently includes:
+   - The full populations of all fluid components.
+   - The mask.
+
+   Params:
+     L = the lattice
+     t = time step to delete
+*/
+void removeCheckpoint(T)(ref T L, int t) {
+  if ( t < 0 ) return;
+  Timers.cpio.start();
+  writeLogRN("Removing checkpoint for t = %d.", t);
+  mixin(checkpointMixins[2]);
   Timers.cpio.stop();
 }
 
