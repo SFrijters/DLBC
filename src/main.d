@@ -124,7 +124,7 @@ int main(string[] args ) {
    Params:
      L = the lattice
 */
-void runTimeloop(T)(ref T L) {
+void runTimeloop(T)(ref T L) if ( isLattice!T ) {
   L.dumpData(timestep);
   while ( timestep < timesteps ) {
     ++timestep;
