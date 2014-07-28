@@ -28,6 +28,15 @@ import std.conv: to;
 import std.stdio;
 
 /**
+   When to start checking relative accuracy of surface tension calculations.
+*/
+@("param") int startCheck = 0;
+/**
+   The iterations end when $(D sigma / previousSigma - 1) is smaller than this.
+*/
+@("param") double relAccuracy;
+
+/**
    Keep sigma in memory for convergence criteria.
 */
 private double previousSigma;
@@ -77,9 +86,9 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
   auto inPres = pressure!d3q19(inDen);
   auto outPres = pressure!d3q19(outDen);
 
-
+  // Laplace law has different prefactor depending on dimensions.
   static if ( T.dimensions == 3 ) {
-    double sigma = measuredR * ( inPres - outPres ) / 2;
+    double sigma = measuredR * ( inPres - outPres ) / 2.0;
   }
   else static if ( T.dimensions == 2 ) {
     double sigma = measuredR * ( inPres - outPres );
@@ -92,12 +101,10 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
 
   double rel = abs(previousSigma / sigma - 1.0 );
 
-  writeLogRN("<LAPLACE> %8d %e %f %f %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel );
+  writeLogRD("<LAPLACE> %8d %e %f %f %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel );
 
-  if ( ( t > 200 && rel < 1e-5 ) || ( t == timesteps ) ) {
-    writeLogRN("Reached high accuracy.");
+  if ( ( t > startCheck && rel < relAccuracy ) || ( t == timesteps ) ) {
     writeLogRN("<LAPLACE FINAL> %8d %e %f %f %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel );
-
     timesteps = t;
   }
 
