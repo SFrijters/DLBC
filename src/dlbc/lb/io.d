@@ -38,6 +38,10 @@ module dlbc.lb.io;
    Frequency at which mask fields should be written to disk.
 */
 @("param") int maskFreq;
+/**
+   Frequency at which Laplace data should be written to disk.
+*/
+@("param") int laplaceFreq;
 
 import dlbc.lb.lb;
 import dlbc.io.io;
@@ -84,5 +88,10 @@ void dumpLBData(T)(ref T L, uint t) if ( isLattice!T ) {
   if (dumpNow(maskFreq,t)) {
     L.mask.dumpField("mask", t);
   }
+
+  if (dumpNow(laplaceFreq,t)) {
+    L.dumpLaplace(t);
+  }
+
 }
 

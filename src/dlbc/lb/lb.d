@@ -25,6 +25,7 @@ public import dlbc.lb.density;
 public import dlbc.lb.force;
 public import dlbc.lb.init;
 public import dlbc.lb.io;
+public import dlbc.lb.laplace;
 public import dlbc.lb.mask;
 public import dlbc.lb.momentum;
 public import dlbc.lb.velocity;
