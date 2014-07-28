@@ -28,7 +28,6 @@ import dlbc.io.io: restoreString;
 import dlbc.logging;
 import dlbc.parameters: parameterFileNames;
 import dlbc.revision;
-import tests.test: testsToRun;
 
 /**
    Usage help text.
@@ -48,8 +47,6 @@ Options (defaults in brackets):
                        the file names are of the form
                        "cp-red-foobar-20140527T135106-t00000060.h5", name is
                        "foobar-20140527T135106-t00000060")
-  -t <name> | All      run a specific test, or all tests (only when compiled
-                       with -unittest)
   --time               show current time when logging messages
   -v <level>           set verbosity level to one of (Off, Fatal, Error,
                        Warning, Notification, Information, Debug) [%s]
@@ -86,7 +83,6 @@ void processCLI(string[] args) {
             "h", &showHelp,
             "p|parameterfile", &parameterFileNames,
             "r|restore", &restoreString,
-            "t|test", &testsToRun,
             "time", &showTime,
             "v|verbose", &verbosityLevel,
             "version", &showVersion,

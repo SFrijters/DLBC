@@ -17,8 +17,6 @@
                           the file names are of the form
                           "cp-red-foobar-20140527T135106-t00000060.h5", name is
                           "foobar-20140527T135106-t00000060")
-     -t <name> | All    = run a specific test, or all tests  (only when compiled
-                          with -unittest)
      --time             = show current time when logging messages
      -v <level>         = set verbosity level to one of (Off, Fatal, Error,
                           Warning, Notification, Information, Debug) [%s]
@@ -65,8 +63,6 @@ public import dlbc.random;
 public import dlbc.timers;
 public import dlbc.versions;
 
-import tests.test;
-
 /**
    The Main Is Mother, the Main Is Father.
 
@@ -102,22 +98,13 @@ int main(string[] args ) {
   initAllTimers();
   Timers.main.start!(VL.Debug, LRF.None)();
 
-  if ( ! isTesting() ) {
-    initParameters();
-    initCommon();
-    // Try and create the local lattice structure.
-    gconn.show!(VL.Information)();
-    auto L = Lattice!(gconn)(gn, components, fieldNames, M);
-    initLattice(L);
-    runTimeloop(L);
-  }
-  else {
-    // If we are in testing mode, run only tests instead.
-    // The tests have to take care of the initialisations themselves.
-    version(unittest) {
-      runTests();
-    }
-  }
+  initParameters();
+  initCommon();
+  // Try and create the local lattice structure.
+  gconn.show!(VL.Information)();
+  auto L = Lattice!(gconn)(gn, components, fieldNames, M);
+  initLattice(L);
+  runTimeloop(L);
 
   Timers.main.stop();
 
