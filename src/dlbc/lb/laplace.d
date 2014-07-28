@@ -1,3 +1,21 @@
+// Written in the D programming language.
+
+/**
+   Helper functions to validate Laplace's law for surface tension between fluid components.
+
+   Copyright: Stefan Frijters 2011-2014
+
+   License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
+
+   Authors: Stefan Frijters
+
+   Macros:
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+*/
+
 module dlbc.lb.laplace;
 
 import dlbc.lattice;
@@ -9,6 +27,18 @@ import dlbc.range;
 import std.conv: to;
 import std.stdio;
 
+/**
+   Keep sigma in memory for convergence criteria.
+*/
+private double previousSigma;
+
+/**
+   Calculate Laplace pressure and write it to screen.
+
+   Params:
+     L = lattice
+     t = current time step
+*/
 void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
   import std.algorithm: sum;
   import std.math;
@@ -24,13 +54,13 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
   // writeLogRD("%s %s", offsetIn, offsetOut);
   // writeLogRD("inDen");
   auto inDen = L.volumeAveragedDensity(offsetIn, volumeAverage);
-  //  writeLogRD("outDen");  
+  //  writeLogRD("outDen");
   auto outDen = L.volumeAveragedDensity(offsetOut, volumeAverage);
 
-  assert(timestep != 0 || approxEqual(inDen[0], fluidDensity[0]));
-  assert(timestep != 0 || approxEqual(inDen[1], fluidDensity[1]));
-  assert(timestep != 0 || approxEqual(outDen[0], fluidDensity2[0]));
-  assert(timestep != 0 || approxEqual(outDen[1], fluidDensity2[1]));
+  assert(t != 0 || approxEqual(inDen[0], fluidDensity[0]));
+  assert(t != 0 || approxEqual(inDen[1], fluidDensity[1]));
+  assert(t != 0 || approxEqual(outDen[0], fluidDensity2[0]));
+  assert(t != 0 || approxEqual(outDen[1], fluidDensity2[1]));
 
   double[] gMass;
   gMass.length = L.fluids.length;
@@ -47,6 +77,7 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
   auto inPres = pressure!d3q19(inDen);
   auto outPres = pressure!d3q19(outDen);
 
+
   static if ( T.dimensions == 3 ) {
     double sigma = measuredR * ( inPres - outPres ) / 2;
   }
@@ -57,9 +88,26 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
     assert(0);
   }
 
-  assert(timestep != 0 || approxEqual(sigma, 0.0));
+  assert(t != 0 || approxEqual(sigma, 0.0));
 
-  writeLogRN("<LAPLACE> %8d %e %f %f %e %e %e", timestep, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres );
+  double rel = abs(previousSigma / sigma - 1.0 );
+
+  writeLogRN("<LAPLACE> %8d %e %f %f %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel );
+
+  if ( ( t > 200 && rel < 1e-5 ) || ( t == timesteps ) ) {
+    writeLogRN("Reached high accuracy.");
+    writeLogRN("<LAPLACE FINAL> %8d %e %f %f %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel );
+
+    timesteps = t;
+  }
+
+  if ( isNaN(sigma) ) {
+    writeLogRN("<LAPLACE FINAL> %8d %e %f %f %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel );
+    writeLogF("Surface tension is NaN.");
+  }
+
+  previousSigma = sigma;
+
 }
 
 /**
