@@ -24,7 +24,6 @@ import dlbc.fields.parallel;
 import dlbc.io.checkpoint;
 import dlbc.lb.lb;
 import dlbc.lb.mask;
-import dlbc.lb.thermal;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.range;
@@ -119,15 +118,6 @@ struct Lattice(alias conn) {
   BaseElementType!(typeof(fluids)) advection;
 
   /**
-     Thermal population field.
-  */
-  @Exchange Field!(double[tconn.q], tconn, 2) thermal;
-  /**
-     Temporary field to store advected thermal populations.
-  */
-  typeof(thermal) advThermal;
-
-  /**
      Density of positive ions (used by elec only).
   */
   @Exchange ScalarFieldOf!(typeof(fluids)) elChargeP;
@@ -197,12 +187,6 @@ struct Lattice(alias conn) {
     }
     mask = typeof(mask)(lengths);
     advection = typeof(advection)(lengths);
-
-    // Global boolean
-    if ( enableThermal ) {
-      thermal = typeof(thermal)(lengths);
-      advThermal = typeof(advThermal)(lengths);
-    }
 
     // Global boolean
     if ( enableElec ) {
@@ -281,7 +265,6 @@ void initLattice(T)(ref T L) if (isLattice!T) {
       e.initEqDistWall(1.0, L.mask);
     }
     L.initElec();
-    L.initThermal();
     L.exchangeHalo();
   }
 }

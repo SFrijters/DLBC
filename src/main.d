@@ -147,7 +147,6 @@ void runTimeloop(T)(ref T L) {
     foreach(ref e; L.fluids) {
       e.advectField(L.mask, L.advection);
     }
-    L.thermal.advectThermalField(L.mask, L.advThermal);
 
     L.solvePoisson();
     L.calculateElectricField();
@@ -155,13 +154,11 @@ void runTimeloop(T)(ref T L) {
     L.resetForce();
     L.addShanChenForce();
     L.addElecForce();
-    L.addBuoyancyForce();
 
     L.distributeForce();
     foreach(immutable i, ref e; L.fluids) {
       e.collideField(L.mask, L.force[i]);
     }
-    L.thermal.collideThermalField(L.mask, L.fluids[0]);
 
     // writeLogRI("Global mass = %f %f", L.fluids[0].globalMass(L.mask), L.fluids[1].globalMass(L.mask));
     // writeLogRI("Global momentum = %s %s", L.fluids[0].globalMomentum!(gconn)(L.mask), L.fluids[1].globalMomentum!(gconn)(L.mask));

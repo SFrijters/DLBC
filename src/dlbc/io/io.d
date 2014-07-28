@@ -54,10 +54,6 @@ import dlbc.timers;
    From which timestep to start writing files.
 */
 @("param") int startOutput;
-/**
-   Frequency at which temperature field should be written to disk.
-*/
-@("param") int thermalFreq;
 
 /**
    Id of the simulation, based on the time it was started.
@@ -209,10 +205,6 @@ void dumpData(T)(ref T L, uint t) if ( isLattice!T ) {
   L.dumpLBData(t);
   L.dumpElecData(t);
 
-  if ( enableThermal && dumpNow(thermalFreq,t) ) {
-    auto T = L.thermal.densityField(L.mask);
-    T.dumpField("T", t);
-  }
 }
 
 /**

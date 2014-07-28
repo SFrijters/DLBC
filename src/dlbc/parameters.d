@@ -105,7 +105,6 @@ private alias parameterSourceModules = TypeTuple!(
                          "dlbc.lb.force",
                          "dlbc.lb.mask",
                          "dlbc.lb.io",
-                         "dlbc.lb.thermal",
                          "dlbc.parallel",
                          "dlbc.random",
                          "dlbc.io.io",
