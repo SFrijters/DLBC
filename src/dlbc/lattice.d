@@ -167,6 +167,8 @@ struct Lattice(alias conn) {
     // Set the local sizes
     foreach(immutable i; Iota!(0, dimensions) ) {
       this._lengths[i] = to!int(gn[i] / M.nc[i]);
+      this._size *= this._lengths[i];
+      this._gsize *= gn[i];
     }
 
     // Determine number of fluid arrays
