@@ -59,10 +59,6 @@ clean:
 	rm -f src/dlbc/io/*~
 	rm -f src/dlbc/lb/*.o
 	rm -f src/dlbc/lb/*~
-	rm -f src/tests/*.o
-	rm -f src/tests/*~
-	rm -f src/tests/runnable/*.o
-	rm -f src/tests/runnable/*~
 	rm -f src/unstd/*.o
 	rm -f dlbc
 	rm -f dlbc.o

@@ -30,6 +30,4 @@ MODULES =
         $(MODULE dlbc.revision, "Git revision information.")
         $(MODULE dlbc.timers, "Timers for performance measurement.")
         $(MODULE dlbc.versions, "Functions that show information on compiler versions and code revision.")
-        $(MODULE tests.test, "Helper functions for runnable tests.")
-        $(MODULE tests.runnable.laplace, "Laplace pressure test.")
 
