@@ -29,29 +29,44 @@ import dlbc.timers;
    Global acceleration.
 */
 @("param") double[] globalAcc;
-
 /**
    Toggle Shan-Chen style interactions between fluids.
 */
 @("param") bool enableShanChen;
-
 /**
    Array of interaction strength parameters for the Shan-Chen model.
    This array will be transformed into a square array, so the length
    should be equal to lb.components * lb.components.
 */
 @("param") double[] gcc;
-
 /**
    Array of interaction strength parameters for the Shan-Chen model
    to model wettable walls.
 */
 @("param") double[] gwc;
+/**
+   Shape of the Shan-Chen \(\Psi\) function.
+*/
+@("param") PsiForm psiForm;
 
 /**
    Shan-Chen interaction strength parameters in matrix form.
 */
 double[][] gccm;
+
+/**
+   Possible forms of the Shan-Chen \(\Psi\) function.
+ */   
+enum PsiForm {
+  /**
+     \(\Psi(\rho) = \rho\)
+  */
+  Linear,
+  /**
+     \(\Psi(\rho) = 1 - e^{-\rho}\)
+  */
+  Exponential,
+}
 
 /**
    Initialisation of the force systems. This should be run before the time loop starts.
@@ -116,6 +131,13 @@ void resetForce(T)(ref T L) if (isLattice!T) {
   L.forceDistributed.initConst(0.0);
 }
 
+/**
+   Forces saved into the $(D L.forceDistributed) array are distributed according to the 
+   relative densities of the fluids on the lattice site.
+
+   Params:
+     L = lattice
+*/
 void distributeForce(T)(ref T L) if (isLattice!T) {
   foreach(immutable p, ref e; L.forceDistributed) {
     double totalDensity = 0.0;
@@ -132,9 +154,9 @@ void distributeForce(T)(ref T L) if (isLattice!T) {
 
 /**
    Add the Shan-Chen force to force arrays L.force[].
-   
+
    We calculate the force on $(D isCollidable) sites only.
-   
+
    First, the fluid-fluid forces are calculated according to
    \(\vec{F}^c = - \Psi(\rho(\vec{x})) \sum_{c'} g_{cc'} \sum_{\vec{x}'} \Psi(\rho(\vec{x}'))(\vec{x} -\vec{x}')\),
    where \(c'\) runs over all fluid species and \(\vec{x}'\) runs over all connected fluid lattice sites.
@@ -146,6 +168,9 @@ void distributeForce(T)(ref T L) if (isLattice!T) {
    Note that the effect of the psi-function are assumed to be adsorbed into the interaction strength
    and/or the density set on the wall. Currently, this density is unity always.
 
+   The global parameter $(D psiForm) determines the shape of the \(\Psi\) function. To avoid runtime overhead
+   a single switch statement passes a template parameter to the inner function.
+
    Params:
      L = lattice
 
@@ -154,6 +179,18 @@ void distributeForce(T)(ref T L) if (isLattice!T) {
 void addShanChenForce(T)(ref T L) if (isLattice!T) {
   if ( ! enableShanChen ) return;
   Timers.forceSC.start();
+  final switch(psiForm) {
+    case PsiForm.Linear:
+      L.addShanChenForceInner!(PsiForm.Linear)(gccm, gwc);
+      break;
+    case PsiForm.Exponential:
+      L.addShanChenForceInner!(PsiForm.Exponential)(gccm, gwc);
+      break;
+  }
+  Timers.forceSC.stop();
+}
+/// Ditto
+private void addShanChenForceInner(PsiForm psiForm, T)(ref T L, in double[][] gccm, in double[] gwc) if (isLattice!T) {
   alias conn = L.lbconn;
   immutable cv = conn.velocities;
   immutable cw = conn.weights;
@@ -171,7 +208,7 @@ void addShanChenForce(T)(ref T L) if (isLattice!T) {
       foreach(immutable p, ref force ; L.force[nc1] ) {
         // Only do lattice sites on which collision will take place.
         if ( isCollidable(L.mask[p]) ) {
-          immutable psiden1 = psi(L.density[nc1][p]);
+          immutable psiden1 = psi!psiForm(L.density[nc1][p]);
           foreach(immutable i; Iota!(0, conn.q) ) {
             conn.vel_t nb;
             // Todo: better array syntax.
@@ -179,7 +216,7 @@ void addShanChenForce(T)(ref T L) if (isLattice!T) {
               nb[j] = p[j] - cv[i][j];
             }
             // Only do lattice sites that are not walls.
-            immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi(L.density[nc2][p]) : psi(L.density[nc2][nb]));
+            immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi!psiForm(L.density[nc2][p]) : psi!psiForm(L.density[nc2][nb]));
             immutable prefactor = psiden1 * psiden2 * cc;
             // The SC force function.
             foreach(immutable j; Iota!(0, conn.d) ) {
@@ -196,7 +233,7 @@ void addShanChenForce(T)(ref T L) if (isLattice!T) {
     foreach(immutable p, ref force ; L.force[nc1] ) {
       // Only do lattice sites on which collision will take place.
       if ( isCollidable(L.mask[p]) ) {
-        immutable psiden1 = psi(L.density[nc1][p]);
+        immutable psiden1 = psi!psiForm(L.density[nc1][p]);
         foreach(immutable i; Iota!(0, conn.q) ) {
           conn.vel_t nb;
           // Todo: better array syntax.
@@ -214,19 +251,28 @@ void addShanChenForce(T)(ref T L) if (isLattice!T) {
       }
     }
   }
-  Timers.forceSC.stop();
 }
 
 /**
-   Default form for the Shan-Chen \(\Psi\) function: \(\Psi(\rho) = 1 - e^{-\rho}\).
+   Shan-Chen \(\Psi\) functions: $(D PsiForm.Linear): \(\Psi(\rho) = \rho\), $(D PsiForm.Exponential): \(\Psi(\rho) = 1 - e^{-\rho}\).
 
    Params:
+     psiForm = form of the function
      den = density \(\rho\)
 
    Returns: \(\Psi(\rho)\).
 */
-double psi(const double den) @safe pure nothrow {
+double psi(PsiForm psiForm)(in double den) @safe pure nothrow {
   import std.math;
-  return ( 1.0 - exp(-den) );
+
+  static if ( psiForm == PsiForm.Linear ) {
+    return den;
+  }
+  else static if ( psiForm == PsiForm.Exponential ) {
+    return ( 1.0 - exp(-den) );
+  }
+  else {
+    static assert(0);
+  }
 }
 

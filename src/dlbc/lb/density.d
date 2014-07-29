@@ -21,6 +21,7 @@ module dlbc.lb.density;
 import dlbc.lb.connectivity;
 import dlbc.fields.field;
 import dlbc.lb.mask;
+import dlbc.lb.force;
 
 version(unittest) {
   import dlbc.fields.init;
@@ -301,14 +302,23 @@ void colourField(T, U, V)(const ref T field1, const ref T field2, const ref U ma
    Returns:
      local pressure \(P\)
 */
-auto pressure(alias conn, T)(const ref T[] density) {
+auto pressure(alias conn, T)(in ref T[] density) {
+  final switch(psiForm) {
+    case PsiForm.Linear:
+      return density.pressurePsi!(PsiForm.Linear, conn)();
+    case PsiForm.Exponential:
+      return density.pressurePsi!(PsiForm.Exponential, conn)();
+  }
+}
+
+auto pressurePsi(PsiForm form, alias conn, T)(in ref T[] density) {
   import std.algorithm;
   import dlbc.lb.force;
   double pressure = 0.0;
   foreach(immutable i, d1; density) {
     pressure += d1;
     foreach(immutable j, d2; density) {
-      pressure += 0.5*gccm[i][j]*psi(d1)*psi(d2);
+      pressure += 0.5*gccm[i][j]*psi!form(d1)*psi!form(d2);
     }
   }
   return (pressure * conn.css);
