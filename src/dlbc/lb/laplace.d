@@ -71,6 +71,9 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
   assert(t != 0 || approxEqual(outDen[0], fluidDensity2[0]));
   assert(t != 0 || approxEqual(outDen[1], fluidDensity2[1]));
 
+  auto inPres = pressure!d3q19(inDen);
+  auto outPres = pressure!d3q19(outDen);
+
   double[] gMass;
   gMass.length = L.fluids.length;
   foreach(i, ref field; L.fluids) {
@@ -79,18 +82,15 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
   //writeLogRD("gmass = %s", gMass);
 
   double effMass = gMass[0] - ( L.gsize * outDen[0]);
-  double rpow3 = effMass / ( 4.0 / 3.0 * PI * ( inDen[0] - outDen[0] ) );
-  double measuredR = pow(rpow3, 1.0/3.0);
   //writeLogRD("%f %f %f", effMass, rpow3, measuredR);
-
-  auto inPres = pressure!d3q19(inDen);
-  auto outPres = pressure!d3q19(outDen);
 
   // Laplace law has different prefactor depending on dimensions.
   static if ( T.dimensions == 3 ) {
+    double measuredR = pow(effMass / ( 4.0 / 3.0 * PI * ( inDen[0] - outDen[0] ) ), 1.0/3.0);
     double sigma = measuredR * ( inPres - outPres ) / 2.0;
   }
   else static if ( T.dimensions == 2 ) {
+    double measuredR = pow(effMass / ( PI * ( inDen[0] - outDen[0] ) ), 1.0/2.0);
     double sigma = measuredR * ( inPres - outPres );
   }
   else {
@@ -99,22 +99,19 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
 
   assert(t != 0 || approxEqual(sigma, 0.0));
 
-  double rel = abs(previousSigma / sigma - 1.0 );
-
-  writeLogRD("<LAPLACE> %8d %e %f %f %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel );
-
-  if ( ( t > startCheck && rel < relAccuracy ) || ( t == timesteps ) ) {
-    writeLogRN("<LAPLACE FINAL> %8d %e %f %f %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel );
-    timesteps = t;
+  writeLogRD("<LAPLACE> %8d %e %f %f %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres );
+  if ( t >= startCheck ) {
+    double rel = abs(previousSigma / sigma - 1.0 );
+    if ( ( !isNaN(relAccuracy) && relAccuracy > 0.0 && rel < relAccuracy ) || ( t >= timesteps ) ) {
+      writeLogRN("<LAPLACE FINAL> %8d %e %f %f %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel );
+      timesteps = t;
+    }
+    if ( isNaN(sigma) ) {
+      writeLogRN("<LAPLACE FINAL> %8d %e %f %f %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel );
+      writeLogF("Surface tension is NaN.");
+    }
   }
-
-  if ( isNaN(sigma) ) {
-    writeLogRN("<LAPLACE FINAL> %8d %e %f %f %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel );
-    writeLogF("Surface tension is NaN.");
-  }
-
   previousSigma = sigma;
-
 }
 
 /**
