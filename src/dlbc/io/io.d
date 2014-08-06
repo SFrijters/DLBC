@@ -101,10 +101,10 @@ void initSimulationId() {
   import dlbc.parallel: MpiBcastString;
   simulationId = Clock.currTime().toISOString()[0..15];
   MpiBcastString(simulationId);
-  writeLogRI("The name of the simulation is `%s' and its id is `%s'.", simulationName, simulationId);
   simulationIdIsBcast = true;
   simulationName = simulationName.replaceFnameTokens();
   MpiBcastString(simulationName);
+  writeLogRI("The name of the simulation is `%s' and its id is `%s'.", simulationName, simulationId);
 }
 
 /**
