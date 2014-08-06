@@ -28,6 +28,7 @@ import dlbc.logging;
 import dlbc.io.ascii;
 import dlbc.io.checkpoint;
 import dlbc.io.hdf5;
+import dlbc.parameters;
 import dlbc.timers;
 
 /**
@@ -36,6 +37,9 @@ import dlbc.timers;
 @("param") bool enableIO = true;
 /**
    Name of the simulation, to be used in file names for the output.
+   This string can contain tokens of the form %module.parameter%,
+   or even %module.parameter[i]% - these will be replaced with the
+   value of the parameter.
 */
 @("param") string simulationName;
 /**
@@ -90,6 +94,8 @@ enum FileFormat {
    Ensure that the simulationId is globally the same, by broadcasting the value
    from the root process. This function should be called early in the simulation,
    but definitely before any IO has been performed.
+
+   This function also replaces tokens in $(D simulationName) and broadcasts the result.
 */
 void initSimulationId() {
   import dlbc.parallel: MpiBcastString;
@@ -97,6 +103,8 @@ void initSimulationId() {
   MpiBcastString(simulationId);
   writeLogRI("The name of the simulation is `%s' and its id is `%s'.", simulationName, simulationId);
   simulationIdIsBcast = true;
+  simulationName = simulationName.replaceFnameTokens();
+  MpiBcastString(simulationName);
 }
 
 /**

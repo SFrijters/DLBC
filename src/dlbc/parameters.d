@@ -289,12 +289,14 @@ private void readParameterSetFromHdf5File(const string fileName) {
 }
 
 /**
-   Creates an string mixin to define $(D parseParameter), $(D showParameters), and $(D bcastParameters).
+   Creates an string mixin to define $(D parseParameter), $(D showParameters), $(D bcastParameters),
+   and $(D replaceFnameTokens).
 */
 private auto createParameterMixins() {
   string mixinStringParser;
   string mixinStringShow;
   string mixinStringBcast;
+  string mixinStringFnameToken;
 
   foreach(fullModuleName ; parameterSourceModules) {
     immutable string qualModuleName = makeQualModuleName(fullModuleName);
@@ -339,13 +341,22 @@ private auto createParameterMixins() {
             static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
               mixinStringBcast ~= "  broadcastParameter(`~fullModuleName~`.`~e~`);\n";
             }
+
+            static if ( isArray!(typeof(`~fullModuleName~`.`~e~`)) ) {
+              mixinStringFnameToken ~= "  while ( ( idx = name.arrayFnameIndex(\""~qualName~"\") ) >= 0 ) {\n";
+              mixinStringFnameToken ~= "    name = name.replace(\"%"~qualName~"[\"~to!string(idx)~\"]%\", to!string("~fullName~"[idx]));\n";
+              mixinStringFnameToken ~= "  }\n";
+            }
+            else {
+              mixinStringFnameToken ~= "  name = name.replace(\"%"~qualName~"%\", to!string("~fullName~"));\n";
+            }
           break;
           }
         }
       }`);
     }
   }
-  return [ mixinStringParser, mixinStringShow, mixinStringBcast ];
+  return [ mixinStringParser, mixinStringShow, mixinStringBcast, mixinStringFnameToken ];
 }
 
 /**
@@ -391,6 +402,27 @@ private void broadcastParameters() {
   int arrlen;
   writeLogRI("Distributing parameter set through MPI_Bcast.");
   mixin(parameterMixins[2]);
+}
+
+/**
+   Replace all tokens in $(D name) with the value of the variable.
+*/
+string replaceFnameTokens(string name) {
+  import std.array;
+  int idx;
+  mixin(parameterMixins[3]);
+  return name;
+}
+
+/**
+   Parse out the index of a parameter token for an array parameter.
+*/
+private int arrayFnameIndex(string name, string token) {
+  import std.regex;
+  foreach(c; match(name, regex(`%`~token~r"\[(?P<idx>[0-9]+)\]%","g")) ) {
+    return to!int(c["idx"]);
+  }
+  return -1;
 }
 
 /**
