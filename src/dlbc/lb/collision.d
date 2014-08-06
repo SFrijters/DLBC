@@ -97,7 +97,7 @@ auto eqDist(alias conn, T)(const ref T population, const double[conn.d] dv) {
   }
   immutable vdotv = v.dotProduct(v);
   T dist;
-  foreach(i; Iota!(0,conn.q)) {
+  foreach(immutable i; Iota!(0,conn.q)) {
     immutable vdotcv = v.dotProduct(cv[i]);
     dist[i] = rho0 * cw[i] * ( 1.0 + ( vdotcv / css ) + ( (vdotcv * vdotcv ) / ( 2.0 * css * css ) ) - ( ( vdotv ) / ( 2.0 * css) ) );
   }

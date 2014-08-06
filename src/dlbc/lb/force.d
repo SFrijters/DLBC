@@ -209,7 +209,7 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gccm
         // Only do lattice sites on which collision will take place.
         if ( isCollidable(L.mask[p]) ) {
           immutable psiden1 = psi!psiForm(L.density[nc1][p]);
-          foreach(immutable i; Iota!(0, conn.q) ) {
+          foreach(immutable i; Iota!(1, conn.q - 1) ) {
             conn.vel_t nb;
             // Todo: better array syntax.
             foreach(immutable j; Iota!(0, conn.d) ) {
