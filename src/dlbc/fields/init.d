@@ -63,6 +63,32 @@ void initEqDist(T)(ref T field, const double density) if ( isField!T ) {
   }
 }
 
+void initEqDistPerturb(T)(ref T field, in double density, in double perturb) if ( isField!T ) {
+  import dlbc.lb.collision;
+  import dlbc.lb.connectivity;
+  alias conn = field.conn;
+  double[conn.d] dv = 0.0;
+  double[conn.q] pop0 = 0.0;
+  pop0[0] = 1.0;
+  foreach( ref e; field.byElementForward) {
+    typeof(pop0) pop = (density + uniform(-perturb, perturb, rng) ) * eqDist!conn(pop0, dv)[];
+    e = pop;
+  }
+}
+
+void initEqDistPerturbFrac(T)(ref T field, in double density, in double perturb) if ( isField!T ) {
+  import dlbc.lb.collision;
+  import dlbc.lb.connectivity;
+  alias conn = field.conn;
+  double[conn.d] dv = 0.0;
+  double[conn.q] pop0 = 0.0;
+  pop0[0] = 1.0;
+  foreach( ref e; field.byElementForward) {
+    typeof(pop0) pop = density * (1.0 + uniform(-perturb, perturb, rng) ) * eqDist!conn(pop0, dv)[];
+    e = pop;
+  }
+}
+
 void initEqDistRandom(T)(ref T field, const double density) if ( isField!T ) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;

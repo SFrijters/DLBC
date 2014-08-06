@@ -30,6 +30,8 @@ module dlbc.lb.init;
 /// Ditto
 @("param") double[] fluidDensity2;
 /// Ditto
+@("param") double[] fluidPerturb;
+/// Ditto
 @("param") double initRadius;
 /// Ditto
 @("param") double[] initOffset;
@@ -58,6 +60,18 @@ enum FluidInit {
      $(D fluidDensity[i]).
   */
   EqDist,
+  /**
+     Initialize all sites of fluid i with the equilibrium population for density
+     $(D fluidDensity[i]) plus or minus a random value from the interval
+     $(D fluidPerturb[i]).
+  */
+  EqDistPerturb,
+  /**
+     Initialize all sites of fluid i with the equilibrium population for density
+     $(D fluidDensity[i]) times one plus or minus a random value from the interval
+     $(D fluidPerturb[i]).
+  */
+  EqDistPerturbFrac,
   /**
      Initialize all sites of fluid i with values chosen at random from the interval
      $(D 0.. 2 * fluidDensity[i]) on all populations, such that the average density
@@ -119,6 +133,7 @@ void initFluid(T)(ref T field, const size_t i) if ( isPopulationField!T ) {
   checkArrayParameterLength(fluidInit, "lb.init.fluidInit", components);
   checkArrayParameterLength(fluidDensity, "lb.init.fluidDensity", components);
   checkArrayParameterLength(fluidDensity2, "lb.init.fluidDensity2", components);
+  checkArrayParameterLength(fluidPerturb, "lb.init.fluidPerturb", components);
   checkArrayParameterLength(initOffset, "lb.init.sphereOffset", conn.d);
 
   if ( to!int(initAxis) >= field.dimensions ) {
@@ -133,6 +148,12 @@ void initFluid(T)(ref T field, const size_t i) if ( isPopulationField!T ) {
     break;
   case(FluidInit.EqDist):
     field.initEqDist(fluidDensity[i]);
+    break;
+  case(FluidInit.EqDistPerturb):
+    field.initEqDistPerturb(fluidDensity[i], fluidPerturb[i]);
+    break;
+  case(FluidInit.EqDistPerturbFrac):
+    field.initEqDistPerturbFrac(fluidDensity[i], fluidPerturb[i]);
     break;
   case(FluidInit.ConstRandom):
     field.initConstRandom(fluidDensity[i]);
