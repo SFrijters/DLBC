@@ -181,16 +181,16 @@ void addShanChenForce(T)(ref T L) if (isLattice!T) {
   Timers.forceSC.start();
   final switch(psiForm) {
     case PsiForm.Linear:
-      L.addShanChenForceInner!(PsiForm.Linear)(gccm, gwc);
+      L.addShanChenForcePsi!(PsiForm.Linear)(gccm, gwc);
       break;
     case PsiForm.Exponential:
-      L.addShanChenForceInner!(PsiForm.Exponential)(gccm, gwc);
+      L.addShanChenForcePsi!(PsiForm.Exponential)(gccm, gwc);
       break;
   }
   Timers.forceSC.stop();
 }
 /// Ditto
-private void addShanChenForceInner(PsiForm psiForm, T)(ref T L, in double[][] gccm, in double[] gwc) if (isLattice!T) {
+private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gccm, in double[] gwc) if (isLattice!T) {
   alias conn = L.lbconn;
   immutable cv = conn.velocities;
   immutable cw = conn.weights;
@@ -217,7 +217,7 @@ private void addShanChenForceInner(PsiForm psiForm, T)(ref T L, in double[][] gc
             }
             // Only do lattice sites that are not walls.
             immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi!psiForm(L.density[nc2][p]) : psi!psiForm(L.density[nc2][nb]));
-            immutable prefactor = psiden1 * psiden2 * cc;
+            immutable prefactor = cw[i] * psiden1 * psiden2 * cc;
             // The SC force function.
             foreach(immutable j; Iota!(0, conn.d) ) {
               force[j] += prefactor * cv[i][j];
@@ -241,7 +241,7 @@ private void addShanChenForceInner(PsiForm psiForm, T)(ref T L, in double[][] gc
             nb[j] = p[j] - cv[i][j];
           }
           if ( isBounceBack(L.mask[nb]) ) {
-            immutable prefactor = psiden1 * L.density[nc1][nb] * wc;
+            immutable prefactor = cw[i] * psiden1 * L.density[nc1][nb] * wc;
             // The SC force function.
             foreach(immutable j; Iota!(0, conn.d) ) {
               force[j] += prefactor * cv[i][j];
