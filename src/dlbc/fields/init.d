@@ -1,3 +1,21 @@
+// Written in the D programming language.
+
+/**
+   Helper functions to initialize generic fields.
+
+   Copyright: Stefan Frijters 2011-2014
+
+   License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
+
+   Authors: Stefan Frijters
+
+   Macros:
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+*/
+
 module dlbc.fields.init;
 
 import dlbc.fields.field;
@@ -229,7 +247,27 @@ void initEqDistWall(T, U)(ref T field, in double density, ref U mask) if ( isFie
   }
 }
 
-U symmetricLinearTransition(T, U)(in T pos, in T width, in U negval, in U posval) @safe pure nothrow @nogc {
+/// Only inits physical sites!
+void initLamellae(T, U)(ref T field, in ptrdiff_t[] widths, in U[] values, in Axis initAxis) if ( isField!T ) {
+  assert(widths.length == values.length);
+  size_t i = to!int(initAxis);
+  foreach(immutable p, ref e; field) {
+    auto gp = p[i] + M.c[i] * field.n[i] - field.haloSize; 
+    e = values[gp.findLamella(widths)];
+  }
+}
+
+private size_t findLamella(in ptrdiff_t pos, in ptrdiff_t[] widths) {
+  ptrdiff_t i = 0;
+  ptrdiff_t upper = widths[0];
+  while ( pos >= upper ) {
+    i++;
+    upper += widths[i];
+  }
+  return i;
+}
+
+private U symmetricLinearTransition(T, U)(in T pos, in T width, in U negval, in U posval) @safe pure nothrow @nogc {
   if ( pos < -0.5*width ) {
     return negval;
   }
