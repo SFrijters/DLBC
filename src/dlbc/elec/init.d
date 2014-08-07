@@ -10,13 +10,19 @@ module dlbc.elec.init;
 
 @("param") double dielUniform;
 @("param") double bjerrumLength;
+@("param") double dielCapacitor;
+@("param") double dielCapacitor2;
+
+@("param") Axis initAxis;
 
 import dlbc.elec.elec;
 import dlbc.fields.field;
 import dlbc.fields.init;
+import dlbc.fields.parallel;
 import dlbc.lb.mask;
 import dlbc.lattice;
 import dlbc.logging;
+import dlbc.parallel;
 import dlbc.parameters;
 
 /**
@@ -37,6 +43,12 @@ enum ElecChargeInit {
      charge evenly over fluid sites, with an additional salt concentration $(D saltConc).
   */
   UniformDensity,
+  /**
+     Place charge $(D chargeDensitySolid) on solid sites which are positioned in
+     the lower half of the system (according to ($D initAxis)), 
+     charge -$(D chargeDensitySolid) on other solid sites, and zero anywhere else.
+  */
+  CapacitorDensity,
 }
 
 /**
@@ -52,6 +64,7 @@ enum ElecDielInit {
   */
   Uniform,
   UniformFromBjerrumLength,
+  Capacitor,
 }
 
 void initElec(T)(ref T L) if ( isLattice!T ) {
@@ -59,7 +72,7 @@ void initElec(T)(ref T L) if ( isLattice!T ) {
 
   L.elPot.initConst(0);
   L.elField.initConst(0);
-  L.elDiel.initDielElec();
+  L.initDielElec();
 
   L.initChargeElec();
   L.equilibrateElec();
@@ -113,22 +126,30 @@ private void initChargeElec(T)(ref T L) if ( isLattice!T ) {
   case(ElecChargeInit.UniformDensity):
     L.initChargeElecUniform(true);
     break;
+  case(ElecChargeInit.CapacitorDensity):
+    L.initChargeElecCapacitorDensity(chargeDensitySolid, initAxis);
+    break;
   }
 }
 
-private void initDielElec(T)(ref T diel) if ( isField!T ) {
-  final switch(dielInit) {
-  case(ElecDielInit.None):
-    break;
-  case(ElecDielInit.Uniform):
-    diel.initConst(dielUniform);
-    break;
-  case(ElecDielInit.UniformFromBjerrumLength):
-    import std.math: PI;
-    dielUniform = beta * elementaryCharge * elementaryCharge / ( 4.0 * PI * bjerrumLength );
-    writeLogRI("Setting dielUniform = %e from Bjerrum length.", dielUniform);
-    diel.initConst(dielUniform);
-    break;
+private void initDielElec(T)(ref T L) if ( isLattice!T ) {
+  if ( localDiel ) {
+    final switch(dielInit) {
+    case(ElecDielInit.None):
+      break;
+    case(ElecDielInit.Uniform):
+      L.elDiel.initConst(dielUniform);
+      break;
+    case(ElecDielInit.UniformFromBjerrumLength):
+      import std.math: PI;
+      dielUniform = beta * elementaryCharge * elementaryCharge / ( 4.0 * PI * bjerrumLength );
+      writeLogRI("Setting dielUniform = %e from Bjerrum length.", dielUniform);
+      L.elDiel.initConst(dielUniform);
+      break;
+    case(ElecDielInit.Capacitor):
+      L.initDielCapacitor(dielCapacitor, dielCapacitor2, initAxis);
+      break;
+    }
   }
 }
 
@@ -202,6 +223,31 @@ private void initChargeElecUniform(T)(ref T L, bool asDensity) if ( isLattice!T 
   assert(approxEqual(globalCharge, 0.0));
 }
 
+void initChargeElecCapacitorDensity(T)(ref T L, in double chargeDensity, in Axis initAxis) if ( isLattice!T ) {
+  size_t i = to!int(initAxis);
+  foreach(immutable p, ref e; L.mask) {
+    if ( e == Mask.Solid ) {
+      auto gp = p[i] + M.c[i] * L.mask.n[i] - L.mask.haloSize; 
+      if ( gp < L.gn[i] / 2 ) {
+        L.elChargeP[p] =  0.5*chargeDensity;
+        L.elChargeN[p] = -0.5*chargeDensity;
+      }
+      else {
+        L.elChargeP[p] = -0.5*chargeDensity;
+        L.elChargeN[p] =  0.5*chargeDensity;
+      }
+    }
+    else {
+      L.elChargeP[p] = 0.0;
+      L.elChargeN[p] = 0.0;
+    }
+  }
+
+  import std.math: approxEqual;  
+  auto globalCharge = L.calculateGlobalCharge();
+  assert(approxEqual(globalCharge, 0.0));
+}
+
 private double calculateGlobalCharge(T)(ref T L) if ( isLattice!T ) {
   import dlbc.parallel;
   double localChargeP = 0;
@@ -217,5 +263,11 @@ private double calculateGlobalCharge(T)(ref T L) if ( isLattice!T ) {
   MPI_Allreduce(&localChargeN, &globalChargeN, 1, MPI_DOUBLE, MPI_SUM, M.comm);
   
   return globalChargeP - globalChargeN;
+}
+
+void initDielCapacitor(T)(ref T L, in double dielConstant, in double dielConstant2, in Axis initAxis) if ( isLattice!T ) {
+  size_t i = to!int(initAxis);
+  L.elDiel.initLamellae([L.gn[i]/2, L.gn[i]/2],[dielConstant, dielConstant2], initAxis);
+  L.elDiel.exchangeHalo();
 }
 
