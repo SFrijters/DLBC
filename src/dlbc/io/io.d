@@ -105,6 +105,9 @@ void initSimulationId() {
   simulationName = simulationName.replaceFnameTokens();
   MpiBcastString(simulationName);
   writeLogRI("The name of the simulation is `%s' and its id is `%s'.", simulationName, simulationId);
+  outputPath = outputPath.replaceFnameTokens();
+  MpiBcastString(outputPath);
+  writeLogRI("The output path is `%s'.", outputPath);
 }
 
 /**
