@@ -31,6 +31,10 @@ module dlbc.lb.mask;
    different interpretations. Cf. the description of the $(D MaskInit) enum for details.
 */
 @("param") Axis initAxis;
+/**
+   Offset of both walls, towards the centre of the system.
+*/
+@("param") int wallOffset;
 
 import std.conv: to;
 
@@ -172,7 +176,7 @@ void initWalls(T)(ref T field, const Axis initAxis) if ( isMaskField!T ) {
     e = Mask.None;
     foreach(immutable i; Iota!(0, field.dimensions) ) {
       gn[i] = p[i] + M.c[i] * field.n[i] - field.haloSize;
-      if ( i == to!int(initAxis) && ( gn[i] == 0 || gn[i] == (field.n[i] * M.nc[i] - 1) ) ) {
+      if ( i == to!int(initAxis) && ( gn[i] == wallOffset || gn[i] == (field.n[i] * M.nc[i] - 1 - wallOffset) ) ) {
         e = Mask.Solid;
       }
     }
