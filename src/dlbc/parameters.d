@@ -212,10 +212,10 @@ private void parseParameterLine(char[] line, const size_t ln, ref string current
      len = required length
      strict = whether or not a zero-length vector is a fatal error
 */
-void checkArrayParameterLength(T)(ref T vector, const string name, const size_t len, bool strict = false) {
+void checkArrayParameterLength(T)(ref T vector, in string name, in size_t len, in bool strict = false) {
   import dlbc.range: BaseElementType;
 
-  if ( vector.length == 0 ) {
+  if ( vector.length == 0 && len != 0 ) {
     if ( strict ) {
       writeLogF("Array parameter %s must have length %d.", name, len);
     }
