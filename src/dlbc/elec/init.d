@@ -76,9 +76,13 @@ void initElecConstants(T)(ref T L) if ( isLattice!T ) {
   checkArrayParameterLength(boundaryPhi, "lb.elec.boundaryPhi", 2*L.lbconn.d);
   checkArrayParameterLength(dropPhi, "lb.elec.dropPhi", 2*L.lbconn.d);
 
+  if ( ( fluidOnElec || elecOnFluid ) && components < 1 ) {
+    writeLogF("Fluid-elec interactions elec.fluidOnElec and elec.elecOnFluid not supported with components < 1.");
+  }
+
   averageDiel = sum(fluidDiel) / to!double(components);
-  if ( localDiel && components > 2 ) {
-    writeLogF("Warning: local dielectric not supported with components > 2.");
+  if ( localDiel && fluidOnElec && components > 2 ) {
+    writeLogF("Local dielectric elec.localDiel with elec.fluidOnElec not supported with components > 2.");
   }
   else {
     if ( components == 2 ) {
