@@ -195,6 +195,12 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gccm
   immutable cv = conn.velocities;
   immutable cw = conn.weights;
 
+  // Need to assert this to make sure we can safely skip the zero component
+  // in the loop [*] below.
+  foreach(immutable j; Iota!(0, conn.d) ) {
+    assert(cv[0][j] == 0);
+  }
+
   // It's actually faster to pre-calculate the densities, apparently...
   L.calculateDensity();
 
@@ -209,7 +215,7 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gccm
         // Only do lattice sites on which collision will take place.
         if ( isCollidable(L.mask[p]) ) {
           immutable psiden1 = psi!psiForm(L.density[nc1][p]);
-          foreach(immutable i; Iota!(1, conn.q - 1) ) {
+          foreach(immutable i; Iota!(1, conn.q - 1) ) { // [*]
             conn.vel_t nb;
             // Todo: better array syntax.
             foreach(immutable j; Iota!(0, conn.d) ) {
