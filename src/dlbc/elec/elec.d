@@ -28,6 +28,8 @@ import dlbc.lb.connectivity;
 
 @("param") bool localDiel;
 
+@("param") double dielGlobal;
+
 @("param") bool fluidOnElec;
 
 @("param") bool elecOnFluid;

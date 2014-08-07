@@ -108,7 +108,7 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
         double nbPhi = L.getNbPot(p, cv[i]);
         depsphi += nbPhi;
       }
-      depsphi = dielUniform * ( depsphi - 6.0 * curPhi );
+      depsphi = dielGlobal * ( depsphi - 6.0 * curPhi );
     }
     localRnorm[0] += abs(depsphi + curRho);
   }
@@ -163,10 +163,10 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
                   double nbPhi = L.getNbPot(p, cv[iv]);
                   depsphi += nbPhi;
                 }
-                residual = dielUniform * ( depsphi - 6.0 * curPhi ) + curRho;
-                L.elPot[p] += omega * residual / ( 6.0 * dielUniform);
+                residual = dielGlobal * ( depsphi - 6.0 * curPhi ) + curRho;
+                L.elPot[p] += omega * residual / ( 6.0 * dielGlobal);
               }
-              // writeLogD("L.elPot%s = %e %e %e %e %e %e",p, L.elPot[p], curPhi, curRho, depsphi, residual, dielUniform);
+              // writeLogD("L.elPot%s = %e %e %e %e %e %e",p, L.elPot[p], curPhi, curRho, depsphi, residual, dielGlobal);
               localRnorm[1] += abs(residual);
             }
             isw = 1 - isw;
