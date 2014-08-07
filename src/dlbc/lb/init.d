@@ -37,6 +37,8 @@ module dlbc.lb.init;
 @("param") double[] initOffset;
 /// Ditto
 @("param") Axis initAxis;
+/// Ditto
+@("param") double interfaceThickness = 0.0;
 
 import dlbc.fields.field;
 import dlbc.lb.lb;
@@ -88,7 +90,8 @@ enum FluidInit {
      Initialize all sites of fluid i within a radius $(D initRadius) from the centre
      of the system with offset $(D initOffset) the equilibrium population for density
      $(D fluidDensity[i]), and all other sites  with the equilibrium population
-     for density $(D fluidDensity2[i]).
+     for density $(D fluidDensity2[i]). The interface is modeled by a linear transition
+     with a length $(D interfaceThickness).
   */
   EqDistSphere,
   /**
@@ -96,14 +99,16 @@ enum FluidInit {
      from the centre of the system with offset $(D initOffset) * system size
      with the equilibrium population for density $(D fluidDensity[i]), and all other
      sites with the equilibrium population for density $(D fluidDensity2[i]).
-     Here, system size is taken to be the shortest axis of the system.
+     Here, system size is taken to be the shortest axis of the system. The interface
+     is modeled by a linear transition with a length $(D interfaceThickness).
   */
   EqDistSphereFrac,
   /**
      Initialize all sites of fluid i within a radius $(D initRadius) from the centre
      $(D preferredAxis)-axis of the system with offset $(D initOffset) with the
      equilibrium population for density $(D fluidDensity[i]), and all other sites
-     with the equilibrium population for density $(D fluidDensity2[i]).
+     with the equilibrium population for density $(D fluidDensity2[i]). The interface
+     is modeled by a linear transition with a length $(D interfaceThickness).
   */
   EqDistCylinder,
   /**
@@ -112,7 +117,8 @@ enum FluidInit {
      * system size with the equilibrium population for density $(D fluidDensity[i]),
      and all other sites  with the equilibrium population for density
      $(D fluidDensity2[i]). Here, system size is taken to be the shortest remaining
-     axis of the system.
+     axis of the system. The interface is modeled by a linear transition with
+     a length $(D interfaceThickness).
   */
   EqDistCylinderFrac,
 }
@@ -162,16 +168,16 @@ void initFluid(T)(ref T field, const size_t i) if ( isPopulationField!T ) {
     field.initEqDistRandom(fluidDensity[i]);
     break;
   case(FluidInit.EqDistSphere):
-    field.initEqDistSphere(fluidDensity[i], fluidDensity2[i], initRadius, initOffset);
+    field.initEqDistSphere(fluidDensity[i], fluidDensity2[i], initRadius, initOffset, interfaceThickness);
     break;
   case(FluidInit.EqDistSphereFrac):
-    field.initEqDistSphereFrac(fluidDensity[i], fluidDensity2[i], initRadius, initOffset);
+    field.initEqDistSphereFrac(fluidDensity[i], fluidDensity2[i], initRadius, initOffset, interfaceThickness);
     break;
   case(FluidInit.EqDistCylinder):
-    field.initEqDistCylinder(fluidDensity[i], fluidDensity2[i], initAxis, initRadius, initOffset);
+    field.initEqDistCylinder(fluidDensity[i], fluidDensity2[i], initAxis, initRadius, initOffset, interfaceThickness);
     break;
   case(FluidInit.EqDistCylinderFrac):
-    field.initEqDistCylinderFrac(fluidDensity[i], fluidDensity2[i], initAxis, initRadius, initOffset);
+    field.initEqDistCylinderFrac(fluidDensity[i], fluidDensity2[i], initAxis, initRadius, initOffset, interfaceThickness);
     break;
   }
 }

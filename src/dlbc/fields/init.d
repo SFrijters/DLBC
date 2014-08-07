@@ -24,7 +24,7 @@ void initRank(T)(ref T field) if ( isField!T ) {
   }
 }
 
-void initConst(T, U)(ref T field, const U fill) if ( isField!T ) {
+void initConst(T, U)(ref T field, in U fill) if ( isField!T ) {
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
@@ -37,7 +37,7 @@ void initConst(T, U)(ref T field, const U fill) if ( isField!T ) {
   }
 }
 
-void initConstRandom(T)(ref T field, const double fill) if ( isField!T ) {
+void initConstRandom(T)(ref T field, in double fill) if ( isField!T ) {
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
@@ -50,7 +50,7 @@ void initConstRandom(T)(ref T field, const double fill) if ( isField!T ) {
   }
 }
 
-void initEqDist(T)(ref T field, const double density) if ( isField!T ) {
+void initEqDist(T)(ref T field, in double density) if ( isField!T ) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
   alias conn = field.conn;
@@ -102,75 +102,68 @@ void initEqDistRandom(T)(ref T field, const double density) if ( isField!T ) {
   }
 }
 
-void initEqDistSphere(T)(ref T field, const double density1, const double density2,
-                                     const double initSphereRadius, const double[] initSphereOffset) if ( isField!T ) {
+void initEqDistSphere(T)(ref T field, in double density1, in double density2,
+                         in double initSphereRadius, in double[] initSphereOffset, in double interfaceThickness) if ( isField!T ) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
   import std.math, std.conv, std.numeric;
   alias conn = field.conn;
-  immutable r2 = initSphereRadius * initSphereRadius;
+
+  immutable r = initSphereRadius;
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
   double[conn.d] dv = 0.0;
-  typeof(pop0) pop1 = density1*eqDist!conn(pop0, dv)[];
-  typeof(pop0) pop2 = density2*eqDist!conn(pop0, dv)[];
+  typeof(pop0) eqpop = eqDist!conn(pop0, dv)[];
   foreach(immutable p, ref e; field.arr) {
     double[conn.d] gn, offset;
     foreach(immutable i; Iota!(0, conn.d) ) {
       gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
       offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * 0.5 + initSphereOffset[i]) + 0.5;
     }
-    if ( offset.dotProduct(offset) < r2 ) {
-      e = pop1;
-    }
-    else {
-      e = pop2;
-    }
+    immutable relpos = sqrt(offset.dotProduct(offset)) - r;
+    e = relpos.symmetricLinearTransition(interfaceThickness, density1, density2)*eqpop[];
   }
 }
 
-void initEqDistSphereFrac(T)(ref T field, const double density1, const double density2,
-                                         const double initSphereFrac, const double[] initSphereOffset) if ( isField!T ) {
+void initEqDistSphereFrac(T)(ref T field, in double density1, in double density2,
+                             in double initSphereFrac, in double[] initSphereOffset, in double interfaceThickness) if ( isField!T ) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range, dlbc.lattice;
   import std.math, std.conv, std.numeric;
   alias conn = field.conn;
+
   auto smallSize = gn[0];
   foreach(immutable i; 0..gn.length) {
     if ( gn[i] < smallSize ) {
       smallSize = gn[i];
     }
   }
-  immutable r2 = initSphereFrac * initSphereFrac * smallSize * smallSize;
+
+  immutable r = initSphereFrac * smallSize;
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
   double[conn.d] dv = 0.0;
-  typeof(pop0) pop1 = density1*eqDist!conn(pop0, dv)[];
-  typeof(pop0) pop2 = density2*eqDist!conn(pop0, dv)[];
+  typeof(pop0) eqpop = eqDist!conn(pop0, dv)[];
   foreach(immutable p, ref e; field.arr) {
     double[conn.d] gn, offset;
     foreach(immutable i; Iota!(0, conn.d) ) {
       gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
       offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * ( 0.5 + initSphereOffset[i]) ) + 0.5;
     }
-    if ( offset.dotProduct(offset) < r2 ) {
-      e = pop1;
-    }
-    else {
-      e = pop2;
-    }
+    immutable relpos = sqrt(offset.dotProduct(offset)) - r;
+    e = relpos.symmetricLinearTransition(interfaceThickness, density1, density2)*eqpop[];
   }
 }
 
-void initEqDistCylinder(T)(ref T field, const double density1, const double density2, const Axis preferredAxis,
-                                     const double initSphereRadius, const double[] initSphereOffset) if ( isField!T ) {
+void initEqDistCylinder(T)(ref T field, in double density1, in double density2, in Axis preferredAxis,
+                           in double initSphereRadius, in double[] initSphereOffset, in double interfaceThickness) if ( isField!T ) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
   import std.math, std.conv, std.numeric;
   alias conn = field.conn;
-  immutable r2 = initSphereRadius * initSphereRadius;
+
+  immutable r = initSphereRadius;
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
   double[conn.d] dv = 0.0;
-  typeof(pop0) pop1 = density1*eqDist!conn(pop0, dv)[];
-  typeof(pop0) pop2 = density2*eqDist!conn(pop0, dv)[];
+  typeof(pop0) eqpop = eqDist!conn(pop0, dv)[];
   foreach(immutable p, ref e; field.arr) {
     double[conn.d] gn, offset;
     foreach(immutable i; Iota!(0, conn.d) ) {
@@ -182,21 +175,17 @@ void initEqDistCylinder(T)(ref T field, const double density1, const double dens
         offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * 0.5 + initSphereOffset[i]) + 0.5;
       }
     }
-    if ( offset.dotProduct(offset) < r2 ) {
-      e = pop1;
-    }
-    else {
-      e = pop2;
-    }
+    immutable relpos = sqrt(offset.dotProduct(offset)) - r;
+    e = relpos.symmetricLinearTransition(interfaceThickness, density1, density2)*eqpop[];
   }
 }
 
-void initEqDistCylinderFrac(T)(ref T field, const double density1, const double density2, const Axis preferredAxis,
-                                         const double initSphereFrac, const double[] initSphereOffset) if ( isField!T ) {
+void initEqDistCylinderFrac(T)(ref T field, in double density1, in double density2, in Axis preferredAxis,
+                               in double initSphereFrac, in double[] initSphereOffset, in double interfaceThickness) if ( isField!T ) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range, dlbc.lattice;
   import std.math, std.conv, std.numeric;
-
   alias conn = field.conn;
+
   size_t smallSize = 0;
   foreach(immutable i; 0..gn.length) {
     if ( i != to!int(preferredAxis) ) {
@@ -205,12 +194,12 @@ void initEqDistCylinderFrac(T)(ref T field, const double density1, const double 
       }
     }
   }
-  immutable r2 = initSphereFrac * initSphereFrac * smallSize * smallSize;
+
+  immutable r = initSphereFrac * smallSize;
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
   double[conn.d] dv = 0.0;
-  typeof(pop0) pop1 = density1*eqDist!conn(pop0, dv)[];
-  typeof(pop0) pop2 = density2*eqDist!conn(pop0, dv)[];
+  typeof(pop0) eqpop = eqDist!conn(pop0, dv)[];
   foreach(immutable p, ref e; field.arr) {
     double[conn.d] gn, offset;
     foreach(immutable i; Iota!(0, conn.d) ) {
@@ -222,16 +211,12 @@ void initEqDistCylinderFrac(T)(ref T field, const double density1, const double 
         offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * ( 0.5 + initSphereOffset[i]) ) + 0.5;
       }
     }
-    if ( offset.dotProduct(offset) < r2 ) {
-      e = pop1;
-    }
-    else {
-      e = pop2;
-    }
+    immutable relpos = sqrt(offset.dotProduct(offset)) - r;
+    e = relpos.symmetricLinearTransition(interfaceThickness, density1, density2)*eqpop[];
   }
 }
 
-void initEqDistWall(T, U)(ref T field, const double density, ref U mask) if ( isField!T && isMaskField!U ) {
+void initEqDistWall(T, U)(ref T field, in double density, ref U mask) if ( isField!T && isMaskField!U ) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
   import dlbc.lb.mask;
@@ -241,6 +226,18 @@ void initEqDistWall(T, U)(ref T field, const double density, ref U mask) if ( is
       e = 0.0;
       e[0] = density;
     }
+  }
+}
+
+U symmetricLinearTransition(T, U)(in T pos, in T width, in U negval, in U posval) @safe pure nothrow @nogc {
+  if ( pos < -0.5*width ) {
+    return negval;
+  }
+  else if ( pos > 0.5*width ) {
+    return posval;
+  }
+  else {
+    return ( negval * ( 0.5 - pos / width ) + posval * ( 0.5 + pos / width ) );
   }
 }
 
