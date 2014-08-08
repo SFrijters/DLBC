@@ -159,13 +159,11 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
       assert(moddity == 0);
       foreach(immutable ipass; 0..2) {
         for(int j = 0; j < L.lengths[1]; j++ ) {
-          for (int i = ipass + j%2; i < L.lengths[0]; i=i+2 ) {
+          for (int i = (ipass + j%2)%2; i < L.lengths[0]; i=i+2 ) {
             immutable offset = L.elPot.haloSize;
             immutable ptrdiff_t[2] p = [i+offset, j+offset];
-            //writeLogI("%d %d", i, j);
             mixin(sorKernel);
           }
-          
         }
 
         if ( it == 0 && ipass == 0 ) {
@@ -199,7 +197,6 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
         }
       }
     }
-      
   }
 
   writeLogF("SOR won't converge.");
