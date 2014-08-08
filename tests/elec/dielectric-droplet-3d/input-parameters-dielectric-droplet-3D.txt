@@ -1,0 +1,81 @@
+// Parameters to test Laplace's law for two fluids.
+
+[io]
+simulationName = dielectric-droplet-on
+outputFormat = HDF5
+outputPath = output
+createPath = true
+
+checkpoint.cpFreq = 1000
+checkpoint.cpPath = cp
+checkpoint.cpKeep = 1
+
+[lb]
+timesteps = 1100
+components = 2
+fieldNames = [ "red", "blue" ]
+
+force.enableShanChen = true
+force.psiForm = Exponential
+force.gcc = [ 0.0, 8.0, 8.0, 0.0 ]
+
+init.fluidInit = [ EqDistCylinderFrac , EqDistCylinderFrac ]
+init.initAxis = Z
+init.fluidDensity = [0.7, 0.04 ]
+init.fluidDensity2 = [0.04, 0.7 ]
+init.initRadius = 0.25
+init.interfaceThickness = 5.0
+
+io.colourFreq = 1
+io.forceFreq = 10
+io.fluidsFreq = 100
+io.velocitiesFreq = 0
+io.maskFreq = 10000
+
+mask.maskInit = None
+
+[lattice]
+gn = [64, 64, 4 ]
+
+[parallel]
+nc = [2, 2, 1]
+
+[elec]
+enableElec = true
+
+localDiel = true
+
+fluidOnElec = true
+elecOnFluid = true
+
+force.enableElectrostatic = false
+force.enableDielectrophoretic = true
+
+poisson.solver = SOR 
+
+externalField = [ 0.0, 0.0, 0.0 ] 
+
+fluidDiel = [ 0.0199, 0.378 ]
+
+boundaryPhi = [ Drop, Drop, Periodic, Periodic, Periodic, Periodic ]
+dropPhi = [ 10.0, 10.0, 0.0, 0.0, 0.0, 0.0  ]
+
+poisson.sorMaxIterations = 10000
+poisson.sorShowIterations = 100
+poisson.sorCheckIterations = 100
+poisson.sorToleranceRel = 1e-6
+
+init.chargeInit = Uniform
+init.chargeSolid = 0.0 
+init.chargeDensitySolid = 0.0
+init.dielInit = UniformFromBjerrumLength
+init.bjerrumLength = 0.4
+init.dielUniform = 1.0
+init.saltConc = 0.0
+
+io.potFreq = 10
+io.dielFreq = 10
+io.chargeFreq = 1000
+io.fieldFreq = 10
+
+
