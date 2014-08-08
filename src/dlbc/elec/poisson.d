@@ -119,49 +119,24 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
   int moddity = oddity % 2;
   double omega = 1.0;
 
-  static if ( L.dimensions == 3 ) {
-    foreach(immutable it; 0..sorMaxIterations) {
+  writeLogRD("Moddity = %d", moddity);
+
+  foreach(immutable it; 0..sorMaxIterations) {
+    localRnorm[1] = 0.0;
+
+    static if ( T.dimensions == 3 ) {
       int isw, jsw, ksw;
-      localRnorm[1] = 0.0;
       ksw = 0;
       foreach(immutable ipass; 0..2) {
         jsw = ksw;
-        // Todo: foreach, 2D.
         for(int k = 0; k < L.lengths[2]; k++ ) {
           isw = jsw;
           if ( moddity == 1 ) isw = 1 - isw;
           for (int j = 0; j < L.lengths[1]; j++ ) {
             for (int i = isw; i < L.lengths[0]; i = i+2 ) {
               immutable offset = L.elPot.haloSize;
-              immutable ptrdiff_t[3] p = [i+offset,j+offset,k+offset];
-              double residual;
-              double depsphi = 0.0;
-              double curRho = L.elChargeP[p] - L.elChargeN[p];
-              double curPhi = L.elPot[p];
-              if ( localDiel ) {
-                double dielTot = 0.0;
-                double curDiel = L.getLocalDiel(p);
-                foreach(immutable iv; 1..cv.length) { // Do not iterate over self vector!
-                  ptrdiff_t[3] nb;
-                  double nbPhi = L.getNbPot(p, cv[iv], nb);
-                  double dielH = 0.5* ( L.getLocalDiel(nb) + curDiel );
-                  dielTot += dielH;
-                  depsphi += dielH * ( nbPhi - curPhi );
-                  // writeLogRD("%d %d %d %s %e %e %e", p[0] -1, p[1] -1, p[2] -1, nb, nbPhi, dielH, depsphi);
-                }
-                residual = depsphi + curRho;
-                L.elPot[p] += omega * residual / dielTot;
-              }
-              else {
-                foreach(immutable iv; 1..cv.length) { // Do not iterate over self vector!
-                  double nbPhi = L.getNbPot(p, cv[iv]);
-                  depsphi += nbPhi;
-                }
-                residual = dielGlobal * ( depsphi - 6.0 * curPhi ) + curRho;
-                L.elPot[p] += omega * residual / ( 6.0 * dielGlobal);
-              }
-              // writeLogD("L.elPot %s = %e %e %e %e %e %e",p, L.elPot[p], curPhi, curRho, depsphi, residual, dielGlobal);
-              localRnorm[1] += abs(residual);
+              immutable ptrdiff_t[3] p = [i+offset, j+offset, k+offset];
+              mixin(sorKernel);
             }
             isw = 1 - isw;
           }
@@ -179,31 +154,87 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
 
         L.elPot.exchangeHalo();
       }
-
-      // writeLogD("localRnorm[1] = %f",localRnorm[1]);
-
-      if ( it % sorCheckIterations == 0 ) {
-        MPI_Allreduce(&localRnorm, &globalRnorm, 2, MPI_DOUBLE, MPI_SUM, L.M.comm);
-        if ( globalRnorm[1] < sorToleranceAbs || globalRnorm[1] < sorToleranceRel*globalRnorm[0] ) {
-          if ( sorShowIterations > 0 ) {
-            writeLogRI("Finished SOR iteration = %d at t = %d, rnorm = %e, tolA = %e, tolR = %e.", it + 1, timestep, globalRnorm[1], sorToleranceAbs, sorToleranceRel);
+    }
+    else static if ( T.dimensions == 2 ) {
+      assert(moddity == 0);
+      foreach(immutable ipass; 0..2) {
+        for(int j = 0; j < L.lengths[1]; j++ ) {
+          for (int i = ipass + j%2; i < L.lengths[0]; i=i+2 ) {
+            immutable offset = L.elPot.haloSize;
+            immutable ptrdiff_t[2] p = [i+offset, j+offset];
+            //writeLogI("%d %d", i, j);
+            mixin(sorKernel);
           }
-          return;
+          
+        }
+
+        if ( it == 0 && ipass == 0 ) {
+          omega = 1.0 / ( 1.0 - 0.5 * radiusSOR * radiusSOR);
         }
         else {
-          if ( sorShowIterations > 0 && ( it % sorShowIterations == 0 ) ) {
-            writeLogRI("Performed SOR iteration = %d at t = %d, rnorm = %e, tolA = %e, tolR = %e.", it + 1, timestep, globalRnorm[1], sorToleranceAbs, sorToleranceRel);
-          }
+          omega = 1.0 / ( 1.0 - 0.25 * radiusSOR * radiusSOR * omega);
+        }
+        writeLogRD("it = %d, ipass = %d, omega = %e", it, ipass, omega);
+
+        L.elPot.exchangeHalo();
+      }
+    }
+    else {
+      assert(0);
+    }
+
+    // writeLogD("localRnorm[1] = %f",localRnorm[1]);
+
+    if ( it % sorCheckIterations == 0 ) {
+      MPI_Allreduce(&localRnorm, &globalRnorm, 2, MPI_DOUBLE, MPI_SUM, L.M.comm);
+      if ( globalRnorm[1] < sorToleranceAbs || globalRnorm[1] < sorToleranceRel*globalRnorm[0] ) {
+        if ( sorShowIterations > 0 ) {
+          writeLogRI("Finished SOR iteration = %d at t = %d, rnorm = %e, tolA = %e, tolR = %e.", it + 1, timestep, globalRnorm[1], sorToleranceAbs, sorToleranceRel);
+        }
+        return;
+      }
+      else {
+        if ( sorShowIterations > 0 && ( it % sorShowIterations == 0 ) ) {
+          writeLogRI("Performed SOR iteration = %d at t = %d, rnorm = %e, tolA = %e, tolR = %e.", it + 1, timestep, globalRnorm[1], sorToleranceAbs, sorToleranceRel);
         }
       }
     }
-  }
-  else {
-    assert(0);
+      
   }
 
   writeLogF("SOR won't converge.");
 }
+
+private static immutable string sorKernel = q{
+  double residual;
+  double depsphi = 0.0;
+  double curRho = L.elChargeP[p] - L.elChargeN[p];
+  double curPhi = L.elPot[p];
+  if ( localDiel ) {
+    double dielTot = 0.0;
+    double curDiel = L.getLocalDiel(p);
+    foreach(immutable iv; 1..cv.length) { // Do not iterate over self vector!
+      ptrdiff_t[T.dimensions] nb;
+      double nbPhi = L.getNbPot(p, cv[iv], nb);
+      double dielH = 0.5* ( L.getLocalDiel(nb) + curDiel );
+      dielTot += dielH;
+      depsphi += dielH * ( nbPhi - curPhi );
+      // writeLogRD("%d %d %d %s %e %e %e", p[0] -1, p[1] -1, p[2] -1, nb, nbPhi, dielH, depsphi);
+    }
+    residual = depsphi + curRho;
+    L.elPot[p] += omega * residual / dielTot;
+  }
+  else {
+    foreach(immutable iv; 1..cv.length) { // Do not iterate over self vector!
+      double nbPhi = L.getNbPot(p, cv[iv]);
+      depsphi += nbPhi;
+    }
+    residual = dielGlobal * ( depsphi - 6.0 * curPhi ) + curRho;
+    L.elPot[p] += omega * residual / ( 6.0 * dielGlobal);
+  }
+  // writeLogD("L.elPot %s = %e %e %e %e %e %e",p, L.elPot[p], curPhi, curRho, depsphi, residual, dielGlobal);
+  localRnorm[1] += abs(residual);
+};
 
 private void solvePoissonP3M(T)(ref T L) if ( isLattice!T ) {
   assert(0, "elec.poissonSolver == P3M is not yet implemented.");
