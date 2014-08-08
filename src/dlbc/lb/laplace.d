@@ -49,7 +49,7 @@ private double previousSigma;
      t = current time step
 */
 void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
-  import std.algorithm: sum;
+  import std.algorithm: any, sum;
   import std.math;
 
   enum volumeAverage = 1;
@@ -59,7 +59,13 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
     offsetIn[i] = to!int(L.gn[i] * 0.5);
   }
   ptrdiff_t[T.dimensions] offsetOut = 0;
-  
+
+  if ( any(initOffset) ||
+       ( fluidInit[0] != FluidInit.EqDistSphere && fluidInit[0] != FluidInit.EqDistSphereFrac ) ||
+       ( fluidInit[1] != FluidInit.EqDistSphere && fluidInit[1] != FluidInit.EqDistSphereFrac ) ) {
+    writeLogRW("Laplace pressure calculation assumes the presence of a centred sphere!");
+  }
+
   // writeLogRD("%s %s", offsetIn, offsetOut);
   // writeLogRD("inDen");
   auto inDen = L.volumeAveragedDensity(offsetIn, volumeAverage);
