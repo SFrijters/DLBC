@@ -197,8 +197,8 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gccm
 
   // Need to assert this to make sure we can safely skip the zero component
   // in the loop [*] below.
-  foreach(immutable j; Iota!(0, conn.d) ) {
-    assert(cv[0][j] == 0);
+  foreach(immutable vd; Iota!(0, conn.d) ) {
+    assert(cv[0][vd] == 0);
   }
 
   // It's actually faster to pre-calculate the densities, apparently...
@@ -215,18 +215,18 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gccm
         // Only do lattice sites on which collision will take place.
         if ( isCollidable(L.mask[p]) ) {
           immutable psiden1 = psi!psiForm(L.density[nc1][p]);
-          foreach(immutable i; Iota!(1, conn.q - 1) ) { // [*]
+          foreach(immutable vq; Iota!(1, conn.q - 1) ) { // [*]
             conn.vel_t nb;
             // Todo: better array syntax.
-            foreach(immutable j; Iota!(0, conn.d) ) {
-              nb[j] = p[j] - cv[i][j];
+            foreach(immutable vd; Iota!(0, conn.d) ) {
+              nb[vd] = p[vd] - cv[vq][vd];
             }
             // Only do lattice sites that are not walls.
             immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi!psiForm(L.density[nc2][p]) : psi!psiForm(L.density[nc2][nb]));
-            immutable prefactor = cw[i] * psiden1 * psiden2 * cc;
+            immutable prefactor = cw[vq] * psiden1 * psiden2 * cc;
             // The SC force function.
-            foreach(immutable j; Iota!(0, conn.d) ) {
-              force[j] += prefactor * cv[i][j];
+            foreach(immutable vd; Iota!(0, conn.d) ) {
+              force[vd] += prefactor * cv[vq][vd];
             }
           }
         }
@@ -240,17 +240,17 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gccm
       // Only do lattice sites on which collision will take place.
       if ( isCollidable(L.mask[p]) ) {
         immutable psiden1 = psi!psiForm(L.density[nc1][p]);
-        foreach(immutable i; Iota!(0, conn.q) ) {
+        foreach(immutable vq; Iota!(0, conn.q) ) {
           conn.vel_t nb;
           // Todo: better array syntax.
-          foreach(immutable j; Iota!(0, conn.d) ) {
-            nb[j] = p[j] - cv[i][j];
+          foreach(immutable vd; Iota!(0, conn.d) ) {
+            nb[vd] = p[vd] - cv[vq][vd];
           }
           if ( isBounceBack(L.mask[nb]) ) {
-            immutable prefactor = cw[i] * psiden1 * L.density[nc1][nb] * wc;
+            immutable prefactor = cw[vq] * psiden1 * L.density[nc1][nb] * wc;
             // The SC force function.
-            foreach(immutable j; Iota!(0, conn.d) ) {
-              force[j] += prefactor * cv[i][j];
+            foreach(immutable vd; Iota!(0, conn.d) ) {
+              force[vd] += prefactor * cv[vq][vd];
             }
           }
         }

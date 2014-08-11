@@ -92,14 +92,14 @@ auto eqDist(alias conn, T)(const ref T population, const double[conn.d] dv) {
   immutable pv = population.velocity!(conn)(rho0);
 
   double[conn.d] v;
-  foreach(immutable i; Iota!(0,conn.d) ) {
-    v[i] = dv[i] + pv[i];
+  foreach(immutable vd; Iota!(0,conn.d) ) {
+    v[vd] = dv[vd] + pv[vd];
   }
   immutable vdotv = v.dotProduct(v);
   T dist;
-  foreach(immutable i; Iota!(0,conn.q)) {
-    immutable vdotcv = v.dotProduct(cv[i]);
-    dist[i] = rho0 * cw[i] * ( 1.0 + ( vdotcv / css ) + ( (vdotcv * vdotcv ) / ( 2.0 * css * css ) ) - ( ( vdotv ) / ( 2.0 * css) ) );
+  foreach(immutable vq; Iota!(0,conn.q)) {
+    immutable vdotcv = v.dotProduct(cv[vq]);
+    dist[vq] = rho0 * cw[vq] * ( 1.0 + ( vdotcv / css ) + ( (vdotcv * vdotcv ) / ( 2.0 * css * css ) ) - ( ( vdotv ) / ( 2.0 * css) ) );
   }
   return dist;
 }
@@ -111,8 +111,8 @@ unittest {
   double[gconn.q] population, eq;
   double[gconn.d] dv = 0.0;
   population[] = 0.0;
-  foreach(immutable i; Iota!(0,gconn.q) ) {
-    population[i] = uniform(0.0, 1.0, rng);
+  foreach(immutable vq; Iota!(0,gconn.q) ) {
+    population[vq] = uniform(0.0, 1.0, rng);
     eq = eqDist!gconn(population, dv);
     assert(approxEqual(eq.density(), population.density()));                  // Mass conservation
     assert(approxEqual(eq.velocity!(gconn)()[],population.velocity!(gconn)()[])); // Momentum conservation
