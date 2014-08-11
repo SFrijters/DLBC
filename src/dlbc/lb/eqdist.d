@@ -116,18 +116,25 @@ unittest {
   population[] = 0.0;
 
   // Check all eqDists.
-  foreach(eqDistForm; EnumMembers!EqDistForm) {
+  foreach(immutable edf; EnumMembers!EqDistForm) {
     foreach(immutable vq; Iota!(0,gconn.q) ) {
       population[vq] = uniform(0.0, 1.0, rng);
-      eq = eqDist!(eqDistForm, gconn)(population, dv);
+      eq = eqDist!(edf, gconn)(population, dv);
       assert(approxEqual(eq.density(), population.density()));                  // Mass conservation
       assert(approxEqual(eq.velocity!(gconn)()[],population.velocity!(gconn)()[])); // Momentum conservation
-      
-      // Check whatever the current eqDistForm is.
+    }
+  }
+
+  auto eqDistFormTemp = eqDistForm;
+  foreach(immutable edf; EnumMembers!EqDistForm) {
+    eqDistForm = edf;
+    foreach(immutable vq; Iota!(0,gconn.q) ) {
+      population[vq] = uniform(0.0, 1.0, rng);
       eq = eqDist!(gconn)(population, dv);
       assert(approxEqual(eq.density(), population.density()));                  // Mass conservation
       assert(approxEqual(eq.velocity!(gconn)()[],population.velocity!(gconn)()[])); // Momentum conservation
     }
   }
+  eqDistForm = eqDistFormTemp;
 }
 
