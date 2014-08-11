@@ -268,7 +268,7 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gccm
 
    Returns: \(\Psi(\rho)\).
 */
-double psi(PsiForm psiForm)(in double den) @safe pure nothrow {
+double psi(PsiForm psiForm)(in double den) @safe pure nothrow @nogc {
   import std.math;
 
   static if ( psiForm == PsiForm.Linear ) {
@@ -280,5 +280,22 @@ double psi(PsiForm psiForm)(in double den) @safe pure nothrow {
   else {
     static assert(0);
   }
+}
+
+///
+unittest {
+  import std.math: approxEqual;
+  double density = 0.0;
+  assert(psi!(PsiForm.Linear)(density) == 0.0);
+  assert(psi!(PsiForm.Exponential)(density) == 0.0);
+  density = 0.7;
+  assert(psi!(PsiForm.Linear)(density) == 0.7);
+  assert(approxEqual(psi!(PsiForm.Exponential)(density), 0.5034146962) );
+  density = 1.0;
+  assert(psi!(PsiForm.Linear)(density) == 1.0);
+  assert(approxEqual(psi!(PsiForm.Exponential)(density), 0.63212055882) );
+  density = 2.0;
+  assert(psi!(PsiForm.Linear)(density) == 2.0);
+  assert(approxEqual(psi!(PsiForm.Exponential)(density), 0.86466471676) );
 }
 

@@ -21,6 +21,7 @@ module dlbc.lb.advection;
 import dlbc.lb.connectivity;
 import dlbc.lb.mask;
 import dlbc.fields.field;
+import dlbc.range;
 import dlbc.timers;
 
 /**
@@ -32,9 +33,8 @@ import dlbc.timers;
      mask = mask field
      tempField = temporary field of the same size and type as $(D field)
 */
-void advectField(T, U)(ref T field, const ref U mask, ref T tempField) if ( isPopulationField!T && isMaskField!U ) {
+void advectField(T, U)(ref T field, in ref U mask, ref T tempField) if ( isPopulationField!T && isMaskField!U ) {
   import std.algorithm: swap;
-  import dlbc.range: Iota;
 
   static assert(haveCompatibleDims!(field, mask, tempField));
   assert(haveCompatibleLengthsH(field, mask, tempField));
@@ -70,7 +70,7 @@ void advectField(T, U)(ref T field, const ref U mask, ref T tempField) if ( isPo
   Timers.adv.stop();
 }
 
-bool isOnEdge(alias conn)(const ptrdiff_t[conn.d] p, const size_t[conn.d] lengthsH) @safe nothrow pure {
+bool isOnEdge(alias conn)(in ptrdiff_t[conn.d] p, in size_t[conn.d] lengthsH) @safe nothrow pure @nogc {
   import dlbc.range: Iota;
   foreach(immutable i; Iota!(0, conn.d) ) {
     if ( p[i] == 0 || p[i] == lengthsH[i] - 1 ) {
@@ -80,7 +80,63 @@ bool isOnEdge(alias conn)(const ptrdiff_t[conn.d] p, const size_t[conn.d] length
   return false;
 }
 
-///
+// Check d2q9
+unittest {
+
+  void testWithDims(alias conn)() {
+    import dlbc.fields.init;
+    size_t[conn.d] lengths = 8;
+    size_t[conn.d] p = 2;
+
+    auto field = Field!(double[conn.q], conn, 2)(lengths);
+    auto temp = Field!(double[conn.q], conn, 2)(lengths);
+    auto mask = MaskFieldOf!(typeof(field))(lengths);
+    mask.initConst(Mask.None);
+
+    double[conn.q] pop = 42;
+    foreach(immutable vq; Iota!(1, conn.q - 1 ) ) {
+      pop[vq] = vq;
+    }
+
+    field.initConst(0.0);
+    field[p] = pop;
+    field.advectField(mask, temp);
+
+    immutable cv = conn.velocities;
+    foreach(immutable vq; Iota!(0, conn.q) ) {
+      conn.vel_t nb;
+      foreach(immutable vd; Iota!(0, conn.d) ) {
+        nb[vd] = 2 + cv[vq][vd];
+      }
+      if ( vq == 0 ) {
+        assert(field[nb][vq] == 42);
+      }
+      else {
+        assert(field[nb][vq] == vq);
+      }
+    }
+ 
+    field[p] = pop;
+    mask[p] = Mask.Solid;
+    field.advectField(mask, temp);
+    foreach(immutable vq; Iota!(0, conn.q) ) {
+      if ( vq == 0 ) {
+        assert(field[p][vq] == 42);
+      }
+      else {
+        assert(field[p][vq] == vq);
+      }
+    }
+  }
+
+  testWithDims!d2q9();
+  testWithDims!d3q19();
+
+
+}
+
+// Check parallel
+/++
 unittest {
   import dlbc.fields.init;
   import dlbc.logging;
@@ -142,4 +198,5 @@ unittest {
     writeLogURW("Unittest for advection requires M.size == 8.");
   }
 }
+++/
 

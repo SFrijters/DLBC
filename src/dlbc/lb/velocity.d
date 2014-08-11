@@ -143,5 +143,13 @@ unittest {
   assert(isNaN(velocity2[0,1,3][0]));
   assert(isNaN(velocity2[0,1,3][1]));
   assert(isNaN(velocity2[0,1,3][2]));
+
+  // Zero velocity on solid sites.
+  mask[1,2,3] = Mask.Solid;
+  velocity1 = velocityField(field, mask);
+  assert(velocity1[1,2,3] == [ 0.0, 0.0, 0.0]);
+  velocityField(field, mask, velocity2);
+  assert(velocity2[1,2,3] == [ 0.0, 0.0, 0.0]);
+
 }
 

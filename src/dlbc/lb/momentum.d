@@ -117,6 +117,13 @@ unittest {
   momentumField(field, mask, momentum2);
   assert(momentum2[1,2,3] == [-0.1,-0.1, 0.1]);
   assert(momentum2[0,1,3] == [0.0, 0.0, 0.0]);
+
+  // No momentum on solid sites.
+  mask[1,2,3] = Mask.Solid;
+  momentum1 = momentumField(field, mask);
+  assert(momentum1[1,2,3] == [0.0, 0.0, 0.0]);
+  momentumField(field, mask, momentum2);
+  assert(momentum2[1,2,3] == [0.0, 0.0, 0.0]);
 }
 
 /**
