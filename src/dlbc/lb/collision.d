@@ -38,7 +38,7 @@ import dlbc.logging;
      mask = mask field
      force = force field
 */
-void collideField(T, U, V)(ref T field, const ref U mask, const ref V force) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
+void collideField(T, U, V)(ref T field, in ref U mask, in ref V force) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
   static assert(haveCompatibleDims!(field, mask, force));
   assert(haveCompatibleLengthsH(field, mask, force));
   assert(globalAcc.length == field.dimensions);
@@ -54,14 +54,14 @@ void collideField(T, U, V)(ref T field, const ref U mask, const ref V force) if 
       //      Timers.collden.start();
       immutable den = pop.density();
       //      Timers.collden.stop();
-      foreach(immutable i; Iota!(0,conn.d) ) {
-        dv[i] = globalAcc[i] + force[p][i] / den;
+      foreach(immutable vd; Iota!(0,conn.d) ) {
+        dv[vd] = globalAcc[vd] + force[p][vd] / den;
       }
       //      Timers.colleq.start();
       immutable eq = eqDist!conn(pop, dv);
       //      Timers.colleq.stop();
-      foreach(immutable i; Iota!(0,conn.q) ) {
-        pop[i] -= omega * ( pop[i] - eq[i] );
+      foreach(immutable vq; Iota!(0,conn.q) ) {
+        pop[vq] -= omega * ( pop[vq] - eq[vq] );
       }
     }
   }
@@ -80,7 +80,7 @@ void collideField(T, U, V)(ref T field, const ref U mask, const ref V force) if 
    Returns:
      equilibrium distribution \(\vec{n}^{\mathrm{eq}}\)
 */
-auto eqDist(alias conn, T)(const ref T population, const double[conn.d] dv) {
+auto eqDist(alias conn, T)(in ref T population, in double[conn.d] dv) {
   static assert(population.length == conn.q);
 
   import std.numeric: dotProduct;
@@ -104,8 +104,10 @@ auto eqDist(alias conn, T)(const ref T population, const double[conn.d] dv) {
   return dist;
 }
 
-///
 unittest {
+  /**
+     Check mass and momentum conservation of the equilibrium distribution.
+  */
   import dlbc.random;
   import std.math: approxEqual;
   double[gconn.q] population, eq;

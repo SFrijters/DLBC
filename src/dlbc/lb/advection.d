@@ -80,9 +80,10 @@ bool isOnEdge(alias conn)(in ptrdiff_t[conn.d] p, in size_t[conn.d] lengthsH) @s
   return false;
 }
 
-// Check d2q9
 unittest {
-
+  /**
+     Check advection, both for fluid and solid (no advection!) nodes.
+  */
   void testWithDims(alias conn)() {
     import dlbc.fields.init;
     size_t[conn.d] lengths = 8;
@@ -131,8 +132,6 @@ unittest {
 
   testWithDims!d2q9();
   testWithDims!d3q19();
-
-
 }
 
 // Check parallel

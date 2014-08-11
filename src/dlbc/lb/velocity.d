@@ -56,8 +56,8 @@ auto velocity(alias conn, T)(in ref T population) {
   return velocity!conn(population, density);
 }
 
-///
 unittest {
+  // Test velocity calculation.
   double[d3q19.q] pop = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                      0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
   auto den = density(pop);
@@ -115,8 +115,8 @@ void velocityField(T, U, V)(in ref T field, in ref U mask, ref V velocity) if ( 
   }
 }
 
-///
 unittest {
+  // Test velocity field.
   import dlbc.fields.init;
   import std.math: isNaN;
 

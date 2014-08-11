@@ -83,7 +83,7 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
   double[] gMass;
   gMass.length = L.fluids.length;
   foreach(i, ref field; L.fluids) {
-    gMass[i] = field.globalMass(L.mask);
+    gMass[i] = field.globalTotalMass(L.mask);
   }
   //writeLogRD("gmass = %s", gMass);
 

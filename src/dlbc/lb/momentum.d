@@ -96,8 +96,8 @@ void momentumField(T, U, V)(in ref T field, in ref U mask, ref V momentum) if ( 
   }
 }
 
-///
 unittest {
+  // Test momentum calculation.
   size_t[d3q19.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[d3q19.q], d3q19, 2)(lengths);
   auto mask = MaskFieldOf!(typeof(field))(lengths);
@@ -136,7 +136,7 @@ unittest {
    Returns:
      total momentum of the field on the local process
 */
-auto localMomentum(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T && isMaskField!U ) {
+auto localTotalMomentum(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   assert(haveCompatibleLengthsH(field, mask));
   alias conn = field.conn;
@@ -152,8 +152,8 @@ auto localMomentum(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T
   return momentum;
 }
 
-///
 unittest {
+  // Test local total momentum.
   size_t[d3q19.d] lengths = [ 4, 4 ,4 ];
   auto field = Field!(double[d3q19.q], d3q19, 2)(lengths);
   auto mask = MaskFieldOf!(typeof(field))(lengths);
@@ -164,7 +164,7 @@ unittest {
   field[1,2,3] = pop1; // Inside the halo, this should not be counted!
   field[3,3,3] = pop1;
 
-  auto momentum = localMomentum(field, mask);
+  auto momentum = localTotalMomentum(field, mask);
   assert(momentum == [-0.1,-0.1, 0.1]);
 }
 
@@ -178,19 +178,19 @@ unittest {
    Returns:
      global momentum of the field
 */
-auto globalMomentum(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T && isMaskField!U ) {
+auto globalTotalMomentum(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   assert(haveCompatibleLengthsH(field, mask));
   alias conn = field.conn;
   import dlbc.parallel;
-  auto localMomentum = field.localMomentum(mask);
-  typeof(localMomentum) globalMomentum;
-  MPI_Allreduce(&localMomentum, &globalMomentum, conn.d, MPI_DOUBLE, MPI_SUM, M.comm);
-  return globalMomentum;
+  auto localTotalMomentum = field.localTotalMomentum(mask);
+  typeof(localTotalMomentum) globalTotalMomentum;
+  MPI_Allreduce(&localTotalMomentum, &globalTotalMomentum, conn.d, MPI_DOUBLE, MPI_SUM, M.comm);
+  return globalTotalMomentum;
 }
 
-///
 unittest {
+  // Test global total momentum.
   startMpi(M, []);
   reorderMpi(M, nc);
 
@@ -206,7 +206,7 @@ unittest {
   field[1,2,3] = pop1; // Inside the halo, this should not be counted!
   field[3,3,3] = pop1;
 
-  auto momentum = field.globalMomentum(mask);
+  auto momentum = field.globalTotalMomentum(mask);
   assert(approxEqual(momentum[0], M.size * -0.1));
   assert(approxEqual(momentum[1], M.size * -0.1));
   assert(approxEqual(momentum[2], M.size *  0.1));
