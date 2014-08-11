@@ -1,0 +1,114 @@
+// Written in the D programming language.
+
+/**
+   Lattice Boltzmann equilibrium distribution functions.
+
+   Copyright: Stefan Frijters 2011-2014
+
+   License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
+
+   Authors: Stefan Frijters
+
+   Macros:
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+*/
+
+module dlbc.lb.eqdist;
+
+import dlbc.lb.density;
+import dlbc.lb.velocity;
+import dlbc.range;
+
+/**
+   Form of the equilibrium distribution function.
+*/
+@("param") EqDistForm eqDistForm;
+
+/**
+   Possible forms of the equilibrium distribution function. \(\omega_i\) and \(\vec{c}__i\) are the weights and velocity vectors of the connectivity, respectively, and \(c_s^2 = 1/3\) the lattice speed of sound squared. The velocity \(\vec{u}\) consists of the velocity of the lattice site plus a shift \(\Delta \vec{u}\) due to forces. The mass is conserved, and momentum is conserved if and only if \(\Delta \vec{u} = 0\).
+*/
+enum EqDistForm {
+  /**
+     Second order: \(n_i^\mathrm{eq} = \rho_0 \omega_i \left( 1 + \frac{\vec{u} \cdot \vec{c}__i}{c_s^2} + \frac{ ( \vec{u} \cdot \vec{c}__i )^2}{2 c_s^4} - \frac{\vec{u} \cdot \vec{u}}{2 c_s^2} \right) \).
+  */
+  SecondOrder,
+}
+
+/**
+   Generate an equilibrium distribution population \(\vec{n}^{\mathrm{eq}}\) of a population \(\vec{n}\).
+
+   Params:
+     population = population vector \(\vec{n}\)
+     dv = velocity shift \(\Delta \vec{u}\)
+     eqDistForm = form of the equilibrium distribution
+     conn = connectivity
+
+   Returns:
+     equilibrium distribution \(\vec{n}^{\mathrm{eq}}\)
+*/
+auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double[conn.d] dv) {
+  static assert(population.length == conn.q);
+  import std.numeric: dotProduct;
+
+  immutable cv = conn.velocities;
+  immutable cw = conn.weights;
+  immutable css = conn.css;
+  immutable rho0 = population.density();
+  immutable pv = population.velocity!(conn)(rho0);
+
+  double[conn.d] v;
+  foreach(immutable vd; Iota!(0,conn.d) ) {
+    v[vd] = dv[vd] + pv[vd];
+  }
+
+  static if ( eqDistForm == EqDistForm.SecondOrder ) {
+   immutable vdotv = v.dotProduct(v);
+    T dist;
+    foreach(immutable vq; Iota!(0,conn.q)) {
+      immutable vdotcv = v.dotProduct(cv[vq]);
+      dist[vq] = rho0 * cw[vq] * ( 1.0 + ( vdotcv / css ) + ( (vdotcv * vdotcv ) / ( 2.0 * css * css ) ) - ( ( vdotv ) / ( 2.0 * css) ) );
+    }
+    return dist;
+  }
+  else {
+    static assert(0);
+  }
+}
+
+/// Ditto
+auto eqDist(alias conn, T)(in ref T population, in double[conn.d] dv) {
+  final switch(eqDistForm) {
+    case eqDistForm.SecondOrder:
+      return eqDist!(eqDistForm.SecondOrder, conn)(population, dv);
+   }
+}
+
+unittest {
+  // Check mass and momentum conservation of the equilibrium distributions.
+  import dlbc.lb.connectivity;
+  import dlbc.random;
+  import std.math: approxEqual;
+  import std.traits;
+  double[gconn.q] population, eq;
+  double[gconn.d] dv = 0.0;
+  population[] = 0.0;
+
+  // Check all eqDists.
+  foreach(eqDistForm; EnumMembers!EqDistForm) {
+    foreach(immutable vq; Iota!(0,gconn.q) ) {
+      population[vq] = uniform(0.0, 1.0, rng);
+      eq = eqDist!(eqDistForm, gconn)(population, dv);
+      assert(approxEqual(eq.density(), population.density()));                  // Mass conservation
+      assert(approxEqual(eq.velocity!(gconn)()[],population.velocity!(gconn)()[])); // Momentum conservation
+      
+      // Check whatever the current eqDistForm is.
+      eq = eqDist!(gconn)(population, dv);
+      assert(approxEqual(eq.density(), population.density()));                  // Mass conservation
+      assert(approxEqual(eq.velocity!(gconn)()[],population.velocity!(gconn)()[])); // Momentum conservation
+    }
+  }
+}
+

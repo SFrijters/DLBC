@@ -19,6 +19,7 @@
 module dlbc.fields.init;
 
 import dlbc.fields.field;
+import dlbc.lb.eqdist;
 import dlbc.lb.mask;
 import dlbc.lb.connectivity: Axis;
 import dlbc.logging;

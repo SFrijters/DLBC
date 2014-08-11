@@ -22,6 +22,7 @@ public import dlbc.lb.advection;
 public import dlbc.lb.collision;
 public import dlbc.lb.connectivity;
 public import dlbc.lb.density;
+public import dlbc.lb.eqdist;
 public import dlbc.lb.force;
 public import dlbc.lb.init;
 public import dlbc.lb.io;

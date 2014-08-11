@@ -13,6 +13,7 @@ MODULES =
         $(MODULE dlbc.lb.collision, "LB collision.")
         $(MODULE dlbc.lb.connectivity, "Pre-calculated connectivity options")
         $(MODULE dlbc.lb.density, "LB densities.")
+        $(MODULE dlbc.lb.eqdist, "LB equilibrium distribution functions.")
         $(MODULE dlbc.lb.force, "LB forces and accelerations.")
         $(MODULE dlbc.lb.init, "LB field initialisations.")
         $(MODULE dlbc.lb.io, "LB output.")
