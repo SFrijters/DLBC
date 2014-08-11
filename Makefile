@@ -1,7 +1,12 @@
 DMD=dmd
+RDMD=rdmd
 LMPICH=/usr/local/stow/mpich-3.1/lib64
 LHDF5=/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/
 DFILES=src/main.d src/dlbc/*.d src/dlbc/elec/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/unstd.o
+
+COMMONFLAGS=-g -w -de
+TESTFLAGS=-unittest -debug -cov
+RELEASEFLAGS=-O -inline -noboundscheck -release
 
 all: dlbc-dmd
 
@@ -11,14 +16,14 @@ release: release-dmd
 
 revision: src/dlbc/revision.d
 
-# test-d2q9: test-d2q9-dmd
+test-d2q9: test-d2q9-dmd
 
 d2q9: dlbc-d2q9-dmd
 
 release-d2q9: release-d2q9-dmd
 
 doc: revision doc/*ddoc
-	cd doc/ ; rdmd bootDoc/generate.d ./../src --output=./html --bootdoc=.
+	cd doc/ ; ${RDMD} bootDoc/generate.d ./../src --output=./html --bootdoc=.
 
 src/dlbc/revision.d: .git/HEAD .git/index
 	./get-revision.sh > $@
@@ -27,22 +32,22 @@ unstd:
 	${DMD} src/unstd/*.d src/unstd/c/*.d src/unstd/memory/*.d -I/.src -c -ofsrc/unstd/unstd.o
 
 test-dmd: revision unstd
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc -g -dw -unittest -debug -cov
+	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc ${COMMONFLAGS} ${TESTFLAGS}
 
 dlbc-dmd: revision unstd
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc -g -w -de
+	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc ${COMMONFLAGS}
 
 release-dmd: revision unstd
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc -g -w -dw -O -inline -noboundscheck -release
+	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc ${COMMONFLAGS} ${RELEASEFLAGS}
 
-# test-d2q9-dmd: revision src/unstd/multidimarray.o
-# 	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc -g -w -de -unittest -debug -cov -version=D2Q9
+test-d2q9-dmd: revision src/unstd/multidimarray.o
+	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc ${COMMONFLAGS} ${TESTFLAGS} -version=D2Q9
 
 dlbc-d2q9-dmd: revision unstd
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc -g -w -de -version=D2Q9
+	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc ${COMMONFLAGS} -version=D2Q9
 
 release-d2q9-dmd: revision unstd
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc -g -w -dw -O -inline -noboundscheck -release -version=D2Q9
+	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc ${COMMONFLAGS} ${RELEASEFLAGS} -version=D2Q9
 
 clean:
 	rm -f src/dlbc/revision.d
