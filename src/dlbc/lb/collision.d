@@ -60,16 +60,12 @@ private void collideFieldEqDist(EqDistForm eqDistForm, T, U, V)(ref T field, in 
   immutable omega = 1.0 / tau;
   foreach(immutable p, ref pop; field) {
     if ( isCollidable(mask[p]) ) {
-      double[conn.d] dv;
-      //      Timers.collden.start();
       immutable den = pop.density();
-      //      Timers.collden.stop();
+      double[conn.d] dv;
       foreach(immutable vd; Iota!(0,conn.d) ) {
-        dv[vd] = globalAcc[vd] + force[p][vd] / den;
+        dv[vd] = tau * ( globalAcc[vd] + force[p][vd] / den);
       }
-      //      Timers.colleq.start();
       immutable eq = eqDist!(eqDistForm, conn)(pop, dv);
-      //      Timers.colleq.stop();
       foreach(immutable vq; Iota!(0,conn.q) ) {
         pop[vq] = pop[vq] * ( 1.0 - omega ) + omega * eq[vq];
       }
