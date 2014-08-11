@@ -101,6 +101,7 @@ static immutable string parameterUDA = "param";
 private alias parameterSourceModules = TypeTuple!(
                          "dlbc.lattice",
                          "dlbc.lb.lb",
+                         "dlbc.lb.eqdist",
                          "dlbc.lb.init",
                          "dlbc.lb.force",
                          "dlbc.lb.laplace",

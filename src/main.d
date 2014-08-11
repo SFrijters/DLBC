@@ -144,7 +144,7 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
 
     L.distributeForce();
     foreach(immutable i, ref e; L.fluids) {
-      e.collideField(L.mask, L.force[i]);
+      e.collideField(L.mask, L.force[i], tau[i]);
     }
 
     // writeLogRI("Global mass = %f %f", L.fluids[0].globalMass(L.mask), L.fluids[1].globalMass(L.mask));

@@ -44,7 +44,12 @@ public import dlbc.lb.velocity;
 */
 @("param") string[] fieldNames;
 /**
+   Relaxation times of the fluids.
+*/
+@("param") double[] tau;
+/**
    Current timestep of the simulation.
 */
 @("global") uint timestep = 0;
+
 

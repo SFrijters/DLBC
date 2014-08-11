@@ -37,26 +37,27 @@ import dlbc.logging;
      field = field of populations
      mask = mask field
      force = force field
+     tau = relaxation time
 */
-void collideField(T, U, V)(ref T field, in ref U mask, in ref V force) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
+void collideField(T, U, V)(ref T field, in ref U mask, in ref V force, in double tau) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
   Timers.coll.start();
   final switch(eqDistForm) {
     case eqDistForm.SecondOrder:
-      field.collideFieldEqDist!(eqDistForm.SecondOrder)(mask, force);
+      field.collideFieldEqDist!(eqDistForm.SecondOrder)(mask, force, tau);
       break;
   }
   Timers.coll.stop();
 }
 
 /// Ditto
-private void collideFieldEqDist(EqDistForm eqDistForm, T, U, V)(ref T field, in ref U mask, in ref V force) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
+private void collideFieldEqDist(EqDistForm eqDistForm, T, U, V)(ref T field, in ref U mask, in ref V force, in double tau) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
   static assert(haveCompatibleDims!(field, mask, force));
   assert(haveCompatibleLengthsH(field, mask, force));
   assert(globalAcc.length == field.dimensions);
 
   alias conn = field.conn;
 
-  enum omega = 1.0;
+  immutable omega = 1.0 / tau;
   foreach(immutable p, ref pop; field) {
     if ( isCollidable(mask[p]) ) {
       double[conn.d] dv;
@@ -70,7 +71,7 @@ private void collideFieldEqDist(EqDistForm eqDistForm, T, U, V)(ref T field, in 
       immutable eq = eqDist!(eqDistForm, conn)(pop, dv);
       //      Timers.colleq.stop();
       foreach(immutable vq; Iota!(0,conn.q) ) {
-        pop[vq] -= omega * ( pop[vq] - eq[vq] );
+        pop[vq] = pop[vq] * ( 1.0 - omega ) + omega * eq[vq];
       }
     }
   }
