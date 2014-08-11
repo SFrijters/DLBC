@@ -41,7 +41,7 @@ version(unittest) {
    Returns:
      local momentum \(\vec{p}(\vec{n})\)
 */
-auto momentum(alias conn, T)(const ref T population) {
+auto momentum(alias conn, T)(in ref T population) {
   immutable cv = conn.velocities;
   static assert(population.length == cv.length);
 
@@ -64,7 +64,7 @@ auto momentum(alias conn, T)(const ref T population) {
    Returns:
      momentum field
 */
-auto momentumField(T, U)(const ref T field, const ref U mask) if ( isPopulationField!T && isMaskField!U ) {
+auto momentumField(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   alias conn = field.conn;
   auto momentum = VectorFieldOf!T(field.lengths);
@@ -82,7 +82,7 @@ auto momentumField(T, U)(const ref T field, const ref U mask) if ( isPopulationF
 }
 
 /// Ditto
-void momentumField(T, U, V)(const ref T field, const ref U mask, ref V momentum) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
+void momentumField(T, U, V)(in ref T field, in ref U mask, ref V momentum) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
   static assert(haveCompatibleDims!(field, mask, momentum));
   assert(haveCompatibleLengthsH(field, mask, momentum));
   alias conn = field.conn;
@@ -136,7 +136,7 @@ unittest {
    Returns:
      total momentum of the field on the local process
 */
-auto localMomentum(T, U)(const ref T field, const ref U mask) if ( isPopulationField!T && isMaskField!U ) {
+auto localMomentum(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   assert(haveCompatibleLengthsH(field, mask));
   alias conn = field.conn;
@@ -178,7 +178,7 @@ unittest {
    Returns:
      global momentum of the field
 */
-auto globalMomentum(T, U)(const ref T field, const ref U mask) if ( isPopulationField!T && isMaskField!U ) {
+auto globalMomentum(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   assert(haveCompatibleLengthsH(field, mask));
   alias conn = field.conn;

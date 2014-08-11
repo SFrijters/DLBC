@@ -36,7 +36,7 @@ import dlbc.range;
    Returns:
      local velocity \(\vec{u}(\vec{n})\)
 */
-auto velocity(alias conn, T)(const ref T population, const double density) {
+auto velocity(alias conn, T)(in ref T population, in double density) {
   immutable cv = conn.velocities;
   static assert(population.length == cv.length);
 
@@ -51,7 +51,7 @@ auto velocity(alias conn, T)(const ref T population, const double density) {
 }
 
 /// Ditto
-auto velocity(alias conn, T)(const ref T population) {
+auto velocity(alias conn, T)(in ref T population) {
   immutable density = population.density();
   return velocity!conn(population, density);
 }
@@ -83,7 +83,7 @@ unittest {
    Returns:
      velocity field
 */
-auto velocityField(T, U)(const ref T field, const ref U mask) if ( isPopulationField!T && isMaskField!U ) {
+auto velocityField(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T && isMaskField!U ) {
   static assert(haveCompatibleDims!(field, mask));
   alias conn = field.conn;
   auto velocity = VectorFieldOf!T(field.lengths);
@@ -101,7 +101,7 @@ auto velocityField(T, U)(const ref T field, const ref U mask) if ( isPopulationF
 }
 
 /// Ditto
-void velocityField(T, U, V)(const ref T field, const ref U mask, ref V velocity) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
+void velocityField(T, U, V)(in ref T field, in ref U mask, ref V velocity) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
   static assert(haveCompatibleDims!(field, mask, velocity));
   assert(haveCompatibleLengthsH(field, mask, velocity));
   alias conn = field.conn;
