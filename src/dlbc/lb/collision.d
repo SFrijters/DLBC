@@ -45,6 +45,9 @@ void collideField(T, U, V)(ref T field, in ref U mask, in ref V force, in double
     case eqDistForm.SecondOrder:
       field.collideFieldEqDist!(eqDistForm.SecondOrder)(mask, force, tau);
       break;
+    case eqDistForm.ThirdOrder:
+      field.collideFieldEqDist!(eqDistForm.ThirdOrder)(mask, force, tau);
+      break;
   }
   Timers.coll.stop();
 }

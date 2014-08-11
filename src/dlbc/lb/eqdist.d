@@ -35,6 +35,10 @@ enum EqDistForm {
      Second order: \(n_i^\mathrm{eq} = \rho_0 \omega_i \left( 1 + \frac{\vec{u} \cdot \vec{c}__i}{c_s^2} + \frac{ ( \vec{u} \cdot \vec{c}__i )^2}{2 c_s^4} - \frac{\vec{u} \cdot \vec{u}}{2 c_s^2} \right) \).
   */
   SecondOrder,
+  /**
+     Third order: \(n_i^\mathrm{eq} = \rho_0 \omega_i \left( 1 + \frac{\vec{u} \cdot \vec{c}__i}{c_s^2} + \frac{ ( \vec{u} \cdot \vec{c}__i )^2}{2 c_s^4} - \frac{\vec{u} \cdot \vec{u}}{2 c_s^2} + \frac{ ( \vec{c}__i \cdot \vec{u} )^3}{6 c_s^6} - \frac{ ( \vec{u} \cdot \vec{u} ) ( \vec{c}__i \cdot \vec{u} ) }{ 2 c_s^4} \) \right).
+  */
+  ThirdOrder,
 }
 
 /**
@@ -63,19 +67,32 @@ auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double
   foreach(immutable vd; Iota!(0,conn.d) ) {
     v[vd] = dv[vd] + pv[vd];
   }
+  immutable vdotv = v.dotProduct(v);
+  T dist;
 
   static if ( eqDistForm == EqDistForm.SecondOrder ) {
-   immutable vdotv = v.dotProduct(v);
-    T dist;
+    immutable css2 = 2.0 * css;
+    immutable css2p2 = css2 * css;
     foreach(immutable vq; Iota!(0,conn.q)) {
       immutable vdotcv = v.dotProduct(cv[vq]);
-      dist[vq] = rho0 * cw[vq] * ( 1.0 + ( vdotcv / css ) + ( (vdotcv * vdotcv ) / ( 2.0 * css * css ) ) - ( ( vdotv ) / ( 2.0 * css) ) );
+      dist[vq] = rho0 * cw[vq] * ( 1.0 + ( vdotcv / css ) + ( vdotcv * vdotcv / css2p2 ) - ( vdotv / css2 ) );
     }
-    return dist;
+  }
+  else static if ( eqDistForm == EqDistForm.ThirdOrder ) {
+    immutable css2 = 2.0 * css;
+    immutable css2p2 = css2 * css;
+    immutable css6p3 = 3.0 * css2p2 * css;
+    foreach(immutable vq; Iota!(0,conn.q)) {
+      immutable vdotcv = v.dotProduct(cv[vq]);
+      dist[vq] = rho0 * cw[vq] * ( 1.0 + ( vdotcv / css ) + ( vdotcv * vdotcv / css2p2 ) - ( vdotv / css2 )
+        + ( vdotcv * vdotcv * vdotcv / css6p3 ) 
+        - ( vdotv * vdotcv / css2p2 ) );
+    }
   }
   else {
     static assert(0);
   }
+  return dist;
 }
 
 /// Ditto
@@ -83,6 +100,8 @@ auto eqDist(alias conn, T)(in ref T population, in double[conn.d] dv) {
   final switch(eqDistForm) {
     case eqDistForm.SecondOrder:
       return eqDist!(eqDistForm.SecondOrder, conn)(population, dv);
+    case eqDistForm.ThirdOrder:
+      return eqDist!(eqDistForm.ThirdOrder, conn)(population, dv);
    }
 }
 
