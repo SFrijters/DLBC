@@ -112,7 +112,8 @@ unittest {
   import std.math: approxEqual;
   import std.traits;
   double[gconn.q] population, eq;
-  double[gconn.d] dv = 0.0;
+  double[gconn.d] dv = 0.001;
+  double[gconn.d] shifted;
   population[] = 0.0;
 
   // Check all eqDists.
@@ -120,8 +121,9 @@ unittest {
     foreach(immutable vq; Iota!(0,gconn.q) ) {
       population[vq] = uniform(0.0, 1.0, rng);
       eq = eqDist!(edf, gconn)(population, dv);
-      assert(approxEqual(eq.density(), population.density()));                  // Mass conservation
-      assert(approxEqual(eq.velocity!(gconn)()[],population.velocity!(gconn)()[])); // Momentum conservation
+      assert(approxEqual(eq.density(), population.density())); // Mass conservation
+      shifted[] = eq.velocity!(gconn)()[] - dv[];
+      assert(approxEqual(shifted[], population.velocity!(gconn)()[])); // Momentum conservation
     }
   }
 
@@ -131,8 +133,9 @@ unittest {
     foreach(immutable vq; Iota!(0,gconn.q) ) {
       population[vq] = uniform(0.0, 1.0, rng);
       eq = eqDist!(gconn)(population, dv);
-      assert(approxEqual(eq.density(), population.density()));                  // Mass conservation
-      assert(approxEqual(eq.velocity!(gconn)()[],population.velocity!(gconn)()[])); // Momentum conservation
+      assert(approxEqual(eq.density(), population.density())); // Mass conservation
+      shifted[] = eq.velocity!(gconn)()[] - dv[];
+      assert(approxEqual(shifted[], population.velocity!(gconn)()[])); // Momentum conservation
     }
   }
   eqDistForm = eqDistFormTemp;
