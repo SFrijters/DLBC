@@ -16,6 +16,10 @@ module dlbc.elec.init;
 @("param") Axis initAxis;
 
 @("param") int initMaxIterations;
+/**
+   Tolerance of maximum relative flux for system to be considered to be in equilibrium.
+*/
+@("param") double initFluxToleranceRel;
 
 import dlbc.elec.elec;
 import dlbc.fields.field;
@@ -73,11 +77,13 @@ enum ElecDielInit {
 void initElec(T)(ref T L) if ( isLattice!T ) {
   if ( ! enableElec ) return;
 
+  // Initialize elec fields.
   L.elPot.initConst(0);
   L.elField.initConst(0);
   L.initDielElec();
-
   L.initChargeElec();
+
+  // Equilibrate.
   L.exchangeHalo();
   L.equilibrateElec();
 }
@@ -109,13 +115,9 @@ void initElecConstants(T)(ref T L) if ( isLattice!T ) {
       dielContrast = 1.0;
     }
   }
-  writeLogRI("averageDiel = %e, dielContrast = %e", averageDiel, dielContrast);
-
+  writeLogRI("Derived quantity: averageDiel = %e, dielContrast = %e", averageDiel, dielContrast);
   L.initPoissonSolver();
   initElecFlux();
-
-  import dlbc.io.io;
-  L.dumpData(-1);
 }
 
 private void equilibrateElec(T)(ref T L) if ( isLattice!T ) {

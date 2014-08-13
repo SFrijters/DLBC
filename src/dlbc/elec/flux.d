@@ -1,3 +1,21 @@
+// Written in the D programming language.
+
+/**
+   Flux calculations for electric charges.
+
+   Copyright: Stefan Frijters 2011-2014
+
+   License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
+
+   Authors: Stefan Frijters
+
+   Macros:
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+*/
+
 module dlbc.elec.flux;
 
 import dlbc.lb.connectivity;
@@ -12,23 +30,40 @@ import dlbc.range;
 
 import std.math: exp;
 
+/**
+   Thermal diffusion coefficient for electric charges.
+*/
 @("param") double thermalDiffusionCoeff;
+/**
+   Difference in thermal diffusion coefficient between the positive and negative electric charges.
+*/
 @("param") double deltaTDC = 0.0;
-
+/**
+   Solvation free energy difference between the first and second fluids for the positive ion species.
+*/
 @("param") double deltaMuPos;
+/**
+   Solvation free energy difference between the first and second fluids for the negative ion species.
+*/
 @("param") double deltaMuNeg;
 
-@("param") double fluxToleranceRel;
-
+// Derived quantities.
 private double DPos, DNeg;
 
+/**
+   Calculate derived quantities for flux calculations.
+*/
 void initElecFlux() {
   DPos = thermalDiffusionCoeff + deltaTDC;
   DNeg = thermalDiffusionCoeff - deltaTDC;
-  writeLogRD("thermalDiffusionCoefficient = %e, deltaTDC = %e", thermalDiffusionCoeff, deltaTDC);
-  writeLogRI("Setting DPos = %e, DNeg = %e", DPos, DNeg);
+  writeLogRI("Derived quantities: DPos = %e, DNeg = %e", DPos, DNeg);
 }
 
+/**
+   Move the electric charges. This involves first calculating the diffusive and advective fluxes and then applying the final result to the charge fields.
+
+   Returns: whether the fluxes are below the accuracy threshold.
+*/
 bool moveElecCharges(T)(ref T L) if ( isLattice!T ) {
   bool isEquilibrated;
   L.resetFlux();
@@ -37,20 +72,26 @@ bool moveElecCharges(T)(ref T L) if ( isLattice!T ) {
   isEquilibrated = L.applyFlux();
   L.elChargeP.exchangeHalo();
   L.elChargeN.exchangeHalo();
-  // import dlbc.io.io;
-  // L.elPot.dumpField("testPhi", timestep);
-  // L.elChargeP.dumpField("testP", timestep);
-  // L.elChargeN.dumpField("testN", timestep);
-  // L.elFluxP.dumpField("fluxP", timestep);
-  // L.elFluxN.dumpField("fluxN", timestep);
   return isEquilibrated;
 }
 
+/**
+   Reset elFluxP and elFluxN fields to zero.
+
+   Params:
+     L = lattice
+*/
 private void resetFlux(T)(ref T L) if ( isLattice!T ) {
   L.elFluxP.initConst(0.0);
   L.elFluxN.initConst(0.0);
 }
 
+/**
+   Calculates the diffusive flux and adds the result to the elFluxP and elFluxN fields.
+
+   Params:
+     L = lattice
+*/
 private void calculateDiffusiveFlux(T)(ref T L) if ( isLattice!T ) {
   immutable cv = econn.velocities;
   if ( components > 2 ) {
@@ -97,29 +138,39 @@ private void calculateDiffusiveFlux(T)(ref T L) if ( isLattice!T ) {
             immutable fluxLinkNeg = -0.5 * DNeg * (1.0 + expDPhi) * ( L.elChargeN[nb] * invExpDPhi - L.elChargeN[p] );
             L.elFluxP[p] += fluxLinkPos;
             L.elFluxN[p] += fluxLinkNeg;
-            if ( p[1] == 2 && nb[1] == 2) {
-              writeLogD("p = %s, nb = %s, fluxLinkNeg = %e", p, nb, fluxLinkNeg);
-            }
           }
-
         }
-
       }
     }
   }
 }
 
+/**
+   Calculates the advective flux and adds the result to the elFluxP and elFluxN fields.
+
+   Params:
+     L = lattice
+*/
 private void calculateAdvectiveFlux(T)(ref T L) if ( isLattice!T ) {
   if ( ! fluidOnElec || timestep == 0 || components == 0 ) return; // Do not advect during initial equilibration.
   assert(0, "Advective flux not yet implemented.");
 }
 
+/**
+   Applies the fluxes stored in elFluxP and elFluxN to the charge fields.
+
+   Params:
+     L = lattice
+
+   Returns: whether the fluxes are below the accuracy threshold.
+
+   Todo: minimize parallel communication by clever use of flags.
+*/
 private bool applyFlux(T)(ref T L) if ( isLattice!T ) {
   import std.math: approxEqual, abs;
   import std.algorithm: max;
   double localTotalFluxP = 0.0;
   double localTotalFluxN = 0.0;
-  double localMaxFlux = 0.0;
   double localMaxRelFlux = 0.0;
   foreach(immutable p, ref m; L.mask) {
     if ( isMobileCharge(m) ) {
@@ -130,34 +181,31 @@ private bool applyFlux(T)(ref T L) if ( isLattice!T ) {
       localTotalFluxP -= L.elFluxP[p];
       localTotalFluxN -= L.elFluxN[p];
 
-      localMaxFlux = max(localMaxFlux, abs(L.elFluxP[p]));
-      localMaxFlux = max(localMaxFlux, abs(L.elFluxN[p]));
-
       localMaxRelFlux = max(localMaxRelFlux, abs(L.elFluxP[p] / L.elChargeP[p] ) );
       localMaxRelFlux = max(localMaxRelFlux, abs(L.elFluxN[p] / L.elChargeN[p] ) );
     }
   }
 
-  double globalTotalFluxP, globalTotalFluxN, globalMaxFlux, globalMaxRelFlux;
+  // This should not be done in release mode.
+  double globalTotalFluxP, globalTotalFluxN, globalMaxRelFlux;
   MPI_Allreduce(&localTotalFluxP, &globalTotalFluxP, 1, MPI_DOUBLE, MPI_SUM, M.comm);
   MPI_Allreduce(&localTotalFluxN, &globalTotalFluxN, 1, MPI_DOUBLE, MPI_SUM, M.comm);
   assert(approxEqual(globalTotalFluxP, 0.0) );
   assert(approxEqual(globalTotalFluxN, 0.0) );
 
-  MPI_Allreduce(&localMaxFlux, &globalMaxFlux, 1, MPI_DOUBLE, MPI_MAX, M.comm);
+  // This should only be done during initial equilibration.
   MPI_Allreduce(&localMaxRelFlux, &globalMaxRelFlux, 1, MPI_DOUBLE, MPI_MAX, M.comm);
-
-  if ( approxEqual(globalTotalFluxN, 0.0) ) {
-    writeLogRD("total fluxes: %e %e", globalTotalFluxP, globalTotalFluxN);
-  }
-  else {
-    writeLogF("total fluxes: %e %e", globalTotalFluxP, globalTotalFluxN);
-  }
-
-  writeLogRI("globalMaxRelFlux = %e", globalMaxRelFlux);
-  return ( globalMaxRelFlux < fluxToleranceRel );
+  return ( globalMaxRelFlux < initFluxToleranceRel );
 }
 
+/**
+   Wrapper function which checks if a mask allows movable charges.
+
+   Params:
+     bc = mask to check
+
+   Returns: whether a mask allows movable charges.
+*/
 private bool isMobileCharge(Mask bc) @safe pure nothrow @nogc {
   final switch(bc) {
   case Mask.None:

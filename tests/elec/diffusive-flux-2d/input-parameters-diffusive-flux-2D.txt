@@ -9,7 +9,7 @@ createPath = true
 checkpoint.cpFreq = 0
 
 [lb]
-timesteps = 1000
+timesteps = 0
 components = 0
 
 mask.maskInit = Walls
@@ -40,7 +40,6 @@ poisson.sorCheckIterations = 1
 poisson.sorToleranceRel = 1.19209290e-7
 
 flux.thermalDiffusionCoeff = 0.01
-flux.fluxToleranceRel = 1.19209290e-7
 
 init.chargeInit = UniformDensity
 init.chargeDensitySolid = 0.003125
@@ -48,6 +47,7 @@ init.dielInit = UniformFromBjerrumLength
 init.bjerrumLength = 0.4
 init.saltConc = 0.0
 init.initMaxIterations = 10000
+init.initFluxToleranceRel = 1.19209290e-7
 
 io.potFreq = 100
 io.dielFreq = 1000

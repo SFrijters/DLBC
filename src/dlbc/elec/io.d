@@ -70,6 +70,12 @@ void dumpElecData(T)(ref T L, uint t) if ( isLattice!T ) {
   }
 }
 
+/**
+   Write into the field for the dielectric constant, based on $(D getLocalDiel).
+
+   Params:
+     L = lattice
+*/
 void calculateDielField(T)(ref T L) if ( isLattice!T ) {
   import dlbc.elec.poisson;
   foreach(immutable p, e; L.elDiel) {
