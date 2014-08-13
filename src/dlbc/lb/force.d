@@ -219,14 +219,14 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gccm
             conn.vel_t nb;
             // Todo: better array syntax.
             foreach(immutable vd; Iota!(0, conn.d) ) {
-              nb[vd] = p[vd] - cv[vq][vd];
+              nb[vd] = p[vd] + cv[vq][vd];
             }
             // Only do lattice sites that are not walls.
             immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi!psiForm(L.density[nc2][p]) : psi!psiForm(L.density[nc2][nb]));
             immutable prefactor = cw[vq] * psiden1 * psiden2 * cc;
             // The SC force function.
             foreach(immutable vd; Iota!(0, conn.d) ) {
-              force[vd] += prefactor * cv[vq][vd];
+              force[vd] -= prefactor * cv[vq][vd];
             }
           }
         }
@@ -244,13 +244,13 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gccm
           conn.vel_t nb;
           // Todo: better array syntax.
           foreach(immutable vd; Iota!(0, conn.d) ) {
-            nb[vd] = p[vd] - cv[vq][vd];
+            nb[vd] = p[vd] + cv[vq][vd];
           }
           if ( isBounceBack(L.mask[nb]) ) {
             immutable prefactor = cw[vq] * psiden1 * L.density[nc1][nb] * wc;
             // The SC force function.
             foreach(immutable vd; Iota!(0, conn.d) ) {
-              force[vd] += prefactor * cv[vq][vd];
+              force[vd] -= prefactor * cv[vq][vd];
             }
           }
         }
