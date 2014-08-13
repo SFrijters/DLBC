@@ -114,7 +114,7 @@ hid_t hdf5Typeof(T)() @property {
 
    Returns: the corresponding length
 */
-size_t hdf5Lengthof(T)() @property {
+hsize_t hdf5LengthOf(T)() @property {
   import dlbc.range;
   return LengthOf!T;
 }
@@ -138,7 +138,7 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
   hsize_t[] arrstart;
 
   immutable type_id = hdf5Typeof!(T.type);
-  immutable typeLen = LengthOf!(T.type);
+  immutable typeLen = hdf5LengthOf!(T.type);
 
   if ( field.size <= 1 ) return;
 
@@ -148,19 +148,19 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
     if ( typeLen > 1 ) {
       dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], gn[1], gn[2], typeLen ];
-      dimsl = field.nH.dup ~ typeLen;
+      dimsl = [ field.nH[0], field.nH[1], field.nH[2], typeLen ];
       count = [ 1, 1, 1, 1 ];
       stride = [ 1, 1, 1, 1 ];
-      block = field.n.dup ~ typeLen;
+      block = [ field.n[0], field.n[1], field.n[2], typeLen ];
       start = [ M.c[0]*field.n[0], M.c[1]*field.n[1], M.c[2]*field.n[2], 0 ];
       arrstart = [ field.haloSize, field.haloSize, field.haloSize, 0 ];
     }
     else {
       dimsg = [ gn[0], gn[1], gn[2] ];
-      dimsl = field.nH.dup;
+      dimsl = [ field.nH[0], field.nH[1], field.nH[2] ];
       count = [ 1, 1, 1 ];
       stride = [ 1, 1, 1 ];
-      block = field.n.dup;
+      block = [ field.n[0], field.n[1], field.n[2] ];
       start = [ M.c[0]*field.n[0], M.c[1]*field.n[1], M.c[2]*field.n[2] ];
       arrstart = [ field.haloSize, field.haloSize, field.haloSize ];
     }
@@ -169,19 +169,19 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
     if ( typeLen > 1 ) {
       dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], gn[1], typeLen ];
-      dimsl = field.nH.dup ~ typeLen;
+      dimsl = [ field.nH[0], field.nH[1], typeLen ];
       count = [ 1, 1, 1 ];
       stride = [ 1, 1, 1 ];
-      block = field.n.dup ~ typeLen;
+      block = [ field.n[0], field.n[1], typeLen ];
       start = [ M.c[0]*field.n[0], M.c[1]*field.n[1], 0 ];
       arrstart = [ field.haloSize, field.haloSize, 0 ];
     }
     else {
       dimsg = [ gn[0], gn[1] ];
-      dimsl = field.nH.dup;
+      dimsl = [ field.nH[0], field.nH[1] ];
       count = [ 1, 1 ];
       stride = [ 1, 1 ];
-      block = field.n.dup;
+      block = [ field.n[0], field.n[1] ];
       start = [ M.c[0]*field.n[0], M.c[1]*field.n[1] ];
       arrstart = [ field.haloSize, field.haloSize ];
     }
@@ -302,7 +302,7 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
   hsize_t[] arrstart;
 
   immutable type_id = hdf5Typeof!(T.type);
-  immutable typeLen = LengthOf!(T.type);
+  immutable typeLen = hdf5LengthOf!(T.type);
 
   if ( field.size <= 1 ) return;
 
@@ -312,19 +312,19 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
     if ( typeLen > 1 ) {
       dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], gn[1], gn[2], typeLen ];
-      dimsl = field.nH.dup ~ typeLen;
+      dimsl = [ field.nH[0], field.nH[1], field.nH[2], typeLen ];
       count = [ 1, 1, 1, 1 ];
       stride = [ 1, 1, 1, 1 ];
-      block = field.n.dup ~ typeLen;
+      block = [ field.n[0], field.n[1], field.n[2], typeLen ];
       start = [ M.c[0]*field.n[0], M.c[1]*field.n[1], M.c[2]*field.n[2], 0 ];
       arrstart = [ field.haloSize, field.haloSize, field.haloSize, 0 ];
     }
     else {
       dimsg = [ gn[0], gn[1], gn[2] ];
-      dimsl = field.nH.dup;
+      dimsl = [ field.nH[0], field.nH[1], field.nH[2] ];
       count = [ 1, 1, 1 ];
       stride = [ 1, 1, 1 ];
-      block = field.n.dup;
+      block = [ field.n[0], field.n[1], field.n[2] ];
       start = [ M.c[0]*field.n[0], M.c[1]*field.n[1], M.c[2]*field.n[2] ];
       arrstart = [ field.haloSize, field.haloSize, field.haloSize ];
     }
@@ -333,19 +333,19 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
     if ( typeLen > 1 ) {
       dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], gn[1], typeLen ];
-      dimsl = field.nH.dup ~ typeLen;
+      dimsl = [ field.nH[0], field.nH[1], typeLen ];
       count = [ 1, 1, 1 ];
       stride = [ 1, 1, 1 ];
-      block = field.n.dup ~ typeLen;
+      block = [ field.n[0], field.n[1], typeLen ];
       start = [ M.c[0]*field.n[0], M.c[1]*field.n[1], 0 ];
       arrstart = [ field.haloSize, field.haloSize, 0 ];
     }
     else {
       dimsg = [ gn[0], gn[1] ];
-      dimsl = field.nH.dup;
+      dimsl = [ field.nH[0], field.nH[1] ];
       count = [ 1, 1 ];
       stride = [ 1, 1 ];
-      block = field.n.dup;
+      block = [ field.n[0], field.n[1] ];
       start = [ M.c[0]*field.n[0], M.c[1]*field.n[1] ];
       arrstart = [ field.haloSize, field.haloSize ];
     }
@@ -541,9 +541,9 @@ string[] readInputFileAttributes(const string fileNameString) {
   hsize_t[] dims;
   dims.length = 1;
   H5Sget_simple_extent_dims(dataspace, dims.ptr, null);
- 
+
   char*[] chars;
-  chars.length = dims[0];
+  chars.length = to!size_t(dims[0]);
   type = H5Tget_native_type(ftype, H5T_direction_t.H5T_DIR_ASCEND);
   H5Aread(att, type, chars.ptr);
 
