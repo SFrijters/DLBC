@@ -107,15 +107,15 @@ unittest {
   field[2,0,1] = pop2;
 
   auto density1 = densityField(field, mask);
-  assert(density1[1,2,3] == 0.5);
-  assert(density1[2,0,1] == 1.9);
-  assert(density1[0,1,3] == 0.0);
+  assert(approxEqual(density1[1,2,3], 0.5 ));
+  assert(approxEqual(density1[2,0,1], 1.9 ));
+  assert(approxEqual(density1[0,1,3], 0.0 ));
 
   auto density2 = ScalarFieldOf!(typeof(field))(lengths);
   densityField(field, mask, density2);
-  assert(density2[1,2,3] == 0.5);
-  assert(density2[2,0,1] == 1.9);
-  assert(density2[0,1,3] == 0.0);
+  assert(approxEqual(density2[1,2,3], 0.5 ));
+  assert(approxEqual(density2[2,0,1], 1.9 ));
+  assert(approxEqual(density2[0,1,3], 0.0 ));
 }
 
 /**
