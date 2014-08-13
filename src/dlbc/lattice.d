@@ -137,6 +137,14 @@ struct Lattice(alias conn) {
      Electric field (used by elec only).
   */
   @Exchange VectorFieldOf!(typeof(fluids)) elField;
+  /**
+     Temporary field to store flux of positive ions.
+  */
+  ScalarFieldOf!(typeof(fluids)) elFluxP;
+  /**
+     Temporary field to store flux of negative ions.
+  */
+  ScalarFieldOf!(typeof(fluids)) elFluxN;
 
   /**
      The constructor will verify that the local lattices can be set up correctly
@@ -197,6 +205,8 @@ struct Lattice(alias conn) {
       elPot = typeof(elPot)(lengths);
       elDiel = typeof(elDiel)(lengths);
       elField = typeof(elField)(lengths);
+      elFluxP = typeof(elFluxP)(lengths);
+      elFluxN = typeof(elFluxN)(lengths);
     }
   }
 

@@ -18,6 +18,7 @@
 
 module dlbc.elec.elec;
 
+public import dlbc.elec.flux;
 public import dlbc.elec.force;
 public import dlbc.elec.init;
 public import dlbc.elec.poisson;

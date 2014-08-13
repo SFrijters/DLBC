@@ -135,6 +135,8 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
       e.advectField(L.mask, L.advection);
     }
 
+    // Electric charges
+    L.moveElecCharges();
     L.solvePoisson();
     L.calculateElectricField();
 
