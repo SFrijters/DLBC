@@ -1,0 +1,63 @@
+// Parameters to test electro-osmotic flow.
+
+[io]
+simulationName = diffusive-flux-2D
+outputFormat = HDF5
+outputPath = output
+createPath = true
+
+checkpoint.cpFreq = 0
+
+[lb]
+timesteps = 10000
+components = 1
+fieldNames = [ "red" ]
+tau = [ 1.0 ]
+
+init.fluidInit = [ EqDist ]
+init.fluidDensity = [ 1.0 ]
+
+mask.maskInit = Walls
+mask.initAxis = X
+
+io.maskFreq = 1000
+io.velocitiesFreq = 100
+
+[lattice]
+gn = [22, 4]
+
+[elec]
+enableElec = true
+
+localDiel = true
+
+fluidOnElec = false
+elecOnFluid = true
+
+poisson.solver = SOR
+
+externalField = [ 0.0, 0.025 ]
+
+boundaryPhi = [ Periodic, Periodic, Periodic, Periodic ]
+
+poisson.sorMaxIterations = 10000
+poisson.sorShowIterations = 100
+poisson.sorCheckIterations = 1
+poisson.sorToleranceRel = 1.19209290e-7
+
+flux.thermalDiffusionCoeff = 0.01
+flux.fluxToleranceRel = 1.19209290e-7
+
+init.chargeInit = UniformDensity
+init.chargeDensitySolid = 0.003125
+init.dielInit = UniformFromBjerrumLength
+init.bjerrumLength = 0.4
+init.saltConc = 0.0
+init.initMaxIterations = 10000
+
+io.potFreq = 1000
+io.dielFreq = 1000
+io.chargeFreq = 1000
+io.fieldFreq = 1000
+
+
