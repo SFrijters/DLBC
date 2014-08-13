@@ -26,6 +26,7 @@ import dlbc.lattice;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.parameters;
+import dlbc.range;
 
 /**
    Electric charge initial conditions.
@@ -122,8 +123,11 @@ private void equilibrateElec(T)(ref T L) if ( isLattice!T ) {
   writeLogRI("Elec initial equilibration.");
   writeLogRI("Suppressing electric field for now.");
   typeof(externalField) externalFieldTmp;
-  externalFieldTmp = externalField;
-  externalField[] = 0.0;
+  externalFieldTmp.length = externalField.length;
+  foreach(immutable vd; Iota!(0,econn.d) ) {
+    externalFieldTmp[vd] = externalField[vd];
+    externalField[vd] = 0.0;
+  }
   writeLogRI("Solving initial Poisson equation...");
   L.solvePoisson();
   L.calculateElectricField();
@@ -138,8 +142,11 @@ private void equilibrateElec(T)(ref T L) if ( isLattice!T ) {
     }
   }
 
-  writeLogRI("Equilibrating charges with external field enabled...");
-  externalField = externalFieldTmp;
+  foreach(immutable vd; Iota!(0,econn.d) ) {
+    externalField[vd] = externalFieldTmp[vd];
+  }
+
+  writeLogRI("Equilibrating charges with external field %s enabled...", externalField);
   foreach(immutable it; 0..initMaxIterations) {
     isEquilibrated = L.executeElecTimestep();
     if ( isEquilibrated ) {
