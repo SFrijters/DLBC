@@ -157,8 +157,8 @@ double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in ptrdiff_
     }
   }
 
-  double gdensity[];
-  int gnsites[];
+  double[] gdensity;
+  int[] gnsites;
   gdensity.length = L.fluids.length;
   gnsites.length = L.fluids.length;
 
