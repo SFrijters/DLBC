@@ -113,6 +113,7 @@ private alias parameterSourceModules = TypeTuple!(
                          "dlbc.io.checkpoint",
                          "dlbc.io.hdf5",
                          "dlbc.elec.elec",
+                         "dlbc.elec.flux",
                          "dlbc.elec.force",
                          "dlbc.elec.poisson",
                          "dlbc.elec.init",

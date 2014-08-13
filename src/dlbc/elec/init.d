@@ -15,6 +15,8 @@ module dlbc.elec.init;
 
 @("param") Axis initAxis;
 
+@("param") int initMaxIterations;
+
 import dlbc.elec.elec;
 import dlbc.fields.field;
 import dlbc.fields.init;
@@ -75,6 +77,7 @@ void initElec(T)(ref T L) if ( isLattice!T ) {
   L.initDielElec();
 
   L.initChargeElec();
+  L.exchangeHalo();
   L.equilibrateElec();
 }
 
@@ -108,12 +111,43 @@ void initElecConstants(T)(ref T L) if ( isLattice!T ) {
   writeLogRI("averageDiel = %e, dielContrast = %e", averageDiel, dielContrast);
 
   L.initPoissonSolver();
+  initElecFlux();
 
+  import dlbc.io.io;
+  L.dumpData(-1);
 }
 
 private void equilibrateElec(T)(ref T L) if ( isLattice!T ) {
+
+  writeLogRI("Elec initial equilibration.");
+  writeLogRI("Suppressing electric field for now.");
+  typeof(externalField) externalFieldTmp;
+  externalFieldTmp = externalField;
+  externalField[] = 0.0;
+  writeLogRI("Solving initial Poisson equation...");
   L.solvePoisson();
   L.calculateElectricField();
+  writeLogRI("Equilibrating charges without field...");
+
+  bool isEquilibrated;
+  foreach(immutable it; 0..initMaxIterations) {
+    isEquilibrated = L.executeElecTimestep();
+    if ( isEquilibrated ) {
+      writeLogRI("Charge flux equilibrated with requested accuracy after %d iterations.", it);
+      break;
+    }
+  }
+
+  writeLogRI("Equilibrating charges with external field enabled...");
+  externalField = externalFieldTmp;
+  foreach(immutable it; 0..initMaxIterations) {
+    isEquilibrated = L.executeElecTimestep();
+    if ( isEquilibrated ) {
+      writeLogRI("Charge flux equilibrated with requested accuracy after %d iterations.", it);
+      break;
+    }
+  }
+
 }
 
 private void initChargeElec(T)(ref T L) if ( isLattice!T ) {

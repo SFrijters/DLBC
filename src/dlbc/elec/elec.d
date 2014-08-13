@@ -24,6 +24,7 @@ public import dlbc.elec.init;
 public import dlbc.elec.poisson;
 
 import dlbc.lb.connectivity;
+import dlbc.lattice;
 
 @("param") bool enableElec;
 
@@ -70,5 +71,13 @@ enum BoundaryPhi {
   Periodic,
   Neumann,
   Drop,
+}
+
+bool executeElecTimestep(T)(ref T L) if ( isLattice!T ) {
+  bool isEquilibrated;
+  isEquilibrated = L.moveElecCharges();
+  L.solvePoisson();
+  L.calculateElectricField();
+  return isEquilibrated;
 }
 

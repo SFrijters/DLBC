@@ -136,10 +136,9 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
     }
 
     // Electric charges
-    L.moveElecCharges();
-    L.solvePoisson();
-    L.calculateElectricField();
+    L.executeElecTimestep();
 
+    // Forces
     L.resetForce();
     L.addShanChenForce();
     L.addElecForce();

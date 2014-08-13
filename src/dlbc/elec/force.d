@@ -32,7 +32,7 @@ void addElecForce(T)(ref T L) if (isLattice!T) {
         // Calculate neighbour
         econn.vel_t nb;
         foreach(immutable j; Iota!(0, econn.d) ) {
-          nb[j] = p[j] - cv[i][j];
+          nb[j] = p[j] + cv[i][j];
         }
 
         // Calculate E2 at the neighbour
