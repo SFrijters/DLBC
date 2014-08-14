@@ -6,6 +6,9 @@ module dlbc.elec.init;
 @("param") double chargeDensitySolid;
 @("param") double saltConc;
 
+@("param") ptrdiff_t[] lamellaeWidths;
+@("param") double[] chargeLamellae;
+
 @("param") ElecDielInit dielInit;
 
 @("param") double dielUniform;
@@ -56,6 +59,10 @@ enum ElecChargeInit {
      charge -$(D chargeDensitySolid) on other solid sites, and zero anywhere else.
   */
   CapacitorDensity,
+  /**
+     Place charge in lamellae.
+  */
+  Lamellae,
 }
 
 /**
@@ -172,6 +179,8 @@ private void initChargeElec(T)(ref T L) if ( isLattice!T ) {
   case(ElecChargeInit.CapacitorDensity):
     L.initChargeElecCapacitorDensity(chargeDensitySolid, initAxis);
     break;
+  case(ElecChargeInit.Lamellae):
+    L.initChargeElecLamellae(lamellaeWidths, chargeLamellae, initAxis);
   }
 }
 
@@ -289,6 +298,20 @@ void initChargeElecCapacitorDensity(T)(ref T L, in double chargeDensity, in Axis
   import std.math: approxEqual;  
   auto globalCharge = L.calculateGlobalCharge();
   assert(approxEqual(globalCharge, 0.0));
+}
+
+void initChargeElecLamellae(T)(ref T L, in ptrdiff_t[] lamellaeWidths, in double[] chargeLamellae, in Axis initAxis) if ( isLattice!T ) {
+  double[] chargeP, chargeN;
+  chargeP.length = chargeLamellae.length;
+  chargeN.length = chargeLamellae.length;
+  foreach(immutable i; 0..chargeLamellae.length) {
+    chargeP[i] = chargeLamellae[i];
+    chargeN[i] = chargeLamellae[i];
+
+  }
+  writeLogD("%s, %s", chargeP, chargeN);
+  L.elChargeP.initLamellae(lamellaeWidths, chargeP, initAxis);
+  L.elChargeN.initLamellae(lamellaeWidths, chargeN, initAxis);
 }
 
 private double calculateGlobalCharge(T)(ref T L) if ( isLattice!T ) {
