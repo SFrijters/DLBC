@@ -334,6 +334,5 @@ private double calculateGlobalCharge(T)(ref T L) if ( isLattice!T ) {
 void initDielCapacitor(T)(ref T L, in double dielConstant, in double dielConstant2, in Axis initAxis) if ( isLattice!T ) {
   size_t i = to!int(initAxis);
   L.elDiel.initLamellae([L.gn[i]/2, L.gn[i]/2],[dielConstant, dielConstant2], initAxis);
-  L.elDiel.exchangeHalo();
 }
 
