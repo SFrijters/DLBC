@@ -46,6 +46,14 @@ import std.math: exp;
    Solvation free energy difference between the first and second fluids for the negative ion species.
 */
 @("param") double deltaMuNeg;
+/**
+   Enables diffusive charge flux.
+*/
+@("param") bool enableDiffusiveFlux = true;
+/**
+   Enables advective charge flux.
+*/
+@("param") bool enableAdvectiveFlux = true;
 
 // Derived quantities.
 private double DPos, DNeg;
@@ -53,7 +61,7 @@ private double DPos, DNeg;
 /**
    Calculate derived quantities for flux calculations.
 */
-void initElecFlux() {
+package void initElecFlux() {
   DPos = thermalDiffusionCoeff + deltaTDC;
   DNeg = thermalDiffusionCoeff - deltaTDC;
   writeLogRI("Derived quantities: DPos = %e, DNeg = %e", DPos, DNeg);
@@ -64,7 +72,7 @@ void initElecFlux() {
 
    Returns: whether the fluxes are below the accuracy threshold.
 */
-bool moveElecCharges(T)(ref T L) if ( isLattice!T ) {
+package bool moveElecCharges(T)(ref T L) if ( isLattice!T ) {
   bool isEquilibrated;
   L.resetFlux();
   L.calculateDiffusiveFlux();
@@ -95,6 +103,7 @@ private void resetFlux(T)(ref T L) if ( isLattice!T ) {
    Todo: verify multicomponent.
 */
 private void calculateDiffusiveFlux(T)(ref T L) if ( isLattice!T ) {
+  if ( ! enableDiffusiveFlux ) return;
   immutable cv = econn.velocities;
   if ( components > 2 ) {
     assert(0, "Diffusive flux not yet implemented for components > 2.");
@@ -156,7 +165,7 @@ private void calculateDiffusiveFlux(T)(ref T L) if ( isLattice!T ) {
    Todo: implement this.
 */
 private void calculateAdvectiveFlux(T)(ref T L) if ( isLattice!T ) {
-  if ( ! fluidOnElec || timestep == 0 || components == 0 ) return; // Do not advect during initial equilibration.
+  if ( ! fluidOnElec || ! enableAdvectiveFlux || timestep == 0 || components == 0 ) return; // Do not advect during initial equilibration.
   assert(0, "Advective flux not yet implemented.");
 }
 
@@ -171,6 +180,7 @@ private void calculateAdvectiveFlux(T)(ref T L) if ( isLattice!T ) {
    Todo: minimize parallel communication by clever use of flags.
 */
 private bool applyFlux(T)(ref T L) if ( isLattice!T ) {
+  if ( ( ! enableAdvectiveFlux ) && ( ! enableDiffusiveFlux ) ) return true;
   import std.math: approxEqual, abs;
   import std.algorithm: max;
   double localTotalFluxP = 0.0;
