@@ -132,6 +132,7 @@ enum BoundaryPhi {
    Returns: whether the movement of electric charges is below the threshold $(D fluxToleranceRel).
 */
 bool executeElecTimestep(T)(ref T L) if ( isLattice!T ) {
+  if ( ! enableElec ) return true;
   bool isEquilibrated;
   isEquilibrated = L.moveElecCharges();
   L.solvePoisson();
