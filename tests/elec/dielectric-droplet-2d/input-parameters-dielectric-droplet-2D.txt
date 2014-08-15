@@ -11,13 +11,14 @@ checkpoint.cpPath = cp
 checkpoint.cpKeep = 1
 
 [lb]
-timesteps = 1100
+timesteps = 3000
 components = 2
 fieldNames = [ "red", "blue" ]
+tau = [ 1.0, 1.0 ]
 
 force.enableShanChen = true
 force.psiForm = Exponential
-force.gcc = [ 0.0, 8.0, 8.0, 0.0 ]
+force.gcc = [ 0.0, 7.0, 7.0, 0.0 ]
 
 init.fluidInit = [ EqDistSphereFrac , EqDistSphereFrac ]
 // init.initAxis = Z
@@ -26,11 +27,16 @@ init.fluidDensity2 = [0.04, 0.7 ]
 init.initRadius = 0.25
 init.interfaceThickness = 5.0
 
-io.colourFreq = 1
+io.colourFreq = 10
 io.forceFreq = 10
 io.fluidsFreq = 100
 io.velocitiesFreq = 0
 io.maskFreq = 10000
+
+io.laplaceFreq = 100
+
+laplace.startCheck = 10000
+laplace.relAccuracy = 1e-6
 
 mask.maskInit = None
 
@@ -38,7 +44,7 @@ mask.maskInit = None
 gn = [64, 64 ]
 
 [parallel]
-nc = [2, 2 ]
+nc = [2, 2]
 
 [elec]
 enableElec = true
@@ -47,6 +53,9 @@ localDiel = true
 
 fluidOnElec = true
 elecOnFluid = true
+
+flux.enableDiffusiveFlux = false
+flux.enableAdvectiveFlux = false
 
 force.enableElectrostatic = false
 force.enableDielectrophoretic = true
@@ -58,11 +67,11 @@ externalField = [ 0.0, 0.0 ]
 fluidDiel = [ 0.0199, 0.378 ]
 
 boundaryPhi = [ Drop, Drop, Periodic, Periodic ]
-dropPhi = [ 10.0, 10.0, 0.0, 0.0 ]
+dropPhi = [ 2.0, 2.0, 0.0, 0.0 ]
 
 poisson.sorMaxIterations = 10000
 poisson.sorShowIterations = 100
-poisson.sorCheckIterations = 100
+poisson.sorCheckIterations = 1
 poisson.sorToleranceRel = 1e-6
 
 init.chargeInit = Uniform
@@ -73,9 +82,9 @@ init.bjerrumLength = 0.4
 init.dielUniform = 1.0
 init.saltConc = 0.0
 
+io.chargeFreq = 1000
 io.potFreq = 10
 io.dielFreq = 10
-io.chargeFreq = 1000
 io.fieldFreq = 10
 
 

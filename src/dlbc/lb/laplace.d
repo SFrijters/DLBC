@@ -49,6 +49,8 @@ private double previousSigma;
      t = current time step
 */
 void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
+  if ( ! enableShanChen ) return;
+  assert(components == 2);
   import std.algorithm: any, sum;
   import std.math;
 
@@ -105,15 +107,74 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
 
   assert(t != 0 || approxEqual(sigma, 0.0));
 
-  writeLogRD("<LAPLACE> %8d %e %f %f %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres );
+  double D;
+  static if ( T.dimensions == 2 ) {
+    import std.algorithm: min, max;
+    double cutoff = 0.35;
+    double Rx = 0.0;
+    double Ry = 0.0;
+    double M = 0.0;
+
+    foreach(immutable p, pop; L.fluids[0]) {
+      double den = pop.density();
+      if ( den > cutoff ) {
+        M += den;
+        Rx += den*p[0];
+        Ry += den*p[1];
+      }
+    }
+    Rx /= M;
+    Ry /= M;
+
+    writeLogRN("%e %e %e", Rx, Ry, M);
+
+    // Use CoM as offset
+
+    double dx = Rx;
+    double dy = Ry;
+
+    double Ixx = 0.0;
+    double Ixy = 0.0;
+    double Iyy = 0.0;
+    foreach(immutable p, pop; L.fluids[0]) {
+      double x = p[0] - dx;
+      double y = p[1] - dy;
+      double den = pop.density();
+      if ( den > cutoff ) {
+        Ixx += den*(y*y);
+        Ixy += den*(x*y);
+        Iyy += den*(x*x);
+      }
+    }
+
+    writeLogRN("%e %e %e", Ixx, Ixy, Iyy);
+    
+    double T = Ixx + Iyy;
+    double det = Ixx * Iyy - Ixy * Ixy;
+    double ev1 = 0.5*T + sqrt(0.25*T*T - det);
+    double ev2 = 0.5*T - sqrt(0.25*T*T - det);
+
+    writeLogRN("%e %e %e %e", T, det, ev1, ev2);
+
+    // lb = scipy.linalg.eigvals([ [Iyy, Iyz ], [Iyz, Izz] ] )
+
+    double l = sqrt(5.0*max(ev1, ev2) / M);
+    double b = sqrt(5.0*min(ev1, ev2) / M);
+    D = (( l - b ) / ( l + b ));
+
+    writeLogRN("%e %e %e", l, b, D);
+
+  }
+
+  writeLogRN("<LAPLACE> %8d %e %e %e %e %e", t, sigma, measuredR, inPres, outPres, D );
   if ( t >= startCheck ) {
     double rel = abs(previousSigma / sigma - 1.0 );
     if ( ( !isNaN(relAccuracy) && relAccuracy > 0.0 && rel < relAccuracy ) || ( t >= timesteps ) ) {
-      writeLogRN("<LAPLACE FINAL> %8d %e %f %f %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel );
+      writeLogRI("<LAPLACE FINAL> %8d %e %f %f %e %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel, D );
       timesteps = t;
     }
     if ( isNaN(sigma) ) {
-      writeLogRN("<LAPLACE FINAL> %8d %e %f %f %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel );
+      writeLogRI("<LAPLACE FINAL> %8d %e %f %f %e %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel, D );
       writeLogF("Surface tension is NaN.");
     }
   }
@@ -132,7 +193,7 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
 
    Bugs: Cubes at the edge of the domain don't wrap properly.
 */
-double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in ptrdiff_t[dim] offset, in int volumeAverage) {
+private double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in ptrdiff_t[dim] offset, in int volumeAverage) {
   double[] ldensity;
   ldensity.length = L.fluids.length;
   ldensity[] = 0.0;
