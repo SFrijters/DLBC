@@ -275,7 +275,7 @@ private void initChargeElecUniform(T)(ref T L, bool asDensity) if ( isLattice!T 
   assert(approxEqual(globalCharge, 0.0));
 }
 
-void initChargeElecCapacitorDensity(T)(ref T L, in double chargeDensity, in Axis initAxis) if ( isLattice!T ) {
+private void initChargeElecCapacitorDensity(T)(ref T L, in double chargeDensity, in Axis initAxis) if ( isLattice!T ) {
   size_t i = to!int(initAxis);
   foreach(immutable p, ref e; L.mask) {
     if ( e == Mask.Solid ) {
@@ -300,7 +300,7 @@ void initChargeElecCapacitorDensity(T)(ref T L, in double chargeDensity, in Axis
   assert(approxEqual(globalCharge, 0.0));
 }
 
-void initChargeElecLamellae(T)(ref T L, in ptrdiff_t[] lamellaeWidths, in double[] chargeLamellae, in Axis initAxis) if ( isLattice!T ) {
+private void initChargeElecLamellae(T)(ref T L, in ptrdiff_t[] lamellaeWidths, in double[] chargeLamellae, in Axis initAxis) if ( isLattice!T ) {
   double[] chargeP, chargeN;
   chargeP.length = chargeLamellae.length;
   chargeN.length = chargeLamellae.length;
@@ -331,7 +331,7 @@ private double calculateGlobalCharge(T)(ref T L) if ( isLattice!T ) {
   return globalChargeP - globalChargeN;
 }
 
-void initDielCapacitor(T)(ref T L, in double dielConstant, in double dielConstant2, in Axis initAxis) if ( isLattice!T ) {
+private void initDielCapacitor(T)(ref T L, in double dielConstant, in double dielConstant2, in Axis initAxis) if ( isLattice!T ) {
   size_t i = to!int(initAxis);
   L.elDiel.initLamellae([L.gn[i]/2, L.gn[i]/2],[dielConstant, dielConstant2], initAxis);
 }

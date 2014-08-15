@@ -179,6 +179,7 @@ void distributeForce(T)(ref T L) if (isLattice!T) {
 void addShanChenForce(T)(ref T L) if (isLattice!T) {
   if ( ! enableShanChen ) return;
   Timers.forceSC.start();
+  // Use a final switch here so we don't need to bother with a switch for psi in the inner loop later.
   final switch(psiForm) {
     case PsiForm.Linear:
       L.addShanChenForcePsi!(PsiForm.Linear)(gccm, gwc);
