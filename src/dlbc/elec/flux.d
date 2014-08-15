@@ -91,6 +91,8 @@ private void resetFlux(T)(ref T L) if ( isLattice!T ) {
 
    Params:
      L = lattice
+
+   Todo: verify multicomponent.
 */
 private void calculateDiffusiveFlux(T)(ref T L) if ( isLattice!T ) {
   immutable cv = econn.velocities;
@@ -150,6 +152,8 @@ private void calculateDiffusiveFlux(T)(ref T L) if ( isLattice!T ) {
 
    Params:
      L = lattice
+
+   Todo: implement this.
 */
 private void calculateAdvectiveFlux(T)(ref T L) if ( isLattice!T ) {
   if ( ! fluidOnElec || timestep == 0 || components == 0 ) return; // Do not advect during initial equilibration.

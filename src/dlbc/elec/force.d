@@ -1,3 +1,21 @@
+// Written in the D programming language.
+
+/**
+   Force calculations for electric charges.
+
+   Copyright: Stefan Frijters 2011-2014
+
+   License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
+
+   Authors: Stefan Frijters
+
+   Macros:
+        TR = <tr>$0</tr>
+        TH = <th>$0</th>
+        TD = <td>$0</td>
+        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
+*/
+
 module dlbc.elec.force;
 
 import dlbc.elec.elec;
@@ -8,9 +26,23 @@ import dlbc.logging;
 
 import dlbc.range;
 
+/**
+   Enable electrostatic force.
+*/
 @("param") bool enableElectrostatic = true;
+/**
+   Enable dielectrophoretic force.
+*/
 @("param") bool enableDielectrophoretic = true;
 
+/**
+   Calculate electric forces and add them to the global force field.
+
+   Params:
+     L = lattice
+
+   Todo: add solvation force.
+*/
 void addElecForce(T)(ref T L) if (isLattice!T) {
   if ( ( ! enableElec ) || ( ! elecOnFluid ) ) return;
 
