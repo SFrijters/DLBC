@@ -89,7 +89,7 @@ package bool moveElecCharges(T)(ref T L) if ( isLattice!T ) {
    Params:
      L = lattice
 */
-private void resetFlux(T)(ref T L) if ( isLattice!T ) {
+private void resetFlux(T)(ref T L) @safe pure nothrow @nogc if ( isLattice!T ) {
   L.elFluxP.initConst(0.0);
   L.elFluxN.initConst(0.0);
 }
@@ -102,7 +102,7 @@ private void resetFlux(T)(ref T L) if ( isLattice!T ) {
 
    Todo: verify multicomponent.
 */
-private void calculateDiffusiveFlux(T)(ref T L) if ( isLattice!T ) {
+private void calculateDiffusiveFlux(T)(ref T L) @safe nothrow @nogc if ( isLattice!T ) {
   if ( ! enableDiffusiveFlux ) return;
   immutable cv = econn.velocities;
   if ( components > 2 ) {
@@ -127,19 +127,19 @@ private void calculateDiffusiveFlux(T)(ref T L) if ( isLattice!T ) {
             nbPhiTot += nb[vd] * externalField[vd];
           }
           if ( fluidOnElec && components > 1 ) {
-            writeLogF("Not yet tested!");
-            immutable nbOp = L.getLocalOP(nb);
-            immutable expDeltaPos = exp( beta * ( elementaryCharge * ( nbPhiTot - curPhiTot ) + 0.5 * deltaMuPos * ( nbOp - curOp ) ) );
-            immutable invExpDeltaPos = 1.0 / expDeltaPos;
+            assert(0, "Not yet tested!");
+            // immutable nbOp = L.getLocalOP(nb);
+            // immutable expDeltaPos = exp( beta * ( elementaryCharge * ( nbPhiTot - curPhiTot ) + 0.5 * deltaMuPos * ( nbOp - curOp ) ) );
+            // immutable invExpDeltaPos = 1.0 / expDeltaPos;
 
-            immutable expDeltaNeg = exp( beta * ( elementaryCharge * ( nbPhiTot - curPhiTot ) + 0.5 * deltaMuNeg * ( nbOp - curOp ) ) );
-            immutable invExpDeltaNeg = 1.0 / expDeltaNeg;
+            // immutable expDeltaNeg = exp( beta * ( elementaryCharge * ( nbPhiTot - curPhiTot ) + 0.5 * deltaMuNeg * ( nbOp - curOp ) ) );
+            // immutable invExpDeltaNeg = 1.0 / expDeltaNeg;
 
-            immutable fluxLinkPos = -0.5 * DPos * (1.0 + invExpDeltaPos) * ( L.elChargeP[nb] * expDeltaPos - L.elChargeP[p] );
-            immutable fluxLinkNeg = -0.5 * DNeg * (1.0 + expDeltaNeg) * ( L.elChargeN[nb] * invExpDeltaNeg - L.elChargeN[p] );
+            // immutable fluxLinkPos = -0.5 * DPos * (1.0 + invExpDeltaPos) * ( L.elChargeP[nb] * expDeltaPos - L.elChargeP[p] );
+            // immutable fluxLinkNeg = -0.5 * DNeg * (1.0 + expDeltaNeg) * ( L.elChargeN[nb] * invExpDeltaNeg - L.elChargeN[p] );
 
-            L.elFluxP[p] += fluxLinkPos;
-            L.elFluxN[p] += fluxLinkNeg;
+            // L.elFluxP[p] += fluxLinkPos;
+            // L.elFluxN[p] += fluxLinkNeg;
           }
           else {
             immutable expDPhi = exp( beta * elementaryCharge * ( nbPhiTot - curPhiTot ) );
@@ -179,7 +179,7 @@ private void calculateAdvectiveFlux(T)(ref T L) if ( isLattice!T ) {
 
    Todo: minimize parallel communication by clever use of flags.
 */
-private bool applyFlux(T)(ref T L) if ( isLattice!T ) {
+private bool applyFlux(T)(ref T L) @trusted nothrow @nogc if ( isLattice!T ) {
   if ( ( ! enableAdvectiveFlux ) && ( ! enableDiffusiveFlux ) ) return true;
   import std.math: approxEqual, abs;
   import std.algorithm: max;

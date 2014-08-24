@@ -132,7 +132,7 @@ struct Field(T, alias c, uint hs) {
 
      Todo: add unittest
   */
-  int opApply(int delegate(RepeatTuple!(arr.dimensions, size_t), ref T) dg) {
+  int opApply(int delegate(RepeatTuple!(arr.dimensions, size_t), ref T) @safe nothrow @nogc dg) @safe nothrow @nogc {
     if(!elements)
       return 0;
 
@@ -155,7 +155,7 @@ struct Field(T, alias c, uint hs) {
   }
 
   /// Ditto
-  int opApply(int delegate(immutable ptrdiff_t[arr.dimensions], ref T) dg) {
+  int opApply(int delegate(immutable ptrdiff_t[arr.dimensions], ref T) @safe nothrow @nogc dg) @safe nothrow @nogc {
     if(!elements)
       return 0;
 
@@ -178,7 +178,7 @@ struct Field(T, alias c, uint hs) {
   }
 
   /// Ditto
-  const int opApply(int delegate(immutable ptrdiff_t[arr.dimensions], ref const(T)) dg) {
+  int opApply(int delegate(immutable ptrdiff_t[arr.dimensions], ref const(T)) @safe nothrow @nogc dg) const @safe nothrow @nogc {
     if(!elements)
       return 0;
 
@@ -320,7 +320,7 @@ template VectorFieldOf(T) if ( isPopulationField!(BaseElementType!T) ) {
    Params:
      fields = fields whose lengthsH to check
 */
-bool haveCompatibleLengthsH(T...)(const T fields) {
+bool haveCompatibleLengthsH(T...)(const T fields) @safe pure nothrow @nogc {
   if ( fields.length < 2 ) return true;
   immutable lengthsH = fields[0].lengthsH;
   foreach(ref field; fields) {
@@ -337,7 +337,7 @@ bool haveCompatibleLengthsH(T...)(const T fields) {
    Params:
      fields = fields whose lengths to check
 */
-bool haveCompatibleLengths(T...)(const T fields) {
+bool haveCompatibleLengths(T...)(const T fields) @safe pure nothrow @nogc {
   if ( fields.length < 2 ) return true;
   immutable lengths = fields[0].lengths;
   foreach(ref field; fields) {

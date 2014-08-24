@@ -1,6 +1,8 @@
 /// mpi.h -> mpi.d
 module dlbc.mpi;
 
+@trusted nothrow @nogc:
+
 extern(C):
 
 /* Aliases */

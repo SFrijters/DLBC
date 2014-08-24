@@ -30,7 +30,7 @@ import dlbc.range;
 
 import std.traits;
 
-void initRank(T)(ref T field) if ( isField!T ) {
+void initRank(T)(ref T field) @safe pure nothrow @nogc if ( isField!T ) {
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
@@ -43,7 +43,7 @@ void initRank(T)(ref T field) if ( isField!T ) {
   }
 }
 
-void initConst(T, U)(ref T field, in U fill) if ( isField!T ) {
+void initConst(T, U)(ref T field, in U fill) @safe pure nothrow @nogc if ( isField!T ) {
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
@@ -69,7 +69,7 @@ void initConstRandom(T)(ref T field, in double fill) if ( isField!T ) {
   }
 }
 
-void initEqDist(T)(ref T field, in double density) if ( isField!T ) {
+void initEqDist(T)(ref T field, in double density) @safe nothrow @nogc if ( isField!T ) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
   alias conn = field.conn;
@@ -253,12 +253,12 @@ void initLamellae(T, U)(ref T field, in ptrdiff_t[] widths, in U[] values, in Ax
   assert(widths.length == values.length);
   size_t i = to!int(initAxis);
   foreach(immutable p, ref e; field) {
-    auto gp = p[i] + M.c[i] * field.n[i] - field.haloSize; 
+    auto gp = p[i] + M.c[i] * field.n[i] - field.haloSize;
     e = values[gp.findLamella(widths)];
   }
 }
 
-private size_t findLamella(in ptrdiff_t pos, in ptrdiff_t[] widths) {
+private size_t findLamella(in ptrdiff_t pos, in ptrdiff_t[] widths) @safe pure nothrow @nogc {
   ptrdiff_t i = 0;
   ptrdiff_t upper = widths[0];
   while ( pos >= upper ) {

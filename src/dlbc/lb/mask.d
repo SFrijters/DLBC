@@ -92,7 +92,7 @@ enum Mask {
    Returns:
      Global number of lattice sites which have the particular $(D Mask).
 */
-auto countSites(Mask mask, T)(ref T field) {
+auto countSites(Mask mask, T)(ref T field) @trusted nothrow @nogc {
   int localCount = 0;
   foreach(immutable p, ref e; field) {
     if ( e == mask ) {
@@ -105,12 +105,12 @@ auto countSites(Mask mask, T)(ref T field) {
 }
 
 /// Ditto
-auto countFluidSites(T)(ref T field) {
+auto countFluidSites(T)(ref T field) @nogc {
   return countSites!(Mask.None)(field);
 }
 
 /// Ditto
-auto countSolidSites(T)(ref T field) {
+auto countSolidSites(T)(ref T field) @nogc {
   return countSites!(Mask.Solid)(field);
 }
 
@@ -189,7 +189,7 @@ void initWalls(T)(ref T field, const Axis initAxis) if ( isMaskField!T ) {
    Params:
      bc = boundary condition to check
 */
-bool isFluid(Mask bc) @safe pure nothrow {
+bool isFluid(Mask bc) @safe pure nothrow @nogc {
   final switch(bc) {
   case Mask.None:
     return true;
@@ -198,7 +198,7 @@ bool isFluid(Mask bc) @safe pure nothrow {
   }
 }
 /// Ditto
-bool isAdvectable(Mask bc) @safe pure nothrow {
+bool isAdvectable(Mask bc) @safe pure nothrow @nogc {
   final switch(bc) {
   case Mask.None:
     return true;
@@ -207,7 +207,7 @@ bool isAdvectable(Mask bc) @safe pure nothrow {
   }
 }
 /// Ditto
-bool isBounceBack(Mask bc) @safe pure nothrow {
+bool isBounceBack(Mask bc) @safe pure nothrow @nogc {
   final switch(bc) {
   case Mask.None:
     return false;
@@ -216,7 +216,7 @@ bool isBounceBack(Mask bc) @safe pure nothrow {
   }
 }
 /// Ditto
-bool isCollidable(Mask bc) @safe pure nothrow {
+bool isCollidable(Mask bc) @safe pure nothrow @nogc {
   final switch(bc) {
   case Mask.None:
     return true;

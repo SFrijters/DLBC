@@ -38,7 +38,7 @@ version(unittest) {
    Returns:
      local density \(\rho_0(\vec{n})\)
 */
-auto density(T)(in ref T population) {
+auto density(T)(in ref T population) @safe pure nothrow @nogc {
   import std.algorithm;
   return sum(population[]);
 }

@@ -260,7 +260,7 @@ private void calculateElectricFieldFD(T)(ref T L) if ( isLattice!T ) {
   }
 }
 
-double getLocalDiel(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p) if ( isLattice!T ) {
+double getLocalDiel(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p) @safe nothrow @nogc if ( isLattice!T ) {
   import dlbc.lb.mask;
   if ( fluidOnElec ) {
     if ( L.mask[p] == Mask.Solid ) {
@@ -275,7 +275,7 @@ double getLocalDiel(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p)
   }
 }
 
-double getLocalOP(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p) if ( isLattice!T ) {
+double getLocalOP(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p) @safe nothrow @nogc if ( isLattice!T ) {
   import dlbc.lb.density;
   if ( components < 2 ) {
     return 1.0;
@@ -288,12 +288,12 @@ double getLocalOP(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p) i
   }
 }
 
-double getNbPot(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p, in ptrdiff_t[dims] cv) if ( isLattice!T ) {
+double getNbPot(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p, in ptrdiff_t[dims] cv) @safe nothrow @nogc if ( isLattice!T ) {
   econn.vel_t nb;
   return L.getNbPot(p, cv, nb);
  }
 
-double getNbPot(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p, in ptrdiff_t[dims] cv, ref ptrdiff_t[dims] nb) if ( isLattice!T ) {
+double getNbPot(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p, in ptrdiff_t[dims] cv, ref ptrdiff_t[dims] nb) @safe nothrow @nogc if ( isLattice!T ) {
   econn.vel_t gp;
   double potShift = 0.0;
 
