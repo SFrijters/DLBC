@@ -486,11 +486,19 @@ string makeHeaderString(T...)(const T args) pure {
 */
 string makeLengthsString(T : size_t)(const T[] lengths) @safe pure {
   string str;
-  foreach( l ; lengths ) {
-    if ( str.length > 0 ) {
-      str ~= " x ";
+  if ( lengths.length > 1 ) {
+    foreach( l ; lengths ) {
+      if ( str.length > 0 ) {
+        str ~= " x ";
+      }
+      str ~= format("%d",l);
     }
-    str ~= format("%d",l);
+  }
+  else if ( lengths.length == 1 ) {
+    str = format("length %d", lengths[0]);
+  }
+  else {
+    assert(0);
   }
   return str;
 }
