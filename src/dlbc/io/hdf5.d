@@ -186,8 +186,29 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
       arrstart = [ field.haloSize, field.haloSize ];
     }
   }
+  else static if ( field.dimensions == 1 ) {
+    if ( typeLen > 1 ) {
+      dim++; // One more dimension to store the vector component.
+      dimsg = [ gn[0], typeLen ];
+      dimsl = [ field.nH[0], typeLen ];
+      count = [ 1, 1 ];
+      stride = [ 1, 1 ];
+      block = [ field.n[0], typeLen ];
+      start = [ M.c[0]*field.n[0], 0 ];
+      arrstart = [ field.haloSize, 0 ];
+    }
+    else {
+      dimsg = [ gn[0] ];
+      dimsl = [ field.nH[0] ];
+      count = [ 1 ];
+      stride = [ 1 ];
+      block = [ field.n[0] ];
+      start = [ M.c[0]*field.n[0] ];
+      arrstart = [ field.haloSize ];
+    }
+  }
   else {
-    static assert(0, "dumpFieldHDF5 not implemented for dimensions != 3 or 2.");
+    static assert(0, "dumpFieldHDF5 not implemented for dimensions > 3.");
   }
 
   MPI_Info info = MPI_INFO_NULL;
@@ -350,8 +371,29 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
       arrstart = [ field.haloSize, field.haloSize ];
     }
   }
+  else static if ( field.dimensions == 1 ) {
+    if ( typeLen > 1 ) {
+      dim++; // One more dimension to store the vector component.
+      dimsg = [ gn[0], typeLen ];
+      dimsl = [ field.nH[0], typeLen ];
+      count = [ 1, 1 ];
+      stride = [ 1, 1 ];
+      block = [ field.n[0], typeLen ];
+      start = [ M.c[0]*field.n[0], 0 ];
+      arrstart = [ field.haloSize, 0 ];
+    }
+    else {
+      dimsg = [ gn[0] ];
+      dimsl = [ field.nH[0] ];
+      count = [ 1 ];
+      stride = [ 1 ];
+      block = [ field.n[0] ];
+      start = [ M.c[0]*field.n[0] ];
+      arrstart = [ field.haloSize ];
+    }
+  }
   else {
-    static assert(0, "readFieldHDF5 not implemented for dimensions != 3 or 2.");
+    static assert(0, "readFieldHDF5 not implemented for dimensions > 3.");
   }
 
   MPI_Info info = MPI_INFO_NULL;

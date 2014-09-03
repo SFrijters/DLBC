@@ -94,6 +94,9 @@ private template elecConnOf(alias conn) {
   else static if ( conn.d == 2 ) {
     alias elecConnOf = d2q5;
   }
+  else static if ( conn.d == 1 ) {
+    alias elecConnOf = d1q3;
+  }
   else {
     static assert(0);
   }

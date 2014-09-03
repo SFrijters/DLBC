@@ -132,27 +132,6 @@ struct Field(T, alias c, uint hs) {
 
      Todo: add unittest
   */
-  int opApply(int delegate(RepeatTuple!(arr.dimensions, size_t), ref T) @safe nothrow @nogc dg) @safe nothrow @nogc {
-    if(!elements)
-      return 0;
-
-    RepeatTuple!(arr.dimensions, size_t) indices = haloSize;
-    indices[$ - 1] = -1 + haloSize;
-
-    for(;;) {
-      foreach_reverse(const plane, ref index; indices) {
-        if(++index < arr.lengths[plane] - haloSize)
-          break;
-        else if(plane)
-          index = haloSize;
-        else
-          return 0;
-      }
-
-      if(const res = dg(indices, arr._data[getOffset(indices)]))
-        return res;
-    }
-  }
 
   /// Ditto
   int opApply(int delegate(immutable ptrdiff_t[arr.dimensions], ref T) @safe nothrow @nogc dg) @safe nothrow @nogc {

@@ -128,8 +128,20 @@ void exchangeHalo(T, U)(ref T field, ref U M, uint haloSize) if ( isField!T && i
     MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nb[1][0], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nb[1][1], 0, M.comm, &mpiStatus);
     field.arr[haloOffset..$-haloOffset, $-lur..$-uur] = field.rbuffer;
   }
+  else static if ( field.dimensions == 1 ) {
+    // Send to positive x
+    buflen = to!uint(haloSize * mpiLength);
+    field.rbuffer = multidimArray!(T.type)([haloSize]);
+    field.sbuffer = field.arr[$-lus .. $-uus].dup;
+    MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nb[0][1], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nb[0][0], 0, M.comm, &mpiStatus);
+    field.arr[llr..ulr] = field.rbuffer;
+    // Send to negative x
+    field.sbuffer = field.arr[lls..uls].dup;
+    MPI_Sendrecv(field.sbuffer._data.ptr, buflen, mpiType, M.nb[0][0], 0, field.rbuffer._data.ptr, buflen, mpiType, M.nb[0][1], 0, M.comm, &mpiStatus);
+    field.arr[$-lur .. $-uur] = field.rbuffer;
+  }
   else {
-    static assert(0, "Halo exchange not implemented for dimensions != 3 or 2.");
+    static assert(0, "Halo exchange not implemented for dimensions > 3.");
   }
   Timers.haloExchange.stop();
 }

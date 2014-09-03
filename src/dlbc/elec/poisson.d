@@ -177,8 +177,28 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
         L.elPot.exchangeHalo();
       }
     }
+   else static if ( T.dimensions == 1 ) {
+      assert(moddity == 0);
+      foreach(immutable ipass; 0..2) {
+        for (int i = ipass%2; i < L.lengths[0]; i=i+2 ) {
+          immutable offset = L.elPot.haloSize;
+          immutable ptrdiff_t[1] p = [i+offset];
+          mixin(sorKernel);
+        }
+
+        if ( it == 0 && ipass == 0 ) {
+          omega = 1.0 / ( 1.0 - 0.5 * radiusSOR * radiusSOR);
+        }
+        else {
+          omega = 1.0 / ( 1.0 - 0.25 * radiusSOR * radiusSOR * omega);
+        }
+        writeLogRD("it = %d, ipass = %d, omega = %e", it, ipass, omega);
+
+        L.elPot.exchangeHalo();
+      }
+    }
     else {
-      assert(0);
+      static assert(0);
     }
 
     // writeLogD("localRnorm[1] = %f",localRnorm[1]);

@@ -62,7 +62,7 @@ static immutable struct Connectivity(uint _d, uint _q) {
       /**
          Speed of sound.
       */
-      enum double css = 1.0/3.0;
+      enum double css = generateSpeedOfSound!(d, q)();
       /**
          Show information about the layout of the grid of processes.
       */
@@ -151,10 +151,28 @@ alias d2q1 = Connectivity!(2,1);
 alias d2q0 = Connectivity!(2,0);
 
 /**
+   D1Q3 connectivity.
+*/
+alias d1q3 = Connectivity!(1,3);
+
+/**
+   D1Q1 connectivity, i.e. only the rest vector.
+*/
+alias d1q1 = Connectivity!(1,1);
+
+/**
+   D1Q0 connectivity, i.e. no populations.
+*/
+alias d1q0 = Connectivity!(1,0);
+
+/**
    Global connectivity parameter.
 */
 version(D2Q9) {
   alias gconn = d2q9;
+}
+else version(D1Q3) {
+  alias gconn = d1q3;
 }
 else {
   alias gconn = d3q19;
@@ -174,7 +192,7 @@ template dimOf(alias conn) {
    Find velocity vectors pointing in the opposite direction and
    fill an array such that $(D velocities[bounce[i]] = -velocities[i]).
 */
-private auto generateBounce(T)(const T velocities) @safe pure nothrow {
+private auto generateBounce(T)(const T velocities) @safe pure nothrow @nogc {
   import std.algorithm: any;
   size_t[velocities.length] bounce;
   int[velocities[0].length] diff;
@@ -190,92 +208,154 @@ private auto generateBounce(T)(const T velocities) @safe pure nothrow {
   return bounce;
 }
 
-private auto generateWeights(uint d, uint q)() @safe pure nothrow {
+private auto generateSpeedOfSound(uint d, uint q)() @safe pure nothrow @nogc {
+  // 3D
+  static if      ( d == 3 && q == 19 ) {
+    return 1.0/3.0;
+  }
+  else static if ( d == 3 && q == 7 ) {
+    return 1.0/3.0;
+  }
+  else static if ( d == 3 && q == 1 ) {
+    return 1.0/3.0;
+  }
+  // 2D
+  else static if ( d == 2 && q == 9 ) {
+    return 1.0/3.0;
+  }
+  else static if ( d == 2 && q == 5 ) {
+    return 1.0/3.0;
+  }
+  else static if ( d == 2 && q == 1 ) {
+    return 1.0/3.0;
+  }
+  // 1D
+  else static if ( d == 1 && q == 5 ) {
+    return 1.0;
+  }
+  else static if ( d == 1 && q == 3 ) {
+    return 1.0/3.0;
+  }
+  else static if ( d == 1 && q == 1 ) {
+    return 1.0/3.0;
+  }
+  else {
+    static assert(0);
+  }
+}
+
+private auto generateWeights(uint d, uint q)() @safe pure nothrow @nogc {
   double[q] weights;
-  static if ( d == 3 ) {
-    static if ( q == 19 ) {
-      weights[0] = 1.0/3.0;
-      weights[1..7] = 1.0/18.0;
-      weights[7..$] = 1.0/36.0;
-      return weights;
-    }
-    else static if ( q == 7 ) {
-      weights[0] = 1.0/4.0;
-      weights[1..7] = 1.0/8.0;
-      return weights;
-    }
-    else static if ( q == 1 ) {
-        weights[0] = 1.0;
-    }
-    else {
-      static assert(0);
-    }
+  // 3D
+  static if      ( d == 3 && q == 19 ) {
+    weights[0] = 1.0/3.0;
+    weights[1..7] = 1.0/18.0;
+    weights[7..$] = 1.0/36.0;
   }
-  else static if ( d == 2 ) {
-    static if ( q == 9 ) {
-      weights[0] = 4.0/9.0;
-      weights[1..5] = 1.0/9.0;
-      weights[5..$] = 1.0/36.0;
-      return weights;
-    }
-    else static if ( q == 5 ) {
-      weights[0] = 1.0/3.0;
-      weights[1..5] = 1.0/6.0;
-      return weights;
-    }
-    else static if ( q == 1 ) {
-      weights[0] = 1.0;
-    }
-    else {
-      static assert(0);
-    }
+  else static if ( d == 3 && q == 7 ) {
+    weights[0] = 1.0/4.0;
+    weights[1..7] = 1.0/8.0;
+  }
+  else static if ( d == 3 && q == 1 ) {
+    weights[0] = 1.0;
+  }
+  // 2D
+  else static if ( d == 2 && q == 9 ) {
+    weights[0] = 4.0/9.0;
+    weights[1..5] = 1.0/9.0;
+    weights[5..$] = 1.0/36.0;
+  }
+  else static if ( d == 2 && q == 5 ) {
+    weights[0] = 1.0/3.0;
+    weights[1..$] = 1.0/6.0;
+  }
+  else static if ( d == 2 && q == 1 ) {
+    weights[0] = 1.0;
+  }
+  // 1D
+  else static if ( d == 1 && q == 5 ) {
+    weights[0] = 6.0/12.0;
+    weights[1..3] = 2.0/12.0;
+    weights[3..$] = 1.0/12.0;
+  }
+  else static if ( d == 1 && q == 3 ) {
+    weights[0] = 4.0/6.0;
+    weights[1..$] = 1.0/6.0;
+  }
+  else static if ( d == 1 && q == 1 ) {
+    weights[0] = 1.0;
+  }
+  else {
+    static assert(0);
+  }
+  return weights;
+}
+
+private auto generateVelocities(uint d, uint q)() @safe pure nothrow @nogc {
+  // 3D
+  static if      ( d == 3 && q == 19 ) {
+    return generateD3Q19();
+  }
+  else static if ( d == 3 && q == 7 ) {
+    return generateD3Q7();
+  }
+  else static if ( d == 3 && q == 1 ) {
+    return generateD3Q1();
+  }
+  // 2D
+  else static if ( d == 2 && q == 9 ) {
+    return generateD2Q9();
+  }
+  else static if ( d == 2 && q == 5 ) {
+    return generateD2Q5();
+  }
+  else static if ( d == 2 && q == 1 ) {
+    return generateD2Q1();
+  }
+  // 1D
+  else static if ( d == 1 && q == 5 ) {
+    return generateD1Q3();
+  }
+  else static if ( d == 1 && q == 3 ) {
+    return generateD1Q3();
+  }
+  else static if ( d == 1 && q == 1 ) {
+    return generateD1Q1();
   }
   else {
     static assert(0);
   }
 }
 
-private auto generateVelocities(uint d, uint q)() @safe pure nothrow {
-  static if ( d == 3 ) {
-    static if ( q == 19 ) {
-      return generateD3Q19();
-    }
-    else static if ( q == 7 ) {
-      return generateD3Q7();
-    }
-    else static if ( q == 1 ) {
-      return generateD3Q1();
-    }
-    else {
-      static assert(0);
-    }
-  }
-  else static if ( d == 2 ) {
-    static if ( q == 9 ) {
-      return generateD2Q9();
-    }
-    else static if ( q == 5 ) {
-      return generateD2Q5();
-    }
-    else static if ( q == 1 ) {
-      return generateD2Q1();
-    }
-    else {
-      static assert(0);
-    }
-  }
-  else {
-    static assert(0);
-  }
+private auto generateD1Q1() @safe pure nothrow @nogc {
+  int[1][1] d1q1;
+  d1q1[0] = [0];
+  return d1q1;
 }
 
-private auto generateD2Q1() @safe pure nothrow {
+private auto generateD1Q3() @safe pure nothrow @nogc {
+  int[1][3] d1q3;
+  d1q3[0..1] = generateD1Q1();
+  d1q3[1] = [  1 ];
+  d1q3[2] = [ -1 ];
+  return d1q3;
+}
+
+private auto generateD1Q5() @safe pure nothrow @nogc {
+  int[1][5] d1q5;
+  d1q5[0..3] = generateD1Q3();
+  d1q5[3] = [  2 ];
+  d1q5[4] = [ -2 ];
+  return d1q5;
+}
+
+private auto generateD2Q1() @safe pure nothrow @nogc {
   int[2][1] d2q1;
   d2q1[0] = [0, 0];
   return d2q1;
 }
 
-private auto generateD2Q5() @safe pure nothrow {
+private auto generateD2Q5() @safe pure nothrow @nogc {
   int[2][5] d2q5;
   d2q5[0..1] = generateD2Q1();
 
@@ -286,7 +366,7 @@ private auto generateD2Q5() @safe pure nothrow {
   return d2q5;
 }
 
-private auto generateD2Q9() @safe pure nothrow {
+private auto generateD2Q9() @safe pure nothrow @nogc {
   int[2][9] d2q9;
   d2q9[0..5] = generateD2Q5();
 
@@ -297,13 +377,13 @@ private auto generateD2Q9() @safe pure nothrow {
   return d2q9;
 }
 
-private auto generateD3Q1() @safe pure nothrow {
+private auto generateD3Q1() @safe pure nothrow @nogc {
   int[3][1] d3q1;
   d3q1[0] = [0, 0, 0];
   return d3q1;
 }
 
-private auto generateD3Q7() @safe pure nothrow {
+private auto generateD3Q7() @safe pure nothrow @nogc {
   int[3][7] d3q7;
   d3q7[0..1] = generateD3Q1();
   d3q7[1] = [ 1, 0, 0];
@@ -315,7 +395,7 @@ private auto generateD3Q7() @safe pure nothrow {
   return d3q7;
 }
 
-private auto generateD3Q19() @safe pure nothrow {
+private auto generateD3Q19() @safe pure nothrow @nogc {
   int[3][19] d3q19;
   d3q19[0..7] = generateD3Q7();
   d3q19[7] = [ 1, 1, 0];

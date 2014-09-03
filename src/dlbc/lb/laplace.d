@@ -101,8 +101,12 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
     double measuredR = pow(effMass / ( PI * ( inDen[0] - outDen[0] ) ), 1.0/2.0);
     double sigma = measuredR * ( inPres - outPres );
   }
+  else static if ( T.dimensions == 1 ) {
+    double measuredR = effMass / ( inDen[0] - outDen[0] );
+    double sigma = measuredR * ( inPres - outPres );
+  }
   else {
-    assert(0);
+    static assert(0);
   }
 
   assert(t != 0 || approxEqual(sigma, 0.0));
