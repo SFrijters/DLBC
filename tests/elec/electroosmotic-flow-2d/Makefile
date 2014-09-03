@@ -1,7 +1,12 @@
-all:
-	cp ../../../dlbc dlbc-d2q9
-	mpirun -np 1 ./dlbc-d2q9 -p input-parameters-electroosmotic-flow-2D.txt -v Information
+all: clean build
+	cp ../../../dlbc-d2q9-release .
+	./run-simulations.sh
+	./compare-reference-data.sh
 
 build:
-	cd ../../../ ; make release-d2q9
+	cd ../../../ ; make dlbc-d2q9-release
+
+clean:
+	rm -rf output/
+	rm -f dlbc-d2q9-release
 
