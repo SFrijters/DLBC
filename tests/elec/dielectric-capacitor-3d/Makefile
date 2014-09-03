@@ -1,6 +1,6 @@
 all: clean build
 	cp ../../../dlbc-d3q19-release .
-	/usr/local/stow/mpich-3.1/bin/mpirun -np 1 ./dlbc-d3q19-release -p input-parameters-dielectric-capacitor-3D.txt -v Fatal 
+	mpirun -np 1 ./dlbc-d3q19-release -p input-parameters-dielectric-capacitor-3D.txt -v Fatal 
 	./compare-reference-data.sh
 
 build:

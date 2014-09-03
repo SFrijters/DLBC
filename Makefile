@@ -46,7 +46,7 @@ dlbc-d1q3: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
 dlbc-d1q3-release: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
 	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q3-release ${COMMONFLAGS} ${RELEASEFLAGS} -version=D1Q3
 
-test: test-build test-unittest
+test: test-build test-unittest test-runnable
 
 test-build: dlbc-d3q19-test dlbc-d3q19 dlbc-d3q19-release dlbc-d2q9-test dlbc-d2q9 dlbc-d2q9-release dlbc-d1q3-test dlbc-d1q3 dlbc-d1q3-release
 
@@ -54,6 +54,9 @@ test-unittest:
 	./dlbc-d3q19-test
 	./dlbc-d2q9-test
 	./dlbc-d1q3-test
+
+test-runnable:
+	cd tests ; ./run-tests.sh
 
 clean:
 	rm -f src/dlbc/revision.d
@@ -75,3 +78,5 @@ clean:
 	rm -f dlbc-*.o
 	rm -f *.lst
 
+clean-tests:
+	cd tests ; ./clean-tests.sh
