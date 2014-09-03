@@ -1,0 +1,60 @@
+// Parameters to test the Poisson solver for a capacitor with dielectric lamellae.
+
+[io]
+simulationName = dielectric-capacitor
+outputFormat = HDF5
+outputPath = output
+createPath = true
+
+[lb]
+timesteps = 0
+components = 0
+
+force.enableShanChen = false
+
+io.maskFreq = 1
+
+mask.maskInit = Walls
+mask.initAxis = X
+mask.wallOffset = 14
+
+[lattice]
+gn = [60 ]
+
+[elec]
+enableElec = true
+
+localDiel = true
+dielGlobal = 1.0
+
+fluidOnElec = false
+elecOnFluid = false
+
+force.enableElectrostatic = false
+force.enableDielectrophoretic = true
+
+poisson.solver = SOR 
+
+:x
+:x
+
+boundaryPhi = [ Neumann, Neumann ]
+
+poisson.sorMaxIterations = 10000
+poisson.sorShowIterations = 1
+poisson.sorCheckIterations = 1
+poisson.sorToleranceRel = 1e-6
+
+init.chargeInit = CapacitorDensity
+init.chargeDensitySolid = -1.0
+init.dielInit = Capacitor
+
+init.dielCapacitor = 1.0
+init.dielCapacitor2 = 2.0
+
+io.potFreq = 1
+io.dielFreq = 1
+io.chargeFreq = 1
+io.fieldFreq = 1
+
+
