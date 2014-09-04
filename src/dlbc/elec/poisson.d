@@ -105,7 +105,7 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
         double nbPhi = L.getNbPot(p, cv[i]);
         depsphi += nbPhi;
       }
-      depsphi = dielGlobal * ( depsphi - 6.0 * curPhi );
+      depsphi = dielGlobal * ( depsphi - 2.0 * T.dimensions * curPhi );
     }
     localRnorm[0] += abs(depsphi + curRho);
   }
@@ -246,8 +246,8 @@ private static immutable string sorKernel = q{
       double nbPhi = L.getNbPot(p, cv[iv]);
       depsphi += nbPhi;
     }
-    residual = dielGlobal * ( depsphi - 6.0 * curPhi ) + curRho;
-    L.elPot[p] += omega * residual / ( 6.0 * dielGlobal);
+    residual = dielGlobal * ( depsphi - 2.0 * T.dimensions * curPhi ) + curRho;
+    L.elPot[p] += omega * residual / ( 2.0 * T.dimensions * dielGlobal);
   }
   // writeLogD("L.elPot %s = %e %e %e %e %e %e",p, L.elPot[p], curPhi, curRho, depsphi, residual, dielGlobal);
   localRnorm[1] += abs(residual);
