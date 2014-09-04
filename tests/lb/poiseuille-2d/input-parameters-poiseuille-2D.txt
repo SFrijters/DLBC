@@ -33,7 +33,7 @@ outputFormat = HDF5
 outputPath = output
 createPath = true
 
-startOutput = 0
+startOutput = 100000
 
 checkpoint.cpFreq = 0
 
