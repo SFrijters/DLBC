@@ -52,11 +52,11 @@ test-build: dlbc-d3q19-test dlbc-d3q19 dlbc-d3q19-release dlbc-d2q9-test dlbc-d2
 
 test-unittest:
 	./dlbc-d3q19-test --version
-	grep -e 'covered$$' *.lst
+	grep -e 'covered$$' *.lst | tee cov-d3q19.log
 	./dlbc-d2q9-test --version
-	grep -e 'covered$$' *.lst
+	grep -e 'covered$$' *.lst | tee cov-d2q9.log
 	./dlbc-d1q3-test --version
-	grep -e 'covered$$' *.lst
+	grep -e 'covered$$' *.lst | tee cov-d1q3.log
 
 test-runnable:
 	cd tests ; ./run-tests.sh
@@ -80,6 +80,7 @@ clean:
 	rm -f dlbc-*
 	rm -f dlbc-*.o
 	rm -f *.lst
+	rm -f *.log
 
 clean-tests:
 	cd tests ; ./clean-tests.sh
