@@ -1,12 +1,11 @@
 // Parameters to test a charge liquid junction.
 
 [io]
-simulationName = liquidjunction-2d
+simulationName = liquidjunction-1d
 outputFormat = HDF5
 outputPath = output
 createPath = true
 startOutput = 1000
-
 checkpoint.cpFreq = 0
 
 [lb]
@@ -16,7 +15,7 @@ components = 0
 mask.maskInit = None 
 
 [lattice]
-gn = [128, 4]
+gn = [128]
 
 [elec]
 enableElec = true
@@ -31,9 +30,9 @@ beta = 30003.0
 
 poisson.solver = SOR 
 
-externalField = [ 0.0, 0.0 ] 
+externalField = [0.0] 
 
-boundaryPhi = [ Periodic, Periodic, Periodic, Periodic ]
+boundaryPhi = [ Periodic, Periodic ]
 
 poisson.sorMaxIterations = 10000
 poisson.sorShowIterations = 100
