@@ -21,6 +21,22 @@ module dlbc.lb.connectivity;
 import dlbc.logging;
 
 /**
+   Global connectivity parameter.
+*/
+version(D1Q3) {
+  alias gconn = d1q3;
+}
+else version(D1Q5) {
+  alias gconn = d1q5;
+}
+else version(D2Q9) {
+  alias gconn = d2q9;
+}
+else {
+  alias gconn = d3q19;
+}
+
+/**
    The Connectivity struct contains information about the links between lattice sites.
    It is a static struct, so no need to instantiate it.
    The case of _q = 0 is a special case: no connectivity exists at all. This is required for
@@ -151,6 +167,11 @@ alias d2q1 = Connectivity!(2,1);
 alias d2q0 = Connectivity!(2,0);
 
 /**
+   D1Q5 connectivity.
+*/
+alias d1q5 = Connectivity!(1,5);
+
+/**
    D1Q3 connectivity.
 */
 alias d1q3 = Connectivity!(1,3);
@@ -164,19 +185,6 @@ alias d1q1 = Connectivity!(1,1);
    D1Q0 connectivity, i.e. no populations.
 */
 alias d1q0 = Connectivity!(1,0);
-
-/**
-   Global connectivity parameter.
-*/
-version(D2Q9) {
-  alias gconn = d2q9;
-}
-else version(D1Q3) {
-  alias gconn = d1q3;
-}
-else {
-  alias gconn = d3q19;
-}
 
 /**
    For a connectivity DdQq returns the connectivity for DdQ0.
@@ -244,6 +252,13 @@ private auto generateSpeedOfSound(uint d, uint q)() @safe pure nothrow @nogc {
   }
 }
 
+unittest {
+  assert(generateSpeedOfSound!(3,19) == 1.0/3.0);
+  assert(generateSpeedOfSound!(2,9) == 1.0/3.0);
+  assert(generateSpeedOfSound!(1,5) == 1.0);
+  assert(generateSpeedOfSound!(1,3) == 1.0/3.0);
+}
+
 private auto generateWeights(uint d, uint q)() @safe pure nothrow @nogc {
   double[q] weights;
   // 3D
@@ -291,6 +306,20 @@ private auto generateWeights(uint d, uint q)() @safe pure nothrow @nogc {
   return weights;
 }
 
+unittest {
+  import std.algorithm: sum;
+  import std.numeric: approxEqual;
+  assert(approxEqual(sum(generateWeights!(3, 19)[]), 1.0));
+  assert(sum(generateWeights!(3, 7)[]) == 1.0);
+  assert(sum(generateWeights!(3, 1)[]) == 1.0);
+  assert(sum(generateWeights!(2, 9)[]) == 1.0);
+  assert(sum(generateWeights!(2, 5)[]) == 1.0);
+  assert(sum(generateWeights!(2, 1)[]) == 1.0);
+  assert(sum(generateWeights!(1, 5)[]) == 1.0);
+  assert(sum(generateWeights!(1, 3)[]) == 1.0);
+  assert(sum(generateWeights!(1, 1)[]) == 1.0);
+}
+
 private auto generateVelocities(uint d, uint q)() @safe pure nothrow @nogc {
   // 3D
   static if      ( d == 3 && q == 19 ) {
@@ -314,7 +343,7 @@ private auto generateVelocities(uint d, uint q)() @safe pure nothrow @nogc {
   }
   // 1D
   else static if ( d == 1 && q == 5 ) {
-    return generateD1Q3();
+    return generateD1Q5();
   }
   else static if ( d == 1 && q == 3 ) {
     return generateD1Q3();

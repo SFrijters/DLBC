@@ -97,7 +97,15 @@ struct Lattice(alias conn) {
   /**
      Fluid fields.
   */
-  @Exchange Field!(double[lbconn.q], lbconn, 2)[] fluids;
+  static if ( gconn.d == 1 && gconn.q == 5 ) {
+    // Careful! S-C needs one more site than just neighbours,
+    // but D1Q5 has vectors with length == 2, so we need a halo
+    // of 2 + 1 instead of 1 + 1.
+    @Exchange Field!(double[lbconn.q], lbconn, 3)[] fluids;
+  }
+  else {
+    @Exchange Field!(double[lbconn.q], lbconn, 2)[] fluids;
+  }
   /**
      Mask field.
   */

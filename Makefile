@@ -37,6 +37,15 @@ dlbc-d2q9: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
 dlbc-d2q9-release: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
 	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d2q9-release ${COMMONFLAGS} ${RELEASEFLAGS} -version=D2Q9
 
+dlbc-d1q5-test: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
+	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q5-test ${COMMONFLAGS} ${TESTFLAGS} -version=D1Q5
+
+dlbc-d1q5: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
+	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q5 ${COMMONFLAGS} -version=D1Q5
+
+dlbc-d1q5-release: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
+	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q5-release ${COMMONFLAGS} ${RELEASEFLAGS} -version=D1Q5
+
 dlbc-d1q3-test: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
 	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q3-test ${COMMONFLAGS} ${TESTFLAGS} -version=D1Q3
 
@@ -48,13 +57,15 @@ dlbc-d1q3-release: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
 
 test: clean clean-tests test-build test-unittest test-runnable
 
-test-build: dlbc-d3q19-test dlbc-d3q19 dlbc-d3q19-release dlbc-d2q9-test dlbc-d2q9 dlbc-d2q9-release dlbc-d1q3-test dlbc-d1q3 dlbc-d1q3-release
+test-build: dlbc-d3q19-test dlbc-d3q19 dlbc-d3q19-release dlbc-d2q9-test dlbc-d2q9 dlbc-d2q9-release dlbc-d1q5-test dlbc-d1q5 dlbc-d1q5-release dlbc-d1q3-test dlbc-d1q3 dlbc-d1q3-release
 
 test-unittest:
 	./dlbc-d3q19-test --version
 	grep -e 'covered$$' *.lst | tee cov-d3q19.log
 	./dlbc-d2q9-test --version
 	grep -e 'covered$$' *.lst | tee cov-d2q9.log
+	./dlbc-d1q5-test --version
+	grep -e 'covered$$' *.lst | tee cov-d1q5.log
 	./dlbc-d1q3-test --version
 	grep -e 'covered$$' *.lst | tee cov-d1q3.log
 
