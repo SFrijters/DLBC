@@ -48,7 +48,7 @@ private double previousSigma;
      L = lattice
      t = current time step
 */
-void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
+void dumpLaplace(T)(ref T L, in uint t) if ( isLattice!T ) {
   if ( ! enableShanChen ) return;
   assert(components == 2);
   import std.algorithm: any, sum;
@@ -68,10 +68,7 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
     writeLogRW("Laplace pressure calculation assumes the presence of a centred sphere!");
   }
 
-  // writeLogRD("%s %s", offsetIn, offsetOut);
-  // writeLogRD("inDen");
   auto inDen = L.volumeAveragedDensity(offsetIn, volumeAverage);
-  //  writeLogRD("outDen");
   auto outDen = L.volumeAveragedDensity(offsetOut, volumeAverage);
 
   assert(t != 0 || approxEqual(inDen[0], fluidDensity[0]));
@@ -87,10 +84,8 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
   foreach(i, ref field; L.fluids) {
     gMass[i] = field.globalTotalMass(L.mask);
   }
-  //writeLogRD("gmass = %s", gMass);
 
   double effMass = gMass[0] - ( L.gsize * outDen[0]);
-  //writeLogRD("%f %f %f", effMass, rpow3, measuredR);
 
   // Laplace law has different prefactor depending on dimensions.
   static if ( T.dimensions == 3 ) {
@@ -117,68 +112,89 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
     double cutoff = 0.35;
     double Rx = 0.0;
     double Ry = 0.0;
-    double M = 0.0;
+    double mass = 0.0;
 
     foreach(immutable p, pop; L.fluids[0]) {
-      double den = pop.density();
-      if ( den > cutoff ) {
-        M += den;
-        Rx += den*p[0];
-        Ry += den*p[1];
+      if ( L.mask[p].isFluid() ) {
+        double den = pop.density();
+        if ( den > cutoff ) {
+          ptrdiff_t[T.dimensions] gn;
+          foreach(immutable i; Iota!(0, T.dimensions) ) {
+            gn[i] = p[i] + M.c[i] * L.fluids[0].n[i] - L.fluids[0].haloSize;
+          }
+          mass += den;
+          Rx += den*gn[0];
+          Ry += den*gn[1];
+        }
       }
     }
-    Rx /= M;
-    Ry /= M;
+    double globalRx, globalRy, globalMass;
+    MPI_Allreduce(&Rx, &globalRx, 1, MPI_DOUBLE, MPI_SUM, M.comm);
+    MPI_Allreduce(&Ry, &globalRy, 1, MPI_DOUBLE, MPI_SUM, M.comm);
+    MPI_Allreduce(&mass, &globalMass, 1, MPI_DOUBLE, MPI_SUM, M.comm);
 
-    writeLogRN("%e %e %e", Rx, Ry, M);
+    globalRx /= globalMass;
+    globalRy /= globalMass;
+
+    writeLogRD("globalRx = %e, globalRy = %e, globalMass = %e", globalRx, globalRy, globalMass);
 
     // Use CoM as offset
 
-    double dx = Rx;
-    double dy = Ry;
+    double dx = globalRx;
+    double dy = globalRy;
 
     double Ixx = 0.0;
     double Ixy = 0.0;
     double Iyy = 0.0;
     foreach(immutable p, pop; L.fluids[0]) {
-      double x = p[0] - dx;
-      double y = p[1] - dy;
-      double den = pop.density();
-      if ( den > cutoff ) {
-        Ixx += den*(y*y);
-        Ixy += den*(x*y);
-        Iyy += den*(x*x);
+      if ( L.mask[p].isFluid() ) {
+        ptrdiff_t[T.dimensions] gn;
+        foreach(immutable i; Iota!(0, T.dimensions) ) {
+          gn[i] = p[i] + M.c[i] * L.fluids[0].n[i] - L.fluids[0].haloSize;
+        }
+        double x = gn[0] - dx;
+        double y = gn[1] - dy;
+        double den = pop.density();
+        if ( den > cutoff ) {
+          Ixx += den*(y*y);
+          Ixy += den*(x*y);
+          Iyy += den*(x*x);
+        }
       }
     }
 
-    writeLogRN("%e %e %e", Ixx, Ixy, Iyy);
-    
-    double T = Ixx + Iyy;
-    double det = Ixx * Iyy - Ixy * Ixy;
+    double globalIxx, globalIxy, globalIyy;
+    MPI_Allreduce(&Ixx, &globalIxx, 1, MPI_DOUBLE, MPI_SUM, M.comm);
+    MPI_Allreduce(&Ixy, &globalIxy, 1, MPI_DOUBLE, MPI_SUM, M.comm);
+    MPI_Allreduce(&Iyy, &globalIyy, 1, MPI_DOUBLE, MPI_SUM, M.comm);
+    writeLogRD("globalIxx = %e, globalIxy = %e, globalIyy = %e", globalIxx, globalIxy, globalIyy);
+
+    double T = globalIxx + globalIyy;
+    double det = globalIxx * globalIyy - globalIxy * globalIxy;
     double ev1 = 0.5*T + sqrt(0.25*T*T - det);
     double ev2 = 0.5*T - sqrt(0.25*T*T - det);
+    writeLogRD("T = %e, det = %e, 0.25*T*T - det = %e, ev1 =  %e, ev2 = %e", T, det, 0.25*T*T - det, ev1, ev2);
 
-    writeLogRN("%e %e %e %e", T, det, ev1, ev2);
-
-    // lb = scipy.linalg.eigvals([ [Iyy, Iyz ], [Iyz, Izz] ] )
-
-    double l = sqrt(5.0*max(ev1, ev2) / M);
-    double b = sqrt(5.0*min(ev1, ev2) / M);
+    double l = sqrt(5.0*max(ev1, ev2) / globalMass);
+    double b = sqrt(5.0*min(ev1, ev2) / globalMass);
     D = (( l - b ) / ( l + b ));
-
-    writeLogRN("%e %e %e", l, b, D);
-
+    if ( isNaN(D) ) {
+      // This normally happens when the droplet is almost spherical, up to numerical errors;
+      // we then can get a slightly negative value for 0.25*T*T - det, which NaNs the sqrt.
+      // However, the droplet deformation is then supposed to be zero.
+      D = 0.0;
+    }
+    writeLogRD("l = %e, b = %e, D = %e", l, b, D);
   }
 
-  writeLogRN("<LAPLACE> %8d %e %e %e %e %e", t, sigma, measuredR, inPres, outPres, D );
+  double rel = abs(sigma / previousSigma - 1.0 );
+  writeLogRN("<LAPLACE> %8d %e %e %e %e %e %e", t, sigma, rel, measuredR, inPres, outPres, D );
   if ( t >= startCheck ) {
-    double rel = abs(previousSigma / sigma - 1.0 );
     if ( ( !isNaN(relAccuracy) && relAccuracy > 0.0 && rel < relAccuracy ) || ( t >= timesteps ) ) {
-      writeLogRI("<LAPLACE FINAL> %8d %e %f %f %e %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel, D );
-      timesteps = t;
+      writeLogRI("<LAPLACE FINAL> %8d %e %e %e %e %e %e %f", t, sigma, rel, measuredR, inPres, outPres, D, gccm[0][1], initRadius );
+      timesteps = t; // jump to the end of the simulation
     }
     if ( isNaN(sigma) ) {
-      writeLogRI("<LAPLACE FINAL> %8d %e %f %f %e %e %e %e %e", t, sigma, gccm[0][1], initRadius, measuredR, inPres, outPres, rel, D );
       writeLogF("Surface tension is NaN.");
     }
   }
@@ -197,7 +213,7 @@ void dumpLaplace(T)(ref T L, uint t) if ( isLattice!T ) {
 
    Bugs: Cubes at the edge of the domain don't wrap properly.
 */
-private double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in ptrdiff_t[dim] offset, in int volumeAverage) {
+private double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in ptrdiff_t[dim] offset, in int volumeAverage) @safe if ( isLattice!T ) {
   double[] ldensity;
   ldensity.length = L.fluids.length;
   ldensity[] = 0.0;
@@ -214,7 +230,7 @@ private double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in 
         gn[i] = p[i] + M.c[i] * field.n[i] - field.haloSize;
         if ( gn[i] < -volumeAverage + offset[i] || gn[i] > volumeAverage + offset[i] ) isInVolume = false;
       }
-      if (isInVolume) {
+      if (isInVolume && L.mask[p].isFluid() ) {
         // writeLogRD("In volume: %s %s.",p, gn);
         lnsites[j]++;
         ldensity[j] += e.density();

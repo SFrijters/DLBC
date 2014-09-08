@@ -179,7 +179,7 @@ void initBox(T)(ref T field) /** @safe nothrow @nogc **/ if ( isMaskField!T ) {
 
    Todo: add function attributes once opApply can support it.
 */
-void initTube(T)(ref T field, const Axis initAxis) /** @safe nothrow @nogc **/ if ( isMaskField!T ) {
+void initTube(T)(ref T field, in Axis initAxis) /** @safe nothrow @nogc **/ if ( isMaskField!T ) {
   foreach(immutable p, ref e; field.arr) {
     ptrdiff_t[field.dimensions] gn;
     e = Mask.None;
@@ -202,7 +202,7 @@ void initTube(T)(ref T field, const Axis initAxis) /** @safe nothrow @nogc **/ i
 
    Todo: add function attributes once opApply can support it.
 */
-void initWalls(T)(ref T field, const Axis initAxis, const int wallOffset) /** @safe nothrow @nogc **/ if ( isMaskField!T ) {
+void initWalls(T)(ref T field, in Axis initAxis, in int wallOffset) /** @safe nothrow @nogc **/ if ( isMaskField!T ) {
   foreach(immutable p, ref e; field.arr) {
     ptrdiff_t[field.dimensions] gn;
     e = Mask.None;
