@@ -81,11 +81,15 @@ mixin(createImports());
    List of input file names.
 */
 string[] parameterFileNames;
-
 /**
    Lines of the input files.
 */
 string[] inputFileData;
+
+/**
+   Unset parameters are logged at Warning level.
+*/
+bool warnUnset = false;
 
 /**
    The UDA to be used to denote a parameter variable.
@@ -330,7 +334,11 @@ private auto createParameterMixins() {
 
             static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
               mixinStringShow ~= "  if ( M.isRoot() && ( ! setParams.canFind(\""~fullName~"\") ) ) {\n";
-              mixinStringShow ~= "    writeLog!(VL.Warning, logRankFormat)(\"! %-20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
+              mixinStringShow ~= "    if ( warnUnset ) {\n";
+              mixinStringShow ~= "      writeLog!(VL.Warning, logRankFormat)(\"! %-20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
+              mixinStringShow ~= "    }\n    else {\n";
+              mixinStringShow ~= "      writeLog!(vl, logRankFormat)(\"! %-20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
+              mixinStringShow ~= "    }\n";
               mixinStringShow ~= "  }\n  else {\n";
               mixinStringShow ~= "    writeLog!(vl, logRankFormat)(\"  %-20s = %s\",\"`~e~`\",to!string("~fullName~"));\n";
               mixinStringShow ~= "  }\n";

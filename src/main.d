@@ -21,6 +21,7 @@
      -v <level>         = set verbosity level to one of (Off, Fatal, Error,
                           Warning, Notification, Information, Debug) [%s]
      --version          = show version and exit
+     --warn-unset       = unset parameters are logged at Warning level [false]
      -W                 = warnings and above are fatal
    ---
    Normally, mpirun or a similar command should be used to enable parallel

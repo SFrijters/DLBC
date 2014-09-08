@@ -26,7 +26,7 @@ import std.getopt;
 import dlbc.lb.connectivity: gconn;
 import dlbc.io.io: restoreString;
 import dlbc.logging;
-import dlbc.parameters: parameterFileNames;
+import dlbc.parameters: parameterFileNames, warnUnset;
 import dlbc.revision;
 
 /**
@@ -51,6 +51,7 @@ Options (defaults in brackets):
   -v <level>           set verbosity level to one of (Off, Fatal, Error,
                        Warning, Notification, Information, Debug) [%s]
   --version            show version and exit
+  --warn-unset         unset parameters are logged at Warning level [false]
   -W                   warnings and above are treated as fatal errors
 
 Normally, mpirun or a similar command should be used to enable parallel
@@ -86,6 +87,7 @@ void processCLI(string[] args) {
             "time", &showTime,
             "v|verbose", &verbosityLevel,
             "version", &showVersion,
+            "warn-unset", &warnUnset,
             "W", &warningsAreFatal,
             );
   }
