@@ -32,7 +32,8 @@ import std.stdio;
 */
 @("param") int startCheck = 0;
 /**
-   The iterations end when $(D sigma / previousSigma - 1) is smaller than this.
+   The iterations end when $(D sigma / previousSigma - 1) is smaller than this,
+   if its value is not NaN and is larger than zero.
 */
 @("param") double relAccuracy;
 
@@ -185,6 +186,9 @@ void dumpLaplace(T)(ref T L, in uint t) if ( isLattice!T ) {
       D = 0.0;
     }
     writeLogRD("l = %e, b = %e, D = %e", l, b, D);
+  }
+  else {
+    writeLogRW("Droplet deformation calculation only available for 2D systems.");
   }
 
   double rel = abs(sigma / previousSigma - 1.0 );
