@@ -81,6 +81,11 @@ mixin(createImports());
    List of input file names.
 */
 string[] parameterFileNames;
+
+/**
+   List of override parameters.
+*/
+string[] commandLineParameters;
 /**
    Lines of the input files.
 */
@@ -132,6 +137,7 @@ void initParameters() {
   // Read, broadcast, and show parameters.
   if (M.isRoot) {
     readParameterSetFromCliFiles();
+    parseParametersFromCli();
   }
   broadcastParameters();
   showParameters!(VL.Information, LRF.Root)();
@@ -158,11 +164,21 @@ private void readParameterSetFromCliFiles() {
   }
 }
 
+private void parseParametersFromCli() {
+  if ( commandLineParameters.length > 0 ) {
+    string currentSection = "";
+    writeLogRI("Reading parameters from command line.");
+    foreach(immutable parameter; commandLineParameters) {
+      parseParameterLine(parameter.dup, -1, currentSection);
+    }
+  }
+}
+
 /**
    Does things that need to be done after the parameters are read.
    Currently a no-op.
 */
-void processParameters() pure nothrow @safe {
+void processParameters() @safe pure nothrow @nogc {
 
 }
 
@@ -175,7 +191,7 @@ void processParameters() pure nothrow @safe {
      currentSection = current section --- this can be updated if we encounter
                       a section header
 */
-private void parseParameterLine(char[] line, const size_t ln, ref string currentSection) {
+private void parseParameterLine(char[] line, in ptrdiff_t ln, ref string currentSection) {
   import std.string;
   char[] keyString, valueString;
 
@@ -248,7 +264,7 @@ void checkArrayParameterLength(T)(ref T vector, in string name, in size_t len, i
    Params:
      fileName = name of the file to be parsed
 */
-private void readParameterSetFromTextFile(const string fileName) {
+private void readParameterSetFromTextFile(in string fileName) {
   import std.file;
   import std.stream;
 
@@ -278,7 +294,7 @@ private void readParameterSetFromTextFile(const string fileName) {
    Params:
      fileName = name of the file to be parsed
 */
-private void readParameterSetFromHdf5File(const string fileName) {
+private void readParameterSetFromHdf5File(in string fileName) {
   import std.file;
   import std.stream;
 
@@ -319,7 +335,7 @@ private auto createParameterMixins() {
             mixinStringParser ~= "case \""~qualName~"\":\n";
             static if ( isMutable!(typeof(`~fullModuleName~`.`~e~`)) ) {
               mixinStringParser ~= "  if ( setParams.canFind(\""~fullName~"\") ) {\n";
-              mixinStringParser ~= "    writeLogRW(\"Parameter '"~qualName~"' is set more than once, later declations are ignored.\");\n";
+              mixinStringParser ~= "    writeLogRW(\"Parameter '"~qualName~"' is set more than once.\");\n";
               mixinStringParser ~= "  }\n";
               mixinStringParser ~= "  try {\n";
               mixinStringParser ~= "    " ~ fullName ~ " = to!(typeof(" ~ fullName ~ "))( valueString );\n";
@@ -382,12 +398,17 @@ private immutable parameterMixins = createParameterMixins();
      valueString = value to be assigned
      ln = line number (for more useful warnings)
 */
-private void parseParameter(const string keyString, const string valueString, const size_t ln) {
+private void parseParameter(in string keyString, in string valueString, in ptrdiff_t ln) {
   import std.algorithm;
   switch(keyString) {
     mixin(parameterMixins[0]);
   default:
-    writeLogF("Unknown key at line %d: '%s'.", ln, keyString);
+    if ( ln > 0 ) {
+      writeLogF("Unknown key at line %d: '%s'.", ln, keyString);
+    }
+    else {
+      writeLogF("Unknown key from command line: '%s'.", keyString);
+    }
   }
 }
 
@@ -450,7 +471,7 @@ private int arrayFnameIndex(string name, string token) {
    outputFormat = HDF5 // This is actually io.io.outputFormat
    ---
 */
-private auto makeQualModuleName(const string fullModuleName) {
+private auto makeQualModuleName(in string fullModuleName) {
   import std.string;
   auto splitModuleName = fullModuleName.split(".")[1..$];
   while ( (splitModuleName.length > 1) && (splitModuleName[$-1] == splitModuleName[$-2] ) ) {

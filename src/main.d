@@ -12,6 +12,8 @@
    ---
      -h                 = show this help message and exit
      -p <path>          = path to parameter file (can be specified multiple times)
+     --parameter        = additional parameter value specified in the form 'foo=bar'
+                          (overrides values in the parameter files)
      -r <name>          = restore a simulation from a checkpoint; name consists
                           of the name, time, and id of the simulation (e.g. if
                           the file names are of the form
