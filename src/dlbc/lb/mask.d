@@ -66,6 +66,10 @@ enum MaskInit {
      $(D initAxis) direction.
   */
   Walls,
+  /**
+     Add walls of $(D Mask.Solid) sites of thickness 1 to all sides of the system.
+  */
+  Box,
 }
 
 /**
@@ -105,12 +109,12 @@ auto countSites(Mask mask, T)(ref T field) @trusted nothrow @nogc {
 }
 
 /// Ditto
-auto countFluidSites(T)(ref T field) @nogc {
+auto countFluidSites(T)(ref T field) @safe nothrow @nogc {
   return countSites!(Mask.None)(field);
 }
 
 /// Ditto
-auto countSolidSites(T)(ref T field) @nogc {
+auto countSolidSites(T)(ref T field) @safe nothrow @nogc {
   return countSites!(Mask.Solid)(field);
 }
 
@@ -136,8 +140,32 @@ void initMask(T)(ref T mask) if (isMaskField!T) {
     mask.initTube(initAxis);
     break;
   case(MaskInit.Walls):
-    mask.initWalls(initAxis);
+    mask.initWalls(initAxis, wallOffset);
     break;
+  case(MaskInit.Box):
+    mask.initBox();
+    break;
+  }
+}
+
+/**
+   Initialises walls of thickness 1 of $(D Mask.Solid) on all sides of the system.
+
+   Params:
+     field = (mask) field to initialise
+
+   Todo: add function attributes once opApply can support it.
+*/
+void initBox(T)(ref T field) /** @safe nothrow @nogc **/ if ( isMaskField!T ) {
+  foreach(immutable p, ref e; field.arr) {
+    ptrdiff_t[field.dimensions] gn;
+    e = Mask.None;
+    foreach(immutable i; Iota!(0, field.dimensions) ) {
+      gn[i] = p[i] + M.c[i] * field.n[i] - field.haloSize;
+      if ( gn[i] == 0 || gn[i] == (field.n[i] * M.nc[i] - 1) ) {
+        e = Mask.Solid;
+      }
+    }
   }
 }
 
@@ -148,8 +176,10 @@ void initMask(T)(ref T mask) if (isMaskField!T) {
    Params:
      field = (mask) field to initialise
      initAxis = direction of the tube
+
+   Todo: add function attributes once opApply can support it.
 */
-void initTube(T)(ref T field, const Axis initAxis) if ( isMaskField!T ) {
+void initTube(T)(ref T field, const Axis initAxis) /** @safe nothrow @nogc **/ if ( isMaskField!T ) {
   foreach(immutable p, ref e; field.arr) {
     ptrdiff_t[field.dimensions] gn;
     e = Mask.None;
@@ -169,8 +199,10 @@ void initTube(T)(ref T field, const Axis initAxis) if ( isMaskField!T ) {
    Params:
      field = (mask) field to initialise
      initAxis = walls are placed perpendicular to this axis
+
+   Todo: add function attributes once opApply can support it.
 */
-void initWalls(T)(ref T field, const Axis initAxis) if ( isMaskField!T ) {
+void initWalls(T)(ref T field, const Axis initAxis, const int wallOffset) /** @safe nothrow @nogc **/ if ( isMaskField!T ) {
   foreach(immutable p, ref e; field.arr) {
     ptrdiff_t[field.dimensions] gn;
     e = Mask.None;
