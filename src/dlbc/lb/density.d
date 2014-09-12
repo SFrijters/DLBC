@@ -201,7 +201,7 @@ unittest {
    Returns:
      average density of the field on the local process
 */
-auto localAverageDensity(T, U)(in ref T field, in ref U mask) if (isPopulationField!T && isMaskField!U ) {
+auto localAverageDensity(T, U)(in ref T field, in ref U mask) if (isPopulationField!T && isMatchingMaskField!(U,T) ) {
   return localTotalMass(field, mask) / field.size;
 }
 
@@ -228,7 +228,7 @@ unittest {
    Returns:
      global average density of the field
 */
-auto globalAverageDensity(T, U)(in ref T field, in ref U mask) if (isPopulationField!T && isMaskField!U ) {
+auto globalAverageDensity(T, U)(in ref T field, in ref U mask) if (isPopulationField!T && isMatchingMaskField!(U,T) ) {
   import dlbc.parallel;
   return globalTotalMass(field, mask) / ( field.size * M.size);
 }
