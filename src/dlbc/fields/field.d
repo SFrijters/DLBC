@@ -216,7 +216,7 @@ template isPopulationField(T) {
 
    Params:
      T = type to check
-     U = field to check
+     U = field to compare to
 */
 template isMatchingField(T, U) {
   import dlbc.range;
@@ -247,6 +247,20 @@ template isMatchingScalarField(T, U) {
 template isMatchingVectorField(T, U) {
   import dlbc.range;
   enum isMatchingVectorField = ( isField!T && isField!U && (T.d == U.d) && (T.q == 0) && ( LengthOf!(T.type) == U.d ) );
+}
+
+/**
+   Template to check if two types are Fields and have the same dimension, and 
+   the first field is also a MaskField.
+
+   Params:
+     T = field to check
+     U = field to compare to
+*/
+template isMatchingMaskField(T, U) {
+  import dlbc.range;
+  import dlbc.lb.mask;
+  enum isMatchingMaskField = ( isMaskField!T && isField!U && (T.d == U.d) );
 }
 
 /**

@@ -443,3 +443,16 @@ private auto generateD3Q19() @safe pure nothrow @nogc {
   return d3q19;
 }
 
+/**
+   Template to check if a population vector type matches a connectivity.
+
+   Params:
+     T = type to check
+     conn = connectivity to match
+*/
+template isMatchingPopulation(T, conn) {
+  import dlbc.range;
+  enum isMatchingPopulation = ( T.length == conn.velocities.length );
+}
+
+
