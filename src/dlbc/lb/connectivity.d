@@ -452,7 +452,7 @@ private auto generateD3Q19() @safe pure nothrow @nogc {
 */
 template isMatchingPopulation(T, conn) {
   import dlbc.range;
-  enum isMatchingPopulation = ( T.length == conn.velocities.length );
+  enum isMatchingPopulation = ( T.length == conn.q );
 }
 
 

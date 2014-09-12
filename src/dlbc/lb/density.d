@@ -65,10 +65,11 @@ unittest {
 
    Returns:
      density field
-*/
-auto densityField(T, U)(in ref T field, in ref U mask) if (isPopulationField!T && isMaskField!U ) {
-  static assert(haveCompatibleDims!(field, mask));
 
+   Todo:
+     add proper template constraint to the second form of the function instead of the static assert; dmd v2.066.0 segfaults.
+*/
+auto densityField(T, U)(in ref T field, in ref U mask) if (isPopulationField!T && isMatchingMaskField!(U,T) ) {
   alias conn = field.conn;
 
   auto density = ScalarFieldOf!T(field.lengths);
@@ -128,8 +129,7 @@ unittest {
    Returns:
      total mass of the field on the local process
 */
-auto localTotalMass(T, U)(in ref T field, in ref U mask) if (isPopulationField!T && isMaskField!U ) {
-  static assert(haveCompatibleDims!(field, mask));
+auto localTotalMass(T, U)(in ref T field, in ref U mask) if (isPopulationField!T && isMatchingMaskField!(U,T) ) {
   assert(haveCompatibleLengthsH(field, mask));
 
   double mass = 0.0;
@@ -165,8 +165,7 @@ unittest {
    Returns:
      global mass of the field
 */
-auto globalTotalMass(T, U)(in ref T field, in ref U mask) if (isPopulationField!T && isMaskField!U ) {
-  static assert(haveCompatibleDims!(field, mask));
+auto globalTotalMass(T, U)(in ref T field, in ref U mask) if (isPopulationField!T && isMatchingMaskField!(U,T) ) {
   assert(haveCompatibleLengthsH(field, mask));
 
   import dlbc.parallel;
@@ -261,8 +260,7 @@ unittest {
    Returns:
      colour field
 */
-auto colourField(T, U)(in ref T field1, in ref T field2, in ref U mask) if (isPopulationField!T && isMaskField!U ) {
-  static assert(haveCompatibleDims!(field1, field2, mask));
+auto colourField(T, U)(in ref T field1, in ref T field2, in ref U mask) if (isPopulationField!T && isMatchingMaskField!(U,T) ) {
   alias conn = field1.conn;
   auto colour = Field!(double, conn, field1.haloSize)(field1.lengths);
   assert(haveCompatibleLengthsH(field1, field2, mask, colour));
@@ -279,8 +277,7 @@ auto colourField(T, U)(in ref T field1, in ref T field2, in ref U mask) if (isPo
 }
 
 /// Ditto
-void colourField(T, U, V)(in ref T field1, in ref T field2, in ref U mask, ref V colour ) if (isPopulationField!T && isMaskField!U && isMatchingScalarField!(V,T) ) {
-  static assert(haveCompatibleDims!(field1, field2, mask, colour));
+void colourField(T, U, V)(in ref T field1, in ref T field2, in ref U mask, ref V colour ) if (isPopulationField!T && isMatchingMaskField!(U,T) && isMatchingScalarField!(V,T) ) {
   assert(haveCompatibleLengthsH(field1, field2, mask, colour));
 
   foreach(immutable p, pop; field1.arr) {

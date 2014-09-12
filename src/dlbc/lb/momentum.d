@@ -41,9 +41,8 @@ version(unittest) {
    Returns:
      local momentum \(\vec{p}(\vec{n})\)
 */
-auto momentum(alias conn, T)(in ref T population) {
+auto momentum(alias conn, T)(in ref T population) @safe pure nothrow @nogc if ( isMatchingPopulation!(T,conn) ) {
   immutable cv = conn.velocities;
-  static assert(population.length == cv.length);
 
   double[conn.d] momentum = 0.0;
   foreach(immutable i, e; population) {
@@ -64,8 +63,7 @@ auto momentum(alias conn, T)(in ref T population) {
    Returns:
      momentum field
 */
-auto momentumField(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T && isMaskField!U ) {
-  static assert(haveCompatibleDims!(field, mask));
+auto momentumField(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T && isMatchingMaskField!(U,T) ) {
   alias conn = field.conn;
   auto momentum = VectorFieldOf!T(field.lengths);
   assert(haveCompatibleLengthsH(field, mask, momentum));
@@ -82,8 +80,7 @@ auto momentumField(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T
 }
 
 /// Ditto
-void momentumField(T, U, V)(in ref T field, in ref U mask, ref V momentum) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
-  static assert(haveCompatibleDims!(field, mask, momentum));
+void momentumField(T, U, V)(in ref T field, in ref U mask, ref V momentum) if ( isPopulationField!T && isMatchingMaskField!(U,T) && isMatchingVectorField!(V,T) ) {
   assert(haveCompatibleLengthsH(field, mask, momentum));
   alias conn = field.conn;
   foreach(immutable p, pop; field.arr) {
@@ -136,8 +133,7 @@ unittest {
    Returns:
      total momentum of the field on the local process
 */
-auto localTotalMomentum(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T && isMaskField!U ) {
-  static assert(haveCompatibleDims!(field, mask));
+auto localTotalMomentum(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T && isMatchingMaskField!(U,T) ) {
   assert(haveCompatibleLengthsH(field, mask));
   alias conn = field.conn;
   double[conn.d] momentum = 0.0;
@@ -178,8 +174,7 @@ unittest {
    Returns:
      global momentum of the field
 */
-auto globalTotalMomentum(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T && isMaskField!U ) {
-  static assert(haveCompatibleDims!(field, mask));
+auto globalTotalMomentum(T, U)(in ref T field, in ref U mask) if ( isPopulationField!T && isMatchingMaskField!(U,T) ) {
   assert(haveCompatibleLengthsH(field, mask));
   alias conn = field.conn;
   import dlbc.parallel;
