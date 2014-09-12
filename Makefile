@@ -2,21 +2,22 @@ DMD=dmd
 RDMD=rdmd
 LMPICH=/usr/local/stow/mpich-3.1/lib64
 LHDF5=/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/
+DOCFILES=src/main.d src/dlbc/*.d src/dlbc/elec/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d doc/*.ddoc
 DFILES=src/main.d src/dlbc/*.d src/dlbc/elec/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/unstd.o
 
 COMMONFLAGS=-g -w -de
 TESTFLAGS=-unittest -debug -cov
 RELEASEFLAGS=-O -inline -noboundscheck -release
 
-all: dlbc-d3q19-release 
+all: dlbc-d3q19-release
 
-doc: revision doc/*ddoc
+doc: src/dlbc/revision.d ${DOCFILES}
 	cd doc/ ; ${RDMD} bootDoc/generate.d ./../src --output=./html --bootdoc=.
 
 src/dlbc/revision.d: .git/HEAD .git/index
 	./get-revision.sh > $@
 
-src/unstd/unstd.o: src/unstd/*.d src/unstd/c/*.d src/unstd/memory/*.d 
+src/unstd/unstd.o: src/unstd/*.d src/unstd/c/*.d src/unstd/memory/*.d
 	${DMD} src/unstd/*.d src/unstd/c/*.d src/unstd/memory/*.d -I/.src -c -ofsrc/unstd/unstd.o
 
 dlbc-d3q19-test: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}

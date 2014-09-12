@@ -12,8 +12,9 @@
    ---
      -h                 = show this help message and exit
      -p <path>          = path to parameter file (can be specified multiple times)
-     --parameter        = additional parameter value specified in the form 'foo=bar'
-                          (overrides values in the parameter files)
+     --parameter        = additional parameter value specified in the form
+                          "foo=bar" (overrides values in the parameter files;
+                          can be specified multiple times)
      -r <name>          = restore a simulation from a checkpoint; name consists
                           of the name, time, and id of the simulation (e.g. if
                           the file names are of the form
@@ -21,7 +22,7 @@
                           "foobar-20140527T135106-t00000060")
      --time             = show current time when logging messages
      -v <level>         = set verbosity level to one of (Off, Fatal, Error,
-                          Warning, Notification, Information, Debug) [%s]
+                          Warning, Notification, Information, Debug) [Debug]
      --version          = show version and exit
      --warn-unset       = unset parameters are logged at Warning level [false]
      -W                 = warnings and above are fatal
