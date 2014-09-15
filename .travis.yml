@@ -1,0 +1,54 @@
+language: d
+
+#compiler:
+#  - dmd
+
+before_install:
+  - export LD_LIBRARY_PATH=/usr/local/stow/mpich-3.1/lib64/:/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/:$LD_LIBRARY_PATH
+  - export PATH=/usr/local/stow/mpich-3.1/bin/:/usr/local/stow/hdf5-1.8.13-mpich-3.1/bin:$PATH
+  - echo "export LD_LIBRARY_PATH=/usr/local/stow/mpich-3.1/lib64/:/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/:$LD_LIBRARY_PATH" >> ~/.bashrc
+  - echo "export PATH=/usr/local/stow/mpich-3.1/bin/:/usr/local/stow/hdf5-1.8.13-mpich-3.1/bin:$PATH" >> ~/.bashrc
+
+install:
+  # dmd
+  - DMD_VERSION=2.066.0-0
+  - wget http://downloads.dlang.org/releases/2014/dmd_${DMD_VERSION}_amd64.deb
+  - sudo dpkg -i dmd_${DMD_VERSION}_amd64.deb
+  # Check compiler version
+  - dmd | grep DMD
+  # MPICH 3.1
+  - wget http://www.mpich.org/static/downloads/3.1/mpich-3.1.tar.gz
+  - tar -xf mpich-3.1.tar.gz
+  - cd mpich-3.1/
+  - ./configure --prefix=/usr/local/stow/mpich-3.1 --disable-fc --disable-f77 &> /dev/null
+  - make &> /dev/null
+  - sudo make install &> /dev/null
+  - sudo ln -s /usr/local/stow/mpich-3.1/lib /usr/local/stow/mpich-3.1/lib64
+  - cd ..
+  # Check MPICH version
+  - mpichversion
+  # HDF5 1.8.13
+  - wget http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.13.tar.bz2
+  - tar -xf hdf5-1.8.13.tar.bz2
+  - cd hdf5-1.8.13
+  - ./configure --prefix=/usr/local/stow/hdf5-1.8.13-mpich-3.1 --enable-parallel --disable-fortran &> /dev/null
+  - make &> /dev/null
+  - sudo make install &> /dev/null
+  - sudo ln -s /usr/local/stow/hdf5-1.8.13-mpich-3.1/lib /usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64
+  - cd ..
+  # Check HDF5 version
+  - h5dump -V
+
+script:
+  # Run tests - split up the various testing sections to get timing for them separately
+  - make test-build
+  - make test-unittest
+  - make test-runnable
+
+branches:
+  only:
+    - master
+
+notifications:
+  email: true
+

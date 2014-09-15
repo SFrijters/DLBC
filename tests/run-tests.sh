@@ -6,6 +6,6 @@ for d in `find . -name reference-data |sort`; do
   TD=`echo $d | sed 's/reference-data//'`
   echo "=== Testing $CT/$NT: $TD ==="
   cd $TD
-  make
+  time make
   cd -
 done
