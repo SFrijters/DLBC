@@ -13,6 +13,8 @@ except ImportError:
 parser = argparse.ArgumentParser(description="Style helper script for matplotlib")
 parser.add_argument("-V", "--version", action="store_true", help="Show versions")
 parser.add_argument("--dpi", help="Set output DPI", type=int, default=600)
+parser.add_argument("--sans-serif", action="store_true", help="Sans-serif fonts", default=False)
+parser.add_argument("positional", nargs="*")
 
 options = parser.parse_args()
 
@@ -64,14 +66,14 @@ def print_versions():
 if ( options.version ):
     print_versions()
 
-mplformat = "PDF"
-
 try:
     import matplotlib
 except ImportError:
     print( "\nImportError while loading matplotlib -- module details follow.")
     print_versions()
 
+# Set output format
+mplformat = 'PDF'
 # matplotlib.use() must be called *before* pylab, matplotlib.pyplot,
 # or matplotlib.backends is imported for the first time.
 matplotlib.use(mplformat)
@@ -87,7 +89,7 @@ except ImportError:
 # Set output DPI
 outDpi = options.dpi
 
-# TU/e main colours
+# Plot main colours
 plotwhite   = '#FFFFFF'
 plotred1    = '#F73131'
 plotred2    = '#D6004A'
@@ -107,34 +109,43 @@ plotcolours = [ plotred2, plotblue2, plotgreen2, plotpurple, plotyellow1, plotgr
 
 # Marker and line styles
 plotmarkers = [ "s", "o", "d", "^", "v", "<", ">" ]
-plotdashes  = [ (None, None), (5, 5), (5, 2, 1, 2, 1, 2), (7, 2, 1, 2), (4, 2) ]
+pd_lines   = ( None, None )
+pd_dashes  = ( 3, 3 )
+pd_dots    = ( 1, 1 )
+plotdashes  = [ pd_lines, pd_dashes, pd_dots, (5, 2, 1, 2, 1, 2), (7, 2, 1, 2), (4, 2) ]
+
+goldenratio = 1.618
+
+# Plot size
+pwidth = 12.0
+pheight = pwidth / goldenratio
 
 # Widths and sizes
-plw = 1.5
-pms = 15.0
-pmew = 1.5
+plw = 0.5
+pms = 4.0
+pmew = 0.5
 
 # Inset widths and sizes
-pilw = 1.5
-pims = 10.0
-pimew = 1.5
+pilw = 0.4
+pims = 3.0
+pimew = 0.4
 
 # Font defaults
 # Title
-patfs = 36
+patfs = 16
 # Axes label
-palfs = 20
+palfs = 12
 # Tick label
-ptlfs = 20
+ptlfs = 10
 # Legend label
-pllfs = 20
+pllfs = 10
 
 # Inset Axes label
-pialfs = 16
+pialfs = 8
 # Inset Tick label
-pitlfs = 16
+pitlfs = 8
 # Inset Legend label
-pillfs = 16
+pillfs = 8
 
 # Style helper functions
 def pc(i):
@@ -146,16 +157,33 @@ def pm(i):
 def pd(i):
     return plotdashes[mod(i,len(plotdashes))]
 
+def cm2inch(value):
+    return value/2.54
+
 # Use TeX
 rcParams['text.usetex'] = True
+rcParams['text.latex.preview'] = True
 
-tff = "sans-serif"
-rcParams['font.family'] = tff
-rcParams['font.serif'] = "Computer Modern Roman"
-rcParams['font.sans-serif'] = "Computer Modern Sans serif"
-rcParams['font.cursive'] = "Zapf Chancery"
-rcParams['font.monospace'] = "Computer Modern Typewriter"
-rcParams['text.latex.preamble'].append(r"\usepackage{sfmath}")
+# Set rc properties
+if ( options.sans_serif ):
+    tff = "sans-serif"
+    rcParams['font.family'] = tff
+    rcParams['font.serif'] = "Computer Modern Roman"
+    rcParams['font.sans-serif'] = "Computer Modern Sans serif"
+    rcParams['font.cursive'] = "Zapf Chancery"
+    rcParams['font.monospace'] = "Computer Modern Typewriter"
+    rcParams['text.latex.preamble'].append(r"\usepackage{sfmath}")
+else:
+    tff = "serif"
+    rcParams['font.family'] = tff
+    rcParams['font.serif'] = "Charter"
+    rcParams['font.sans-serif'] = "sans-serif"
+    rcParams['font.cursive'] = "cursive"
+    rcParams['font.fantasy'] = "fantasy"
+    rcParams['font.monospace'] = "monospace"
+    rcParams['text.latex.preamble'].append(r"\usepackage{charter}")
+    #rcParams['text.latex.preamble'].append(r"\usepackage[expert]{mathdesign}")
+    rcParams['text.latex.preamble'].append(r"\usepackage[bitstream-charter]{mathdesign}")
 
 rcParams['axes.color_cycle'] = plotcolours
 rcParams['axes.titlesize'] = patfs
@@ -171,24 +199,26 @@ rcParams['xtick.labelsize'] = ptlfs
 rcParams['ytick.labelsize'] = ptlfs
 
 rcParams['legend.frameon'] = False
-rcParams['legend.fancybox'] = True
+rcParams['legend.fancybox'] = False
 rcParams['legend.numpoints'] = 1
 rcParams['legend.fontsize'] = pllfs
-rcParams['legend.markerscale'] = 0.75
-rcParams['legend.borderpad'] = 1.0
+rcParams['legend.markerscale'] = 1.0
+rcParams['legend.borderpad'] = 0.5
 rcParams['legend.labelspacing'] = 0.1
 rcParams['legend.handletextpad'] = 0.5
 rcParams['legend.handlelength'] = 2.0
 
-rcParams['figure.subplot.left'] = 0.12
-rcParams['figure.subplot.right'] = 0.96
-rcParams['figure.subplot.bottom'] = 0.12
+rcParams['figure.figsize'] = ( cm2inch(pwidth), cm2inch(pheight) )
+rcParams['figure.subplot.left'] = 0.13
+rcParams['figure.subplot.right'] = 0.94
+rcParams['figure.subplot.bottom'] = 0.15
 rcParams['figure.subplot.top'] = 0.96
 rcParams['figure.subplot.wspace'] = 0.2
 rcParams['figure.subplot.hspace'] = 0.2
 
 # Default arrow properties
-papd = dict(fc=plotblack, arrowstyle="-|>,head_width=0.3,head_length=0.5", lw=plw, shrinkA=10,shrinkB=0)
+tapd = dict(fc=plotblack, arrowstyle="-|>,head_width=0.3,head_length=0.5", lw=plw, shrinkA=10,shrinkB=0)
+tbpd = dict(boxstyle="square", fc="w", ec='k', lw=plw) # alternative: 'round'
 
 # Why? Because it was there...
 ioff()
@@ -285,4 +315,7 @@ def get_ymin(ymax):
     return (-ymax/19.0)
 
 irange = lambda start, end, step: range(start, end+step, step)
+
+def text_match_rotation(xf, yf, ar):
+    return 360 * arctan(yf/(xf * ar)) / (2*math.pi)
 
