@@ -1,48 +1,41 @@
-// Parameters to test electro-osmotic flow.
+// Parameters to test diffusive charge flux.
 
 [io]
-simulationName = electroosmotic-flow-2D
+simulationName = diffusive-flux-1D
 outputFormat = HDF5
 outputPath = output/sigma%elec.init.chargeDensitySolid%-np%parallel.nc[0]%-%elec.poisson.solver%
 createPath = true
 
 checkpoint.cpFreq = 0
-startOutput = 10000
 
 [lb]
-timesteps = 10000
-components = 1
-fieldNames = [ "red" ]
-tau = [ 1.0 ]
-
-init.fluidInit = [ EqDist ]
-init.fluidDensity = [ 1.0 ]
+timesteps = 0
+components = 0
 
 mask.maskInit = Walls
 mask.initAxis = X
 
-io.maskFreq = 10000
-io.velocitiesFreq = 10000
+io.maskFreq = 1000
 
 [lattice]
-gn = [22, 4]
+gn = [ 22 ]
 
 [parallel]
-nc =
+// nc =
 
 [elec]
 enableElec = true
 
-localDiel = true
+localDiel = true 
 
-fluidOnElec = false
-elecOnFluid = true
+fluidOnElec = false 
+elecOnFluid = false
 
-poisson.solver =
+// poisson.solver =
 
-externalField = [ 0.0, 0.025 ]
+externalField = [ 0.0 ] 
 
-boundaryPhi = [ Periodic, Periodic, Periodic, Periodic ]
+boundaryPhi = [ Periodic, Periodic ]
 
 poisson.sorMaxIterations = 10000
 poisson.sorShowIterations = 100
@@ -52,16 +45,16 @@ poisson.sorToleranceRel = 1.19209290e-7
 flux.thermalDiffusionCoeff = 0.01
 
 init.chargeInit = UniformDensity
-init.chargeDensitySolid =
+// init.chargeDensitySolid =
 init.dielInit = UniformFromBjerrumLength
 init.bjerrumLength = 0.4
 init.saltConc = 0.0
 init.initMaxIterations = 10000
 init.initFluxToleranceRel = 1.19209290e-7
 
-io.potFreq = 10000
-io.dielFreq = 10000
-io.chargeFreq = 10000
-io.fieldFreq = 10000
+io.potFreq = 100
+io.dielFreq = 1000
+io.chargeFreq = 1
+io.fieldFreq = 1000
 
 
