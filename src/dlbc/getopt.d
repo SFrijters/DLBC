@@ -26,7 +26,7 @@ import std.getopt;
 import dlbc.lb.connectivity: gconn;
 import dlbc.io.io: restoreString;
 import dlbc.logging;
-import dlbc.parameters: commandLineParameters, parameterFileNames, warnUnset;
+import dlbc.parameters: commandLineParameters, parameterFileNames, showInputFileDataRaw, warnUnset;
 import dlbc.revision;
 
 /**
@@ -50,6 +50,8 @@ Options (defaults in brackets):
                        the file names are of the form
                        "cp-red-foobar-20140527T135106-t00000060.h5", name is
                        "foobar-20140527T135106-t00000060")
+  --show-input         show the plain text version of the parameter input
+                       and exit
   --time               show current time when logging messages
   -v <level>           set verbosity level to one of (Off, Fatal, Error,
                        Warning, Notification, Information, Debug) [%s]
@@ -73,8 +75,11 @@ at the README.md file.
      args = command line arguments
 */
 void processCLI(string[] args) {
-  import std.conv;
+  import std.c.stdlib: exit;
+  import std.stdio: writefln;
+  import std.conv, std.string;
   bool showHelp = false;
+  bool showInput = false;
   bool showVersion = false;
   if ( args.length <= 1 ) {
     showHelp = true;
@@ -88,6 +93,7 @@ void processCLI(string[] args) {
             "p|parameterfile", &parameterFileNames,
             "parameter", &commandLineParameters,
             "r|restore", &restoreString,
+            "show-input", &showInput,
             "time", &showTime,
             "v|verbose", &verbosityLevel,
             "version", &showVersion,
@@ -96,25 +102,24 @@ void processCLI(string[] args) {
             );
   }
   catch(GetOptException e) {
-    import std.string;
     writeLogF("%s",e.toString().splitLines()[0]);
   }
   catch(ConvException e) {
-    import std.string;
     writeLogF("%s",e.toString().splitLines()[0]);
   }
 
   if ( showHelp ) {
-    import std.stdio: writefln;
-    import std.c.stdlib: exit;
     writefln(usage, revisionDesc, gconn.d, gconn.q, args[0], verbosityLevel);
     exit(0);
   }
 
   if ( showVersion ) {
-    import std.stdio: writefln;
-    import std.c.stdlib: exit;
     writefln("%s", revisionDesc);
+    exit(0);
+  }
+
+  if ( showInput ) {
+    showInputFileDataRaw();
     exit(0);
   }
 

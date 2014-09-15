@@ -147,6 +147,22 @@ void initParameters() {
 }
 
 /**
+   Show the plain text version of all input being read.
+*/
+void showInputFileDataRaw() {
+  import std.stdio: writeln;
+  // Squelch all output other than the writeln.
+  setGlobalVerbosityLevel(VL.Fatal);
+  if (M.isRoot) {
+    readParameterSetFromCliFiles();
+    parseParametersFromCli();
+    foreach(immutable p; inputFileData) {
+      writeln(p);
+    }
+  }
+}
+
+/**
    Loops over all specified parameter files $(D parameterFileNames) in order to parse them.
    If no files are specified, a fatal error is logged.
 */
@@ -168,7 +184,11 @@ private void parseParametersFromCli() {
   if ( commandLineParameters.length > 0 ) {
     string currentSection = "";
     writeLogRI("Reading parameters from command line.");
+    // Command line parameters are always fully specified, so we need to reset the section
+    // for the occasion...
+    inputFileData ~= "[]";
     foreach(immutable parameter; commandLineParameters) {
+      inputFileData ~= parameter;
       parseParameterLine(parameter.dup, -1, currentSection);
     }
   }
@@ -300,9 +320,7 @@ private void readParameterSetFromHdf5File(in string fileName) {
 
   string currentSection;
   writeLogRI("Extracting parameters from file '%s'.",fileName);
-
   auto lines = readInputFileAttributes(fileName);
-
   foreach(immutable ln, line; lines ) {
     inputFileData ~= line;
     char[] cline = line.dup;

@@ -20,6 +20,8 @@
                           the file names are of the form
                           "cp-red-foobar-20140527T135106-t00000060.h5", name is
                           "foobar-20140527T135106-t00000060")
+     --show-input       = show the plain text version of the parameter input
+                          and exit
      --time             = show current time when logging messages
      -v <level>         = set verbosity level to one of (Off, Fatal, Error,
                           Warning, Notification, Information, Debug) [Debug]

@@ -1,6 +1,9 @@
+/src/dlbc/revision.d
 *.[oa]
 *.html
 output*/*
 *.lst
 *.vtk
 d-tests/*
+dlbc-*
+
