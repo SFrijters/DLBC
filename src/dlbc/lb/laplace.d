@@ -195,7 +195,7 @@ void dumpLaplace(T)(ref T L, in uint t) if ( isLattice!T ) {
   writeLogRN("<LAPLACE> %8d %e %e %e %e %e %e", t, sigma, rel, measuredR, inPres, outPres, D );
   if ( t >= startCheck ) {
     if ( ( !isNaN(relAccuracy) && relAccuracy > 0.0 && rel < relAccuracy ) || ( t >= timesteps ) ) {
-      writeLogRI("<LAPLACE FINAL> %8d %e %e %e %e %e %e %f %f", t, sigma, rel, measuredR, inPres, outPres, D, gccm[0][1], initRadius );
+      writeLogRI("<LAPLACE FINAL> %8d %e %e %e %e %e %e %f %f", t, sigma, rel, measuredR, inPres, outPres, D, gcc[0][1], initRadius );
       timesteps = t; // jump to the end of the simulation
     }
     if ( isNaN(sigma) ) {

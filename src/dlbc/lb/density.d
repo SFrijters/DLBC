@@ -316,7 +316,7 @@ private auto pressurePsi(PsiForm form, alias conn, T)(in ref T[] density) {
   foreach(immutable i, d1; density) {
     pressure += d1;
     foreach(immutable j, d2; density) {
-      pressure += 0.5*gccm[i][j]*psi!form(d1)*psi!form(d2);
+      pressure += 0.5*gcc[i][j]*psi!form(d1)*psi!form(d2);
     }
   }
   return (pressure * conn.css);

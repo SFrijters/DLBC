@@ -26,7 +26,7 @@ io.velocitiesFreq = 100
 io.fluidsFreq = 100
 io.forceFreq = 100
 
-force.gcc = [ 0.0, 0.2, 0.2, 0.0 ]
+force.gcc = [ [ 0.0, 0.2 ], [ 0.2, 0.0 ] ]
 force.enableShanChen = true
 force.globalAcc = [ 0.0, 0.0, 0.0 ]
 

@@ -34,11 +34,9 @@ import dlbc.timers;
 */
 @("param") bool enableShanChen;
 /**
-   Array of interaction strength parameters for the Shan-Chen model.
-   This array will be transformed into a square array, so the length
-   should be equal to lb.components * lb.components.
+   Matrix of interaction strength parameters for the Shan-Chen model.
 */
-@("param") double[] gcc;
+@("param") double[][] gcc;
 /**
    Array of interaction strength parameters for the Shan-Chen model
    to model wettable walls.
@@ -50,13 +48,8 @@ import dlbc.timers;
 @("param") PsiForm psiForm;
 
 /**
-   Shan-Chen interaction strength parameters in matrix form.
-*/
-double[][] gccm;
-
-/**
    Possible forms of the Shan-Chen \(\Psi\) function.
- */   
+*/
 enum PsiForm {
   /**
      \(\Psi(\rho) = \rho\)
@@ -78,6 +71,7 @@ enum PsiForm {
 */
 void initForce(T)(ref T L) if ( isLattice!T ) {
   import dlbc.parameters: checkArrayParameterLength;
+  import std.string: format;
   // Firstly, the acceleration vector is checked for length.
   alias conn = L.lbconn;
   checkArrayParameterLength(globalAcc, "lb.force.globalAcc", conn.d);
@@ -87,24 +81,22 @@ void initForce(T)(ref T L) if ( isLattice!T ) {
     // Again, we need to check the length of an array.
     // Shan-Chen model with only zero interaction strength is pointless, so there is
     // no default initialisation for this vector.
-    checkArrayParameterLength(gcc, "lb.force.gcc", components*components, true);
+    checkArrayParameterLength(gcc, "lb.force.gcc", components, true);
+    foreach(immutable i, ref g; gcc) {
+      auto name = format("lb.force.gcc[%d]", i);
+      checkArrayParameterLength(g, name, components, true);
+    }
     checkArrayParameterLength(gwc, "lb.force.gwc", components);
 
-    // It's convenient to store the interaction strengths in matrix form, and
-    // at this point we also show the matrix and warn for asymmetry if necessary.
-    gccm.length = components;
-    import std.string;
     string header = "Shan-Chen enabled - interaction matrix:\n\n         ";
     string lines;
     foreach(immutable i; 0..components ) {
       header ~= format("%8d ",i);
       lines ~= format("%8d ",i);
-      gccm[i].length = components;
       foreach(immutable j; 0..components) {
-        gccm[i][j] = gcc[i+j*components];
-        lines ~= format("%8f ",gccm[i][j]);
+        lines ~= format("%8f ",gcc[i][j]);
         if ( i > j ) {
-          if ( gccm[i][j] != gccm[j][i] ) {
+          if ( gcc[i][j] != gcc[j][i] ) {
             writeLogRW("Shan-Chen interaction not symmetric.");
           }
         }
@@ -182,16 +174,16 @@ void addShanChenForce(T)(ref T L) if (isLattice!T) {
   // Use a final switch here so we don't need to bother with a switch for psi in the inner loop later.
   final switch(psiForm) {
     case PsiForm.Linear:
-      L.addShanChenForcePsi!(PsiForm.Linear)(gccm, gwc);
+      L.addShanChenForcePsi!(PsiForm.Linear)(gcc, gwc);
       break;
     case PsiForm.Exponential:
-      L.addShanChenForcePsi!(PsiForm.Exponential)(gccm, gwc);
+      L.addShanChenForcePsi!(PsiForm.Exponential)(gcc, gwc);
       break;
   }
   Timers.forceSC.stop();
 }
 /// Ditto
-private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gccm, in double[] gwc) if (isLattice!T) {
+private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc, in double[] gwc) if (isLattice!T) {
   alias conn = L.lbconn;
   immutable cv = conn.velocities;
   immutable cw = conn.weights;
@@ -209,7 +201,7 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gccm
   foreach(immutable nc1; 0..L.fluids.length ) {
     foreach(immutable nc2; 0..L.fluids.length ) {
       // This interaction has a particular coupling constant.
-      immutable cc = gccm[nc1][nc2];
+      immutable cc = gcc[nc1][nc2];
       // Skip zero interactions.
       if ( cc == 0.0 ) continue;
       foreach(immutable p, ref force ; L.force[nc1] ) {
