@@ -352,6 +352,9 @@ private void readParameterSetFromHdf5File(in string fileName) {
 /**
    Creates an string mixin to define $(D parseParameter), $(D showParameters), $(D bcastParameters),
    and $(D replaceFnameTokens).
+
+   Todo:
+     clean up parameter tokenizer
 */
 private auto createParameterMixins() {
   string mixinStringParser;
@@ -408,9 +411,23 @@ private auto createParameterMixins() {
             }
 
             static if ( isArray!(typeof(`~fullModuleName~`.`~e~`)) ) {
-              mixinStringFnameToken ~= "  while ( ( idx = name.arrayFnameIndex(\""~qualName~"\") ) >= 0 ) {\n";
-              mixinStringFnameToken ~= "    name = name.replace(\"%"~qualName~"[\"~to!string(idx)~\"]%\", to!string("~fullName~"[idx]));\n";
-              mixinStringFnameToken ~= "  }\n";
+              static if ( isArray!(typeof(`~fullModuleName~`.`~e~`[0])) && ! is (typeof(`~fullModuleName~`.`~e~`[0]) == string ) ) {
+                mixinStringFnameToken ~= "  while ( name.arrayFnameIndex(\""~qualName~"\").length > 0 ) {\n";
+                mixinStringFnameToken ~= "    idxarr = name.arrayFnameIndex(\""~qualName~"\");\n";
+                mixinStringFnameToken ~= "    if ( idxarr.length == 1 ) {\n";
+                mixinStringFnameToken ~= "      name = name.replace(\"%"~qualName~"[\"~to!string(idxarr[0])~\"]%\", to!string("~fullName~"[idxarr[0]]));\n";
+                mixinStringFnameToken ~= "    }\n";
+                mixinStringFnameToken ~= "    else if ( idxarr.length == 2 ) {\n";
+                mixinStringFnameToken ~= "      name = name.replace(\"%"~qualName~"[\"~to!string(idxarr[0])~\"][\"~to!string(idxarr[1])~\"]%\", to!string("~fullName~"[idxarr[0]][idxarr[1]]));\n";
+                mixinStringFnameToken ~= "    }\n";
+                mixinStringFnameToken ~= "  }\n";
+              }
+              else {
+                mixinStringFnameToken ~= "  while ( name.arrayFnameIndex(\""~qualName~"\").length > 0 ) {\n";
+                mixinStringFnameToken ~= "    idxarr = name.arrayFnameIndex(\""~qualName~"\");\n";
+                mixinStringFnameToken ~= "    name = name.replace(\"%"~qualName~"[\"~to!string(idxarr[0])~\"]%\", to!string("~fullName~"[idxarr[0]]));\n";
+                mixinStringFnameToken ~= "  }\n";
+              }
             }
             else {
               mixinStringFnameToken ~= "  name = name.replace(\"%"~qualName~"%\", to!string("~fullName~"));\n";
@@ -479,6 +496,7 @@ private void broadcastParameters() {
 */
 string replaceFnameTokens(string name) {
   import std.array;
+  int[] idxarr;
   int idx;
   mixin(parameterMixins[3]);
   return name;
@@ -487,12 +505,15 @@ string replaceFnameTokens(string name) {
 /**
    Parse out the index of a parameter token for an array parameter.
 */
-private int arrayFnameIndex(string name, string token) {
+private int[] arrayFnameIndex(string name, string token) {
   import std.regex;
-  foreach(c; match(name, regex(`%`~token~r"\[(?P<idx>[0-9]+)\]%","g")) ) {
-    return to!int(c["idx"]);
+  foreach(c; match(name, regex(`%`~token~r"\[(?P<idx1>[0-9]+)\]\[(?P<idx2>[0-9]+)\]%","g")) ) {
+    return [ to!int(c["idx1"]), to!int(c["idx2"]) ];
   }
-  return -1;
+  foreach(c; match(name, regex(`%`~token~r"\[(?P<idx>[0-9]+)\]%","g")) ) {
+    return [ to!int(c["idx"]) ];
+  }
+  return [];
 }
 
 /**
