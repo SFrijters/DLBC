@@ -114,7 +114,7 @@ enum FluidInit {
   EqDistCylinder,
   /**
      Initialize all sites of fluid i within a radius $(D initRadius) * system size
-     from the centre $(D preferredAxis)-axis of the system  with offset $(D initOffset)
+     from the centre $(D preferredAxis)-axis of the system with offset $(D initOffset)
      * system size with the equilibrium population for density $(D fluidDensities[i][0]),
      and all other sites  with the equilibrium population for density
      $(D fluidDensities[i][1]). Here, system size is taken to be the shortest remaining
@@ -122,6 +122,22 @@ enum FluidInit {
      a length $(D interfaceThickness).
   */
   EqDistCylinderFrac,
+  /**
+     Initialize all sites of fluid i with $(D preferredAxis)-coordinate inside a
+     particular lamella of a set of lamellae of width $(D lamellaeWidths) with the
+     equilibrium population for density $(D fluidDensities[i][j])$ where j is the number
+     of the lamella. The interfaces are modeled by a linear transition with
+     a length $(D interfaceThickness).
+  */
+  EqDistLamellae,
+  /**
+     Initialize all sites of fluid i with $(D preferredAxis)-coordinate inside a
+     particular lamella of a set of lamellae of width $(D lamellaeWidths) * system size
+     with the equilibrium population for density $(D fluidDensities[i][j])$ where j is
+     the number of the lamella and the system size is taking along the preferred axis.
+     The interfaces are modeled by a linear transition with a length $(D interfaceThickness).
+  */
+  EqDistLamellaeFrac,
 }
 
 /**
@@ -188,6 +204,14 @@ void initFluid(T)(ref T field, in size_t i) if ( isPopulationField!T ) {
   case(FluidInit.EqDistCylinderFrac):
     checkFDArrayParameterLength(2);
     field.initEqDistCylinderFrac(fluidDensities[i][0], fluidDensities[i][1], initAxis, initRadius, initOffset, interfaceThickness);
+    break;
+  case(FluidInit.EqDistLamellae):
+    checkFDArrayParameterLength(lamellaeWidths.length);
+    field.initEqDistLamellae(fluidDensities[i], lamellaeWidths, initAxis, interfaceThickness);
+    break;
+  case(FluidInit.EqDistLamellaeFrac):
+    checkFDArrayParameterLength(lamellaeWidths.length);
+    field.initEqDistLamellaeFrac(fluidDensities[i], lamellaeWidths, initAxis, interfaceThickness);
     break;
   }
 }

@@ -189,7 +189,7 @@ private void initChargeElec(T)(ref T L) if ( isLattice!T ) {
     L.initChargeElecCapacitorDensity(chargeDensitySolid, initAxis);
     break;
   case(ElecChargeInit.Lamellae):
-    L.initChargeElecLamellae(lamellaeWidths, chargeLamellae, initAxis);
+    L.initChargeElecLamellae(chargeLamellae, lamellaeWidths, initAxis);
   }
 }
 
@@ -309,7 +309,7 @@ private void initChargeElecCapacitorDensity(T)(ref T L, in double chargeDensity,
   assert(approxEqual(globalCharge, 0.0));
 }
 
-private void initChargeElecLamellae(T)(ref T L, in ptrdiff_t[] lamellaeWidths, in double[] chargeLamellae, in Axis initAxis) if ( isLattice!T ) {
+private void initChargeElecLamellae(T)(ref T L, in double[] chargeLamellae, in ptrdiff_t[] lamellaeWidths, in Axis initAxis) if ( isLattice!T ) {
   double[] chargeP, chargeN;
   chargeP.length = chargeLamellae.length;
   chargeN.length = chargeLamellae.length;
@@ -319,8 +319,8 @@ private void initChargeElecLamellae(T)(ref T L, in ptrdiff_t[] lamellaeWidths, i
 
   }
   writeLogD("%s, %s", chargeP, chargeN);
-  L.elChargeP.initLamellae(lamellaeWidths, chargeP, initAxis);
-  L.elChargeN.initLamellae(lamellaeWidths, chargeN, initAxis);
+  L.elChargeP.initLamellae(chargeP, lamellaeWidths, initAxis);
+  L.elChargeN.initLamellae(chargeN, lamellaeWidths, initAxis);
 }
 
 private double calculateGlobalCharge(T)(ref T L) if ( isLattice!T ) {
@@ -342,6 +342,6 @@ private double calculateGlobalCharge(T)(ref T L) if ( isLattice!T ) {
 
 private void initDielCapacitor(T)(ref T L, in double dielConstant, in double dielConstant2, in Axis initAxis) if ( isLattice!T ) {
   size_t i = to!int(initAxis);
-  L.elDiel.initLamellae([L.gn[i]/2, L.gn[i]/2],[dielConstant, dielConstant2], initAxis);
+  L.elDiel.initLamellae([dielConstant, dielConstant2], [L.gn[i]/2, L.gn[i]/2], initAxis);
 }
 
