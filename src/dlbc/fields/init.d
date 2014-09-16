@@ -259,16 +259,18 @@ void initEqDistLamellae(T, U)(ref T field, in U[] values, in double[] widths, in
   double[conn.d] dv = 0.0;
   typeof(pop0) eqpop = eqDist!conn(pop0, dv)[];
 
+  size_t ax = to!int(preferredAxis);
+
   auto interfaces = [0.0 ] ~ widths.dup;
   foreach(immutable i, ref w; interfaces) {
     if ( i > 0 ) {
       w += interfaces[i-1];
     }
   }
+  interfaces[] -= 0.5;
 
-  size_t i = to!int(preferredAxis);
   foreach(immutable p, ref e; field.arr) {
-    immutable ptrdiff_t gp = p[i] + M.c[i] * field.n[i] - field.haloSize;
+    double gp = p[ax] + M.c[ax] * field.n[ax] - to!double(field.haloSize);
     ptrdiff_t closestInterface;
     double minDiff;
     foreach(immutable i, ref w; interfaces) {
@@ -284,10 +286,10 @@ void initEqDistLamellae(T, U)(ref T field, in U[] values, in double[] widths, in
         }
       }
     }
-    
+
     minDiff = gp - interfaces[closestInterface];
     if ( closestInterface == 0 ) {
-      e = minDiff.symmetricLinearTransition(interfaceThickness, values[$-1], values[closestInterface])*eqpop[];      
+      e = minDiff.symmetricLinearTransition(interfaceThickness, values[$-1], values[closestInterface])*eqpop[];
     }
     else if ( closestInterface == values.length ) {
       e = minDiff.symmetricLinearTransition(interfaceThickness, values[closestInterface-1], values[0])*eqpop[];
@@ -302,7 +304,6 @@ void initEqDistLamellae(T, U)(ref T field, in U[] values, in double[] widths, in
 void initEqDistLamellaeFrac(T, U)(ref T field, in U[] values, in double[] widthsFrac, in Axis preferredAxis, in double interfaceThickness) if ( isField!T ) {
   import std.math: abs;
   import std.algorithm: sum;
-  import dlbc.lattice: gn;
   assert(widthsFrac.length == values.length);
 
   alias conn = field.conn;
@@ -315,14 +316,16 @@ void initEqDistLamellaeFrac(T, U)(ref T field, in U[] values, in double[] widths
 
   auto interfaces = [0.0 ] ~ widthsFrac.dup;
   foreach(immutable i, ref w; interfaces ) {
+    import dlbc.lattice: gn;
     interfaces[i] *= gn[ax]; // Fractional
     if ( i > 0 ) {
       w += interfaces[i-1];
     }
   }
+  interfaces[] -= 0.5;
 
   foreach(immutable p, ref e; field.arr) {
-    immutable ptrdiff_t gp = p[ax] + M.c[ax] * field.n[ax] - field.haloSize;
+    double gp = p[ax] + M.c[ax] * field.n[ax] - to!double(field.haloSize);
     ptrdiff_t closestInterface;
     double minDiff;
     foreach(immutable i, ref w; interfaces) {
@@ -338,10 +341,10 @@ void initEqDistLamellaeFrac(T, U)(ref T field, in U[] values, in double[] widths
         }
       }
     }
-    
+
     minDiff = gp - interfaces[closestInterface];
     if ( closestInterface == 0 ) {
-      e = minDiff.symmetricLinearTransition(interfaceThickness, values[$-1], values[closestInterface])*eqpop[];      
+      e = minDiff.symmetricLinearTransition(interfaceThickness, values[$-1], values[closestInterface])*eqpop[];
     }
     else if ( closestInterface == values.length ) {
       e = minDiff.symmetricLinearTransition(interfaceThickness, values[closestInterface-1], values[0])*eqpop[];
