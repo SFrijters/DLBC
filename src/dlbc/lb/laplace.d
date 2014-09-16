@@ -72,10 +72,10 @@ void dumpLaplace(T)(ref T L, in uint t) if ( isLattice!T ) {
   auto inDen = L.volumeAveragedDensity(offsetIn, volumeAverage);
   auto outDen = L.volumeAveragedDensity(offsetOut, volumeAverage);
 
-  assert(t != 0 || approxEqual(inDen[0], fluidDensity[0]));
-  assert(t != 0 || approxEqual(inDen[1], fluidDensity[1]));
-  assert(t != 0 || approxEqual(outDen[0], fluidDensity2[0]));
-  assert(t != 0 || approxEqual(outDen[1], fluidDensity2[1]));
+  assert(t != 0 || approxEqual(inDen[0], fluidDensities[0][0]));
+  assert(t != 0 || approxEqual(inDen[1], fluidDensities[1][0]));
+  assert(t != 0 || approxEqual(outDen[0], fluidDensities[0][1]));
+  assert(t != 0 || approxEqual(outDen[1], fluidDensities[1][1]));
 
   auto inPres = pressure!d3q19(inDen);
   auto outPres = pressure!d3q19(outDen);

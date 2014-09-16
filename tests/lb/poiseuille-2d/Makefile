@@ -1,6 +1,6 @@
 all: clean build
 	cp ../../../dlbc-d2q9-release .
-	mpirun -np 1 ./dlbc-d2q9-release -p input-parameters-poiseuille-2D.txt -v Fatal 
+	mpirun -np 2 ./dlbc-d2q9-release -p input-parameters-poiseuille-2D.txt -v Fatal 
 	./compare-reference-data.sh
 
 build:

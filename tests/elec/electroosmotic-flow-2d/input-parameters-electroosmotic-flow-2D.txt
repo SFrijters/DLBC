@@ -16,7 +16,7 @@ fieldNames = [ "red" ]
 tau = [ 1.0 ]
 
 init.fluidInit = [ EqDist ]
-init.fluidDensity = [ 1.0 ]
+init.fluidDensities = [ [ 1.0 ] ]
 
 mask.maskInit = Walls
 mask.initAxis = X

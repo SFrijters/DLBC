@@ -14,7 +14,7 @@ force.enableShanChen = false
 force.globalAcc = [ 0.0, 0.0001 ]
 
 init.fluidInit = [ EqDist, EqDist ]
-init.fluidDensity = [ 0.7, 1.0 ]
+init.fluidDensities = [ [ 0.7 ], [ 1.0 ] ]
 
 io.velocitiesFreq = 100000
 io.fluidsFreq = 100000
@@ -26,6 +26,9 @@ mask.initAxis = X
 
 [lattice]
 gn = [ 32, 4 ]     // Lattice size
+
+[parallel]
+nc = [ 2, 1]
 
 [io]
 simulationName = poiseuille-2d

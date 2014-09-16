@@ -26,9 +26,7 @@ module dlbc.lb.init;
    Depending on the choice of $(D fluidInit), these parameters may have slightly
    different interpretations. Cf. the description of the $(D FluidInit) enum for details.
 */
-@("param") double[] fluidDensity;
-/// Ditto
-@("param") double[] fluidDensity2;
+@("param") double[][] fluidDensities;
 /// Ditto
 @("param") double[] fluidPerturb;
 /// Ditto
@@ -39,11 +37,14 @@ module dlbc.lb.init;
 @("param") Axis initAxis;
 /// Ditto
 @("param") double interfaceThickness = 0.0;
+/// Ditto
+@("param") double[] lamellaeWidths;
 
 import dlbc.fields.field;
 import dlbc.lb.lb;
 import dlbc.fields.init;
 import dlbc.logging;
+import dlbc.parameters: checkArrayParameterLength;
 
 /**
    Lattice-Boltzmann initial conditions.
@@ -54,51 +55,51 @@ enum FluidInit {
   */
   None,
   /**
-     Initialize all sites of fluid i with $(D fluidDensity[i]) on all populations.
+     Initialize all sites of fluid i with $(D fluidDensities[i][0]) on all populations.
   */
   Const,
   /**
      Initialize all sites of fluid i with the equilibrium population for density
-     $(D fluidDensity[i]).
+     $(D fluidDensities[i][0]).
   */
   EqDist,
   /**
      Initialize all sites of fluid i with the equilibrium population for density
-     $(D fluidDensity[i]) plus or minus a random value from the interval
+     $(D fluidDensities[i][0]) plus or minus a random value from the interval
      $(D fluidPerturb[i]).
   */
   EqDistPerturb,
   /**
      Initialize all sites of fluid i with the equilibrium population for density
-     $(D fluidDensity[i]) times one plus or minus a random value from the interval
+     $(D fluidDensities[i][0]) times one plus or minus a random value from the interval
      $(D fluidPerturb[i]).
   */
   EqDistPerturbFrac,
   /**
      Initialize all sites of fluid i with values chosen at random from the interval
-     $(D 0.. 2 * fluidDensity[i]) on all populations, such that the average density
-     is $(D fluidDensity[i]) per population.
+     $(D 0..2 * fluidDensities[i][0]) on all populations, such that the average density
+     is $(D fluidDensities[i][0]) per population.
   */
   ConstRandom,
   /**
      Initialize all sites of fluid i with the equilibrium population for
-     a random density in the interval $(D 0..2 * fluidDensity[i]), such that
-     the average density is $(D fluidDensity[i]).
+     a random density in the interval $(D 0..2 * fluidDensities[i][0]), such that
+     the average density is $(D fluidDensities[i][0]).
   */
   EqDistRandom,
   /**
      Initialize all sites of fluid i within a radius $(D initRadius) from the centre
      of the system with offset $(D initOffset) the equilibrium population for density
-     $(D fluidDensity[i]), and all other sites  with the equilibrium population
-     for density $(D fluidDensity2[i]). The interface is modeled by a linear transition
+     $(D fluidDensities[i][0]), and all other sites with the equilibrium population
+     for density $(D fluidDensities[i][1]). The interface is modeled by a linear transition
      with a length $(D interfaceThickness).
   */
   EqDistSphere,
   /**
      Initialize all sites of fluid i within a radius $(D initRadius) * system size
      from the centre of the system with offset $(D initOffset) * system size
-     with the equilibrium population for density $(D fluidDensity[i]), and all other
-     sites with the equilibrium population for density $(D fluidDensity2[i]).
+     with the equilibrium population for density $(D fluidDensities[i][0]), and all other
+     sites with the equilibrium population for density $(D fluidDensities[i][1]).
      Here, system size is taken to be the shortest axis of the system. The interface
      is modeled by a linear transition with a length $(D interfaceThickness).
   */
@@ -106,17 +107,17 @@ enum FluidInit {
   /**
      Initialize all sites of fluid i within a radius $(D initRadius) from the centre
      $(D preferredAxis)-axis of the system with offset $(D initOffset) with the
-     equilibrium population for density $(D fluidDensity[i]), and all other sites
-     with the equilibrium population for density $(D fluidDensity2[i]). The interface
+     equilibrium population for density $(D fluidDensities[i][0]), and all other sites
+     with the equilibrium population for density $(D fluidDensities[i][1]). The interface
      is modeled by a linear transition with a length $(D interfaceThickness).
   */
   EqDistCylinder,
   /**
      Initialize all sites of fluid i within a radius $(D initRadius) * system size
      from the centre $(D preferredAxis)-axis of the system  with offset $(D initOffset)
-     * system size with the equilibrium population for density $(D fluidDensity[i]),
+     * system size with the equilibrium population for density $(D fluidDensities[i][0]),
      and all other sites  with the equilibrium population for density
-     $(D fluidDensity2[i]). Here, system size is taken to be the shortest remaining
+     $(D fluidDensities[i][1]). Here, system size is taken to be the shortest remaining
      axis of the system. The interface is modeled by a linear transition with
      a length $(D interfaceThickness).
   */
@@ -130,15 +131,13 @@ enum FluidInit {
      field = fluid field to initialize
      i = number of the fluid field
 */
-void initFluid(T)(ref T field, const size_t i) if ( isPopulationField!T ) {
-  import dlbc.parameters: checkArrayParameterLength;
+void initFluid(T)(ref T field, in size_t i) if ( isPopulationField!T ) {
   import std.conv: to;
 
   alias conn = field.conn;
 
   checkArrayParameterLength(fluidInit, "lb.init.fluidInit", components);
-  checkArrayParameterLength(fluidDensity, "lb.init.fluidDensity", components);
-  checkArrayParameterLength(fluidDensity2, "lb.init.fluidDensity2", components);
+  checkArrayParameterLength(fluidDensities, "lb.init.fluidDensities", components);
   checkArrayParameterLength(fluidPerturb, "lb.init.fluidPerturb", components);
   checkArrayParameterLength(initOffset, "lb.init.sphereOffset", conn.d);
   checkArrayParameterLength(tau, "lb.lb.tau", components, true);
@@ -151,35 +150,53 @@ void initFluid(T)(ref T field, const size_t i) if ( isPopulationField!T ) {
   case(FluidInit.None):
     break;
   case(FluidInit.Const):
-    field.initConst(fluidDensity[i]);
+    checkFDArrayParameterLength(1);
+    field.initConst(fluidDensities[i][0]);
     break;
   case(FluidInit.EqDist):
-    field.initEqDist(fluidDensity[i]);
+    checkFDArrayParameterLength(1);
+    field.initEqDist(fluidDensities[i][0]);
     break;
   case(FluidInit.EqDistPerturb):
-    field.initEqDistPerturb(fluidDensity[i], fluidPerturb[i]);
+    checkFDArrayParameterLength(1);
+    field.initEqDistPerturb(fluidDensities[i][0], fluidPerturb[i]);
     break;
   case(FluidInit.EqDistPerturbFrac):
-    field.initEqDistPerturbFrac(fluidDensity[i], fluidPerturb[i]);
+    checkFDArrayParameterLength(1);
+    field.initEqDistPerturbFrac(fluidDensities[i][0], fluidPerturb[i]);
     break;
   case(FluidInit.ConstRandom):
-    field.initConstRandom(fluidDensity[i]);
+    checkFDArrayParameterLength(1);
+    field.initConstRandom(fluidDensities[i][0]);
     break;
   case(FluidInit.EqDistRandom):
-    field.initEqDistRandom(fluidDensity[i]);
+    checkFDArrayParameterLength(1);
+    field.initEqDistRandom(fluidDensities[i][0]);
     break;
   case(FluidInit.EqDistSphere):
-    field.initEqDistSphere(fluidDensity[i], fluidDensity2[i], initRadius, initOffset, interfaceThickness);
+    checkFDArrayParameterLength(2);
+    field.initEqDistSphere(fluidDensities[i][0], fluidDensities[i][1], initRadius, initOffset, interfaceThickness);
     break;
   case(FluidInit.EqDistSphereFrac):
-    field.initEqDistSphereFrac(fluidDensity[i], fluidDensity2[i], initRadius, initOffset, interfaceThickness);
+    checkFDArrayParameterLength(2);
+    field.initEqDistSphereFrac(fluidDensities[i][0], fluidDensities[i][1], initRadius, initOffset, interfaceThickness);
     break;
   case(FluidInit.EqDistCylinder):
-    field.initEqDistCylinder(fluidDensity[i], fluidDensity2[i], initAxis, initRadius, initOffset, interfaceThickness);
+    checkFDArrayParameterLength(2);
+    field.initEqDistCylinder(fluidDensities[i][0], fluidDensities[i][1], initAxis, initRadius, initOffset, interfaceThickness);
     break;
   case(FluidInit.EqDistCylinderFrac):
-    field.initEqDistCylinderFrac(fluidDensity[i], fluidDensity2[i], initAxis, initRadius, initOffset, interfaceThickness);
+    checkFDArrayParameterLength(2);
+    field.initEqDistCylinderFrac(fluidDensities[i][0], fluidDensities[i][1], initAxis, initRadius, initOffset, interfaceThickness);
     break;
+  }
+}
+
+private void checkFDArrayParameterLength(in size_t len) {
+  import std.string: format;
+  foreach(immutable i, ref d; fluidDensities) {
+    auto name = format("lb.init.fluidDensities[%d]", i);
+    checkArrayParameterLength(fluidDensities, name, components, true);
   }
 }
 
