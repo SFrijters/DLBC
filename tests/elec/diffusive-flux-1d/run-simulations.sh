@@ -1,4 +1,4 @@
-#/bin/bash -e
+#!/bin/bash -e
 
 for sigma  in 0.003125 0.03125 0.3125 ; do
 for np     in 1 2; do

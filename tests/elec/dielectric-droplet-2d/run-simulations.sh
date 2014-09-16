@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash -e
 
 if [ ! -f ./dlbc-d2q9 ]; then
   echo "Please place executable ./dlbc-d2q9 in this folder."
