@@ -349,6 +349,11 @@ void broadcastParameter(T)(ref T parameter) {
           MpiBcastString(parameter[i]);
         }
       }
+      else static if ( isArray!(typeof(parameter[0])) ) {
+        foreach(ref p; parameter) {
+          broadcastParameter(p);
+        }
+      }
       else {
         MPI_Bcast(parameter.ptr, arrlen, mpiTypeof!T, M.root, M.comm);
       }
