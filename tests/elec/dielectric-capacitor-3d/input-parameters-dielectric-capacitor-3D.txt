@@ -40,8 +40,8 @@ poisson.solver = SOR
 
 externalField = [ 0.0, 0.0, 0.0 ] 
 
-boundaryPhi = [ Neumann, Neumann, Periodic, Periodic, Periodic, Periodic ]
-//dropPhi = [ 1.0, 1.0, 0.0, 0.0, 0.0, 0.0  ]
+boundaryPhi = [ [ Neumann, Neumann ], [ Periodic, Periodic ], [ Periodic, Periodic ] ]
+//dropPhi = [ [ 1.0, 1.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ] ]
 
 poisson.sorMaxIterations = 10000
 poisson.sorShowIterations = 1

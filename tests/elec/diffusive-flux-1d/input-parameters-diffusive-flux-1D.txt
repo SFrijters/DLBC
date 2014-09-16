@@ -35,7 +35,7 @@ elecOnFluid = false
 
 externalField = [ 0.0 ] 
 
-boundaryPhi = [ Periodic, Periodic ]
+boundaryPhi = [ [ Periodic, Periodic ] ]
 
 poisson.sorMaxIterations = 10000
 poisson.sorShowIterations = 100

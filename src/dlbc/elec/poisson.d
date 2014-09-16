@@ -321,7 +321,7 @@ double getNbPot(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p, in 
     gp[i] = p[i] + cv[i] + M.c[i] * L.elPot.n[i] - L.elPot.haloSize;
 
     if ( gp[i] < 0 ) {
-      final switch(boundaryPhi[2*i]) {
+      final switch(boundaryPhi[i][0]) {
         case(BoundaryPhi.Periodic):
           nb[i] = p[i] + cv[i];
           break;
@@ -330,12 +330,12 @@ double getNbPot(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p, in 
           break;
         case(BoundaryPhi.Drop):
           nb[i] = p[i] + cv[i];
-          potShift += dropPhi[2*i];
+          potShift += dropPhi[i][0];
           break;
         }
     }
     else if ( gp[i] >= L.gn[i] ) {
-      final switch(boundaryPhi[2*i+1]) {
+      final switch(boundaryPhi[i][1]) {
         case(BoundaryPhi.Periodic):
           nb[i] = p[i] + cv[i];
           break;
@@ -344,7 +344,7 @@ double getNbPot(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p, in 
           break;
         case(BoundaryPhi.Drop):
           nb[i] = p[i] + cv[i];
-          potShift -= dropPhi[2*i+1];
+          potShift -= dropPhi[i][1];
           break;
         }
     }

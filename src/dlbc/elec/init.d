@@ -101,10 +101,19 @@ void initElecConstants(T)(ref T L) if ( isLattice!T ) {
   import dlbc.lb.lb: components;
   import std.algorithm: sum;
   import std.conv: to;
+  import std.string: format;
   checkArrayParameterLength(externalField, "lb.elec.externalField", L.lbconn.d);
   checkArrayParameterLength(fluidDiel, "lb.elec.fluidDiel", components);
-  checkArrayParameterLength(boundaryPhi, "lb.elec.boundaryPhi", 2*L.lbconn.d);
-  checkArrayParameterLength(dropPhi, "lb.elec.dropPhi", 2*L.lbconn.d);
+  checkArrayParameterLength(boundaryPhi, "lb.elec.boundaryPhi", L.lbconn.d);
+  foreach(immutable i, ref bphi; boundaryPhi) {
+    auto name = format("lb.elec.boundaryPhi[%d]", i);
+    checkArrayParameterLength(bphi, name, 2);
+  }
+  checkArrayParameterLength(dropPhi, "lb.elec.dropPhi", L.lbconn.d);
+  foreach(immutable i, ref dphi; dropPhi) {
+    auto name = format("lb.elec.dropPhi[%d]", i);
+    checkArrayParameterLength(dphi, name, 2);
+  }
 
   if ( ( fluidOnElec || elecOnFluid ) && components < 1 ) {
     writeLogF("Fluid-elec interactions elec.fluidOnElec and elec.elecOnFluid not supported with components < 1.");

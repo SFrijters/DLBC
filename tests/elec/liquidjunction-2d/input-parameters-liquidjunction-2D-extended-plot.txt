@@ -33,7 +33,7 @@ poisson.solver = SOR
 
 externalField = [ 0.0, 0.0 ] 
 
-boundaryPhi = [ Periodic, Periodic, Periodic, Periodic ]
+boundaryPhi = [ [ Periodic, Periodic ], [ Periodic, Periodic ] ]
 
 poisson.sorMaxIterations = 10000
 poisson.sorShowIterations = 100

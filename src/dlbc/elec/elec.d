@@ -66,11 +66,11 @@ import dlbc.lattice;
 /**
    Boundary conditions for the electric potential.
 */
-@("param") BoundaryPhi[] boundaryPhi;
+@("param") BoundaryPhi[][] boundaryPhi;
 /**
    When $(D boundaryPhi == BoundaryPhi.Drop)$, the magnitude of the potential drops.
 */
-@("param") double[] dropPhi;
+@("param") double[][] dropPhi;
 
 // Derived quantities.
 double dielContrast;
