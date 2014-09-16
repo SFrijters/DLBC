@@ -255,8 +255,6 @@ private void parseParameterLine(char[] line, in ptrdiff_t ln, ref string current
      strict = whether or not a zero-length vector is a fatal error
 */
 void checkArrayParameterLength(T)(ref T vector, in string name, in size_t len, in bool strict = false) {
-  import dlbc.range: BaseElementType;
-
   if ( vector.length == 0 && len != 0 ) {
     if ( strict ) {
       writeLogF("Array parameter %s must have length %d.", name, len);
@@ -265,16 +263,39 @@ void checkArrayParameterLength(T)(ref T vector, in string name, in size_t len, i
       vector.length = len;
       static if ( is ( typeof(vector[0]) == string )) {
         writeLogRW("Array parameter %s has zero length, initialising to empty strings.", name);
-        vector[] = "";
+        vector.setZero();
       }
       else {
         writeLogRW("Array parameter %s has zero length, initialising to zeros.", name);
-        vector[] = cast(BaseElementType!T) 0;
+        vector.setZero();
       }
     }
   }
   else if ( vector.length != len ) {
     writeLogF("Array parameter %s must have length %d.", name, len);
+  }
+}
+
+/**
+   Recursively set all elements to zero or the empty string where applicable.
+   
+   Params:
+     obj = thing to zero out
+*/
+private void setZero(T)(ref T obj) {
+  import dlbc.range: BaseElementType;
+  static if ( isArray!T && ( ! is ( typeof(obj) == string ) ) ) {
+    foreach(ref o; obj) {
+      setZero(o);
+    }
+  }
+  else {
+    static if ( is ( typeof(obj) == string )) {
+      obj = "";
+    }
+    else {
+      obj = cast(BaseElementType!T) 0;
+    }
   }
 }
 
