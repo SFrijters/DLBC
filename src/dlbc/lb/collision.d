@@ -42,12 +42,8 @@ import dlbc.logging;
 void collideField(T, U, V)(ref T field, in ref U mask, in ref V force, in double tau) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
   Timers.coll.start();
   final switch(eqDistForm) {
-    case eqDistForm.SecondOrder:
-      field.collideFieldEqDist!(eqDistForm.SecondOrder)(mask, force, globalAcc, tau);
-      break;
-    case eqDistForm.ThirdOrder:
-      field.collideFieldEqDist!(eqDistForm.ThirdOrder)(mask, force, globalAcc, tau);
-      break;
+    // Calls appropriate collideFieldEqDist
+    mixin(edfMixin());
   }
   Timers.coll.stop();
 }
@@ -74,5 +70,20 @@ private void collideFieldEqDist(EqDistForm eqDistForm, T, U, V)(ref T field, in 
       }
     }
   }
+}
+
+/**
+   Generate final switch mixin for all eqDistForm.
+*/
+private string edfMixin() {
+  import std.traits: EnumMembers;
+  import std.conv: to;
+  string mixinString;
+  foreach(immutable edf; EnumMembers!EqDistForm) {
+    mixinString ~= "case eqDistForm." ~ to!string(edf) ~ ":\n";
+    mixinString ~= "  field.collideFieldEqDist!(eqDistForm." ~ to!string(edf) ~ ")(mask, force, globalAcc, tau);";
+    mixinString ~= "  break;\n";
+  }
+  return mixinString;
 }
 

@@ -178,11 +178,22 @@ auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double
 /// Ditto
 auto eqDist(alias conn, T)(in ref T population, in double[conn.d] dv) {
   final switch(eqDistForm) {
-    case eqDistForm.SecondOrder:
-      return eqDist!(eqDistForm.SecondOrder, conn)(population, dv);
-    case eqDistForm.ThirdOrder:
-      return eqDist!(eqDistForm.ThirdOrder, conn)(population, dv);
-   }
+    // Returns appropriately templated eqDist
+    mixin(edfMixin());
+  }
+}
+
+/**
+   Generate final switch mixin for all eqDistForm.
+*/
+private string edfMixin() {
+  import std.traits: EnumMembers;
+  import std.conv: to;
+  string mixinString;
+  foreach(immutable edf; EnumMembers!EqDistForm) {
+    mixinString ~= "case eqDistForm." ~ to!string(edf) ~ ":\n  return eqDist!(eqDistForm."~to!string(edf)~", conn)(population, dv);\n";
+  }
+  return mixinString;
 }
 
 unittest {
