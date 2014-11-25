@@ -19,9 +19,13 @@
 module dlbc.lb.io;
 
 /**
+   Frequency at which fluid population fields should be written to disk.
+*/
+@("param") int populationFreq;
+/**
    Frequency at which fluid density fields should be written to disk.
 */
-@("param") int fluidsFreq;
+@("param") int densityFreq;
 /**
    Frequency at which fluid density difference fields (colour) should be written to disk.
 */
@@ -56,7 +60,13 @@ import dlbc.lattice;
 */
 void dumpLBData(T)(ref T L, uint t) if ( isLattice!T ) {
 
-  if (dumpNow(fluidsFreq,t)) {
+  if (dumpNow(populationFreq,t)) {
+    foreach(immutable i, ref e; L.fluids) {
+      e.dumpField("population-"~fieldNames[i], t);
+    }
+  }
+
+  if (dumpNow(densityFreq,t)) {
     foreach(immutable i, ref e; L.fluids) {
       e.densityField(L.mask, L.density[i]);
       L.density[i].dumpField("density-"~fieldNames[i], t);

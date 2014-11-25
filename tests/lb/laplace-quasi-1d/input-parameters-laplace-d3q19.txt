@@ -26,7 +26,7 @@ init.interfaceThickness = 5.0
 
 io.colourFreq = 1000
 io.laplaceFreq = 10000
-io.fluidsFreq = 1000
+io.densityFreq = 1000
 //io.velocitiesFreq = 1
 
 laplace.startCheck = 10000

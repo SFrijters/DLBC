@@ -28,7 +28,7 @@ init.interfaceThickness = 5.0
 
 io.colourFreq = 1
 io.forceFreq = 10
-io.fluidsFreq = 100
+io.densityFreq = 100
 io.velocitiesFreq = 0
 io.maskFreq = 10000
 

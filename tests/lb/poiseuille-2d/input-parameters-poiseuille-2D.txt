@@ -17,7 +17,7 @@ init.fluidInit = [ EqDist, EqDist ]
 init.fluidDensities = [ [ 0.7 ], [ 1.0 ] ]
 
 io.velocitiesFreq = 100000
-io.fluidsFreq = 100000
+io.densityFreq = 100000
 io.forceFreq = 100000
 io.maskFreq = 100000
 
