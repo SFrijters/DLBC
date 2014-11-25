@@ -28,7 +28,7 @@ install:
   # Check MPICH version
   - mpichversion
   # HDF5 1.8.13
-  - wget http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.13.tar.bz2
+  - wget http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.13/src/hdf5-1.8.13.tar.bz2
   - tar -xf hdf5-1.8.13.tar.bz2
   - cd hdf5-1.8.13
   - ./configure --prefix=/usr/local/stow/hdf5-1.8.13-mpich-3.1 --enable-parallel --disable-fortran &> /dev/null
