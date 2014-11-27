@@ -203,20 +203,20 @@ auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double
       cdotu = tuxt;
       even = const1+haN1*cdotu*cdotu;
       odd = const1*cdotu+aN1_6*cdotu*cdotu*cdotu;
-      dist[1] = 2.0*even+odd; // 1 (1,0,0)
-      dist[2] = 2.0*even-odd; // 2 (-1,0,0)
+      dist[1] = 2.0*(even+odd); // 1 (1,0,0)
+      dist[2] = 2.0*(even-odd); // 2 (-1,0,0)
 
       cdotu = tuyt;
       even = const1+haN1*cdotu*cdotu;
       odd = const1*cdotu+aN1_6*cdotu*cdotu*cdotu;
-      dist[3] = 2.0*even+odd; // 3 (0,1,0)
-      dist[4] = 2.0*even-odd; // 4 (0,-1,0)
+      dist[3] = 2.0*(even+odd); // 3 (0,1,0)
+      dist[4] = 2.0*(even-odd); // 4 (0,-1,0)
 
       cdotu = tuzt;
       even = const1+haN1*cdotu*cdotu;
       odd = const1*cdotu+aN1_6*cdotu*cdotu*cdotu;
-      dist[5] = 2.0*even+odd; // 5 (0,0,1)
-      dist[6] = 2.0*even-odd; // 6 (0,0,-1)
+      dist[5] = 2.0*(even+odd); // 5 (0,0,1)
+      dist[6] = 2.0*(even-odd); // 6 (0,0,-1)
 
       cdotu = tuxt+tuyt;
       even = const1+haN1*cdotu*cdotu;
