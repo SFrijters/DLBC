@@ -55,6 +55,7 @@ struct Field(T, alias c, uint hs) {
     size_t[conn.d] _lengthsH;
     size_t _size = 1;
     size_t _sizeH = 1;
+    bool _isInitialized = false;
   }
 
   MultidimArray!(T, conn.d) arr, sbuffer, rbuffer;
@@ -92,6 +93,13 @@ struct Field(T, alias c, uint hs) {
   }
 
   /**
+     Check if field is initialized.
+  */
+  @property const isInitialized() {
+    return _isInitialized;
+  }
+
+  /**
      A $(D Field) is constructed by specifying the size of the physical domain and the required halo size.
 
      Params:
@@ -107,6 +115,7 @@ struct Field(T, alias c, uint hs) {
       this._sizeH *= lengthsH[i];
     }
     arr = multidimArray!T(lengthsH);
+    this._isInitialized = true;
   }
 
   /**
