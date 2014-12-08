@@ -180,10 +180,10 @@ auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double
     static if ( conn.d == 3 && conn.q == 19 ) {
       immutable aN1 = 1.0/36.0;
       immutable aN0 = 1.0/3.0;
-      immutable haN1 = 0.5*aN1;
-      immutable aN1_6 = aN1/6.0;
+      immutable haN1 = 0.5*aN1; // 1.0/72.0
+      immutable aN1_6 = aN1/6.0; // 1.0/216.0
       immutable T = 1.0/3.0;
-      immutable holdit = 1.0/T;
+      immutable holdit = 1.0/T; // 3.0
 
       immutable tux = dv[0];
       immutable tuy = dv[1];
@@ -260,6 +260,90 @@ auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double
 	dist[vq] *= rho0;
       }
     }
+    else static if ( conn.d == 2 && conn.q == 9 ) {
+      immutable aN1 = 1.0/24.0;
+      immutable aN0 = 1.0/2.0;
+      immutable haN1 = 0.5*aN1;
+      immutable aN1_6 = aN1/6.0;
+      immutable T = 1.0/3.0;
+      immutable holdit = 1.0/T; // 3.0
+
+      immutable tux = dv[0];
+      immutable tuy = dv[1];
+
+      immutable tuxt = tux*holdit;
+      immutable tuyt = tuy*holdit;
+
+      immutable uke = 0.5*(tux*tuxt + tuy*tuyt);
+
+      immutable cst = 1.0-uke;
+      immutable const1 = aN1*cst;
+
+      double cdotu, even, odd;
+
+      cdotu = tuxt;
+      even = const1+haN1*cdotu*cdotu;
+      odd = const1*cdotu+aN1_6*cdotu*cdotu*cdotu;
+      dist[1] = 2.0*(even+odd); // (1,0)
+      dist[2] = 2.0*(even-odd); // (-1,0)
+
+      cdotu = tuyt;
+      even = const1+haN1*cdotu*cdotu;
+      odd = const1*cdotu+aN1_6*cdotu*cdotu*cdotu;
+      dist[3] = 2.0*(even+odd); // (0,1)
+      dist[4] = 2.0*(even-odd); // (0,-1)
+
+      cdotu = tuxt+tuyt;
+      even = const1+haN1*cdotu*cdotu;
+      odd = const1*cdotu+aN1_6*cdotu*cdotu*cdotu;
+      dist[5] = even+odd; // (1,1)
+      dist[8] = even-odd; // (-1,-1)
+
+      cdotu = tuxt-tuyt;
+      even = const1+haN1*cdotu*cdotu;
+      odd = const1*cdotu+aN1_6*cdotu*cdotu*cdotu;
+      dist[6] = even+odd; // (1,-1)
+      dist[7] = even-odd; // (-1,1)
+
+      dist[0] = aN0*cst; // (0,0)
+
+      foreach(immutable vq; Iota!(0,conn.q)) {
+	dist[vq] *= rho0;
+      }
+    }
+    /++
+    else static if ( conn.d == 1 && conn.q == 3 ) {
+      immutable aN1 = 1.5/24.0;
+      immutable aN0 = 1.5/2.0;
+      immutable haN1 = 0.5*aN1; // 1.0/72.0
+      immutable aN1_6 = aN1/6.0; // 1.0/216.0
+      immutable T = 1.0/3.0;
+      immutable holdit = 1.0/T; // 3.0
+
+      immutable tux = dv[0];
+
+      immutable tuxt = tux*holdit;
+
+      immutable uke = 0.5*(tux*tuxt);
+
+      immutable cst = 1.0-uke;
+      immutable const1 = aN1*cst;
+
+      double cdotu, even, odd;
+
+      cdotu = tuxt;
+      even = const1+haN1*cdotu*cdotu;
+      odd = const1*cdotu+aN1_6*cdotu*cdotu*cdotu;
+      dist[1] = 2.0*(even+odd); // (1)
+      dist[2] = 2.0*(even-odd); // (-1)
+
+      dist[0] = aN0*cst; // (0)
+
+      foreach(immutable vq; Iota!(0,conn.q)) {
+	dist[vq] *= rho0;
+      }
+    }
+    ++/
     else {
       dist = population; // this is currently a no-op
     }
