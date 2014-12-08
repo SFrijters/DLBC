@@ -1,0 +1,65 @@
+&fixed_input
+nx = 64
+ny = 64
+nz = 64
+seed = 1
+obs_file = 'empty.dat'
+boundary_cond = -1
+/
+
+&variable_input
+
+n_iteration = 1000
+n_sci_start = 0
+sci_int = .true.
+n_sci_int = 100
+sci_od = .true.
+n_sci_od = 100
+sci_od_pop = .true.
+n_sci_od_pop = 100
+sci_wd = .true.
+n_sci_wd = 100
+sci_wd_pop = .true.
+n_sci_wd_pop = 100
+
+post = .true.
+folder = 'dlbc-sc'
+cpfolder = '.'
+srccpfolder = ''
+gr_out_file = 'dlbc-sc'
+
+init_cond = 11
+inv_fluid = -1
+
+fr = 0.7
+fb = 0.04
+fr1 = 32
+fr2 = 32
+pr = 0.04
+pb = 0.7
+/
+
+&lbe_input
+MRT = .false.
+SCMP = .false.
+OXFORD = .false.
+amass_b = 1.0
+amass_r = 1.0
+tau_b = 1.0
+tau_r = 1.0
+bcsel = 0 
+acccoef = 0
+g_br = 0.1
+bdist = 2
+g_accn = 0.0
+n_checkpoint = 0
+restore_string = "t00000000-0000000000"
+num_chkp_files = 0
+psifunc = 2
+dump_format = "hdf"
+checkpoint_safe = .true.
+checkpoint_format = 'xdr'
+dump_double = .true.
+n_sanity_check = 0
+/
+

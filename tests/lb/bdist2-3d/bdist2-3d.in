@@ -1,0 +1,47 @@
+// Compatibility testing for LB3D
+
+[io]
+simulationName = bdist2-3d
+outputFormat = HDF5
+outputPath = output
+createPath = true
+
+startOutput = 0
+
+checkpoint.cpFreq = 0
+
+hdf5.writeChunked = false
+
+[lb]
+timesteps = 10
+components = 2
+fieldNames = [ "red", "blue" ]
+
+tau = [ 1.0, 1.0 ]
+
+eqdist.eqDistForm = BDist2
+
+io.densityFreq = 10
+io.populationFreq = 10
+
+force.gcc = [ [ 0.0, 0.0 ], [ 0.0, 0.0 ] ]
+force.enableShanChen = false
+force.globalAcc = [ 0.0, 0.0, 0.0 ]
+
+init.fluidInit = [ EqDistLamellae , EqDistLamellae ]
+init.fluidDensities = [ [0.7, 0.0] , [0.0, 0.7] ]
+init.lamellaeWidths = [ 2, 2 ]
+init.initAxis = Z
+
+mask.maskInit = None
+
+[parallel]
+showTopology = false
+nc = [ 0, 0, 0 ]
+
+[lattice]
+gn = [4, 4, 4 ]    // Lattice size
+
+[random]
+seed = 42
+
