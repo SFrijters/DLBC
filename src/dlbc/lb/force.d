@@ -195,7 +195,7 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc,
   }
 
   // It's actually faster to pre-calculate the densities, apparently...
-  L.calculateDensity();
+  L.calculateDensities();
 
   // Do all combinations of two fluids.
   foreach(immutable nc1; 0..L.fluids.length ) {

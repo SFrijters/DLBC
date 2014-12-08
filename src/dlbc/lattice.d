@@ -247,11 +247,24 @@ struct Lattice(alias conn) {
   /**
      Fills the lattice density arrays by recomputing the values from the populations.
   */
-  void calculateDensity() {
+  void calculateDensities() {
     foreach(immutable nc1; 0..fluids.length ) {
-      fluids[nc1].densityField(mask, density[nc1]);
+      if ( ! fluids[nc1].isValid ) {
+	fluids[nc1].densityField(mask, density[nc1]);
+	fluids[nc1].markAsValid();
+      }
     }
   }
+
+  /**
+     Mark all density fields on the lattice as invalid.
+  */
+  void markDensitiesAsInvalid() {
+    foreach(immutable nc1; 0..fluids.length ) {
+      fluids[nc1].markAsInvalid();
+    }
+  }
+    
 }
 
 /**
