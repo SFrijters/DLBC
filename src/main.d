@@ -151,6 +151,7 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
     L.addElecForce();
 
     L.distributeForce();
+    L.prepareToCollide();
     foreach(immutable i, ref e; L.fluids) {
       e.collideField(L.mask, L.force[i], tau[i]);
     }

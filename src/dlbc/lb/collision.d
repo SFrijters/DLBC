@@ -27,8 +27,25 @@ import dlbc.lb.mask;
 import dlbc.lb.velocity;
 import dlbc.range;
 import dlbc.timers;
+import dlbc.lattice;
 
 import dlbc.logging;
+
+/**
+   Perform operations just before the collision step.
+
+   Currently, this pre-calculates the weighted velocities required by the BDist2
+   equilibrium distribution function, if necessary.
+
+   Params:
+     L = lattice
+*/
+void prepareToCollide(T)(ref T L) if ( isLattice!T ) {
+  alias conn = L.lbconn;
+  if ( eqDistForm == EqDistForm.BDist2 ) {
+    L.calculateWeightedVelocity();
+  }
+}
 
 /**
    Let the populations of the field collide.
@@ -63,6 +80,10 @@ private void collideFieldEqDist(EqDistForm eqDistForm, T, U, V)(ref T field, in 
       double[conn.d] dv;
       foreach(immutable vd; Iota!(0,conn.d) ) {
         dv[vd] = tau * ( globalAcc[vd] + force[p][vd] / den);
+	// BDist2 requires the addition of the weighted velocity array
+	static if (eqDistForm == EqDistForm.BDist2) {
+	  dv[vd] += weightedVelocityBDist2[p][vd];
+	}
       }
       immutable eq = eqDist!(eqDistForm, conn)(pop, dv);
       foreach(immutable vq; Iota!(0,conn.q) ) {
@@ -85,5 +106,62 @@ private string edfMixin() {
     mixinString ~= "  break;\n";
   }
   return mixinString;
+}
+
+/**
+   The weighted velocity field needs to match the halo of the other fields.
+   We cannot use VectorFieldOf here because the lattice is not available?
+*/
+static if ( gconn.d == 1 && gconn.q == 5 ) {
+  // Careful! S-C needs one more site than just neighbours,
+  // but D1Q5 has vectors with length == 2, so we need a halo
+  // of 2 + 2 instead of 1 + 1.
+  private Field!(double[gconn.q], dimOf!gconn, 4) weightedVelocityBDist2;
+}
+else {
+  private Field!(double[gconn.q], dimOf!gconn, 2) weightedVelocityBDist2;
+}
+
+/**
+   The weighted velocities are required for the BDist2 equilibrium distribution function.
+
+   Params:
+     L = lattice
+*/
+private void calculateWeightedVelocity(T)(ref T L) if ( isLattice!T ) {
+  import dlbc.lb.lb: tau;
+
+  alias conn = L.lbconn;
+  immutable cv = conn.velocities;
+
+  // Initialize field if necessary.
+  if ( ! weightedVelocityBDist2.isInitialized ) {
+    weightedVelocityBDist2 = typeof(weightedVelocityBDist2)(L.lengths);
+  }
+
+  // For all fluids, combine momentum and viscosity.
+  foreach(immutable p, ref e; weightedVelocityBDist2) {
+    e = 0.0;
+    foreach(immutable f, fluid; L.fluids) {
+      foreach(immutable i, pop; fluid[p]) {
+	foreach(immutable vd; Iota!(0, conn.d) ) {
+	  e[vd] += pop * cv[i][vd] / tau[f];
+	}
+      }
+    }
+  }
+
+  L.calculateDensities();
+
+  // Divide by total densities.
+  foreach(immutable p, ref e; weightedVelocityBDist2) {
+    double totalDensity = 0.0;
+    foreach(density; L.density) {
+      totalDensity += density[p];
+    }
+    foreach(immutable vd; Iota!(0, conn.d) ) {
+      e[vd] /= totalDensity;
+    }
+  }
 }
 
