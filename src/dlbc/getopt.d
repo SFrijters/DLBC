@@ -36,6 +36,8 @@ private auto usage = `
 DLBC (version %s, D%dQ%d): a parallel implementation of the lattice Boltzmann method
 for the simulation of fluid dynamics.
 
+Executable built using %s compiler (%s); front-end version %d.%03d.
+
 Usage:
 %s [options]
 
@@ -75,6 +77,7 @@ at the README.md file.
      args = command line arguments
 */
 void processCLI(string[] args) {
+  import std.compiler;
   import std.c.stdlib: exit;
   import std.stdio: writefln;
   import std.conv, std.string;
@@ -109,7 +112,7 @@ void processCLI(string[] args) {
   }
 
   if ( showHelp ) {
-    writefln(usage, revisionDesc, gconn.d, gconn.q, args[0], verbosityLevel);
+    writefln(usage, revisionDesc, gconn.d, gconn.q, std.compiler.name, to!string(std.compiler.vendor), std.compiler.version_major, std.compiler.version_minor, args[0], verbosityLevel);
     exit(0);
   }
 
