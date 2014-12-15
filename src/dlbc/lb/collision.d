@@ -42,9 +42,11 @@ import dlbc.logging;
 */
 void prepareToCollide(T)(ref T L) if ( isLattice!T ) {
   alias conn = L.lbconn;
+  Timers.prepColl.start();
   if ( eqDistForm == EqDistForm.BDist2 ) {
     L.calculateWeightedVelocity();
   }
+  Timers.prepColl.stop();
 }
 
 /**

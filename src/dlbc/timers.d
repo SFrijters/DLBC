@@ -28,11 +28,14 @@ import dlbc.logging;
 */
 struct Timers {
   static MSW main;
+  static MSW preLoop;
   static MSW adv;
+  static MSW prepColl;
   static MSW coll;
   static MSW collden;
   static MSW colleq;
   static MSW forceSC;
+  static MSW distributeForce;
   static MSW io;
   static MSW cpio;
   static MSW haloExchange;

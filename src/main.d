@@ -103,6 +103,7 @@ int main(string[] args ) {
   // Start Main timer.
   initAllTimers();
   Timers.main.start!(VL.Debug, LRF.None)();
+  Timers.preLoop.start!(VL.Debug, LRF.None)();
 
   initParameters();
   initCommon();
@@ -110,6 +111,8 @@ int main(string[] args ) {
   gconn.show!(VL.Information)();
   auto L = Lattice!(gconn)(gn, components, fieldNames, M);
   initLattice(L);
+
+  Timers.preLoop.stop!(VL.Debug, LRF.None)();
   runTimeloop(L);
 
   Timers.main.stop();

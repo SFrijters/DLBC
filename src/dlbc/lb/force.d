@@ -131,6 +131,7 @@ void resetForce(T)(ref T L) if (isLattice!T) {
      L = lattice
 */
 void distributeForce(T)(ref T L) if (isLattice!T) {
+  Timers.distributeForce.start();
   foreach(immutable p, ref e; L.forceDistributed) {
     double totalDensity = 0.0;
     foreach(immutable i; 0..components ) {
@@ -142,6 +143,7 @@ void distributeForce(T)(ref T L) if (isLattice!T) {
       }
     }
   }
+  Timers.distributeForce.stop();
 }
 
 /**
