@@ -4,6 +4,7 @@
 output*/*
 *.lst
 *.vtk
+*.h5
 d-tests/*
 dlbc-*
 

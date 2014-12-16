@@ -1,7 +1,7 @@
 language: d
 
-#compiler:
-#  - dmd
+d:
+  - dmd-2.066.1
 
 before_install:
   - export LD_LIBRARY_PATH=/usr/local/stow/mpich-3.1/lib64/:/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/:$LD_LIBRARY_PATH
@@ -10,12 +10,12 @@ before_install:
   - echo "export PATH=/usr/local/stow/mpich-3.1/bin/:/usr/local/stow/hdf5-1.8.13-mpich-3.1/bin:$PATH" >> ~/.bashrc
 
 install:
-  # dmd
-  - DMD_VERSION=2.066.0-0
-  - wget http://downloads.dlang.org/releases/2014/dmd_${DMD_VERSION}_amd64.deb
-  - sudo dpkg -i dmd_${DMD_VERSION}_amd64.deb
-  # Check compiler version
-  - dmd | grep DMD
+  # # dmd
+  # - DMD_VERSION=2.066.0-0
+  # - wget http://downloads.dlang.org/releases/2014/dmd_${DMD_VERSION}_amd64.deb
+  # - sudo dpkg -i dmd_${DMD_VERSION}_amd64.deb
+  # # Check compiler version
+  # - dmd | grep DMD
   # MPICH 3.1
   - wget http://www.mpich.org/static/downloads/3.1/mpich-3.1.tar.gz
   - tar -xf mpich-3.1.tar.gz
