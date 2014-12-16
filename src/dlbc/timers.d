@@ -103,7 +103,10 @@ struct MultiStopWatch {
   */
   void showFinal(VL vl, LRF logRankFormat)() {
     import std.conv: to;
-    writeLog!(vl, logRankFormat)("Timer '%s' was run %d times. Total runtime %dms, average runtime %fms.", name, count, multi.peek().msecs, to!double(multi.peek().msecs) / count);
+    if ( count > 0 ) {
+      auto perc = 100 * multi.peek().msecs / Timers.main.peekMulti().msecs;
+      writeLog!(vl, logRankFormat)("Timer %20s was run %6d times. Total runtime %8dms (%3d%%), average runtime %8.0fms.", "'"~name~"'", count, multi.peek().msecs, perc, to!double(multi.peek().msecs) / count);
+    }
   }
 
   /**
