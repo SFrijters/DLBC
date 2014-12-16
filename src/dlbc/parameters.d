@@ -127,6 +127,7 @@ private alias parameterSourceModules = TypeTuple!(
                          "dlbc.elec.poisson",
                          "dlbc.elec.init",
                          "dlbc.elec.io",
+                         "dlbc.timers",
                          );
 /**
    List of parameters that have been set in the input files.

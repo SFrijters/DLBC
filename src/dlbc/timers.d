@@ -19,26 +19,28 @@
 module dlbc.timers;
 
 import std.datetime;
-import std.string;
 
 import dlbc.logging;
 
+private MSW[string] timersAA;
+
 /**
-   Container for multiple timers.
+   Enable writing the timing data to disk in raw ascii format.
 */
-struct Timers {
-  static MSW main;
-  static MSW preLoop;
-  static MSW adv;
-  static MSW prepColl;
-  static MSW coll;
-  static MSW collden;
-  static MSW colleq;
-  static MSW forceSC;
-  static MSW distributeForce;
-  static MSW io;
-  static MSW cpio;
-  static MSW haloExchange;
+@("param") bool enableIO = false;
+
+private immutable string fileNamePrefix = "timers";
+
+void startTimer(VL vl = VL.Debug, LRF logRankFormat = LRF.None)(in string name) {
+  if ( (name in timersAA) is null ) {
+    timersAA[name] = MSW(name);
+  }
+  timersAA[name].start!(vl, logRankFormat)();
+}
+
+void stopTimer(VL vl = VL.Debug, LRF logRankFormat = LRF.None)(in string name) {
+  assert( (name in timersAA) !is null );
+  timersAA[name].stop!(vl, logRankFormat)();
 }
 
 /**
@@ -104,8 +106,13 @@ struct MultiStopWatch {
   void showFinal(VL vl, LRF logRankFormat)() {
     import std.conv: to;
     if ( count > 0 ) {
-      auto perc = 100 * multi.peek().msecs / Timers.main.peekMulti().msecs;
-      writeLog!(vl, logRankFormat)("Timer %20s was run %6d times. Total runtime %8dms (%3d%%), average runtime %8.0fms.", "'"~name~"'", count, multi.peek().msecs, perc, to!double(multi.peek().msecs) / count);
+      if ( ("main" in timersAA) !is null ) {
+	double perc = 100.0 * to!double(multi.peek().msecs) / to!double(timersAA["main"].peekMulti().msecs);
+	writeLog!(vl, logRankFormat)("Timer %16s was run %6d times. Total runtime %8dms (%6.2f%%), average runtime %8.0fms.", "'"~name~"'", count, multi.peek().msecs, perc, to!double(multi.peek().msecs) / count);
+      }
+      else {
+	writeLog!(vl, logRankFormat)("Timer %16s was run %6d times. Total runtime %8dms, average runtime %8.0fms.", "'"~name~"'", count, multi.peek().msecs, to!double(multi.peek().msecs) / count);
+      }
     }
   }
 
@@ -140,27 +147,39 @@ struct MultiStopWatch {
 /// Ditto
 alias MSW = MultiStopWatch;
 
-private string createInitAllTimersMixin() {
-  string mixinString;
-  foreach(e ; __traits(allMembers, Timers) ) {
-    mixinString ~= `  Timers.`~e~` = MultiStopWatch("`~e~`");`;
-  }
-  return mixinString;
-}
-
-void initAllTimers() {
-  mixin(createInitAllTimersMixin());
-}
-
-private string createShowFinalAllTimersMixin() {
-  string mixinString;
-  foreach(e ; __traits(allMembers, Timers) ) {
-    mixinString ~= `  Timers.`~e~`.showFinal!(vl, logRankFormat)();`;
-  }
-  return mixinString;
-}
-
 void showFinalAllTimers(VL vl, LRF logRankFormat)() {
-  mixin(createShowFinalAllTimersMixin());
+  import std.algorithm, std.array;
+  import std.conv: to;
+  import std.string: format;
+  assert( ("main" in timersAA) !is null );
+  auto untrackedTime = timersAA["main"].multi.peek().msecs;
+
+  import std.stdio;
+  import dlbc.io.io;
+
+  string ioBuffer;
+
+  foreach(t; timersAA.keys
+	  .map!((a) => tuple(timersAA[a].multi.peek().msecs, a))
+	  .array
+	  .sort!((a,b) => a[0] > b[0]) // descending order
+	  ) {
+    timersAA[t[1]].showFinal!(vl, logRankFormat)();
+    if ( enableIO ) {
+      ioBuffer ~= format("%s %d %d\n", timersAA[t[1]].name, timersAA[t[1]].count, timersAA[t[1]].peekMulti().msecs);
+    }
+    if ( t[1] != "main" ) {
+      untrackedTime -= timersAA[t[1]].multi.peek().msecs;
+    }
+  }
+  double perc = 100.0 * untrackedTime / to!double(timersAA["main"].peekMulti().msecs);
+  writeLog!(vl, logRankFormat)("%58s %8dms (%6.2f%%)", "Untracked runtime", untrackedTime, perc);
+
+  if ( dlbc.timers.enableIO && dlbc.io.io.enableIO ) {
+    auto fileName = makeFilenameOutput!(FileFormat.Ascii)(fileNamePrefix, 0);
+    auto f = File(fileName, "w"); // open for writing
+    f.writeln("#? timer n t");
+    f.write(ioBuffer);
+  }
 }
 

@@ -48,7 +48,7 @@ void exchangeHalo(T, U)(ref T field, ref U M, uint haloSize) if ( isField!T && i
 
   assert( haloSize <= field.haloSize, "Requested size of halo exchange cannot be larger than halo size of field.");
 
-  Timers.haloExchange.start();
+  startTimer("haloExchange");
 
   writeLogRD("Performing halo exchange of size %d.", haloSize);
 
@@ -143,7 +143,7 @@ void exchangeHalo(T, U)(ref T field, ref U M, uint haloSize) if ( isField!T && i
   else {
     static assert(0, "Halo exchange not implemented for dimensions > 3.");
   }
-  Timers.haloExchange.stop();
+  stopTimer("haloExchange");
 }
 
 /// Ditto

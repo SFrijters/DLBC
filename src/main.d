@@ -101,9 +101,9 @@ int main(string[] args ) {
   startHDF5();
 
   // Start Main timer.
-  initAllTimers();
-  Timers.main.start!(VL.Debug, LRF.None)();
-  Timers.preLoop.start!(VL.Debug, LRF.None)();
+  // initAllTimers();
+  startTimer("main");
+  startTimer("preLoop");
 
   initParameters();
   initCommon();
@@ -112,10 +112,10 @@ int main(string[] args ) {
   auto L = Lattice!(gconn)(gn, components, fieldNames, M);
   initLattice(L);
 
-  Timers.preLoop.stop!(VL.Debug, LRF.None)();
+  stopTimer("preLoop");
   runTimeloop(L);
 
-  Timers.main.stop();
+  stopTimer("main");
 
   showFinalAllTimers!(VL.Information, LRF.Root)();
 

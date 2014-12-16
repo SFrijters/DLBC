@@ -241,7 +241,7 @@ bool dumpNow(uint freq, uint t) @safe pure nothrow {
      time = current timestep
 */
 void dumpField(T)(ref T field, const string name, const uint time = 0) if (isField!T) {
-  Timers.io.start();
+  startTimer("io");
   final switch(outputFormat) {
   case FileFormat.Ascii:
     assert(0, "Ascii dumping of fields not yet implemented.");
@@ -249,7 +249,7 @@ void dumpField(T)(ref T field, const string name, const uint time = 0) if (isFie
     dumpFieldHDF5(field, name, time);
     break;
   }
-  Timers.io.stop();
+  stopTimer("io");
 }
 
 /**
@@ -262,7 +262,7 @@ void dumpField(T)(ref T field, const string name, const uint time = 0) if (isFie
      fileName = name of the file
 */
 void readField(T)(ref T field, const string fileName) if (isField!T) {
-  Timers.io.start();
+  startTimer("io");
   final switch(outputFormat) {
   case FileFormat.Ascii:
     assert(0, "Ascii reading of fields not yet implemented.");
@@ -270,6 +270,6 @@ void readField(T)(ref T field, const string fileName) if (isField!T) {
     readFieldHDF5(field, fileName);
     break;
   }
-  Timers.io.stop();
+  stopTimer("io");
 }
 
