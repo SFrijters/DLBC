@@ -1,7 +1,5 @@
 DMD=dmd
 RDMD=rdmd
-LMPICH=/usr/local/stow/mpich-3.1/lib64
-LHDF5=/usr/local/stow/hdf5-1.8.13-mpich-3.1/lib64/
 DOCFILES=src/main.d src/dlbc/*.d src/dlbc/elec/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d doc/*.ddoc
 DFILES=src/main.d src/dlbc/*.d src/dlbc/elec/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d src/unstd/unstd.o
 
@@ -21,40 +19,40 @@ src/unstd/unstd.o: src/unstd/*.d src/unstd/c/*.d src/unstd/memory/*.d
 	${DMD} src/unstd/*.d src/unstd/c/*.d src/unstd/memory/*.d -I/.src -c -ofsrc/unstd/unstd.o
 
 dlbc-d3q19-test: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d3q19-test ${COMMONFLAGS} ${TESTFLAGS}
+	${DMD} -L-lmpich -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d3q19-test ${COMMONFLAGS} ${TESTFLAGS}
 
 dlbc-d3q19: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d3q19 ${COMMONFLAGS}
+	${DMD} -L-lmpich -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d3q19 ${COMMONFLAGS}
 
 dlbc-d3q19-release: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d3q19-release ${COMMONFLAGS} ${RELEASEFLAGS}
+	${DMD} -L-lmpich -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d3q19-release ${COMMONFLAGS} ${RELEASEFLAGS}
 
 dlbc-d2q9-test: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d2q9-test ${COMMONFLAGS} ${TESTFLAGS} -version=D2Q9
+	${DMD} -L-lmpich -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d2q9-test ${COMMONFLAGS} ${TESTFLAGS} -version=D2Q9
 
 dlbc-d2q9: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d2q9 ${COMMONFLAGS} -version=D2Q9
+	${DMD} -L-lmpich -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d2q9 ${COMMONFLAGS} -version=D2Q9
 
 dlbc-d2q9-release: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d2q9-release ${COMMONFLAGS} ${RELEASEFLAGS} -version=D2Q9
+	${DMD} -L-lmpich -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d2q9-release ${COMMONFLAGS} ${RELEASEFLAGS} -version=D2Q9
 
 dlbc-d1q5-test: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q5-test ${COMMONFLAGS} ${TESTFLAGS} -version=D1Q5
+	${DMD} -L-lmpich -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q5-test ${COMMONFLAGS} ${TESTFLAGS} -version=D1Q5
 
 dlbc-d1q5: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q5 ${COMMONFLAGS} -version=D1Q5
+	${DMD} -L-lmpich -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q5 ${COMMONFLAGS} -version=D1Q5
 
 dlbc-d1q5-release: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q5-release ${COMMONFLAGS} ${RELEASEFLAGS} -version=D1Q5
+	${DMD} -L-lmpich -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q5-release ${COMMONFLAGS} ${RELEASEFLAGS} -version=D1Q5
 
 dlbc-d1q3-test: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q3-test ${COMMONFLAGS} ${TESTFLAGS} -version=D1Q3
+	${DMD} -L-lmpich -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q3-test ${COMMONFLAGS} ${TESTFLAGS} -version=D1Q3
 
 dlbc-d1q3: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q3 ${COMMONFLAGS} -version=D1Q3
+	${DMD} -L-lmpich -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q3 ${COMMONFLAGS} -version=D1Q3
 
 dlbc-d1q3-release: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
-	${DMD} -L-L${LMPICH} -L-lmpich -L-L${LHDF5} -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q3-release ${COMMONFLAGS} ${RELEASEFLAGS} -version=D1Q3
+	${DMD} -L-lmpich -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d1q3-release ${COMMONFLAGS} ${RELEASEFLAGS} -version=D1Q3
 
 test: clean clean-tests test-build test-unittest test-runnable
 
