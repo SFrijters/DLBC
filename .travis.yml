@@ -40,6 +40,8 @@ install:
   - h5dump -V
 
 script:
+  # Try dub build - this should start replacing the makefiles.
+  - dub build -b release
   # Run tests - split up the various testing sections to get timing for them separately
   - make test-build
   - make test-unittest
