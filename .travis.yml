@@ -30,7 +30,7 @@ install:
 
 script:
   # Run tests - split up the various testing sections to get timing for them separately
-  - make test-build
+  - ./tests/travis-ci/build-configurations.sh ${DC}
   - make test-unittest
   # This isn't set up for ldc builds yet...
   - make test-runnable
