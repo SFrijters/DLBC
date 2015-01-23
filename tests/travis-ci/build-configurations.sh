@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# WARNING: the first build is a release build; this will build the subpackages in release mode.
+# They will not be rebuilt for the test builds, and this hides some unittest errors.
+
 # Set compiler
 DC=$1
 
