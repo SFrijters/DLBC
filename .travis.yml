@@ -5,7 +5,7 @@ d:
   - ldc-0.15.1
 
 install:
-  - ./travis-ci/get-dependencies.sh
+  - ./tests/travis-ci/get-dependencies.sh
   # MPICH 3.1
   # - wget http://www.mpich.org/static/downloads/3.1/mpich-3.1.tar.gz
   # - tar -xf mpich-3.1.tar.gz
