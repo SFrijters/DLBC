@@ -7,4 +7,8 @@ output*/*
 *.h5
 d-tests/*
 dlbc-*
+.dub
+docs.json
+__dummy.html
+*.obj
 

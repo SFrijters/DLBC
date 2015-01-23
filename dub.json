@@ -1,0 +1,36 @@
+{
+    "name": "dlbc",
+    "description": "Lattice Boltzmann simulation package",
+    "homepage": "https://github.com/SFrijters/DLBC",
+    "authors": ["Stefan Frijters"],
+    "copyright": "Copyright © Stefan Frijters 2011-2015",
+    "license": "GPL-3.0",
+
+    "sourcePaths": ["src"],
+
+    "dependencies": {
+      "dlbc:unstandard": ">=0.0.1",
+      "dlbc:hdf5-d": ">=0.0.1",
+    },
+    "subPackages": [
+      "./unstandard/",
+      "./hdf5-d/"
+    ],
+
+    "libs": ["hdf5", "mpich", "dl"],
+    "preBuildCommands": ["./get-revision.sh > src/dlbc/revision.d"],
+
+    "configurations": [
+        { "name": "d3q19", "versions": ["D3Q19"], "targetType": "executable" },
+	{ "name": "d2q9", "versions": ["D2Q9"], "targetType": "executable" },
+	{ "name": "d1q5", "versions": ["D1Q5"], "targetType": "executable" },
+	{ "name": "d1q3", "versions": ["D1Q3"], "targetType": "executable" }
+    ],   
+
+    "buildTypes":
+    {
+        "release": { "buildOptions": ["debugInfo", "warningsAsErrors", "deprecationErrors", "optimize", "inline", "noBoundsCheck", "releaseMode"] },
+        "test": { "buildOptions": ["debugInfo", "warningsAsErrors", "deprecationErrors", "unittests", "debugMode", "coverage" ] },
+
+    },
+}

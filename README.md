@@ -26,6 +26,16 @@ Documentation is generated using DDoc and Jakob Ovrum's [bootDoc](http://github.
 
 An example of an installation can be found in the Travis CI file. This does not include plotting / documentation requirements.
 
+## Installation
+
+DLBC can be compiled using [DUB](http://code.dlang.org/download).
+
+     dub build -b release -c <configuration>
+
+where <configuration> specifies the lattice connectivity and is one of d3q19 (default), d2q9, d1q5 or d1q3.
+
+The Makefile will be deprecated and removed in good time.
+
 ## Future extensions
 
 The first priority is currently to validate the Shan-Chen multicomponent model implementation. After this, more extensive documentation and a user guide will be added. As soon as the v2.066.0 compiler frontend is available for more compilers, there will be an attempt to optimize performance.
