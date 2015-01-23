@@ -32,9 +32,9 @@ DLBC can be compiled using [DUB](http://code.dlang.org/download).
 
      dub build -b release -c <configuration>
 
-where <configuration> specifies the lattice connectivity and is one of d3q19 (default), d2q9, d1q5 or d1q3.
+where &lt;configuration&gt; specifies the lattice connectivity and is one of d3q19 (default), d2q9, d1q5 or d1q3.
 
-The Makefile will be deprecated and removed in good time.
+This will allow to easily select the desired compiler; the old Makefile uses dmd only. The Makefile will be deprecated and removed in good time.
 
 ## Future extensions
 

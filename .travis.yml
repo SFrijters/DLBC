@@ -32,16 +32,8 @@ script:
   # Run tests - split up the various testing sections to get timing for them separately
   - make test-build
   - make test-unittest
+  # This isn't set up for ldc builds yet...
   - make test-runnable
-  # Try dub builds - this should start replacing the makefiles.
-  - dub build -b release -c d3q19 --compiler=${DC}
-  - mv dlbc dlbc-d3q19-release
-  - dub build -b release -c d2q9 --compiler=${DC}
-  - mv dlbc dlbc-d2q9-release
-  - dub build -b release -c d1q5 --compiler=${DC}
-  - mv dlbc dlbc-d1q5-release
-  - dub build -b release -c d1q3 --compiler=${DC}
-  - mv dlbc dlbc-d1q3-release
 
 # Until the output files of the dub builds are set correctly,
 # don't expect the ldc tests to find the right executables...

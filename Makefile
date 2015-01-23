@@ -56,7 +56,9 @@ dlbc-d1q3-release: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
 
 test: clean clean-tests test-build test-unittest test-runnable
 
-test-build: dlbc-d3q19-test dlbc-d3q19 dlbc-d3q19-release dlbc-d2q9-test dlbc-d2q9 dlbc-d2q9-release dlbc-d1q5-test dlbc-d1q5 dlbc-d1q5-release dlbc-d1q3-test dlbc-d1q3 dlbc-d1q3-release
+test-build:
+	./tests/travis-ci/build-configurations.sh dmd
+	./tests/travis-ci/build-configurations.sh ldc2
 
 test-unittest:
 	./dlbc-d3q19-test --version
@@ -87,10 +89,16 @@ clean:
 	rm -f src/dlbc/lb/*.o
 	rm -f src/dlbc/lb/*~
 	rm -f src/unstd/*.o
+	rm -f unstandard/*.a
+	rm -rf unstandard/.dub
+	rm -f hdf5-d/*.a
+	rm -rf hdf5-d/.dub
 	rm -f dlbc-*
 	rm -f dlbc-*.o
 	rm -f *.lst
 	rm -f *.log
+	rm -f *~
+	rm -rf .dub
 
 clean-tests:
 	cd tests ; ./clean-tests.sh

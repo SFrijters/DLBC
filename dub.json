@@ -18,14 +18,14 @@
     ],
 
     "libs": ["hdf5", "mpich", "dl"],
-    "preBuildCommands": ["./get-revision.sh > src/dlbc/revision.d"],
+    "preGenerateCommands": ["./get-revision.sh > src/dlbc/revision.d"],
 
     "configurations": [
-        { "name": "d3q19", "versions": ["D3Q19"], "targetType": "executable" },
-	{ "name": "d2q9", "versions": ["D2Q9"], "targetType": "executable" },
-	{ "name": "d1q5", "versions": ["D1Q5"], "targetType": "executable" },
-	{ "name": "d1q3", "versions": ["D1Q3"], "targetType": "executable" }
-    ],   
+        { "name": "d3q19", "versions": ["D3Q19"], "targetType": "executable", "targetName": "dlbc-d3q19" },
+        { "name": "d2q9", "versions": ["D2Q9"], "targetType": "executable", "targetName": "dlbc-d2q9" },
+        { "name": "d1q5", "versions": ["D1Q5"], "targetType": "executable", "targetName": "dlbc-d1q5" },
+        { "name": "d1q3", "versions": ["D1Q3"], "targetType": "executable", "targetName": "dlbc-d1q3" }
+    ],
 
     "buildTypes":
     {
