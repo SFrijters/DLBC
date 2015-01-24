@@ -61,14 +61,7 @@ test-build:
 	./tests/travis-ci/build-configurations.sh ldc2
 
 test-unittest:
-	./dlbc-d3q19-test --version
-	grep -e 'covered$$' *.lst | tee cov-d3q19.log
-	./dlbc-d2q9-test --version
-	grep -e 'covered$$' *.lst | tee cov-d2q9.log
-	./dlbc-d1q5-test --version
-	grep -e 'covered$$' *.lst | tee cov-d1q5.log
-	./dlbc-d1q3-test --version
-	grep -e 'covered$$' *.lst | tee cov-d1q3.log
+	./tests/travis-ci/unittest-coverage.sh dmd
 
 test-runnable:
 	cd tests ; ./run-tests.sh

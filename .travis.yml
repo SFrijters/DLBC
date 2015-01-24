@@ -33,10 +33,8 @@ install:
 
 script:
   # Run tests - split up the various testing sections to get timing for them separately
-  - dub test -b unittest-cov --compiler ${DC}
-  - dub run doveralls --compiler ${DC}
   - ./tests/travis-ci/build-configurations.sh ${DC}
-  - make test-unittest
+  - ./tests/travis-ci/unittest-coverage.sh ${DC} TRAVIS
   # This isn't set up for ldc builds yet...
   - make test-runnable
 
