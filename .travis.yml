@@ -28,8 +28,13 @@ install:
   # Check HDF5 version
   - h5dump -V
 
+  # Doveralls; coveralls.io for D
+  - dub fetch doveralls
+
 script:
   # Run tests - split up the various testing sections to get timing for them separately
+  - dub test -b unittest-cov --compiler ${DC}
+  - dub run doveralls --compiler ${DC}
   - ./tests/travis-ci/build-configurations.sh ${DC}
   - make test-unittest
   # This isn't set up for ldc builds yet...

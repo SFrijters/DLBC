@@ -1,5 +1,5 @@
-D Lattice Boltzmann Code [![Build Status](https://travis-ci.org/SFrijters/DLBC.svg?branch=master)](https://travis-ci.org/SFrijters/DLBC)
-===
+## D Lattice Boltzmann Code
+[![Build Status](https://travis-ci.org/SFrijters/DLBC.svg?branch=master)](https://travis-ci.org/SFrijters/DLBC) [![Coverage Status](https://coveralls.io/repos/SFrijters/DLBC/badge.svg)](https://coveralls.io/r/SFrijters/DLBC)
 
 This code is an implementation of the [lattice Boltzmann method](http://en.wikipedia.org/wiki/Lattice_Boltzmann_methods) for simulating fluid dynamics, using the D programming language. The goal is to prove the suitability of the D programming language for scientific computing / HPC and provide a well-tested and well-documented benchmark code. Parallelization has been implemented through the use of MPI, and parallel I/O is handled through HDF5.
 
@@ -9,7 +9,7 @@ Multidimensional arrays have been added using a fork of Denis Shelomovskij's [Un
 
 Documentation is generated using DDoc and Jakob Ovrum's [bootDoc](http://github.com/JakobOvrum/bootDoc).
 
-## Features
+### Features
 
 - Fully parallelized code using MPI.
 - Generic code that can use D3Q19, D2Q9, D1Q5 or D1Q3 lattices (other connectivities can be easily added when required).
@@ -17,7 +17,7 @@ Documentation is generated using DDoc and Jakob Ovrum's [bootDoc](http://github.
 - Static geometries with bounce-back boundary conditions.
 - Effects of electric charges / fields, using a SOR solver for the Poisson equation.
 
-## Requirements
+### Requirements
 
 - To build the code a D compiler is required (obviously). Because of the multidimensional array syntax, v2.066.0 or later is required. This code has so far only been tested with DMD; LDC and GDC will follow, including performance tests, as soon as all compilers have reached the 2.066.0 frontend.
 - To run the simulation code, the MPICH 3.1 and HDF5 1.8.13 libraries are required.
@@ -26,7 +26,7 @@ Documentation is generated using DDoc and Jakob Ovrum's [bootDoc](http://github.
 
 An example of an installation can be found in the Travis CI file. This does not include plotting / documentation requirements.
 
-## Installation
+### Installation
 
 DLBC can be compiled using [DUB](http://code.dlang.org/download).
 
@@ -36,15 +36,15 @@ where &lt;configuration&gt; specifies the lattice connectivity and is one of d3q
 
 This will allow to easily select the desired compiler; the old Makefile uses dmd only. The Makefile will be deprecated and removed in good time.
 
-## Future extensions
+### Future extensions
 
 The first priority is currently to validate the Shan-Chen multicomponent model implementation. After this, more extensive documentation and a user guide will be added. As soon as the v2.066.0 compiler frontend is available for more compilers, there will be an attempt to optimize performance.
 
-## Pull requests
+### Pull requests
 
 Are welcomed!
 
-## License
+### License
 
 The simulation code is made available under the [GPL-3.0 license](http://www.gnu.org/licenses/gpl-3.0.txt). The submodules are subject to their own licenses.
 
