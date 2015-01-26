@@ -15,8 +15,8 @@ doc: src/dlbc/revision.d ${DOCFILES}
 src/dlbc/revision.d: .git/HEAD .git/index
 	./get-revision.sh > $@
 
-src/unstd/unstd.o: src/unstd/*.d src/unstd/c/*.d src/unstd/memory/*.d
-	${DMD} src/unstd/*.d src/unstd/c/*.d src/unstd/memory/*.d -I/.src -c -ofsrc/unstd/unstd.o
+src/unstd/unstd.o: src/unstd/*.d
+	${DMD} src/unstd/*.d -I/.src -c -ofsrc/unstd/unstd.o
 
 dlbc-d3q19-test: src/dlbc/revision.d src/unstd/unstd.o ${DFILES}
 	${DMD} -L-lmpich -L-lhdf5 -L-ldl -I./src ${DFILES} -ofdlbc-d3q19-test ${COMMONFLAGS} ${TESTFLAGS}
