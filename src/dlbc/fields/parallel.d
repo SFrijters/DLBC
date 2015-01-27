@@ -36,6 +36,7 @@ import unstd.multidimarray;
 
    Params:
      field = field to exchange the data of
+     M = MPI parameter struct
      haloSize = width of the halo to be exchanged; this can be smaller than
                 the halo that is held in memory
 

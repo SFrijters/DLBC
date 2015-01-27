@@ -150,6 +150,7 @@ struct MpiParams(uint d) {
     Initializes barebones MPI communicator.
 
     Params:
+      M = MPI parameter struct
       args = command line arguments
 */
 void startMpi(T)(ref T M, const string[] args) if ( isMpiParams!T ) {

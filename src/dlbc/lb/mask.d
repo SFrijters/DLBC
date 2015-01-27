@@ -199,6 +199,7 @@ void initTube(T)(ref T field, in Axis initAxis) /** @safe nothrow @nogc **/ if (
    Params:
      field = (mask) field to initialise
      initAxis = walls are placed perpendicular to this axis
+     wallOffset = distance from the side of the domain at which walls are placed
 
    Todo: add function attributes once opApply can support it.
 */

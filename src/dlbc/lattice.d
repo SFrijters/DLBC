@@ -39,7 +39,7 @@ enum Exchange;
    The lattice struct holds various fields, and information on the shape of these fields.
 
    Params:
-     dim = dimensionality of the lattice
+     conn = connectivity of the lattice
 */
 struct Lattice(alias conn) {
   alias lbconn = conn;
