@@ -35,8 +35,7 @@ script:
   # Run tests - split up the various testing sections to get timing for them separately
   - ./tests/travis-ci/build-configurations.sh ${DC}
   - ./tests/travis-ci/unittest-coverage.sh ${DC} TRAVIS
-  # Move into this directory, or the script will start to pick up other json files
-  - cd tests/runnable ; ./run-tests.py --dub-compiler ${DC} ; cd ../..
+  - ./tests/runnable/run-tests.py --dub-compiler ${DC}
   # This isn't set up for ldc builds yet...
   - make test-runnable
 

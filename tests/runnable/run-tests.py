@@ -60,7 +60,7 @@ def logFatal(str, returncode):
     exit(returncode)
 
 def getTargetPath(options, configuration):
-    return os.path.abspath(os.path.join(options.dlbc_root, "dlbc-" + configuration + "-" + options.dub_build + "-" + options.dub_compiler))
+    return os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), options.dlbc_root, "dlbc-" + configuration + "-" + options.dub_build + "-" + options.dub_compiler))
 
 def dubBuild(options, configuration):
     logNotification("Creating executable...")
@@ -73,17 +73,18 @@ def dubBuild(options, configuration):
     logInformation("Building executable")
     command = ["dub", "build", "--compiler", options.dub_compiler, "-b", options.dub_build, "-c", configuration]
     command.append("--force")
+    dlbcRoot = os.path.join(os.path.dirname(os.path.realpath(__file__)), options.dlbc_root)
     if ( verbosity >= 5 ):
         logDebug("Executing '" + " ".join(command) + "'")
-        p = subprocess.Popen(command, cwd=options.dlbc_root)
+        p = subprocess.Popen(command, cwd=dlbcRoot)
     else:
         devnull = open('/dev/null', 'w')
         logDebug("Executing '" + " ".join(command) + "'")
-        p = subprocess.Popen(command, cwd=options.dlbc_root, stdout=devnull)
+        p = subprocess.Popen(command, cwd=dlbcRoot, stdout=devnull)
     p.communicate()
     if ( p.returncode != 0 ):
         logFatal("Dub build command returned %d" % p.returncode, p.returncode)
-    p = subprocess.call(["mv", os.path.join(options.dlbc_root, "dlbc-" + configuration), targetPath ])
+    p = subprocess.call(["mv", os.path.join(dlbcRoot, "dlbc-" + configuration), targetPath ])
 
 def getName(data, fn):
     try:
@@ -181,14 +182,14 @@ def makeCompareMatrix(compare, parameters, np):
         c["files"] = c["files"].replace("%np%", str(np))
     return compare
 
-def compareTest(compare, root):
+def compareTest(compare, testRoot):
     import glob
     logNotification("Comparing test result to reference data")
     for c in compare["comparison"]:
         if ( c["type"] == "h5diff" ):
             for d in compare["data"]:
-                g1 = glob.glob(os.path.join(root, "output", c["files"].replace("%data%", d)))[0]
-                g2 = glob.glob(os.path.join(root, "reference-data", c["files"].replace("%data%", d)))[0]
+                g1 = glob.glob(os.path.join(testRoot, "output", c["files"].replace("%data%", d)))[0]
+                g2 = glob.glob(os.path.join(testRoot, "reference-data", c["files"].replace("%data%", d)))[0]
                 command = ["h5diff", g1, g2, "/OutArray"]
                 logDebug("Executing '" + " ".join(command) + "'")
                 p = subprocess.Popen(command)
@@ -201,24 +202,24 @@ def compareTest(compare, root):
         for s in compare["shell"]:
             command = [s]
             logDebug("Executing '" + " ".join(command) + "'")
-            p = subprocess.Popen(command, cwd=root)
+            p = subprocess.Popen(command, cwd=testRoot)
             p.communicate()
             if ( p.returncode != 0 ):
                 logFatal("h5diff returned %d" % p.returncode, p.returncode)
     except KeyError:
         logDebug("No additional shell commands specified for testing")
 
-def runTest(command, root):
+def runTest(command, testRoot):
     import time
     logDebug("Executing '" + " ".join(command) + "'")
     t0 = time.time()
-    p = subprocess.Popen(command, cwd=root)
+    p = subprocess.Popen(command, cwd=testRoot)
     p.communicate()
     if ( p.returncode != 0 ):
         logFatal("DLBC returned %d" % p.returncode, p.returncode)
     logNotification("  Took %f seconds" % (time.time() - t0))
 
-def runTests(options, root, configuration, inputFile, np, parameters, compare):
+def runTests(options, testRoot, configuration, inputFile, np, parameters, compare):
     logNotification("Running tests...")
     exePath = getTargetPath(options, configuration )
     if ( parameters ):
@@ -237,20 +238,20 @@ def runTests(options, root, configuration, inputFile, np, parameters, compare):
             command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
             command = command + makeParameterCommand(m)
             makeCompareMatrix(compare, m, np)
-            runTest(command, root)
-            compareTest(compare, root)
+            runTest(command, testRoot)
+            compareTest(compare, testRoot)
             if ( options.only_first ): return
     else:
         logNotification("  Running parameter set 1 of 1")
         command = [ "mpirun", "-np", "1", exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
-        runTest(command, root)
-        compareTest(compare, root)
+        runTest(command, testRoot)
+        compareTest(compare, testRoot)
 
-def cleanTest(root, clean):
+def cleanTest(testRoot, clean):
     logNotification("Cleaning test...")
     import shutil
     for c in clean:
-        f = os.path.join(root, c)
+        f = os.path.join(testRoot, c)
         if ( os.path.exists(f) ):
             logDebug("  Removing '%s'" % f )
             shutil.rmtree(f)
@@ -264,8 +265,8 @@ def describeTest(data, fn, n, i, withLines=False):
     logNotification(textwrap.fill(getDescription(data, fn),initial_indent=" "*6,subsequent_indent=" "*6, width=80))
     logNotification("")
 
-def processTest(root, filename, options, n, i):
-    fn = os.path.join(root, filename)
+def processTest(testRoot, filename, options, n, i):
+    fn = os.path.join(testRoot, filename)
     jsonData = open(fn)
     try:
         data = json.load(jsonData)
@@ -283,19 +284,19 @@ def processTest(root, filename, options, n, i):
         return
 
     describeTest(data, fn, n, i, True)
-    cleanTest(root, getClean(data, fn))
+    cleanTest(testRoot, getClean(data, fn))
     if ( options.clean ):
         return
     dubBuild(options, getConfiguration(data, fn))
-    runTests(options, root, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn))
+    runTests(options, testRoot, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn))
     jsonData.close()
 
 def escapeLaTeX(str):
     str = str.replace("-", "\-")
     return str
 
-def generateLaTeXforTest(root, filename):
-    fn = os.path.join(root, filename)
+def generateLaTeXforTest(testRoot, filename):
+    fn = os.path.join(testRoot, filename)
     jsonData = open(fn)
     try:
         data = json.load(jsonData)
@@ -318,9 +319,9 @@ def generateLaTeXforTest(root, filename):
 
 def generateLaTeX():
     matches = []
-    for root, dirnames, filenames in os.walk("."):
+    for testRoot, dirnames, filenames in os.walk(os.path.dirname(os.path.realpath(__file__))):
         for filename in fnmatch.filter(filenames, '*.json'):
-            matches.append([root, filename])
+            matches.append([testRoot, filename])
 
     for m in matches:
         generateLaTeXforTest(m[0], m[1])
@@ -363,9 +364,9 @@ def main():
         return
 
     matches = []
-    for root, dirnames, filenames in os.walk(options.only_below):
+    for testRoot, dirnames, filenames in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), options.only_below)):
         for filename in fnmatch.filter(filenames, '*.json'):
-            matches.append([root, filename])
+            matches.append([testRoot, filename])
 
     for i, m in enumerate(matches):
         processTest(m[0], m[1], options, len(matches), i)
