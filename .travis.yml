@@ -36,7 +36,7 @@ script:
   - ./tests/travis-ci/build-configurations.sh ${DC}
   - ./tests/travis-ci/unittest-coverage.sh ${DC} TRAVIS
   # Move into this directory, or the script will start to pick up other json files
-  - cd tests/runnable ; ./run-tests.py --compiler ${DC}
+  - cd tests/runnable ; ./run-tests.py --dub-compiler ${DC} ; cd ../..
   # This isn't set up for ldc builds yet...
   - make test-runnable
 

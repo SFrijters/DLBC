@@ -303,8 +303,8 @@ def generateLaTeXforTest(root, filename):
     description = getDescription(data, fn)
     tags = getTags(data, fn)
     latex = getLatex(data, fn)
-    
-    print("\\section{%s}\n" % name)
+
+    print("\\subsubsection{%s}\n" % name)
     print("\\textbf{Description:} %s\\\\" % description)
     print("\\textbf{Location:} \\textsc{%s}\\\\" % fn)
     print("\\textbf{Tags:} %s\\\\" % ", ".join(sorted(tags)))
@@ -330,19 +330,23 @@ def main():
         print( "\nImportError while loading argparse.")
         exit(-1)
 
+    verbosityChoices = ["Debug", "Information", "Notification", "Warning", "Error", "Fatal", "Off"]
+    dubBuildChoices = ["release", "test"]
+    dubCompilerChoices = ["dmd", "gdc", "ldc2"]
+
     parser = argparse.ArgumentParser(description="Helper script to execute the DLBC runnable test suite")
-    parser.add_argument("-v", choices=["Debug", "Information", "Notification", "Warning", "Error", "Fatal", "Off"], default="Notification", help="Verbosity level of this script")
-    parser.add_argument("--build", choices=["release", "test"], default="release", help="Dub build type" )
-    parser.add_argument("--clean", action="store_true", help="Only clean tests" )
-    parser.add_argument("--compiler", default="dmd")
-    parser.add_argument("--describe", action="store_true", help="Show test names only")
-    parser.add_argument("--dlbc-root", default="../..", help="Relative path to DLBC root")
-    parser.add_argument("--dlbc-verbosity", choices=["Debug", "Information", "Notification", "Warning", "Error", "Fatal", "Off"], default="Fatal", help="Verbosity level to be passed to DLBC")
-    parser.add_argument("--force", action="store_true", help="Force dub build")
-    parser.add_argument("--latex", action="store_true", help="Only write LaTeX output to stdout.")
-    parser.add_argument("--only-below", default=".", help="Execute only tests below this path")
-    parser.add_argument("--only-first", action="store_true", help="When a parameter matrix is defined, test only the first combination")
-    parser.add_argument("--only-tag", help="Only consider tests which have this tag")
+    parser.add_argument("-v", choices=verbosityChoices, default="Notification", help="verbosity level of this script [%s]" % ", ".join(verbosityChoices), metavar="")
+    parser.add_argument("--clean", action="store_true", help="only clean tests" )
+    parser.add_argument("--describe", action="store_true", help="only show test descriptions")
+    parser.add_argument("--dlbc-root", default="../..", help="relative path to DLBC root", metavar="")
+    parser.add_argument("--dlbc-verbosity", choices=verbosityChoices, default="Fatal", help="verbosity level to be passed to DLBC [%s]" % ", ".join(verbosityChoices), metavar="")
+    parser.add_argument("--dub-build", choices=["release", "test"], default="release", help="build type to be passed to Dub [%s]" % ", ".join(dubBuildChoices), metavar="" )
+    parser.add_argument("--dub-compiler", choices=dubCompilerChoices, default="dmd", help="compiler to be passed to Dub [%s]" % ", ".join(dubCompilerChoices), metavar="")
+    parser.add_argument("--force", action="store_true", help="force dub build")
+    parser.add_argument("--latex", action="store_true", help="only write LaTeX output to stdout")
+    parser.add_argument("--only-below", default=".", help="only execute tests below this path", metavar="")
+    parser.add_argument("--only-first", action="store_true", help="only the first combination of parameters whenever a parameter matrix is defined")
+    parser.add_argument("--only-tag", help="only consider tests which have this tag", metavar="")
 
     options = parser.parse_args()
 
