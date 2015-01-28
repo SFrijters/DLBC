@@ -74,9 +74,11 @@ def dubBuild(options, configuration):
     command = ["dub", "build", "--compiler", options.compiler, "-b", options.build, "-c", configuration]
     command.append("--force")
     if ( verbosity >= 5 ):
+        logDebug("Executing '" + " ".join(command) + "'")
         p = subprocess.Popen(command, cwd=options.dlbc_root)
     else:
         devnull = open('/dev/null', 'w')
+        logDebug("Executing '" + " ".join(command) + "'")
         p = subprocess.Popen(command, cwd=options.dlbc_root, stdout=devnull)
     p.communicate()
     if ( p.returncode != 0 ):
@@ -114,6 +116,12 @@ def getNP(data, fn):
         logDebug("JSON file %s lacks an 'np' parameter. Set to 1 by default." % fn)
         return 1
 
+def getNC(map):
+    for p in map:
+        if ( p[0] == "parallel.nc" ):
+            return p[1]
+    return "[0,0]"
+
 def getParameters(data, fn):
     try:
         return data["parameters"]
@@ -123,13 +131,15 @@ def getParameters(data, fn):
 
 def mapParameterMatrix(parameters):
     tuples = []
+    n = 1
     for p in parameters:
         values = []
         for v in p["values"]:
             values.append((p["parameter"],v))
+        n *= len(values)
         tuples.append(values)
     import itertools
-    return itertools.product(*tuples)
+    return itertools.product(*tuples), n
 
 def makeParameterCommand(tuple):
     command = []
@@ -139,28 +149,37 @@ def makeParameterCommand(tuple):
     return command
 
 def runTest(command, root):
+    logDebug("Executing '" + " ".join(command) + "'")
     p = subprocess.Popen(command, cwd=root)
     p.communicate()
     if ( p.returncode != 0 ):
         logFatal("DLBC returned %d" % p.returncode, p.returncode)
 
-
 def runTests(options, root, configuration, inputFile, np, parameters):
     logNotification("Running tests...")
     exePath = getTargetPath(options, configuration )
     if ( parameters ):
-        map = mapParameterMatrix(parameters)
-        for m in map:
+        map, n = mapParameterMatrix(parameters)
+        for i, m in enumerate(map):
+            # Get the parallel.nc parameter from the parameter set, if it's included
+            nc = getNC(m)
+            # If it is, set np to the product of its values
+            if ( nc != "[0,0]" ):
+                np = reduce(lambda x, y: int(x) * int(y), nc[1:-1].split(","), 1)
+            logNotification("  Running parameter set %d of %d" % (i+1, n))
             command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
             command = command + makeParameterCommand(m)
             runTest(command, root)
     else:
-        command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
+        logNotification("  Running parameter set 1 of 1")
+        command = [ "mpirun", "-np", "1", exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
         runTest(command, root)
 
-def describeTest(data, fn, n, i):
+def describeTest(data, fn, n, i, withLines=False):
     import textwrap
     istr = "%2d " % (i+1)
+    if ( withLines ):
+        logNotification("="*80)
     logNotification(istr + getName(data, fn) + " (" + fn + "):" )
     logNotification(textwrap.fill(getDescription(data, fn),initial_indent="     ",subsequent_indent="     ", width=80))
 
@@ -172,10 +191,11 @@ def processTest(root, filename, options, n, i):
     except ValueError:
         logFatal("JSON file %s seems to be broken. Please notify the test designer." % fn, -1)
 
-    describeTest(data, fn, n, i)
     if ( options.describe ):
+        describeTest(data, fn, n, i)
         return
 
+    describeTest(data, fn, n, i, True)
     dubBuild(options, getConfiguration(data, fn))
     runTests(options, root, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn))
     jsonData.close()
