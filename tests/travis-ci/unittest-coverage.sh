@@ -14,7 +14,7 @@ fi
 
 if [ "${DC}" == "dmd" ]; then
     for c in d3q19 d2q9 d1q5 d1q3; do
-	./dlbc-${c}-test --version
+	./dlbc-${c}-test-${DC} --version
 	grep -e 'covered$' *.lst | tee cov-${c}.log
     done
 
