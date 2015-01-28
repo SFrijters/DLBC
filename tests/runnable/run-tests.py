@@ -116,6 +116,12 @@ def getNP(data, fn):
         logDebug("JSON file %s lacks an 'np' parameter. Set to 1 by default." % fn)
         return 1
 
+def getClean(data, fn):
+    try:
+        return data["clean"]
+    except KeyError:
+        logFatal("JSON file %s lacks a 'clean' parameter. Please notify the test designer." % fn, -1)
+
 def getNC(map):
     for p in map:
         if ( p[0] == "parallel.nc" ):
@@ -180,6 +186,15 @@ def runTests(options, root, configuration, inputFile, np, parameters):
         command = [ "mpirun", "-np", "1", exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
         runTest(command, root)
 
+def cleanTest(root, clean):
+    logNotification("Cleaning tests...")
+    import shutil
+    for c in clean:
+        f = os.path.join(root, c)
+        if ( os.path.exists(f) ):
+            logDebug("  Removing '%s'" % f )
+            shutil.rmtree(f)
+        
 def describeTest(data, fn, n, i, withLines=False):
     import textwrap
     istr = "%02d/%02d " % ((i+1),n)
@@ -202,6 +217,9 @@ def processTest(root, filename, options, n, i):
         return
 
     describeTest(data, fn, n, i, True)
+    if ( options.clean ):
+        cleanTest(root, getClean(data, fn))
+        return
     dubBuild(options, getConfiguration(data, fn))
     runTests(options, root, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn))
     jsonData.close()
@@ -217,13 +235,14 @@ def main():
     parser = argparse.ArgumentParser(description="Helper script to execute the DLBC runnable test suite")
     parser.add_argument("-v", choices=["Debug", "Information", "Notification", "Warning", "Error", "Fatal", "Off"], default="Notification", help="Verbosity level of this script")
     parser.add_argument("--build", choices=["release", "test"], default="release", help="Dub build type" )
+    parser.add_argument("--clean", action="store_true", help="Clean tests" )
     parser.add_argument("--compiler", default="dmd")
     parser.add_argument("--describe", action="store_true", help="Show test names only")
     parser.add_argument("--dlbc-root", default="../..", help="Relative path to DLBC root")
     parser.add_argument("--dlbc-verbosity", choices=["Debug", "Information", "Notification", "Warning", "Error", "Fatal", "Off"], default="Fatal", help="Verbosity level to be passed to DLBC")
     parser.add_argument("--first-only", action="store_true", help="When a parameter matrix is defined, test only the first combination")
     parser.add_argument("--force", action="store_true", help="Force dub build")
-    parser.add_argument("--test-single", nargs=1, help="Execute only the single specified test")
+    parser.add_argument("--test-only", nargs=1, help="Execute only the single specified test")
     parser.add_argument("positional", nargs="*")
 
     options = parser.parse_args()
@@ -233,9 +252,9 @@ def main():
     if ( options.describe ):
         verbosity = 5
 
-    if ( options.test_single ):
-        root = os.path.split(options.test_single[0])[0]
-        filename = os.path.split(options.test_single[0])[1]
+    if ( options.test_only ):
+        root = os.path.split(options.test_only[0])[0]
+        filename = os.path.split(options.test_only[0])[1]
         processTest(root, filename, options, 1, 1)
     else:
         matches = []
