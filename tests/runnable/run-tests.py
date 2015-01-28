@@ -154,6 +154,46 @@ def makeParameterCommand(tuple):
         command.append(p[0] + "=" + p[1])
     return command
 
+def getCompare(data, fn):
+    try:
+        return data["compare"]
+    except KeyError:
+        logFatal("JSON file %s lacks a 'compare' parameter. Please notify the test designer." % fn, -1)
+
+def makeCompareMatrix(compare, parameters, np):
+    for c in compare["comparison"]:
+        for p in parameters:
+            c["files"] = c["files"].replace("%"+p[0]+"%", p[1])
+        c["files"] = c["files"].replace("%np%", str(np))
+    return compare
+
+def compareTest(compare, root):
+    import glob
+    logNotification("Comparing test result to reference data")
+    for c in compare["comparison"]:
+        if ( c["type"] == "h5diff" ):
+            for d in compare["data"]:
+                g1 = glob.glob(os.path.join(root, "output", c["files"].replace("%data%", d)))[0]
+                g2 = glob.glob(os.path.join(root, "reference-data", c["files"].replace("%data%", d)))[0]
+                command = ["h5diff", g1, g2, "/OutArray"]
+                logDebug("Executing '" + " ".join(command) + "'")
+                p = subprocess.Popen(command)
+                p.communicate()
+                if ( p.returncode != 0 ):
+                    logFatal("h5diff returned %d" % p.returncode, p.returncode)
+        else:
+            logFatal("Unknown comparison type")
+    try:
+        for s in compare["shell"]:
+            command = [s]
+            logDebug("Executing '" + " ".join(command) + "'")
+            p = subprocess.Popen(command, cwd=root)
+            p.communicate()
+            if ( p.returncode != 0 ):
+                logFatal("h5diff returned %d" % p.returncode, p.returncode)
+    except KeyError:
+        logDebug("No additional shell commands specified for testing")
+        
 def runTest(command, root):
     logDebug("Executing '" + " ".join(command) + "'")
     p = subprocess.Popen(command, cwd=root)
@@ -161,7 +201,7 @@ def runTest(command, root):
     if ( p.returncode != 0 ):
         logFatal("DLBC returned %d" % p.returncode, p.returncode)
 
-def runTests(options, root, configuration, inputFile, np, parameters):
+def runTests(options, root, configuration, inputFile, np, parameters, compare):
     logNotification("Running tests...")
     exePath = getTargetPath(options, configuration )
     if ( parameters ):
@@ -179,15 +219,18 @@ def runTests(options, root, configuration, inputFile, np, parameters):
                 logNotification("  Running parameter set %d of %d" % (i+1, n))
             command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
             command = command + makeParameterCommand(m)
+            makeCompareMatrix(compare, m, np)
             runTest(command, root)
+            compareTest(compare, root)
             if ( options.first_only ): return
     else:
         logNotification("  Running parameter set 1 of 1")
         command = [ "mpirun", "-np", "1", exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
         runTest(command, root)
+        compareTest(compare, root)
 
 def cleanTest(root, clean):
-    logNotification("Cleaning tests...")
+    logNotification("Cleaning test...")
     import shutil
     for c in clean:
         f = os.path.join(root, c)
@@ -217,11 +260,11 @@ def processTest(root, filename, options, n, i):
         return
 
     describeTest(data, fn, n, i, True)
+    cleanTest(root, getClean(data, fn))
     if ( options.clean ):
-        cleanTest(root, getClean(data, fn))
         return
     dubBuild(options, getConfiguration(data, fn))
-    runTests(options, root, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn))
+    runTests(options, root, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn))
     jsonData.close()
 
 def main():
@@ -242,7 +285,7 @@ def main():
     parser.add_argument("--dlbc-verbosity", choices=["Debug", "Information", "Notification", "Warning", "Error", "Fatal", "Off"], default="Fatal", help="Verbosity level to be passed to DLBC")
     parser.add_argument("--first-only", action="store_true", help="When a parameter matrix is defined, test only the first combination")
     parser.add_argument("--force", action="store_true", help="Force dub build")
-    parser.add_argument("--test-only", nargs=1, help="Execute only the single specified test")
+    parser.add_argument("--test-only", default=".", help="Execute only tests below this path")
     parser.add_argument("positional", nargs="*")
 
     options = parser.parse_args()
@@ -252,18 +295,13 @@ def main():
     if ( options.describe ):
         verbosity = 5
 
-    if ( options.test_only ):
-        root = os.path.split(options.test_only[0])[0]
-        filename = os.path.split(options.test_only[0])[1]
-        processTest(root, filename, options, 1, 1)
-    else:
-        matches = []
-        for root, dirnames, filenames in os.walk('.'):
-            for filename in fnmatch.filter(filenames, '*.json'):
-                matches.append([root, filename])
+    matches = []
+    for root, dirnames, filenames in os.walk(options.test_only):
+        for filename in fnmatch.filter(filenames, '*.json'):
+            matches.append([root, filename])
 
-        for i, m in enumerate(matches):
-            processTest(m[0], m[1], options, len(matches), i)
+    for i, m in enumerate(matches):
+        processTest(m[0], m[1], options, len(matches), i)
 
 if __name__ == '__main__':
     main()

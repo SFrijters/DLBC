@@ -8,6 +8,11 @@
 	{ "parameter": "elec.init.chargeDensitySolid", "values": [ "0.003125", "0.03125", "0.3125" ] },
 	{ "parameter": "parallel.nc", "values": [ "[1,1]", "[2,1]" ] }
 	],
-	"clean": [ "output" ]
+	"clean": [ "output" ],
+	"compare": {
+	  "data": ["mask", "elChargeN", "elChargeP", "elPot", "elDiel", "elField" ],
+	  "comparison": [ { "type": "h5diff", "files": "sigma%elec.init.chargeDensitySolid%-np%np%-%elec.poisson.solver%/%data%-diffusive-flux-*-t00000000.h5" }
+	  ]
+}
 }
 
