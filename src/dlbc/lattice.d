@@ -125,6 +125,8 @@ struct Lattice(alias conn) {
   */
   BaseElementType!(typeof(fluids)) advection;
 
+  //BaseElementType!(typeof(fluids))[] advectionArr;
+
   /**
      Density of positive ions (used by elec only).
   */
@@ -189,6 +191,7 @@ struct Lattice(alias conn) {
 
     // Determine number of fluid arrays
     fluids.length = components;
+    //advectionArr.length = components;
     force.length = components;
     density.length = components;
 
@@ -196,6 +199,9 @@ struct Lattice(alias conn) {
     foreach(ref e; fluids ) {
       e = typeof(e)(lengths);
     }
+    // foreach(ref e; advectionArr ) {
+    //   e = typeof(e)(lengths);
+    // }
     foreach(ref e; force ) {
       e = typeof(e)(lengths);
     }

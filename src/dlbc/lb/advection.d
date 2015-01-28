@@ -70,6 +70,53 @@ void advectField(T, U)(ref T field, in ref U mask, ref T tempField) if ( isPopul
   stopTimer("main.advection");
 }
 
+/++
+import dlbc.lattice;
+void advectLattice(T)(ref T L) if ( isLattice!T ) {
+  import std.algorithm: swap;
+
+  alias conn = L.lbconn;
+
+  if ( L.fluids.length < 1 ) return;
+
+  startTimer("main.advection");
+
+  immutable cv = conn.velocities;
+  assert(L.fluids.length == L.advectionArr.length);
+  foreach(immutable p, ref dummy; L.advectionArr[0].arr) {
+    if ( p.isOnEdge!conn(L.advectionArr[0].lengthsH) ) continue;
+    if ( isAdvectable(L.mask[p]) ) {
+      foreach(immutable vq; Iota!(0, conn.q) ) {
+        conn.vel_t nb;
+        foreach(immutable vd; Iota!(0, conn.d) ) {
+          nb[vd] = p[vd] - cv[vq][vd];
+        }
+        if ( isBounceBack(L.mask[nb]) ) {
+	  foreach(immutable i; 0..L.fluids.length) {
+	    L.advectionArr[i][p][vq] = L.fluids[i][p][conn.bounce[vq]];
+	  }
+        }
+        else {
+	  foreach(immutable i; 0..L.fluids.length) {
+	    L.advectionArr[i][p][vq] = L.fluids[i][nb][vq];
+	  }
+        }
+      }
+    }
+    else {
+      foreach(immutable i; 0..L.fluids.length) {
+	L.advectionArr[i][p] = L.fluids[i][p];
+      }
+    }
+  }
+  foreach(immutable i; 0..L.fluids.length) {
+    swap(L.fluids[i], L.advectionArr[i]);
+  }
+
+  stopTimer("main.advection");
+}
+++/
+
 bool isOnEdge(alias conn)(in ptrdiff_t[conn.d] p, in size_t[conn.d] lengthsH) @safe nothrow pure @nogc {
   import dlbc.range: Iota;
   foreach(immutable i; Iota!(0, conn.d) ) {

@@ -141,6 +141,7 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
 
     L.exchangeHalo();
     L.markDensitiesAsInvalid(); // advection will invalidate
+    //L.advectLattice();
     foreach(ref e; L.fluids) {
       e.advectField(L.mask, L.advection);
     }
