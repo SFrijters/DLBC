@@ -41,6 +41,14 @@ version(unittest) {
 auto density(T)(in ref T population) @safe pure nothrow @nogc {
   import std.algorithm;
   return sum(population[]);
+  /++
+  import dlbc.range;
+  BaseElementType!T sum = 0.0;
+  foreach(immutable vq; Iota!(0,LengthOf!T) ) {
+    sum += population[vq];
+  }
+  return sum;
+  ++/
 }
 
 unittest {
@@ -310,7 +318,6 @@ auto pressure(alias conn, T)(in ref T[] density) {
 
 /// Ditto
 private auto pressurePsi(PsiForm form, alias conn, T)(in ref T[] density) {
-  import std.algorithm;
   import dlbc.lb.force;
   double pressure = 0.0;
   foreach(immutable i, d1; density) {
