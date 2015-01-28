@@ -1,0 +1,6 @@
+{
+	"name": "bdist2-3d",
+	"description": "Comparison of results with LB3D, using the BDist2 equilibrium distribution function",
+	"configuration": "d3q19",
+	"input-file": "bdist2-3d.in"
+}

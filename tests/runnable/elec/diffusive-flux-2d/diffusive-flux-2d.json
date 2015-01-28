@@ -1,0 +1,12 @@
+{
+	"name": "diffusive-flux-2d",
+	"description": "Diffusive flux of charges, in 2d.",
+	"configuration": "d2q9",
+	"input-file": "diffusive-flux-2d.in",
+	"parameters": [
+	{ "parameter": "elec.poisson.solver", "values": [ "SOR" ] },
+	{ "parameter": "elec.init.chargeDensitySolid", "values": [ "0.003125", "0.03125", "0.3125" ] },
+	{ "parameter": "parallel.nc", "values": [ "[1,1]", "[2,1]" ] }
+	]
+}
+
