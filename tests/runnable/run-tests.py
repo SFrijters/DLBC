@@ -60,7 +60,7 @@ def logFatal(str, returncode):
     exit(returncode)
 
 def getTargetPath(options, configuration):
-    return os.path.join(options.dlbc_root, "dlbc-" + configuration + "-" + options.build)
+    return os.path.abspath(os.path.join(options.dlbc_root, "dlbc-" + configuration + "-" + options.build))
 
 def dubBuild(options, configuration):
     logNotification("Creating executable...")
@@ -107,14 +107,56 @@ def getInputFile(data, fn):
     except KeyError:
         logFatal("JSON file %s lacks a path to an input file. Please notify the test designer." % fn, -1)
 
-def runTest(options, root, configuration, inputFile):
-    logNotification("Running tests...")
-    exePath = getTargetPath(options, configuration )
-    command = [ exePath, "-p", os.path.join(root,inputFile), "-v", options.dlbc_verbosity ]
-    p = subprocess.Popen(command)
+def getNP(data, fn):
+    try:
+        return data["np"]
+    except KeyError:
+        logDebug("JSON file %s lacks an 'np' parameter. Set to 1 by default." % fn)
+        return 1
+
+def getParameters(data, fn):
+    try:
+        return data["parameters"]
+    except KeyError:
+        logDebug("JSON file %s lacks a 'parameters' parameter. Assuming no parameters need to be passed to DLBC." % fn)
+        return []
+
+def mapParameterMatrix(parameters):
+    tuples = []
+    for p in parameters:
+        values = []
+        for v in p["values"]:
+            values.append((p["parameter"],v))
+        tuples.append(values)
+    import itertools
+    return itertools.product(*tuples)
+
+def makeParameterCommand(tuple):
+    command = []
+    for p in tuple:
+        command.append("--parameter")
+        command.append(p[0] + "=" + p[1])
+    return command
+
+def runTest(command, root):
+    p = subprocess.Popen(command, cwd=root)
     p.communicate()
     if ( p.returncode != 0 ):
         logFatal("DLBC returned %d" % p.returncode, p.returncode)
+
+
+def runTests(options, root, configuration, inputFile, np, parameters):
+    logNotification("Running tests...")
+    exePath = getTargetPath(options, configuration )
+    if ( parameters ):
+        map = mapParameterMatrix(parameters)
+        for m in map:
+            command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
+            command = command + makeParameterCommand(m)
+            runTest(command, root)
+    else:
+        command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
+        runTest(command, root)
 
 def describeTest(data, fn, n, i):
     import textwrap
@@ -135,7 +177,7 @@ def processTest(root, filename, options, n, i):
         return
 
     dubBuild(options, getConfiguration(data, fn))
-    runTest(options, root, getConfiguration(data, fn), getInputFile(data, fn))
+    runTests(options, root, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn))
     jsonData.close()
 
 def main():
