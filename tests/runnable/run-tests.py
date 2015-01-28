@@ -60,18 +60,18 @@ def logFatal(str, returncode):
     exit(returncode)
 
 def getTargetPath(options, configuration):
-    return os.path.abspath(os.path.join(options.dlbc_root, "dlbc-" + configuration + "-" + options.build + "-" + options.compiler))
+    return os.path.abspath(os.path.join(options.dlbc_root, "dlbc-" + configuration + "-" + options.dub_build + "-" + options.dub_compiler))
 
 def dubBuild(options, configuration):
     logNotification("Creating executable...")
     targetPath = getTargetPath(options, configuration )
-    if ( not options.force ):
+    if ( not options.dub_force ):
         if ( os.path.isfile(targetPath) ):
-            logInformation("Found executable '%s', use --force to force a new build." % targetPath )
+            logInformation("Found executable '%s', use --dub-force to force a new build." % targetPath )
             return
-                             
+ 
     logInformation("Building executable")
-    command = ["dub", "build", "--compiler", options.compiler, "-b", options.build, "-c", configuration]
+    command = ["dub", "build", "--compiler", options.dub_compiler, "-b", options.dub_build, "-c", configuration]
     command.append("--force")
     if ( verbosity >= 5 ):
         logDebug("Executing '" + " ".join(command) + "'")
@@ -207,13 +207,16 @@ def compareTest(compare, root):
                 logFatal("h5diff returned %d" % p.returncode, p.returncode)
     except KeyError:
         logDebug("No additional shell commands specified for testing")
-        
+
 def runTest(command, root):
+    import time
     logDebug("Executing '" + " ".join(command) + "'")
+    t0 = time.time()
     p = subprocess.Popen(command, cwd=root)
     p.communicate()
     if ( p.returncode != 0 ):
         logFatal("DLBC returned %d" % p.returncode, p.returncode)
+    logNotification("  Took %f seconds" % (time.time() - t0))
 
 def runTests(options, root, configuration, inputFile, np, parameters, compare):
     logNotification("Running tests...")
@@ -342,7 +345,7 @@ def main():
     parser.add_argument("--dlbc-verbosity", choices=verbosityChoices, default="Fatal", help="verbosity level to be passed to DLBC [%s]" % ", ".join(verbosityChoices), metavar="")
     parser.add_argument("--dub-build", choices=["release", "test"], default="release", help="build type to be passed to Dub [%s]" % ", ".join(dubBuildChoices), metavar="" )
     parser.add_argument("--dub-compiler", choices=dubCompilerChoices, default="dmd", help="compiler to be passed to Dub [%s]" % ", ".join(dubCompilerChoices), metavar="")
-    parser.add_argument("--force", action="store_true", help="force dub build")
+    parser.add_argument("--dub-force", action="store_true", help="force dub build")
     parser.add_argument("--latex", action="store_true", help="only write LaTeX output to stdout")
     parser.add_argument("--only-below", default=".", help="only execute tests below this path", metavar="")
     parser.add_argument("--only-first", action="store_true", help="only the first combination of parameters whenever a parameter matrix is defined")
