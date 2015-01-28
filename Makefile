@@ -22,7 +22,7 @@ test-unittest:
 	./tests/travis-ci/unittest-coverage.sh dmd
 
 test-runnable:
-	cd tests ; ./run-tests.sh
+	cd tests/runnable ; ./run-tests.sh
 
 clean:
 	rm -f src/dlbc/revision.d
@@ -53,4 +53,4 @@ clean:
 	rm -f dub.selections.json
 
 clean-tests:
-	cd tests ; ./clean-tests.sh
+	cd tests/runnable ; ./clean-tests.sh
