@@ -115,10 +115,10 @@ private immutable checkpointMixins = createCheckpointMixins();
      t = current time step
 */
 void dumpCheckpoint(T)(ref T L, uint t) {
-  startTimer("io.cp");
+  startTimer("main.io.cp");
   writeLogRN("Writing checkpoint for t = %d.", t);
   mixin(checkpointMixins[0]);
-  stopTimer("io.cp");
+  stopTimer("main.io.cp");
 }
 
 /**
@@ -132,11 +132,11 @@ void dumpCheckpoint(T)(ref T L, uint t) {
 */
 void readCheckpoint(T)(ref T L) {
   string fileName;
-  startTimer("io.cp");
+  startTimer("main.io.cp");
   writeLogRI("The simulation will be restored from checkpoint `%s'.", restoreString);
   mixin(checkpointMixins[1]);
   writeLogRI("The simulation has been restored and will continue at the next timestep.");
-  stopTimer("io.cp");
+  stopTimer("main.io.cp");
 }
 
 /**
@@ -150,10 +150,10 @@ void readCheckpoint(T)(ref T L) {
 */
 void removeCheckpoint(T)(ref T L, int t) {
   if ( t < 0 ) return;
-  startTimer("io.cp");
+  startTimer("main.io.cp");
   writeLogRN("Removing checkpoint for t = %d.", t);
   mixin(checkpointMixins[2]);
-  stopTimer("io.cp");
+  stopTimer("main.io.cp");
 }
 
 /**

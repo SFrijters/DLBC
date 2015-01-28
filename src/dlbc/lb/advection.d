@@ -41,7 +41,7 @@ void advectField(T, U)(ref T field, in ref U mask, ref T tempField) if ( isPopul
 
   alias conn = field.conn;
 
-  startTimer("adv");
+  startTimer("main.advection");
 
   immutable cv = conn.velocities;
   foreach(immutable p, ref pop; tempField.arr) {
@@ -67,7 +67,7 @@ void advectField(T, U)(ref T field, in ref U mask, ref T tempField) if ( isPopul
   }
   swap(field, tempField);
 
-  stopTimer("adv");
+  stopTimer("main.advection");
 }
 
 bool isOnEdge(alias conn)(in ptrdiff_t[conn.d] p, in size_t[conn.d] lengthsH) @safe nothrow pure @nogc {

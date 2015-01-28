@@ -103,7 +103,7 @@ int main(string[] args ) {
   // Start Main timer.
   // initAllTimers();
   startTimer("main");
-  startTimer("preLoop");
+  startTimer("main.preloop");
 
   initParameters();
   initCommon();
@@ -112,7 +112,7 @@ int main(string[] args ) {
   auto L = Lattice!(gconn)(gn, components, fieldNames, M);
   initLattice(L);
 
-  stopTimer("preLoop");
+  stopTimer("main.preloop");
   runTimeloop(L);
 
   stopTimer("main");
@@ -152,8 +152,9 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
     L.resetForce();
     L.addShanChenForce();
     L.addElecForce();
-
     L.distributeForce();
+
+    // Collision
     L.prepareToCollide();
     foreach(immutable i, ref e; L.fluids) {
       e.collideField(L.mask, L.force[i], tau[i]);
@@ -161,6 +162,7 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
 
     // writeLogRI("Global mass = %f %f", L.fluids[0].globalMass(L.mask), L.fluids[1].globalMass(L.mask));
     // writeLogRI("Global momentum = %s %s", L.fluids[0].globalMomentum!(gconn)(L.mask), L.fluids[1].globalMomentum!(gconn)(L.mask));
+    // Output
     L.dumpData(timestep);
   }
 }

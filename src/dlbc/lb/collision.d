@@ -42,11 +42,11 @@ import dlbc.logging;
 */
 void prepareToCollide(T)(ref T L) if ( isLattice!T ) {
   alias conn = L.lbconn;
-  startTimer("coll.prep");
+  startTimer("main.coll.prep");
   if ( eqDistForm == EqDistForm.BDist2 ) {
     L.calculateWeightedVelocity();
   }
-  stopTimer("coll.prep");
+  stopTimer("main.coll.prep");
 }
 
 /**
@@ -59,12 +59,12 @@ void prepareToCollide(T)(ref T L) if ( isLattice!T ) {
      tau = relaxation time
 */
 void collideField(T, U, V)(ref T field, in ref U mask, in ref V force, in double tau) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
-  startTimer("coll.coll");
+  startTimer("main.coll.coll");
   final switch(eqDistForm) {
     // Calls appropriate collideFieldEqDist
     mixin(edfMixin());
   }
-  stopTimer("coll.coll");
+  stopTimer("main.coll.coll");
 }
 
 /// Ditto
