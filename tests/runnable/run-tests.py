@@ -135,6 +135,20 @@ def getParameters(data, fn):
         logDebug("JSON file %s lacks a 'parameters' parameter. Assuming no parameters need to be passed to DLBC." % fn)
         return []
 
+def getTags(data, fn):
+    try:
+        return data["tags"]
+    except KeyError:
+        logDebug("JSON file %s lacks a 'tags' parameter. Assuming no tags." % fn)
+        return []
+
+def getLatex(data, fn):
+    try:
+        return data["latex"]
+    except KeyError:
+        logDebug("JSON file %s lacks a 'latex' parameter. Assuming no additional LaTeX." % fn)
+        return ""
+
 def mapParameterMatrix(parameters):
     tuples = []
     n = 1
@@ -213,7 +227,7 @@ def runTests(options, root, configuration, inputFile, np, parameters, compare):
             if ( nc != "[0,0]" ):
                 np = reduce(lambda x, y: int(x) * int(y), nc[1:-1].split(","), 1)
 
-            if ( options.first_only ):
+            if ( options.only_first ):
                 logNotification("  Running parameter set %d of %d (only this one will be executed)" % (i+1, n))
             else:
                 logNotification("  Running parameter set %d of %d" % (i+1, n))
@@ -222,7 +236,7 @@ def runTests(options, root, configuration, inputFile, np, parameters, compare):
             makeCompareMatrix(compare, m, np)
             runTest(command, root)
             compareTest(compare, root)
-            if ( options.first_only ): return
+            if ( options.only_first ): return
     else:
         logNotification("  Running parameter set 1 of 1")
         command = [ "mpirun", "-np", "1", exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
@@ -255,6 +269,12 @@ def processTest(root, filename, options, n, i):
     except ValueError:
         logFatal("JSON file %s seems to be broken. Please notify the test designer." % fn, -1)
 
+    if ( options.only_tag ):
+        tags = getTags(data, fn)
+        if ( not options.only_tag in tags ):
+            logDebug("Test %s does not have the required tag, skipping..." % getName(data, fn))
+            return
+            
     if ( options.describe ):
         describeTest(data, fn, n, i)
         return
@@ -267,6 +287,41 @@ def processTest(root, filename, options, n, i):
     runTests(options, root, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn))
     jsonData.close()
 
+def escapeLaTeX(str):
+    str = str.replace("-", "\-")
+    return str
+
+def generateLaTeXforTest(root, filename):
+    fn = os.path.join(root, filename)
+    jsonData = open(fn)
+    try:
+        data = json.load(jsonData)
+    except ValueError:
+        logFatal("JSON file %s seems to be broken. Please notify the test designer." % fn, -1)
+
+    name = getName(data, fn)
+    description = getDescription(data, fn)
+    tags = getTags(data, fn)
+    latex = getLatex(data, fn)
+    
+    print("\\section{%s}\n" % name)
+    print("\\textbf{Description:} %s\\\\" % description)
+    print("\\textbf{Location:} \\textsc{%s}\\\\" % fn)
+    print("\\textbf{Tags:} %s\\\\" % ", ".join(sorted(tags)))
+    if ( latex ):
+        print(latex)
+        print("")
+    jsonData.close()
+
+def generateLaTeX():
+    matches = []
+    for root, dirnames, filenames in os.walk("."):
+        for filename in fnmatch.filter(filenames, '*.json'):
+            matches.append([root, filename])
+
+    for m in matches:
+        generateLaTeXforTest(m[0], m[1])
+
 def main():
     # Parser
     try:
@@ -278,15 +333,16 @@ def main():
     parser = argparse.ArgumentParser(description="Helper script to execute the DLBC runnable test suite")
     parser.add_argument("-v", choices=["Debug", "Information", "Notification", "Warning", "Error", "Fatal", "Off"], default="Notification", help="Verbosity level of this script")
     parser.add_argument("--build", choices=["release", "test"], default="release", help="Dub build type" )
-    parser.add_argument("--clean", action="store_true", help="Clean tests" )
+    parser.add_argument("--clean", action="store_true", help="Only clean tests" )
     parser.add_argument("--compiler", default="dmd")
     parser.add_argument("--describe", action="store_true", help="Show test names only")
     parser.add_argument("--dlbc-root", default="../..", help="Relative path to DLBC root")
     parser.add_argument("--dlbc-verbosity", choices=["Debug", "Information", "Notification", "Warning", "Error", "Fatal", "Off"], default="Fatal", help="Verbosity level to be passed to DLBC")
-    parser.add_argument("--first-only", action="store_true", help="When a parameter matrix is defined, test only the first combination")
     parser.add_argument("--force", action="store_true", help="Force dub build")
-    parser.add_argument("--test-only", default=".", help="Execute only tests below this path")
-    parser.add_argument("positional", nargs="*")
+    parser.add_argument("--latex", action="store_true", help="Only write LaTeX output to stdout.")
+    parser.add_argument("--only-below", default=".", help="Execute only tests below this path")
+    parser.add_argument("--only-first", action="store_true", help="When a parameter matrix is defined, test only the first combination")
+    parser.add_argument("--only-tag", help="Only consider tests which have this tag")
 
     options = parser.parse_args()
 
@@ -295,8 +351,12 @@ def main():
     if ( options.describe ):
         verbosity = 5
 
+    if ( options.latex ):
+        generateLaTeX()
+        return
+
     matches = []
-    for root, dirnames, filenames in os.walk(options.test_only):
+    for root, dirnames, filenames in os.walk(options.only_below):
         for filename in fnmatch.filter(filenames, '*.json'):
             matches.append([root, filename])
 
