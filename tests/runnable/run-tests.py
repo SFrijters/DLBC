@@ -60,7 +60,7 @@ def logFatal(str, returncode):
     exit(returncode)
 
 def getTargetPath(options, configuration):
-    return os.path.abspath(os.path.join(options.dlbc_root, "dlbc-" + configuration + "-" + options.build))
+    return os.path.abspath(os.path.join(options.dlbc_root, "dlbc-" + configuration + "-" + options.build + "-" + options.compiler))
 
 def dubBuild(options, configuration):
     logNotification("Creating executable...")
