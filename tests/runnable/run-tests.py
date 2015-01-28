@@ -166,10 +166,15 @@ def runTests(options, root, configuration, inputFile, np, parameters):
             # If it is, set np to the product of its values
             if ( nc != "[0,0]" ):
                 np = reduce(lambda x, y: int(x) * int(y), nc[1:-1].split(","), 1)
-            logNotification("  Running parameter set %d of %d" % (i+1, n))
+
+            if ( options.first_only ):
+                logNotification("  Running parameter set %d of %d (only this one will be executed)" % (i+1, n))
+            else:
+                logNotification("  Running parameter set %d of %d" % (i+1, n))
             command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
             command = command + makeParameterCommand(m)
             runTest(command, root)
+            if ( options.first_only ): return
     else:
         logNotification("  Running parameter set 1 of 1")
         command = [ "mpirun", "-np", "1", exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
@@ -177,11 +182,12 @@ def runTests(options, root, configuration, inputFile, np, parameters):
 
 def describeTest(data, fn, n, i, withLines=False):
     import textwrap
-    istr = "%2d " % (i+1)
+    istr = "%02d/%02d " % ((i+1),n)
     if ( withLines ):
-        logNotification("="*80)
+        logNotification("\n" + "="*80)
     logNotification(istr + getName(data, fn) + " (" + fn + "):" )
-    logNotification(textwrap.fill(getDescription(data, fn),initial_indent="     ",subsequent_indent="     ", width=80))
+    logNotification(textwrap.fill(getDescription(data, fn),initial_indent=" "*6,subsequent_indent=" "*6, width=80))
+    logNotification("")
 
 def processTest(root, filename, options, n, i):
     fn = os.path.join(root, filename)
@@ -215,6 +221,7 @@ def main():
     parser.add_argument("--describe", action="store_true", help="Show test names only")
     parser.add_argument("--dlbc-root", default="../..", help="Relative path to DLBC root")
     parser.add_argument("--dlbc-verbosity", choices=["Debug", "Information", "Notification", "Warning", "Error", "Fatal", "Off"], default="Fatal", help="Verbosity level to be passed to DLBC")
+    parser.add_argument("--first-only", action="store_true", help="When a parameter matrix is defined, test only the first combination")
     parser.add_argument("--force", action="store_true", help="Force dub build")
     parser.add_argument("--test-single", nargs=1, help="Execute only the single specified test")
     parser.add_argument("positional", nargs="*")
@@ -236,7 +243,6 @@ def main():
             for filename in fnmatch.filter(filenames, '*.json'):
                 matches.append([root, filename])
 
-        logNotification("Found %d tests" % len(matches))
         for i, m in enumerate(matches):
             processTest(m[0], m[1], options, len(matches), i)
 
