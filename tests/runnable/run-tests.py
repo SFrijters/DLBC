@@ -266,16 +266,17 @@ def runTests(options, testRoot, configuration, inputFile, np, parameters, compar
             nerr += runTest(command, testRoot)
             compare = replaceTokensInCompare(compare, m, np)
             nerr += compareTest(compare, testRoot)
-            if ( options.plot ):
-                plotTest(testRoot, plot, False)
-            if ( options.only_first ): return nerr
+            if ( options.only_first ):
+                if ( options.plot ):
+                    plotTest(testRoot, plot, False)
+                return nerr
     else:
         logNotification("  Running parameter set 1 of 1")
         command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
         nerr += runTest(command, testRoot)
         nerr += compareTest(compare, testRoot)
-        if ( options.plot ):
-            plotTest(testRoot, plot, False)
+    if ( options.plot ):
+        plotTest(testRoot, plot, False)
     return nerr
 
 # Clean a single test

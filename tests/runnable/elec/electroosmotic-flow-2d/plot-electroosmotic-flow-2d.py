@@ -4,8 +4,6 @@
 from mplhelper import *
 #### END HEADER
 
-import h5py
-
 L = 20.0
 lambda_B = 0.4
 e = 1.0
@@ -58,13 +56,12 @@ fig, ax = plt.subplots()
 
 inset = axes([.65, .4, .3, .3])
 
-relpath = "../../reference-data/"
-plot_dataset(relpath+"sigma0.003125-np1-SOR/velocity-*-t00010000.h5", 0.003125, 0.02766, 10000, "sor", 1, 0, 0)
-plot_dataset(relpath+"sigma0.003125-np2-SOR/velocity-*-t00010000.h5", 0.003125, 0.02766, 10000, "sor", 2, 0, 1)
-plot_dataset(relpath+"sigma0.03125-np1-SOR/velocity-*-t00010000.h5", 0.03125, 0.07854, 10000, "sor", 1, 1, 0)
-plot_dataset(relpath+"sigma0.03125-np2-SOR/velocity-*-t00010000.h5", 0.03125, 0.07854, 10000, "sor", 2, 1, 1)
-plot_dataset(relpath+"sigma0.3125-np1-SOR/velocity-*-t00010000.h5", 0.3125, 0.1395, 10000, "sor", 1, 2, 0)
-plot_dataset(relpath+"sigma0.3125-np2-SOR/velocity-*-t00010000.h5", 0.3125, 0.1395, 10000, "sor", 1, 2, 1)
+plot_dataset(os.path.join(options.relpath,"sigma0.003125-np1-SOR/velocity-*-t00010000.h5"), 0.003125, 0.02766, 10000, "sor", 1, 0, 0)
+plot_dataset(os.path.join(options.relpath,"sigma0.003125-np2-SOR/velocity-*-t00010000.h5"), 0.003125, 0.02766, 10000, "sor", 2, 0, 1)
+plot_dataset(os.path.join(options.relpath,"sigma0.03125-np1-SOR/velocity-*-t00010000.h5"), 0.03125, 0.07854, 10000, "sor", 1, 1, 0)
+plot_dataset(os.path.join(options.relpath,"sigma0.03125-np2-SOR/velocity-*-t00010000.h5"), 0.03125, 0.07854, 10000, "sor", 2, 1, 1)
+plot_dataset(os.path.join(options.relpath,"sigma0.3125-np1-SOR/velocity-*-t00010000.h5"), 0.3125, 0.1395, 10000, "sor", 1, 2, 0)
+plot_dataset(os.path.join(options.relpath,"sigma0.3125-np2-SOR/velocity-*-t00010000.h5"), 0.3125, 0.1395, 10000, "sor", 1, 2, 1)
 
 # Styles
 ax.set_xlabel(r"$x/L$")
