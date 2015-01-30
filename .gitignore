@@ -9,6 +9,7 @@ __dummy.html
 *.obj
 /tests/runnable/doc/generated
 /tests/runnable/*/*/output/*
+/tests/runnable/*/*/reference-data/*.pdf
 *.h5
 *.pyc
 

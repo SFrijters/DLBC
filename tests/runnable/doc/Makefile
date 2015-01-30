@@ -26,5 +26,6 @@ clean:
 	rm -f *~
 	rm -f *.log
 	rm -f *.pdf
+	rm -f *.out
 	rm -f plot/mplhelper.pyc
 
