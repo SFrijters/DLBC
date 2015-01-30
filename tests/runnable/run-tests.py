@@ -390,7 +390,7 @@ def generateLaTeX(options):
         for filename in fnmatch.filter(filenames, '*.json'):
             matches.append([testRoot, filename])
 
-    for m in matches:
+    for m in sorted(matches):
         generateLaTeXforTest(m[0], m[1])
 
 def main():

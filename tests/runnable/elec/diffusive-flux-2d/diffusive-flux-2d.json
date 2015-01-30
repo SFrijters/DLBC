@@ -1,18 +1,20 @@
 {
-	"name": "diffusive-flux-2d",
-	"description": "Diffusive flux of charges, in 2d.",
-	"configuration": "d2q9",
-	"input-file": "diffusive-flux-2d.in",
-	"parameters": [
-	{ "parameter": "elec.poisson.solver", "values": [ "SOR" ] },
-	{ "parameter": "elec.init.chargeDensitySolid", "values": [ "0.003125", "0.03125", "0.3125" ] },
-	{ "parameter": "parallel.nc", "values": [ "[1,1]", "[2,1]" ] }
-	],
-	"clean": [ "output" ],
-	"compare": {
-	  "data": ["mask", "elChargeN", "elChargeP", "elPot", "elDiel", "elField" ],
-	  "comparison": [ { "type": "h5diff", "files": "sigma%elec.init.chargeDensitySolid%-np%np%-%elec.poisson.solver%/%data%-diffusive-flux-*-t00000000.h5" }
-	  ]
-}
+  "name": "diffusive-flux-2d",
+  "description": "Diffusive flux of charges, in 2d.",
+  "latex": "diffusive-flux-2d.tex",
+  "plot": [ "./plot-diffusive-flux-2d.py" ],
+
+  "configuration": "d2q9",
+  "input-file": "diffusive-flux-2d.in",
+  "parameters": [
+    { "parameter": "elec.poisson.solver", "values": [ "SOR" ] },
+    { "parameter": "elec.init.chargeDensitySolid", "values": [ "0.003125", "0.03125", "0.3125" ] },
+    { "parameter": "parallel.nc", "values": [ "[1,1]", "[2,1]" ] }
+  ],
+  "clean": [ "output" ],
+  "compare": {
+    "data": ["mask", "elChargeN", "elChargeP", "elPot", "elDiel", "elField" ],
+    "comparison": [ { "type": "h5diff", "files": "sigma%elec.init.chargeDensitySolid%-np%np%-%elec.poisson.solver%/%data%-diffusive-flux-2D-*-t00000000.h5" } ]
+  }
 }
 
