@@ -1,13 +1,16 @@
 {
-	"name": "bdist2-3d",
-	"description": "Comparison of results with LB3D, using the BDist2 equilibrium distribution function",
-	"tags": [ "advection", "collision", "eqdist" ],
+  "name": "bdist2-3d",
+  "description": "Comparison of results with LB3D, using the BDist2 equilibrium distribution function",
+  "tags": [ "advection", "collision", "eqdist" ],
 
-	"configuration": "d3q19",
-	"input-file": "bdist2-3d.in",
-	"clean": [ "output" ],
-	"compare": {
-	  "data": [ "density-red", "density-blue", "population-red", "population-blue" ],
-	  "comparison": [ { "type": "h5diff", "files": "%data%-bdist2-3d-*-t00000010.h5" } ]
-	  }
+  "configuration": "d3q19",
+  "input-file": "bdist2-3d.in",
+  "clean": [ "output" ],
+  "compare": {
+    "data": [ "density-red", "density-blue", "population-red", "population-blue" ],
+    "comparison": [
+      { "type": "h5diff", "files": "%data%-bdist2-3d-*-t00000000.h5" },
+      { "type": "h5diff", "files": "%data%-bdist2-3d-*-t00000010.h5" }
+    ]
+  }
 }

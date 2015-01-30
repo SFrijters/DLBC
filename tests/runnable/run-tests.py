@@ -47,8 +47,9 @@ def logWarning(str):
 
 def logError(str):
     if ( verbosity >= 2 ):
-        print(str)
+        print("ERROR: " + str)
         # print("[E] " + str)
+    return 1
 
 def logFatal(str, returncode):
     if ( verbosity >= 1 ):
@@ -198,6 +199,7 @@ def replaceTokensInCompare(compare, parameters, np):
 # Run all necessary comparisons for a test
 def compareTest(compare, testRoot):
     logNotification("Comparing test result to reference data")
+    nerr = 0
     for c in compare["comparison"]:
         if ( c["type"] == "h5diff" ):
             for d in compare["data"]:
@@ -209,7 +211,7 @@ def compareTest(compare, testRoot):
                 p = subprocess.Popen(command)
                 p.communicate()
                 if ( p.returncode != 0 ):
-                    logFatal("h5diff returned %d" % p.returncode, p.returncode)
+                    nerr += logError("h5diff returned %d" % p.returncode)
         else:
             logFatal("Unknown comparison type")
     for s in getCompareShell(compare):
@@ -218,18 +220,21 @@ def compareTest(compare, testRoot):
         p = subprocess.Popen(command, cwd=testRoot)
         p.communicate()
         if ( p.returncode != 0 ):
-            logFatal("h5diff returned %d" % p.returncode, p.returncode)
-
+            nerr = +logError("h5diff returned %d" % p.returncode)
+    return nerr
+    
 # Run a single parameter set for a single test
 def runTest(command, testRoot):
     import time
+    nerr = 0
     logDebug("Executing '" + " ".join(command) + "'")
     t0 = time.time()
     p = subprocess.Popen(command, cwd=testRoot)
     p.communicate()
     if ( p.returncode != 0 ):
-        logFatal("DLBC returned %d" % p.returncode, p.returncode)
+        nerr += logError("DLBC returned %d" % p.returncode, 0)
     logNotification("  Took %f seconds" % (time.time() - t0))
+    return nerr
 
 # Get nc from parallel.nc if available
 def getNC(map):
@@ -241,6 +246,7 @@ def getNC(map):
 # Run all parameter sets for a single test
 def runTests(options, testRoot, configuration, inputFile, np, parameters, compare, plot):
     logNotification("Running tests...")
+    nerr = 0
     exePath = constructTargetPath(options, configuration )
     if ( parameters ):
         map, n = mapParameterMatrix(parameters)
@@ -257,19 +263,20 @@ def runTests(options, testRoot, configuration, inputFile, np, parameters, compar
                 logNotification("  Running parameter set %d of %d" % (i+1, n))
             command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
             command = command + constructParameterCommand(m)
-            runTest(command, testRoot)
+            nerr += runTest(command, testRoot)
             compare = replaceTokensInCompare(compare, m, np)
-            compareTest(compare, testRoot)
+            nerr += compareTest(compare, testRoot)
             if ( options.plot ):
                 plotTest(testRoot, plot, False)
-            if ( options.only_first ): return
+            if ( options.only_first ): return nerr
     else:
         logNotification("  Running parameter set 1 of 1")
         command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
-        runTest(command, testRoot)
-        compareTest(compare, testRoot)
+        nerr += runTest(command, testRoot)
+        nerr += compareTest(compare, testRoot)
         if ( options.plot ):
             plotTest(testRoot, plot, False)
+    return nerr
 
 # Clean a single test
 def cleanTest(testRoot, clean):
@@ -336,8 +343,9 @@ def processTest(testRoot, filename, options, n, i):
         return
 
     dubBuild(options, getConfiguration(data, fn))
-    runTests(options, testRoot, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn), getPlot(data, fn))
+    nerr = runTests(options, testRoot, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn), getPlot(data, fn))
     jsonData.close()
+    return nerr
 
 def replaceTokensInLaTeX(latex, testRoot):
     return latex.replace("%path%", os.path.join(testRoot, "reference-data/"))
@@ -422,8 +430,14 @@ def main():
         for filename in fnmatch.filter(filenames, '*.json'):
             matches.append([testRoot, filename])
 
+    nerr = 0
     for i, m in enumerate(matches):
-        processTest(m[0], m[1], options, len(matches), i)
+        nerr += processTest(m[0], m[1], options, len(matches), i)
+
+    logNotification("\n" + "="*80)
+    if ( nerr > 0 ):
+        logFatal("Found %d errors while testing..." % nerr, -1)
+    logNotification("Found zero errors while testing...")
 
 if __name__ == '__main__':
     main()
