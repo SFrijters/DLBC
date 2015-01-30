@@ -44,8 +44,8 @@ fig, ax = plt.subplots()
 
 inset = axes([.4, .4, .3, .3])
 
-plot_dataset("../../reference-data/velocity-red-poiseuille-2d-*-t00100000.h5", 0)
-plot_dataset("../../reference-data/velocity-blue-poiseuille-2d-*-t00100000.h5", 1)
+plot_dataset(os.path.join(options.relpath, "velocity-red-poiseuille-2d-*-t00100000.h5"), 0)
+plot_dataset(os.path.join(options.relpath, "velocity-blue-poiseuille-2d-*-t00100000.h5"), 1)
 
 # Styles
 ax.set_xlabel(r"$x/L$")

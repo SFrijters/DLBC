@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import glob
+import os
 import sys
 
 # Parser
@@ -11,9 +12,10 @@ except ImportError:
     print_versions()
 
 parser = argparse.ArgumentParser(description="Style helper script for matplotlib")
-parser.add_argument("-V", "--version", action="store_true", help="Show versions")
-parser.add_argument("--dpi", help="Set output DPI", type=int, default=600)
-parser.add_argument("--sans-serif", action="store_true", help="Sans-serif fonts", default=False)
+parser.add_argument("-V", "--version", action="store_true", help="show versions")
+parser.add_argument("--dpi", help="set output DPI", type=int, default=600)
+parser.add_argument("--sans-serif", action="store_true", help="use sans-serif fonts", default=False)
+parser.add_argument("--relpath", default=".", help="relative path of the data files")
 parser.add_argument("positional", nargs="*")
 
 options = parser.parse_args()
@@ -227,7 +229,7 @@ ioff()
 def write_to_file(fname):
     show()
     import string
-    savefig(string.replace(fname,".","_")+"."+mplformat.lower(),dpi=outDpi,format=mplformat)
+    savefig(os.path.join(options.relpath, string.replace(fname,".","_")+"."+mplformat.lower()), dpi=outDpi, format=mplformat)
 
 # Make LaTeX exponents
 def latex_sci(f, p):

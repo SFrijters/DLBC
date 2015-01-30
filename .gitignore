@@ -11,4 +11,5 @@ dlbc-*
 docs.json
 __dummy.html
 *.obj
+/tests/runnable/doc/generated
 

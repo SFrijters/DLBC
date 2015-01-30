@@ -1,25 +1,21 @@
 \documentclass{article}
 
+\usepackage{graphicx}
+
+\usepackage{color}
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{TODO}: #1}}
+
 \begin{document}
 
 \section{Runnable tests}
 
 DLBC aims to have an extensive suite of runnable tests. When executed, the output of the test will be compared to a reference dataset.
-
-\subsection{The Python script}
-
 To aid in managing tests, the script \textsc{./tests/runnable/run-tests.py} has been created.
-
 Currently the script handles the following options:
 
 \input{generated/run-tests.tex}
 
-\subsection{List of tests}
-
-\input{generated/list-of-tests.tex}
-
-\subsection{How to make tests}
-
+\noindent
 Tests are specified through \textsc{.json} files. An example is shown below:
 
 \input{generated/example-json.tex}
@@ -28,7 +24,8 @@ Tests are specified through \textsc{.json} files. An example is shown below:
 \item \textbf{name} (required): Short name of the test. Usually this will be the same as the directory name.
 \item \textbf{description} (required): Short description of the test. Usually one line.
 \item \textbf{tags} (optional): List of tags that give information about which subsystems of the code are being tested.
-\item \textbf{latex} (optional): LaTeX formatted (long) description of the test.
+\item \textbf{latex} (optional): Path to a file containing a LaTeX formatted (long) description of the test. The token \textsc{\%path\%} in the LaTeX file can be used to insert the path for plots; it will be replaced by the path to the reference data of the test.
+\item \textbf{plot} (optional): List of scripts to execute to generate plots. If \textsc{run-tests.py} is called with \textsc{--plot}, all tests are first executed, and the plots are based on the new data. If \textsc{--plot-reference} is used instead, the tests are not run, but the reference data is plotted.
 \item \textbf{configuration} (required): Version of DLBC to use; d3q19, d2q9, d1q5 or d1q3.
 \item \textbf{input-file} (required): Base input file to use. Ususally this will be the same as the directory name, plus \textsc{.in}.
 \item \textbf{np} (optional, default value is 1): Number of ranks to run the test on. This is overruled by the \textsc{parallel.nc} parameter, if specified.
@@ -50,6 +47,12 @@ If \textsc{--only-first} is passed to \textsc{./run-tests.py}, only the first co
 \item \textbf{shell} (optional): Extra shell commands to be executed. These should return a 0 exit code on success and non-zero on failure.
 \end{itemize}
 \end{itemize}
+
+
+\subsection{List of tests}
+
+\input{generated/list-of-tests.tex}
+
 
 \end{document}
 

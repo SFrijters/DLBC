@@ -1,4 +1,4 @@
-all: doc
+all: clean doc
 
 doc: generated/example-json.tex generated/list-of-tests.tex generated/run-tests.tex
 	pdflatex runnable-tests.tex
@@ -12,9 +12,7 @@ generated/example-json.tex: example.json.template
 
 generated/list-of-tests.tex:
 	mkdir -p generated
-	echo '\\begin{verbatim}' > $@
-	../run-tests.py --latex >> $@
-	echo '\\end{verbatim}' >> $@
+	../run-tests.py --latex > $@
 
 generated/run-tests.tex:
 	mkdir -p generated
@@ -28,4 +26,5 @@ clean:
 	rm -f *~
 	rm -f *.log
 	rm -f *.pdf
+	rm -f plot/mplhelper.pyc
 

@@ -3,6 +3,7 @@
   "description": "Short description (one line)",
   "tags": [ "modules", "being", "tested" ],
   "latex": "Long description for LaTeX documentation.",
+  "plot": [ "./plot-script.py" ],
 
   "configuration": "d2q9",
   "input-file": "example-test.in",

@@ -83,6 +83,13 @@ def getLatex(data, fn):
         logDebug("JSON file %s lacks a 'latex' parameter. Assuming no additional LaTeX." % fn)
         return ""
 
+def getPlot(data, fn):
+    try:
+        return data["plot"]
+    except KeyError:
+        logDebug("JSON file %s lacks a 'plot' parameter. Assuming no plot." % fn)
+        return []
+
 def getConfiguration(data, fn):
     try:
         return data["configuration"]
@@ -279,6 +286,22 @@ def describeTest(data, fn, n, i, withLines=False):
     logNotification(textwrap.fill(getDescription(data, fn),initial_indent=" "*6,subsequent_indent=" "*6, width=80))
     logNotification("")
 
+# Execute plotting scripts for a single test
+def plotTest(testRoot, plot, reference):
+    logNotification("Plotting data for test...")
+    penv = os.environ.copy()
+    penv["PYTHONPATH"] = penv["PYTHONPATH"] + ":" + os.path.join(os.path.dirname(os.path.realpath(__file__)), "./doc/plot")
+    for p in plot:
+        if ( reference ):
+            command = [ os.path.join(testRoot, p), "--relpath", "reference-data" ]
+        else:
+            command = [ os.path.join(testRoot, p), "--relpath", "output" ]
+
+        p = subprocess.Popen(command, cwd=testRoot, env=penv)
+        p.communicate()
+        if ( p.returncode != 0 ):
+            logFatal("plotting script returned %d" % p.returncode, p.returncode)
+
 # Do everything required for a single test
 def processTest(testRoot, filename, options, n, i):
     fn = os.path.join(testRoot, filename)
@@ -299,13 +322,22 @@ def processTest(testRoot, filename, options, n, i):
         return
 
     describeTest(data, fn, n, i, True)
+
+    if ( options.plot_reference ):
+        plotTest(testRoot, getPlot(data, fn), True)
+        return
+
     cleanTest(testRoot, getClean(data, fn))
     if ( options.clean ):
         return
+
     dubBuild(options, getConfiguration(data, fn))
     runTests(options, testRoot, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn))
     jsonData.close()
 
+def replaceTokensInLaTeX(latex, testRoot):
+    return latex.replace("%path%", os.path.join(testRoot, "reference-data/"))
+    
 # Generate LaTeX code for a single test
 def generateLaTeXforTest(testRoot, filename):
     fn = os.path.join(testRoot, filename)
@@ -322,17 +354,20 @@ def generateLaTeXforTest(testRoot, filename):
 
     print("\\subsubsection{%s}\n" % name)
     print("\\textbf{Description:} %s\\\\" % description)
-    print("\\textbf{Location:} \\textsc{%s}\\\\" % fn)
+    print("\\textbf{Location:} \\textsc{%s}\\\\" % os.path.relpath(fn, os.path.dirname(os.path.realpath(__file__))))
     print("\\textbf{Tags:} %s\\\\" % ", ".join(sorted(tags)))
     if ( latex ):
-        print(latex)
-        print("")
+        f = open(os.path.join(testRoot, latex), 'r')
+        print(replaceTokensInLaTeX(f.read(), testRoot))
+        f.close()
+    else:
+        print("\\todo{Long description}")
     jsonData.close()
 
 # Generate LaTeX for all tests (subject to filters)
-def generateLaTeX():
+def generateLaTeX(options):
     matches = []
-    for testRoot, dirnames, filenames in os.walk(os.path.dirname(os.path.realpath(__file__))):
+    for testRoot, dirnames, filenames in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), options.only_below)):
         for filename in fnmatch.filter(filenames, '*.json'):
             matches.append([testRoot, filename])
 
@@ -364,7 +399,9 @@ def main():
     parser.add_argument("--only-below", default=".", help="only execute tests below this path", metavar="")
     parser.add_argument("--only-first", action="store_true", help="only the first combination of parameters whenever a parameter matrix is defined")
     parser.add_argument("--only-tag", help="only consider tests which have this tag", metavar="")
-
+    parser.add_argument("--plot", action="store_true", help="plot results of the tests")
+    parser.add_argument("--plot-reference", action="store_true", help="only plot the reference data of the tests")
+    
     options = parser.parse_args()
 
     global verbosity
@@ -373,7 +410,7 @@ def main():
         verbosity = 5
 
     if ( options.latex ):
-        generateLaTeX()
+        generateLaTeX(options)
         return
 
     matches = []
