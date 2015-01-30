@@ -36,8 +36,6 @@ script:
   - ./tests/travis-ci/build-configurations.sh ${DC}
   - ./tests/travis-ci/unittest-coverage.sh ${DC} TRAVIS
   - ./tests/runnable/run-tests.py --dub-compiler ${DC}
-  # This isn't set up for ldc builds yet...
-  - make test-runnable
 
 # Until the output files of the dub builds are set correctly,
 # don't expect the ldc tests to find the right executables...

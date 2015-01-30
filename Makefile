@@ -12,7 +12,10 @@ src/dlbc/revision.d: .git/HEAD .git/index
 
 include Makefile.legacy
 
-test: clean clean-tests test-build test-unittest test-runnable
+test: clean test-clean test-build test-unittest test-runnable
+
+test-clean:
+	./tests/runnable/run-tests.py --clean
 
 test-build:
 	./tests/travis-ci/build-configurations.sh dmd
@@ -22,7 +25,7 @@ test-unittest:
 	./tests/travis-ci/unittest-coverage.sh dmd
 
 test-runnable:
-	cd tests/runnable ; ./run-tests.sh
+	./tests/runnable/run-tests.py
 
 clean:
 	rm -f src/dlbc/revision.d
@@ -52,5 +55,4 @@ clean:
 	rm -rf .dub
 	rm -f dub.selections.json
 
-clean-tests:
-	cd tests/runnable ; ./clean-tests.sh
+
