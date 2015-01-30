@@ -1,13 +1,26 @@
 all: doc
 
-doc:
+doc: generated/example-json.tex generated/list-of-tests.tex generated/run-tests.tex
+	pdflatex runnable-tests.tex
+	pdflatex runnable-tests.tex
+
+generated/example-json.tex: example.json.template
 	mkdir -p generated
-	echo '\\begin{verbatim}' > generated/run-tests.tex
-	cd .. ; ./run-tests.py -h >> doc/generated/run-tests.tex
-	echo '\\end{verbatim}' >> generated/run-tests.tex
-	cd .. ; ./run-tests.py --latex > doc/generated/list-of-tests.tex
-	pdflatex runnable-tests.tex
-	pdflatex runnable-tests.tex
+	echo '\\begin{verbatim}' > $@
+	cat example.json.template >> $@
+	echo '\\end{verbatim}' >> $@
+
+generated/list-of-tests.tex:
+	mkdir -p generated
+	echo '\\begin{verbatim}' > $@
+	../run-tests.py --latex >> $@
+	echo '\\end{verbatim}' >> $@
+
+generated/run-tests.tex:
+	mkdir -p generated
+	echo '\\begin{verbatim}' > $@
+	../run-tests.py -h >> $@
+	echo '\\end{verbatim}' >> $@
 
 clean:
 	rm -rf generated

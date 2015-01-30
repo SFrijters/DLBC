@@ -4,12 +4,9 @@
 Helper script to execute the DLBC runnable test suite.
 """
 
-import glob
-import sys
-import fnmatch
-import os
-import json
-import subprocess
+import glob, fnmatch, json, os, shutil, subprocess, sys
+
+# Logging helper functions
 
 def getVerbosityLevel(str):
     if ( str == "Debug" ):
@@ -59,33 +56,7 @@ def logFatal(str, returncode):
         # print("[F] " + str)
     exit(returncode)
 
-def getTargetPath(options, configuration):
-    return os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), options.dlbc_root, "dlbc-" + configuration + "-" + options.dub_build + "-" + options.dub_compiler))
-
-def dubBuild(options, configuration):
-    logNotification("Creating executable...")
-    targetPath = getTargetPath(options, configuration )
-    if ( not options.dub_force ):
-        if ( os.path.isfile(targetPath) ):
-            logInformation("Found executable '%s', use --dub-force to force a new build." % targetPath )
-            return
- 
-    logInformation("Building executable")
-    command = ["dub", "build", "--compiler", options.dub_compiler, "-b", options.dub_build, "-c", configuration]
-    command.append("--force")
-    dlbcRoot = os.path.join(os.path.dirname(os.path.realpath(__file__)), options.dlbc_root)
-    if ( verbosity >= 5 ):
-        logDebug("Executing '" + " ".join(command) + "'")
-        p = subprocess.Popen(command, cwd=dlbcRoot)
-    else:
-        devnull = open('/dev/null', 'w')
-        logDebug("Executing '" + " ".join(command) + "'")
-        p = subprocess.Popen(command, cwd=dlbcRoot, stdout=devnull)
-    p.communicate()
-    if ( p.returncode != 0 ):
-        logFatal("Dub build command returned %d" % p.returncode, p.returncode)
-    p = subprocess.call(["mv", os.path.join(dlbcRoot, "dlbc-" + configuration), targetPath ])
-
+# JSON data getter functions
 def getName(data, fn):
     try:
         return data["name"]
@@ -97,6 +68,20 @@ def getDescription(data, fn):
         return data["description"]
     except KeyError:
         logFatal("JSON file %s lacks a description. Please notify the test designer." % fn, -1)
+
+def getTags(data, fn):
+    try:
+        return data["tags"]
+    except KeyError:
+        logDebug("JSON file %s lacks a 'tags' parameter. Assuming no tags." % fn)
+        return []
+
+def getLatex(data, fn):
+    try:
+        return data["latex"]
+    except KeyError:
+        logDebug("JSON file %s lacks a 'latex' parameter. Assuming no additional LaTeX." % fn)
+        return ""
 
 def getConfiguration(data, fn):
     try:
@@ -123,12 +108,6 @@ def getClean(data, fn):
     except KeyError:
         logFatal("JSON file %s lacks a 'clean' parameter. Please notify the test designer." % fn, -1)
 
-def getNC(map):
-    for p in map:
-        if ( p[0] == "parallel.nc" ):
-            return p[1]
-    return "[0,0]"
-
 def getParameters(data, fn):
     try:
         return data["parameters"]
@@ -136,20 +115,51 @@ def getParameters(data, fn):
         logDebug("JSON file %s lacks a 'parameters' parameter. Assuming no parameters need to be passed to DLBC." % fn)
         return []
 
-def getTags(data, fn):
+def getCompare(data, fn):
     try:
-        return data["tags"]
+        return data["compare"]
     except KeyError:
-        logDebug("JSON file %s lacks a 'tags' parameter. Assuming no tags." % fn)
+        logFatal("JSON file %s lacks a 'compare' parameter. Please notify the test designer." % fn, -1)
+
+def getCompareShell(data):
+    try:
+        return data["compare"]["shell"]
+    except KeyError:
+        logDebug("JSON file lacks a 'compare:shell' parameter. Assuming no additional shell commands need to be run.")
         return []
 
-def getLatex(data, fn):
-    try:
-        return data["latex"]
-    except KeyError:
-        logDebug("JSON file %s lacks a 'latex' parameter. Assuming no additional LaTeX." % fn)
-        return ""
+# Construct paths
+def constructTargetPath(options, configuration):
+    return os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), options.dlbc_root, "dlbc-" + configuration + "-" + options.dub_build + "-" + options.dub_compiler))
 
+def constructDlbcRoot(options):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), options.dlbc_root)
+
+# Build an executable, if needed
+def dubBuild(options, configuration):
+    logNotification("Creating executable...")
+    targetPath = constructTargetPath(options, configuration )
+    if ( not options.dub_force ):
+        if ( os.path.isfile(targetPath) ):
+            logInformation("Found executable '%s', use --dub-force to force a new build." % targetPath )
+            return
+ 
+    logInformation("Building executable...")
+    command = ["dub", "build", "--compiler", options.dub_compiler, "-b", options.dub_build, "-c", configuration, "--force"]
+    dlbcRoot = constructDlbcRoot(options)
+    if ( verbosity >= 5 ):
+        logDebug("Executing '" + " ".join(command) + "'")
+        p = subprocess.Popen(command, cwd=dlbcRoot)
+    else:
+        devnull = open('/dev/null', 'w')
+        logDebug("Executing '" + " ".join(command) + "'")
+        p = subprocess.Popen(command, cwd=dlbcRoot, stdout=devnull)
+    p.communicate()
+    if ( p.returncode != 0 ):
+        logFatal("Dub build command returned %d" % p.returncode, p.returncode)
+    shutil.move(os.path.join(dlbcRoot, "dlbc-" + configuration), targetPath)
+
+# Construct the cartesian product of all parameter values
 def mapParameterMatrix(parameters):
     tuples = []
     n = 1
@@ -162,32 +172,29 @@ def mapParameterMatrix(parameters):
     import itertools
     return itertools.product(*tuples), n
 
-def makeParameterCommand(tuple):
+# Make a proper command line option for a parameter
+def constructParameterCommand(tuple):
     command = []
     for p in tuple:
         command.append("--parameter")
         command.append(p[0] + "=" + p[1])
     return command
 
-def getCompare(data, fn):
-    try:
-        return data["compare"]
-    except KeyError:
-        logFatal("JSON file %s lacks a 'compare' parameter. Please notify the test designer." % fn, -1)
-
-def makeCompareMatrix(compare, parameters, np):
+# Replace tokens in compare matrix, except %data%
+def replaceTokensInCompare(compare, parameters, np):
     for c in compare["comparison"]:
         for p in parameters:
             c["files"] = c["files"].replace("%"+p[0]+"%", p[1])
         c["files"] = c["files"].replace("%np%", str(np))
     return compare
 
+# Run all necessary comparisons for a test
 def compareTest(compare, testRoot):
-    import glob
     logNotification("Comparing test result to reference data")
     for c in compare["comparison"]:
         if ( c["type"] == "h5diff" ):
             for d in compare["data"]:
+                # Here we replace the %data% token for each item in the data array
                 g1 = glob.glob(os.path.join(testRoot, "output", c["files"].replace("%data%", d)))[0]
                 g2 = glob.glob(os.path.join(testRoot, "reference-data", c["files"].replace("%data%", d)))[0]
                 command = ["h5diff", g1, g2, "/OutArray"]
@@ -198,17 +205,15 @@ def compareTest(compare, testRoot):
                     logFatal("h5diff returned %d" % p.returncode, p.returncode)
         else:
             logFatal("Unknown comparison type")
-    try:
-        for s in compare["shell"]:
-            command = [s]
-            logDebug("Executing '" + " ".join(command) + "'")
-            p = subprocess.Popen(command, cwd=testRoot)
-            p.communicate()
-            if ( p.returncode != 0 ):
-                logFatal("h5diff returned %d" % p.returncode, p.returncode)
-    except KeyError:
-        logDebug("No additional shell commands specified for testing")
+    for s in getCompareShell(compare):
+        command = [s]
+        logDebug("Executing '" + " ".join(command) + "'")
+        p = subprocess.Popen(command, cwd=testRoot)
+        p.communicate()
+        if ( p.returncode != 0 ):
+            logFatal("h5diff returned %d" % p.returncode, p.returncode)
 
+# Run a single parameter set for a single test
 def runTest(command, testRoot):
     import time
     logDebug("Executing '" + " ".join(command) + "'")
@@ -219,9 +224,17 @@ def runTest(command, testRoot):
         logFatal("DLBC returned %d" % p.returncode, p.returncode)
     logNotification("  Took %f seconds" % (time.time() - t0))
 
+# Get nc from parallel.nc if available
+def getNC(map):
+    for p in map:
+        if ( p[0] == "parallel.nc" ):
+            return p[1]
+    return "[0,0]"
+
+# Run all parameter sets for a single test
 def runTests(options, testRoot, configuration, inputFile, np, parameters, compare):
     logNotification("Running tests...")
-    exePath = getTargetPath(options, configuration )
+    exePath = constructTargetPath(options, configuration )
     if ( parameters ):
         map, n = mapParameterMatrix(parameters)
         for i, m in enumerate(map):
@@ -236,9 +249,9 @@ def runTests(options, testRoot, configuration, inputFile, np, parameters, compar
             else:
                 logNotification("  Running parameter set %d of %d" % (i+1, n))
             command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
-            command = command + makeParameterCommand(m)
-            makeCompareMatrix(compare, m, np)
+            command = command + constructParameterCommand(m)
             runTest(command, testRoot)
+            compare = replaceTokensInCompare(compare, m, np)
             compareTest(compare, testRoot)
             if ( options.only_first ): return
     else:
@@ -247,15 +260,16 @@ def runTests(options, testRoot, configuration, inputFile, np, parameters, compar
         runTest(command, testRoot)
         compareTest(compare, testRoot)
 
+# Clean a single test
 def cleanTest(testRoot, clean):
     logNotification("Cleaning test...")
-    import shutil
     for c in clean:
         f = os.path.join(testRoot, c)
         if ( os.path.exists(f) ):
             logDebug("  Removing '%s'" % f )
             shutil.rmtree(f)
-        
+
+# Print pretty description for single test
 def describeTest(data, fn, n, i, withLines=False):
     import textwrap
     istr = "%02d/%02d " % ((i+1),n)
@@ -265,6 +279,7 @@ def describeTest(data, fn, n, i, withLines=False):
     logNotification(textwrap.fill(getDescription(data, fn),initial_indent=" "*6,subsequent_indent=" "*6, width=80))
     logNotification("")
 
+# Do everything required for a single test
 def processTest(testRoot, filename, options, n, i):
     fn = os.path.join(testRoot, filename)
     jsonData = open(fn)
@@ -291,10 +306,7 @@ def processTest(testRoot, filename, options, n, i):
     runTests(options, testRoot, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn))
     jsonData.close()
 
-def escapeLaTeX(str):
-    str = str.replace("-", "\-")
-    return str
-
+# Generate LaTeX code for a single test
 def generateLaTeXforTest(testRoot, filename):
     fn = os.path.join(testRoot, filename)
     jsonData = open(fn)
@@ -317,6 +329,7 @@ def generateLaTeXforTest(testRoot, filename):
         print("")
     jsonData.close()
 
+# Generate LaTeX for all tests (subject to filters)
 def generateLaTeX():
     matches = []
     for testRoot, dirnames, filenames in os.walk(os.path.dirname(os.path.realpath(__file__))):

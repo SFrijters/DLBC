@@ -1,0 +1,26 @@
+{
+  "name": "example-test",
+  "description": "Short description (one line)",
+  "tags": [ "modules", "being", "tested" ],
+  "latex": "Long description for LaTeX documentation.",
+
+  "configuration": "d2q9",
+  "input-file": "example-test.in",
+  "np": 2,
+  "clean": [ "output" ],
+  "parameters": [
+    { "parameter": "some.par",
+      "values": [ "val1", "val2" ] },
+    { "parameter": "another.par",
+      "values": [ "1", "2", "42 ] }
+  ],
+  "compare": {
+    "data": ["mask", "population-red" ],
+    "comparison": [ 
+      { "type": "h5diff",
+        "files": "a%some.par%-b%another.par%/%data%-name-*-t00000000.h5" }
+    ],
+    "shell": [ "./extra-comparison-script ],
+  }
+}
+

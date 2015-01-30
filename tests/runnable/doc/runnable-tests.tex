@@ -20,5 +20,36 @@ Currently the script handles the following options:
 
 \subsection{How to make tests}
 
+Tests are specified through \textsc{.json} files. An example is shown below:
+
+\input{generated/example-json.tex}
+
+\begin{itemize}
+\item \textbf{name} (required): Short name of the test. Usually this will be the same as the directory name.
+\item \textbf{description} (required): Short description of the test. Usually one line.
+\item \textbf{tags} (optional): List of tags that give information about which subsystems of the code are being tested.
+\item \textbf{latex} (optional): LaTeX formatted (long) description of the test.
+\item \textbf{configuration} (required): Version of DLBC to use; d3q19, d2q9, d1q5 or d1q3.
+\item \textbf{input-file} (required): Base input file to use. Ususally this will be the same as the directory name, plus \textsc{.in}.
+\item \textbf{np} (optional, default value is 1): Number of ranks to run the test on. This is overruled by the \textsc{parallel.nc} parameter, if specified.
+\item \textbf{clean} (optional): List of paths to remove when cleaning the test.
+\item \textbf{parameters} (optional): List of parameter names and values to be passed to DLBC. All combinations of values will be run, e.g. in this example the following will be passed:
+\begin{itemize}
+\item \textsc{--parameter ``some.par=val1'' --parameter ``another.par=1''}
+\item \textsc{--parameter ``some.par=val1'' --parameter ``another.par=2''}
+\item \textsc{--parameter ``some.par=val1'' --parameter ``another.par=42''}
+\item \textsc{--parameter ``some.par=val2'' --parameter ``another.par=1''}
+\item \textsc{--parameter ``some.par=val2'' --parameter ``another.par=2''}
+\item \textsc{--parameter ``some.par=val2'' --parameter ``another.par=42''}
+\end{itemize}
+If \textsc{--only-first} is passed to \textsc{./run-tests.py}, only the first combination will be tested. This may be useful when doing a quick test. If no parameters are specified, nothing is passed to DLBC.
+\item \textbf{compare} (required): How to compare the generated data to the reference data. Three values are currently used:
+\begin{itemize}
+\item \textbf{data} (required): Types of data to be compared. These will normally be the prefixes of the output files.
+\item \textbf{comparision} (required): An array of comparison operations to be run. The value \textsc{type} specifies which comparision command to invoke. Currently, only \textsc{h5diff} is supported. The value \textsc{files} then are used for testing. Some tokens are supported, denoted \textsc{\%token\%}: all parameters specified are available as tokens, as well as \textsc{data}, which takes its values from the data array described above, and \textsc{np}, which takes its value from the \textsc{np} value, if specified, or the product of the values in the \textsc{parallel.nc} parameter, if specified for testing.
+\item \textbf{shell} (optional): Extra shell commands to be executed. These should return a 0 exit code on success and non-zero on failure.
+\end{itemize}
+\end{itemize}
+
 \end{document}
 
