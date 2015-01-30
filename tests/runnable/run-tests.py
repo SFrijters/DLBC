@@ -315,6 +315,7 @@ def plotTest(testRoot, plot, reference):
 
 # Do everything required for a single test
 def processTest(testRoot, filename, options, n, i):
+    nerr = 0
     fn = os.path.join(testRoot, filename)
     jsonData = open(fn)
     try:
@@ -326,24 +327,24 @@ def processTest(testRoot, filename, options, n, i):
         tags = getTags(data, fn)
         if ( not options.only_tag in tags ):
             logDebug("Test %s does not have the required tag, skipping..." % getName(data, fn))
-            return
-            
+            return nerr
+
     if ( options.describe ):
         describeTest(data, fn, n, i)
-        return
+        return nerr
 
     describeTest(data, fn, n, i, True)
 
     if ( options.plot_reference ):
         plotTest(testRoot, getPlot(data, fn), True)
-        return
+        return nerr
 
     cleanTest(testRoot, getClean(data, fn))
     if ( options.clean ):
-        return
+        return nerr
 
     dubBuild(options, getConfiguration(data, fn))
-    nerr = runTests(options, testRoot, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn), getPlot(data, fn))
+    nerr += runTests(options, testRoot, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn), getPlot(data, fn))
     jsonData.close()
     return nerr
 
