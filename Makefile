@@ -1,4 +1,5 @@
-all: dlbc-d3q19-release
+all:
+	dub build
 
 doc: src/dlbc/revision.d src/main.d src/dlbc/*.d src/dlbc/elec/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d doc/*.ddoc
 	cd src/ ; ln -s ../unstandard/unstd
@@ -10,16 +11,23 @@ doc: src/dlbc/revision.d src/main.d src/dlbc/*.d src/dlbc/elec/*.d src/dlbc/fiel
 src/dlbc/revision.d: .git/HEAD .git/index
 	./get-revision.sh > $@
 
-include Makefile.legacy
-
 test: clean test-clean test-build test-unittest test-runnable
 
-test-clean:
+test-clean: test-clean-doc
 	./tests/runnable/run-tests.py --clean
+
+test-clean-doc:
+	cd tests/runnable/doc ; make clean
 
 test-build:
 	./tests/travis-ci/build-configurations.sh dmd
 	./tests/travis-ci/build-configurations.sh ldc2
+
+test-doc: test-plot
+	cd tests/runnable/doc ; make
+
+test-plot:
+	./tests/runnable/run-tests.py --plot-reference
 
 test-unittest:
 	./tests/travis-ci/unittest-coverage.sh dmd
