@@ -1,15 +1,13 @@
 /src/dlbc/revision.d
 *.[oa]
 *.html
-output*/*
 *.lst
-*.vtk
-*.h5
-d-tests/*
 dlbc-*
 .dub
 docs.json
 __dummy.html
 *.obj
 /tests/runnable/doc/generated
+/tests/runnable/*/*/output/*
+*.h5
 

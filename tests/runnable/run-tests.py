@@ -239,7 +239,7 @@ def getNC(map):
     return "[0,0]"
 
 # Run all parameter sets for a single test
-def runTests(options, testRoot, configuration, inputFile, np, parameters, compare):
+def runTests(options, testRoot, configuration, inputFile, np, parameters, compare, plot):
     logNotification("Running tests...")
     exePath = constructTargetPath(options, configuration )
     if ( parameters ):
@@ -260,12 +260,16 @@ def runTests(options, testRoot, configuration, inputFile, np, parameters, compar
             runTest(command, testRoot)
             compare = replaceTokensInCompare(compare, m, np)
             compareTest(compare, testRoot)
+            if ( options.plot ):
+                plotTest(testRoot, plot, False)
             if ( options.only_first ): return
     else:
         logNotification("  Running parameter set 1 of 1")
         command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
         runTest(command, testRoot)
         compareTest(compare, testRoot)
+        if ( options.plot ):
+            plotTest(testRoot, plot, False)
 
 # Clean a single test
 def cleanTest(testRoot, clean):
@@ -332,7 +336,7 @@ def processTest(testRoot, filename, options, n, i):
         return
 
     dubBuild(options, getConfiguration(data, fn))
-    runTests(options, testRoot, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn))
+    runTests(options, testRoot, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn), getPlot(data, fn))
     jsonData.close()
 
 def replaceTokensInLaTeX(latex, testRoot):

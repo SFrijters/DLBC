@@ -1,7 +1,7 @@
 // Parameters to test the Poisson solver for a capacitor with dielectric lamellae.
 
 [io]
-simulationName = dielectric-capacitor
+simulationName = dielectric-capacitor-1d
 outputFormat = HDF5
 outputPath = output
 createPath = true
@@ -33,10 +33,7 @@ elecOnFluid = false
 force.enableElectrostatic = false
 force.enableDielectrophoretic = true
 
-poisson.solver = SOR 
-
-:x
-:x
+poisson.solver = SOR
 
 boundaryPhi = [ [ Neumann, Neumann ] ]
 

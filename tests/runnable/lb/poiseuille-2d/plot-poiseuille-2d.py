@@ -4,8 +4,6 @@
 from mplhelper import *
 #### END HEADER
 
-import h5py
-
 L = 30
 
 def vth(x):

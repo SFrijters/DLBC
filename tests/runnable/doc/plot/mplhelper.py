@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import h5py
 import glob
 import os
 import sys
