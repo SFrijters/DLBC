@@ -1,0 +1,15 @@
+{
+  "name": "poiseuille-2d",
+  "description": "Poisseuille flow in 2d",
+  "tags": [ "advection", "collision", "eqdist" ],
+  "latex": "TODO: Long description.",
+
+  "configuration": "d2q9",
+  "input-file": "poiseuille-2d.in",
+  "np": 2,
+  "clean": [ "output" ],
+  "compare": {
+    "data": [ "density-red", "density-blue", "velocity-red", "velocity-blue", "mask", "force-red", "force-blue" ],
+    "comparison": [ { "type": "h5diff", "files": "%data%-poiseuille-2d-*-t00100000.h5" } ]
+  }
+}

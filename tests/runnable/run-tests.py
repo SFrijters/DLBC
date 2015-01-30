@@ -256,7 +256,7 @@ def runTests(options, testRoot, configuration, inputFile, np, parameters, compar
             if ( options.only_first ): return
     else:
         logNotification("  Running parameter set 1 of 1")
-        command = [ "mpirun", "-np", "1", exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
+        command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
         runTest(command, testRoot)
         compareTest(compare, testRoot)
 
@@ -275,7 +275,7 @@ def describeTest(data, fn, n, i, withLines=False):
     istr = "%02d/%02d " % ((i+1),n)
     if ( withLines ):
         logNotification("\n" + "="*80)
-    logNotification(istr + getName(data, fn) + " (" + fn + "):" )
+    logNotification(istr + getName(data, fn) + " (" + os.path.relpath(fn) + "):" )
     logNotification(textwrap.fill(getDescription(data, fn),initial_indent=" "*6,subsequent_indent=" "*6, width=80))
     logNotification("")
 
