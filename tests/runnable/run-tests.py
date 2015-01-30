@@ -300,18 +300,24 @@ def describeTest(data, fn, n, i, withLines=False):
 # Execute plotting scripts for a single test
 def plotTest(testRoot, plot, reference):
     logNotification("Plotting data for test...")
+    if ( not plot ):
+        logNotification("  Nothing to be done.")
+        return
     penv = os.environ.copy()
     penv["PYTHONPATH"] = penv["PYTHONPATH"] + ":" + os.path.join(os.path.dirname(os.path.realpath(__file__)), "./doc/plot")
     for p in plot:
+        path = os.path.join(testRoot, p)
+        logDebug("  %s" % path)
         if ( reference ):
-            command = [ os.path.join(testRoot, p), "--relpath", "reference-data" ]
+            command = [ path, "--relpath", "reference-data" ]
         else:
-            command = [ os.path.join(testRoot, p), "--relpath", "output" ]
+            command = [ path, "--relpath", "output" ]
 
         p = subprocess.Popen(command, cwd=testRoot, env=penv)
         p.communicate()
         if ( p.returncode != 0 ):
-            logFatal("plotting script returned %d" % p.returncode, p.returncode)
+            logFatal("Plotting script %s returned %d" % ( path, p.returncode), p.returncode)
+    logNotification("  Done!")
 
 # Do everything required for a single test
 def processTest(testRoot, filename, options, n, i):
@@ -432,7 +438,7 @@ def main():
             matches.append([testRoot, filename])
 
     nerr = 0
-    for i, m in enumerate(matches):
+    for i, m in enumerate(sorted(matches)):
         nerr += processTest(m[0], m[1], options, len(matches), i)
 
     logNotification("\n" + "="*80)
