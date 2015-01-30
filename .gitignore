@@ -10,4 +10,5 @@ __dummy.html
 /tests/runnable/doc/generated
 /tests/runnable/*/*/output/*
 *.h5
+*.pyc
 

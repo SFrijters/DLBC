@@ -38,7 +38,7 @@ def plot_dataset(globstr):
 
 fig, ax = plt.subplots()
 
-plot_dataset("../../reference-data/elPot*h5")
+plot_dataset(os.path.join(options.relpath,"elPot*h5"))
 
 e1 = 1.0
 e2 = 2.0
