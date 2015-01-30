@@ -1,0 +1,16 @@
+{
+  "name": "liquidjunction-2d",
+  "description": "Charged liquid junction, in 2d.",
+  "latex": "liquidjunction-2d.tex",
+
+  "configuration": "d2q9",
+  "input-file": "liquidjunction-2d.in",
+  "clean": [ "output" ],
+  "compare": {
+    "data": [ "elChargeN", "elChargeP", "elPot", "elDiel", "elField" ],
+    "comparison": [ 
+      { "type": "h5diff", "files": "%data%-liquidjunction-2d-*-t00001000.h5" }
+    ]
+  }
+}
+

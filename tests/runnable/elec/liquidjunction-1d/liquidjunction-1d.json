@@ -1,6 +1,6 @@
 {
   "name": "liquidjunction-1d",
-  "description": "Charged liquid junction, in 1d, extended to generate data for the plot",
+  "description": "Charged liquid junction, in 1d.",
   "latex": "liquidjunction-1d.tex",
   "plot": [ "./plot-liquidjunction-1d.py" ],
 

@@ -3,14 +3,13 @@
 [io]
 simulationName = liquidjunction-2d
 outputFormat = HDF5
-outputPath = output-extended-plot
+outputPath = output
 createPath = true
-startOutput = 0
-
+startOutput = 1000
 checkpoint.cpFreq = 0
 
 [lb]
-timesteps = 100000
+timesteps = 1000
 components = 0
 
 mask.maskInit = None 
@@ -50,5 +49,8 @@ init.lamellaeWidths = [ 64, 64 ]
 init.initMaxIterations = 0
 init.initFluxToleranceRel = 1.19209290e-7
 
-io.potFreq = 100
+io.potFreq = 1000
+io.chargeFreq = 1000
+io.fieldFreq = 1000
+io.dielFreq = 1000
 

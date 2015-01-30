@@ -373,6 +373,7 @@ def generateLaTeXforTest(testRoot, filename):
     latex = getLatex(data, fn)
 
     print("\\subsubsection{%s}\n" % name)
+    print("\\label{sssec:%s}\n" % name)
     print("\\textbf{Description:} %s\\\\" % description)
     print("\\textbf{Location:} \\textsc{%s}\\\\" % os.path.relpath(fn, os.path.dirname(os.path.realpath(__file__))))
     print("\\textbf{Tags:} %s\\\\" % ", ".join(sorted(tags)))
