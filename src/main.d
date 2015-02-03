@@ -12,6 +12,7 @@
    ---
      -h                 = show this help message and exit
      -p <path>          = path to parameter file (can be specified multiple times)
+     --coverage         = exit after one main loop to allow for fast coverage testing
      --parameter        = additional parameter value specified in the form
                           "foo=bar" (overrides values in the parameter files;
                           can be specified multiple times)
@@ -135,6 +136,11 @@ int main(string[] args ) {
 */
 void runTimeloop(T)(ref T L) if ( isLattice!T ) {
   L.dumpData(timestep);
+
+  if ( onlyCoverage ) {
+    timesteps = 1;
+  }
+
   while ( timestep < timesteps ) {
     ++timestep;
     writeLogRN("Starting timestep %d", timestep);

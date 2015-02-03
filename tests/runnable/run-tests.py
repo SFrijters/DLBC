@@ -264,10 +264,13 @@ def runTests(options, testRoot, configuration, inputFile, np, parameters, compar
             else:
                 logNotification("  Running parameter set %d of %d" % (i+1, n))
             command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
+            if ( options.coverage ):
+                command.append("--coverage")
             command = command + constructParameterCommand(m)
             nerr += runTest(command, testRoot)
             compare = replaceTokensInCompare(compare, m, np)
-            nerr += compareTest(compare, testRoot)
+            if ( not options.coverage ):
+                nerr += compareTest(compare, testRoot)
             if ( options.only_first ):
                 if ( options.plot ):
                     plotTest(testRoot, plot, False)
@@ -275,8 +278,11 @@ def runTests(options, testRoot, configuration, inputFile, np, parameters, compar
     else:
         logNotification("  Running parameter set 1 of 1")
         command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
+        if ( options.coverage ):
+            command.append("--coverage")
         nerr += runTest(command, testRoot)
-        nerr += compareTest(compare, testRoot)
+        if ( not options.coverage ):
+            nerr += compareTest(compare, testRoot)
     if ( options.plot ):
         plotTest(testRoot, plot, False)
     return nerr
@@ -317,10 +323,6 @@ def mergeCovLst(f1, f2):
     with open(f2) as ff2:
         cov2 = ff2.readlines()
 
-    if ( len(cov1) != len(cov2) ):
-        logFatal("Coverage file error.", -1)
-
-
     merged = []
 
     for i in range(0, len(cov1)):
@@ -334,6 +336,9 @@ def mergeCovLst(f1, f2):
             split2 = string.split(cov2[i], "|", 1)
             count2 = split2[0]
             line2 = split2[1]
+
+            if ( line1 != line2 ):
+                logFatal("Coverage file error.", -1)
 
             if ( count1 == "       " and count2 == "       " ):
                 merged.append(cov1[i])
@@ -351,7 +356,7 @@ def mergeCovLst(f1, f2):
         for l in merged:
             ff1.write(l)
 
-def mergeCovLsts(options, covpath):
+def mergeCovLstsUnittest(options, covpath):
     for f in glob.glob(os.path.join(covpath, "*" + dlbcConfigurations[0] + "*.lst.tmp")):
         nf = f.replace(".lst.tmp", ".lst").replace("-" + dlbcConfigurations[0],"")
         shutil.move(f, os.path.join(covpath, nf))
@@ -363,7 +368,13 @@ def mergeCovLsts(options, covpath):
             logDebug("Removing coverage file '" + f2 + "'")
             os.remove(f2)
 
+def mergeCovLsts(options, testRoot, covpath):
+    for f1 in glob.glob(os.path.join(covpath, "*.lst")):
+        f2 = os.path.join(testRoot, os.path.basename(f1))
+        mergeCovLst(f1, f2)
+
 def runUnittests(options):
+    logNotification("Preparing to run unittests.")
     nerr = 0
     covpath = constructCoveragePath(options)
     # Make the "tests/coverage" directory
@@ -378,7 +389,7 @@ def runUnittests(options):
         command = [ exePath, "-v", options.dlbc_verbosity, "--version" ]
         nerr += runTest(command, covpath )
         moveCovLst(options, c)
-    mergeCovLsts(options, covpath)
+    mergeCovLstsUnittest(options, covpath)
 
 # Print pretty description for single test
 def describeTest(data, fn, n, i, withLines=False):
@@ -451,6 +462,8 @@ def processTest(testRoot, filename, options, n, i):
     nerr += runTests(options, testRoot, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn), getPlot(data, fn))
     # Clean up the symlink
     if ( options.coverage ):
+        covpath = constructCoveragePath(options)
+        mergeCovLsts(options, testRoot, covpath)
         os.remove(os.path.join(testRoot, "src"))
     jsonData.close()
     return nerr
@@ -512,7 +525,6 @@ def main():
     parser.add_argument("--clean", action="store_true", help="only clean tests")
     parser.add_argument("--coverage", action="store_true", help="generate merged coverage information for unittests and runnable tests")
     parser.add_argument("--coverage-unittest", action="store_true", help="generate merged coverage information for unittests")
-    parser.add_argument("--coverage-runnable", action="store_true", help="generate merged coverage information for runnable tests")
     parser.add_argument("--describe", action="store_true", help="only show test descriptions")
     parser.add_argument("--dlbc-root", default="../..", help="relative path to DLBC root", metavar="")
     parser.add_argument("--dlbc-verbosity", choices=verbosityChoices, default="Fatal", help="verbosity level to be passed to DLBC [%s]" % ", ".join(verbosityChoices), metavar="")
@@ -537,31 +549,19 @@ def main():
         generateLaTeX(options)
         return
 
-    if ( options.coverage ):
-        options.coverage_unittest = True
-        options.coverage_runnable = True
+    if ( options.clean ):
+        cleanCoverage(options)
 
-    if ( options.coverage_unittest ):
+    if ( options.coverage or options.coverage_unittest ):
         if ( options.dub_compiler != "dmd" ):
             logNotification("Coverage information is generated only by dmd, skipping unittest coverage...")
             return
         options.dub_build = "unittest-cov"
         cleanCoverage(options)
         runUnittests(options)
-        if ( not options.coverage_runnable ):
-            return
-
-    if ( options.coverage_runnable ):
-        if ( options.dub_compiler != "dmd" ):
-            logNotification("Coverage information is generated only by dmd, skipping runnable coverage...")
+        if ( not options.coverage ):
             return
         options.dub_build = "cov"
-        options.only_first = True
-        # TODO: merge coverage for runnable tests
-        return
-
-    if ( options.clean ):
-        cleanCoverage(options)
 
     matches = []
     for testRoot, dirnames, filenames in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), options.only_below)):
