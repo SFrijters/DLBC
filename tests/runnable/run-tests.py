@@ -298,7 +298,7 @@ def cleanTest(testRoot, clean):
 def moveCovLst(options, configuration):
     covpath = constructCoveragePath(options)
     for f in glob.glob(os.path.normpath(os.path.join(covpath,"*.lst"))):
-        nf = os.path.basename(f).replace(".lst", "-" + configuration + "-" + options.dub_compiler + ".lst.tmp")
+        nf = os.path.basename(f).replace(".lst", "-" + configuration + ".lst.tmp")
         shutil.move(f, os.path.join(covpath, nf))
 
 def constructCoveragePath(options):
@@ -311,6 +311,7 @@ def cleanCoverage(options):
         shutil.rmtree(covpath)
 
 def mergeCovLst(f1, f2):
+    logDebug("Merging coverage file '" + f2 + "' into '" + f1 + "'")
     with open(f1) as ff1:
         cov1 = ff1.readlines()
     with open(f2) as ff2:
@@ -341,7 +342,10 @@ def mergeCovLst(f1, f2):
                 if ( count1 == "       " ): count1 = "0"
                 if ( count2 == "       " ): count2 = "0"
                 sum = int(count1) + int(count2)
-                merged.append("%07d|%s" % ( sum, line1 ) )
+                if ( sum == 0 ):
+                    merged.append("%07d|%s" % ( sum, line1 ) )
+                else:
+                    merged.append("%7d|%s" % ( sum, line1 ) )
 
     with open(f1, 'w') as ff1:
         for l in merged:
@@ -354,10 +358,11 @@ def mergeCovLsts(options, covpath):
 
     for c in dlbcConfigurations[1:]:
         for f1 in glob.glob(os.path.join(covpath, "*.lst")):
-            f2 = f1.replace(options.dub_compiler, c + "-" + options.dub_compiler).replace(".lst", ".lst.tmp")
+            f2 = f1.replace(".lst", "-" + c + ".lst.tmp")
             mergeCovLst(f1, f2)
+            logDebug("Removing coverage file '" + f2 + "'")
             os.remove(f2)
-    
+
 def runUnittests(options):
     nerr = 0
     covpath = constructCoveragePath(options)

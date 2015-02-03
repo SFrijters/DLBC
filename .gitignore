@@ -10,6 +10,7 @@ __dummy.html
 /tests/runnable/doc/generated
 /tests/runnable/*/*/output/*
 /tests/runnable/*/*/reference-data/*.pdf
+/tests/coverage/*
 *.h5
 *.pyc
 
