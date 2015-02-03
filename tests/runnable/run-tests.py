@@ -300,6 +300,9 @@ def cleanTest(testRoot, clean):
         if ( os.path.exists(f) ):
             logDebug("  Removing '%s'" % f )
             os.remove(f)
+    src = os.path.join(testRoot, "src")
+    if ( os.path.exists(src) ):
+        os.remove(src)
 
 def moveCovLst(options, configuration):
     covpath = constructCoveragePath(options)
