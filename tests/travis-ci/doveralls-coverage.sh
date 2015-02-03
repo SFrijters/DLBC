@@ -10,7 +10,7 @@ if [ "${DC}" == "dmd" ]; then
     ./tests/runnable/run-tests.py --coverage --dub-compiler ${DC}
     cp tests/coverage/*.lst .
     dub run --compiler ${DC} doveralls
-    rm *.lst
+    rm -f *.lst
 else
     echo "Code coverage is performed only with dmd."
 fi

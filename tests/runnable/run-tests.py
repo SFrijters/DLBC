@@ -305,9 +305,11 @@ def constructCoveragePath(options):
     return os.path.normpath(os.path.join(constructDlbcRoot(options),"tests/coverage"))
 
 def cleanCoverage(options):
-    logNotification("Removing coverage directory")
-    shutil.rmtree(constructCoveragePath(options))
-    
+    covpath = constructCoveragePath(options)
+    if ( os.path.exists(covpath) ):
+        logNotification("Removing coverage directory")
+        shutil.rmtree(covpath)
+
 def mergeCovLst(f1, f2):
     with open(f1) as ff1:
         cov1 = ff1.readlines()
