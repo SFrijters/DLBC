@@ -8,6 +8,8 @@ import glob, fnmatch, json, os, shutil, subprocess, sys
 
 # Logging helper functions
 
+dlbcConfigurations = [ "d1q3", "d1q5", "d2q9", "d3q19" ]
+
 def getVerbosityLevel(str):
     if ( str == "Debug" ):
         return 6
@@ -232,7 +234,7 @@ def runTest(command, testRoot):
     p = subprocess.Popen(command, cwd=testRoot)
     p.communicate()
     if ( p.returncode != 0 ):
-        nerr += logError("DLBC returned %d" % p.returncode, 0)
+        nerr += logError("DLBC returned %d" % p.returncode)
     logNotification("  Took %f seconds" % (time.time() - t0))
     return nerr
 
@@ -247,7 +249,7 @@ def getNC(map):
 def runTests(options, testRoot, configuration, inputFile, np, parameters, compare, plot):
     logNotification("Running tests...")
     nerr = 0
-    exePath = constructTargetPath(options, configuration )
+    exePath = constructTargetPath(options, configuration)
     if ( parameters ):
         map, n = mapParameterMatrix(parameters)
         for i, m in enumerate(map):
@@ -287,6 +289,89 @@ def cleanTest(testRoot, clean):
         if ( os.path.exists(f) ):
             logDebug("  Removing '%s'" % f )
             shutil.rmtree(f)
+    for c in glob.glob(os.path.join(testRoot, "*.lst")):
+        f = os.path.join(testRoot, c)
+        if ( os.path.exists(f) ):
+            logDebug("  Removing '%s'" % f )
+            os.remove(f)
+
+def moveCovLst(options, configuration):
+    covpath = constructCoveragePath(options)
+    for f in glob.glob(os.path.normpath(os.path.join(covpath,"*.lst"))):
+        nf = os.path.basename(f).replace(".lst", "-" + configuration + "-" + options.dub_compiler + ".lst.tmp")
+        shutil.move(f, os.path.join(covpath, nf))
+
+def constructCoveragePath(options):
+    return os.path.normpath(os.path.join(constructDlbcRoot(options),"tests/coverage"))
+
+def cleanCoverage(options):
+    logNotification("Removing coverage directory")
+    shutil.rmtree(constructCoveragePath(options))
+    
+def mergeCovLst(f1, f2):
+    with open(f1) as ff1:
+        cov1 = ff1.readlines()
+    with open(f2) as ff2:
+        cov2 = ff2.readlines()
+
+    if ( len(cov1) != len(cov2) ):
+        logFatal("Coverage file error.", -1)
+
+
+    merged = []
+
+    for i in range(0, len(cov1)):
+        import string
+        split1 = string.split(cov1[i], "|", 1)
+        if ( len(split1) != 2):
+            merged.append(cov1[i])
+        else:
+            count1 = split1[0]
+            line1 = split1[1]
+            split2 = string.split(cov2[i], "|", 1)
+            count2 = split2[0]
+            line2 = split2[1]
+
+            if ( count1 == "       " and count2 == "       " ):
+                merged.append(cov1[i])
+
+            else:
+                if ( count1 == "       " ): count1 = "0"
+                if ( count2 == "       " ): count2 = "0"
+                sum = int(count1) + int(count2)
+                merged.append("%07d|%s" % ( sum, line1 ) )
+
+    with open(f1, 'w') as ff1:
+        for l in merged:
+            ff1.write(l)
+
+def mergeCovLsts(options, covpath):
+    for f in glob.glob(os.path.join(covpath, "*" + dlbcConfigurations[0] + "*.lst.tmp")):
+        nf = f.replace(".lst.tmp", ".lst").replace("-" + dlbcConfigurations[0],"")
+        shutil.move(f, os.path.join(covpath, nf))
+
+    for c in dlbcConfigurations[1:]:
+        for f1 in glob.glob(os.path.join(covpath, "*.lst")):
+            f2 = f1.replace(options.dub_compiler, c + "-" + options.dub_compiler).replace(".lst", ".lst.tmp")
+            mergeCovLst(f1, f2)
+            os.remove(f2)
+    
+def runUnittests(options):
+    nerr = 0
+    covpath = constructCoveragePath(options)
+    # Make the "tests/coverage" directory
+    if ( not os.path.isdir(covpath)):
+        os.mkdir(covpath)
+    # Symlink in the src directory so the coverage works
+    if ( not os.path.isdir(os.path.join(covpath, "src"))):
+        os.symlink(os.path.join(constructDlbcRoot(options), "src"), os.path.join(covpath, "src"))
+    for c in dlbcConfigurations:
+        dubBuild(options, c)
+        exePath = constructTargetPath(options, c)
+        command = [ exePath, "-v", options.dlbc_verbosity, "--version" ]
+        nerr += runTest(command, covpath )
+        moveCovLst(options, c)
+    mergeCovLsts(options, covpath)
 
 # Print pretty description for single test
 def describeTest(data, fn, n, i, withLines=False):
@@ -351,7 +436,15 @@ def processTest(testRoot, filename, options, n, i):
         return nerr
 
     dubBuild(options, getConfiguration(data, fn))
+
+    # Need to symlink so the .d source files are in the same relative paths as from the DLBC root dir
+    if ( options.coverage ):
+        if ( not os.path.isdir(os.path.join(testRoot, "src"))):
+            os.symlink(os.path.join(constructDlbcRoot(options), "src"), os.path.join(testRoot, "src"))
     nerr += runTests(options, testRoot, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn), getPlot(data, fn))
+    # Clean up the symlink
+    if ( options.coverage ):
+        os.remove(os.path.join(testRoot, "src"))
     jsonData.close()
     return nerr
 
@@ -409,11 +502,13 @@ def main():
 
     parser = argparse.ArgumentParser(description="Helper script to execute the DLBC runnable test suite")
     parser.add_argument("-v", choices=verbosityChoices, default="Notification", help="verbosity level of this script [%s]" % ", ".join(verbosityChoices), metavar="")
-    parser.add_argument("--clean", action="store_true", help="only clean tests" )
+    parser.add_argument("--clean", action="store_true", help="only clean tests")
+    parser.add_argument("--coverage", action="store_true", help="generate coverage information for unittests")
+    parser.add_argument("--coverage-runnable", action="store_true", help="generate coverage information for all tests")
     parser.add_argument("--describe", action="store_true", help="only show test descriptions")
     parser.add_argument("--dlbc-root", default="../..", help="relative path to DLBC root", metavar="")
     parser.add_argument("--dlbc-verbosity", choices=verbosityChoices, default="Fatal", help="verbosity level to be passed to DLBC [%s]" % ", ".join(verbosityChoices), metavar="")
-    parser.add_argument("--dub-build", choices=["release", "test"], default="release", help="build type to be passed to Dub [%s]" % ", ".join(dubBuildChoices), metavar="" )
+    parser.add_argument("--dub-build", choices=dubBuildChoices, default="release", help="build type to be passed to Dub [%s]" % ", ".join(dubBuildChoices), metavar="" )
     parser.add_argument("--dub-compiler", choices=dubCompilerChoices, default="dmd", help="compiler to be passed to Dub [%s]" % ", ".join(dubCompilerChoices), metavar="")
     parser.add_argument("--dub-force", action="store_true", help="force dub build")
     parser.add_argument("--latex", action="store_true", help="only write LaTeX output to stdout")
@@ -433,6 +528,19 @@ def main():
     if ( options.latex ):
         generateLaTeX(options)
         return
+
+    if ( options.coverage or options.coverage_runnable ):
+        if ( options.dub_compiler != "dmd" ):
+            logNotification("Coverage information is generated only by dmd, skipping...")
+            return
+        options.dub_build = "cov"
+        options.only_first = True
+        cleanCoverage(options)
+        runUnittests(options)
+        return
+
+    if ( options.clean ):
+        cleanCoverage(options)
 
     matches = []
     for testRoot, dirnames, filenames in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), options.only_below)):
