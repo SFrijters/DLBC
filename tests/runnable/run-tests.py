@@ -510,8 +510,9 @@ def main():
     parser = argparse.ArgumentParser(description="Helper script to execute the DLBC runnable test suite")
     parser.add_argument("-v", choices=verbosityChoices, default="Notification", help="verbosity level of this script [%s]" % ", ".join(verbosityChoices), metavar="")
     parser.add_argument("--clean", action="store_true", help="only clean tests")
-    parser.add_argument("--coverage", action="store_true", help="generate coverage information for unittests")
-    parser.add_argument("--coverage-runnable", action="store_true", help="generate coverage information for all tests")
+    parser.add_argument("--coverage", action="store_true", help="generate merged coverage information for unittests and runnable tests")
+    parser.add_argument("--coverage-unittest", action="store_true", help="generate merged coverage information for unittests")
+    parser.add_argument("--coverage-runnable", action="store_true", help="generate merged coverage information for runnable tests")
     parser.add_argument("--describe", action="store_true", help="only show test descriptions")
     parser.add_argument("--dlbc-root", default="../..", help="relative path to DLBC root", metavar="")
     parser.add_argument("--dlbc-verbosity", choices=verbosityChoices, default="Fatal", help="verbosity level to be passed to DLBC [%s]" % ", ".join(verbosityChoices), metavar="")
@@ -536,14 +537,27 @@ def main():
         generateLaTeX(options)
         return
 
-    if ( options.coverage or options.coverage_runnable ):
+    if ( options.coverage ):
+        options.coverage_unittest = True
+        options.coverage_runnable = True
+
+    if ( options.coverage_unittest ):
         if ( options.dub_compiler != "dmd" ):
-            logNotification("Coverage information is generated only by dmd, skipping...")
+            logNotification("Coverage information is generated only by dmd, skipping unittest coverage...")
+            return
+        options.dub_build = "unittest-cov"
+        cleanCoverage(options)
+        runUnittests(options)
+        if ( not options.coverage_runnable ):
+            return
+
+    if ( options.coverage_runnable ):
+        if ( options.dub_compiler != "dmd" ):
+            logNotification("Coverage information is generated only by dmd, skipping runnable coverage...")
             return
         options.dub_build = "cov"
         options.only_first = True
-        cleanCoverage(options)
-        runUnittests(options)
+        # TODO: merge coverage for runnable tests
         return
 
     if ( options.clean ):
