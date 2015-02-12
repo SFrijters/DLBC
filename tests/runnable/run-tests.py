@@ -147,22 +147,22 @@ def constructDlbcRoot(options):
 
 # Build an executable, if needed
 def dubBuild(options, configuration):
-    logNotification("Creating executable...")
+    logNotification("Preparing executable ...")
     targetPath = constructTargetPath(options, configuration )
     if ( not options.dub_force ):
         if ( os.path.isfile(targetPath) ):
             logInformation("Found executable '%s', use --dub-force to force a new build." % targetPath )
             return
  
-    logInformation("Building executable...")
+    logInformation("Building executable ...")
     command = ["dub", "build", "--compiler", options.dub_compiler, "-b", options.dub_build, "-c", configuration, "--force"]
     dlbcRoot = constructDlbcRoot(options)
     if ( verbosity >= 5 ):
-        logDebug("Executing '" + " ".join(command) + "'")
+        logDebug("  Executing '" + " ".join(command) + "'")
         p = subprocess.Popen(command, cwd=dlbcRoot)
     else:
         devnull = open('/dev/null', 'w')
-        logDebug("Executing '" + " ".join(command) + "'")
+        logDebug("  Executing '" + " ".join(command) + "'")
         p = subprocess.Popen(command, cwd=dlbcRoot, stdout=devnull)
     p.communicate()
     if ( p.returncode != 0 ):
@@ -200,7 +200,7 @@ def replaceTokensInCompare(compare, parameters, np):
 
 # Run all necessary comparisons for a test
 def compareTest(compare, testRoot):
-    logNotification("Comparing test result to reference data")
+    logNotification("Comparing test result to reference data ...")
     nerr = 0
     for c in compare["comparison"]:
         if ( c["type"] == "h5diff" ):
@@ -209,7 +209,7 @@ def compareTest(compare, testRoot):
                 g1 = glob.glob(os.path.join(testRoot, "output", c["files"].replace("%data%", d)))[0]
                 g2 = glob.glob(os.path.join(testRoot, "reference-data", c["files"].replace("%data%", d)))[0]
                 command = ["h5diff", g1, g2, "/OutArray"]
-                logDebug("Executing '" + " ".join(command) + "'")
+                logDebug("  Executing '" + " ".join(command) + "'")
                 p = subprocess.Popen(command)
                 p.communicate()
                 if ( p.returncode != 0 ):
@@ -218,24 +218,26 @@ def compareTest(compare, testRoot):
             logFatal("Unknown comparison type")
     for s in getCompareShell(compare):
         command = [s]
-        logDebug("Executing '" + " ".join(command) + "'")
+        logDebug("  Executing '" + " ".join(command) + "'")
         p = subprocess.Popen(command, cwd=testRoot)
         p.communicate()
         if ( p.returncode != 0 ):
             nerr = +logError("h5diff returned %d" % p.returncode)
+    if ( nerr == 0 ):
+        logNotification("  No errors found.")
     return nerr
     
 # Run a single parameter set for a single test
 def runTest(command, testRoot):
     import time
     nerr = 0
-    logDebug("Executing '" + " ".join(command) + "'")
+    logDebug("  Executing '" + " ".join(command) + "'")
     t0 = time.time()
     p = subprocess.Popen(command, cwd=testRoot)
     p.communicate()
     if ( p.returncode != 0 ):
         nerr += logError("DLBC returned %d" % p.returncode)
-    logNotification("  Took %f seconds" % (time.time() - t0))
+    logNotification("  Took %f seconds." % (time.time() - t0))
     return nerr
 
 # Get nc from parallel.nc if available
@@ -247,7 +249,7 @@ def getNC(map):
 
 # Run all parameter sets for a single test
 def runTests(options, testRoot, configuration, inputFile, np, parameters, compare, plot):
-    logNotification("Running tests...")
+    logNotification("Running tests ...")
     nerr = 0
     exePath = constructTargetPath(options, configuration)
     if ( parameters ):
@@ -260,9 +262,9 @@ def runTests(options, testRoot, configuration, inputFile, np, parameters, compar
                 np = reduce(lambda x, y: int(x) * int(y), nc[1:-1].split(","), 1)
 
             if ( options.only_first ):
-                logNotification("  Running parameter set %d of %d (only this one will be executed)" % (i+1, n))
+                logNotification("  Running parameter set %d of %d (only this one will be executed) ..." % (i+1, n))
             else:
-                logNotification("  Running parameter set %d of %d" % (i+1, n))
+                logNotification("  Running parameter set %d of %d ..." % (i+1, n))
             command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
             if ( options.coverage ):
                 command.append("--coverage")
@@ -276,7 +278,7 @@ def runTests(options, testRoot, configuration, inputFile, np, parameters, compar
                     plotTest(testRoot, plot, False)
                 return nerr
     else:
-        logNotification("  Running parameter set 1 of 1")
+        logNotification("  Running parameter set 1 of 1 ...")
         command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
         if ( options.coverage ):
             command.append("--coverage")
@@ -289,7 +291,7 @@ def runTests(options, testRoot, configuration, inputFile, np, parameters, compar
 
 # Clean a single test
 def cleanTest(testRoot, clean):
-    logNotification("Cleaning test...")
+    logNotification("Cleaning test ...")
     for c in clean:
         f = os.path.join(testRoot, c)
         if ( os.path.exists(f) ):
@@ -321,11 +323,11 @@ def constructCoveragePath(options):
 def cleanCoverage(options):
     covpath = constructCoveragePath(options)
     if ( os.path.exists(covpath) ):
-        logNotification("Removing coverage directory")
+        logNotification("Removing coverage directory ...")
         shutil.rmtree(covpath)
 
 def mergeCovLst(f1, f2):
-    logDebug("Merging coverage file '" + f2 + "' into '" + f1 + "'")
+    logDebug("  Merging coverage file '" + f2 + "' into '" + f1 + "' ...")
     with open(f1) as ff1:
         cov1 = ff1.readlines()
     with open(f2) as ff2:
@@ -373,7 +375,7 @@ def mergeCovLstsUnittest(options, covpath):
         for f1 in glob.glob(os.path.join(covpath, "*.lst")):
             f2 = f1.replace(".lst", "-" + c + ".lst.tmp")
             mergeCovLst(f1, f2)
-            logDebug("Removing coverage file '" + f2 + "'")
+            logDebug("Removing coverage file '" + f2 + "' ...")
             os.remove(f2)
 
 def mergeCovLsts(options, testRoot, covpath):
@@ -382,7 +384,7 @@ def mergeCovLsts(options, testRoot, covpath):
         mergeCovLst(f1, f2)
 
 def runUnittests(options):
-    logNotification("Preparing to run unittests.")
+    logNotification("Preparing to run unittests ...")
     nerr = 0
     covpath = constructCoveragePath(options)
     # Make the "tests/coverage" directory
@@ -405,13 +407,13 @@ def describeTest(data, fn, n, i, withLines=False):
     istr = "%02d/%02d " % ((i+1),n)
     if ( withLines ):
         logNotification("\n" + "="*80)
-    logNotification(istr + getName(data, fn) + " (" + os.path.relpath(fn) + "):" )
+    logNotification(istr + getName(data, fn) + " (" + os.path.relpath(fn) + ") [" + getConfiguration(data, fn) + "]:" )
     logNotification(textwrap.fill(getDescription(data, fn),initial_indent=" "*6,subsequent_indent=" "*6, width=80))
     logNotification("")
 
 # Execute plotting scripts for a single test
 def plotTest(testRoot, plot, reference):
-    logNotification("Plotting data for test...")
+    logNotification("Plotting data for test ...")
     if ( not plot ):
         logNotification("  Nothing to be done.")
         return
@@ -444,7 +446,7 @@ def processTest(testRoot, filename, options, n, i):
     if ( options.only_tag ):
         tags = getTags(data, fn)
         if ( not options.only_tag in tags ):
-            logDebug("Test %s does not have the required tag, skipping..." % getName(data, fn))
+            logDebug("Test %s does not have the required tag, skipping ..." % getName(data, fn))
             return nerr
 
     if ( options.describe ):
