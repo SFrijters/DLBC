@@ -24,7 +24,7 @@ init.initRadius = 0.25
 init.interfaceThickness = 5.0
 
 io.colourFreq = 1000
-io.laplaceFreq = 1000
+io.laplaceFreq = 0
 io.densityFreq = 1000
 //io.velocitiesFreq = 1
 
