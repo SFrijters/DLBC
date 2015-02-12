@@ -131,9 +131,9 @@ def getCompare(data, fn):
     except KeyError:
         logFatal("JSON file %s lacks a 'compare' parameter. Please notify the test designer." % fn, -1)
 
-def getCompareShell(data):
+def getCompareShell(compare):
     try:
-        return data["compare"]["shell"]
+        return compare["shell"]
     except KeyError:
         logDebug("JSON file lacks a 'compare:shell' parameter. Assuming no additional shell commands need to be run.")
         return []
@@ -158,15 +158,15 @@ def dubBuild(options, configuration):
     command = ["dub", "build", "--compiler", options.dub_compiler, "-b", options.dub_build, "-c", configuration, "--force"]
     dlbcRoot = constructDlbcRoot(options)
     if ( verbosity >= 5 ):
-        logDebug("  Executing '" + " ".join(command) + "'")
+        logDebug("  Executing '" + " ".join(command) + "'.")
         p = subprocess.Popen(command, cwd=dlbcRoot)
     else:
         devnull = open('/dev/null', 'w')
-        logDebug("  Executing '" + " ".join(command) + "'")
+        logDebug("  Executing '" + " ".join(command) + "'.")
         p = subprocess.Popen(command, cwd=dlbcRoot, stdout=devnull)
     p.communicate()
     if ( p.returncode != 0 ):
-        logFatal("Dub build command returned %d" % p.returncode, p.returncode)
+        logFatal("Dub build command returned %d." % p.returncode, p.returncode)
     shutil.move(os.path.join(dlbcRoot, "dlbc-" + configuration), targetPath)
 
 # Construct the cartesian product of all parameter values
@@ -209,20 +209,22 @@ def compareTest(compare, testRoot):
                 g1 = glob.glob(os.path.join(testRoot, "output", c["files"].replace("%data%", d)))[0]
                 g2 = glob.glob(os.path.join(testRoot, "reference-data", c["files"].replace("%data%", d)))[0]
                 command = ["h5diff", g1, g2, "/OutArray"]
-                logDebug("  Executing '" + " ".join(command) + "'")
+                logDebug("  Executing '" + " ".join(command) + "'.")
                 p = subprocess.Popen(command)
                 p.communicate()
                 if ( p.returncode != 0 ):
-                    nerr += logError("h5diff returned %d" % p.returncode)
+                    nerr += logError("h5diff returned %d." % p.returncode)
         else:
-            logFatal("Unknown comparison type")
+            logFatal("Unknown comparison type.")
     for s in getCompareShell(compare):
         command = [s]
-        logDebug("  Executing '" + " ".join(command) + "'")
+        logDebug("  Executing '" + " ".join(command) + "'.")
         p = subprocess.Popen(command, cwd=testRoot)
         p.communicate()
-        if ( p.returncode != 0 ):
-            nerr = +logError("h5diff returned %d" % p.returncode)
+        if ( p.returncode == 1 ):
+            logNotification("Script returned %d - ignored." % p.returncode)            
+        elif ( p.returncode != 0 ):
+            nerr += logError("Script returned %d." % p.returncode)
     if ( nerr == 0 ):
         logNotification("  No errors found.")
     return nerr

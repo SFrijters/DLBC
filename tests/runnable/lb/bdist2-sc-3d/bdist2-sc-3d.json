@@ -11,6 +11,7 @@
     "comparison": [
       { "type": "h5diff", "files": "%data%-bdist2-sc-3d-*-t00000000.h5" },
       { "type": "h5diff", "files": "%data%-bdist2-sc-3d-*-t00000100.h5" }
-    ]
+    ],
+    "shell": [ "./compare-lower-dimensions.py" ]
   }
 }
