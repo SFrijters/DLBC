@@ -1,0 +1,16 @@
+{
+  "name": "laplace-quasi-1d-d2q9",
+  "description": "Quasi one-dimensional Laplace test",
+  "tags": [ "advection", "collision", "eqdist", "force" ],
+
+  "configuration": "d2q9",
+  "input-file": "laplace-quasi-1d-d2q9.in",
+  "parameters": [
+    { "parameter": "lb.force.gcc", "values": [ "[ [ 0.0, 3.6 ], [ 3.6, 0.0 ] ]" ] }
+  ],
+  "clean": [ "output/d2q9" ],
+  "compare": {
+    "data": [ "density-red", "density-blue", "colour-red-blue" ],
+    "comparison": [ { "type": "h5diff", "files": "d2q9/%data%-laplace-d2q9-gcc3.6-*-t00001000.h5" } ]
+  }
+}

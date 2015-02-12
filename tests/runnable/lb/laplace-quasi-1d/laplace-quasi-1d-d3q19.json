@@ -1,0 +1,19 @@
+{
+  "name": "laplace-quasi-1d-d3q19",
+  "description": "Quasi one-dimensional Laplace test",
+  "tags": [ "advection", "collision", "eqdist", "force" ],
+  "latex": "laplace-quasi-1d-d3q19.tex",
+  "plot": [ "./plot-laplace-quasi-1d.py" ],
+
+  "configuration": "d3q19",
+  "input-file": "laplace-quasi-1d-d3q19.in",
+  "parameters": [
+    { "parameter": "lb.force.gcc", "values": [ "[ [ 0.0, 3.6 ], [ 3.6, 0.0 ] ]" ] }
+  ],
+  "clean": [ "output/d3q19" ],
+  "compare": {
+    "data": [ "density-red", "density-blue", "colour-red-blue" ],
+    "comparison": [ { "type": "h5diff", "files": "d3q19/%data%-laplace-d3q19-gcc3.6-*-t00001000.h5" } ],
+      "shell": [ "./compare-lower-dimensions.py" ]
+  }
+}

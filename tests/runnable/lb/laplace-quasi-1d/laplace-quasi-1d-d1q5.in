@@ -1,34 +1,33 @@
 // Parameters to test Laplace's law for two fluids.
 
 [io]
-simulationName = laplace-d1q3
+simulationName = laplace-d1q5-gcc%lb.force.gcc[1][0]%
 outputFormat = HDF5
-outputPath = output-d1q3/laplace-1d-gcc%lb.force.gcc[1][0]%
+outputPath = output/d1q5
 createPath = true
 
 checkpoint.cpFreq = 0
 
 [lb]
-timesteps = 10000
+timesteps = 1000
 components = 2
 fieldNames = [ "red", "blue" ]
 tau = [ 1.0, 1.0 ]
 
-// force.gcc =
 force.enableShanChen = true
 force.psiForm = Exponential
 
 init.fluidInit = [ EqDistSphereFrac , EqDistSphereFrac ]
-init.fluidDensities = [ [ 0.7, 0.5 ], [0.5, 0.7] ]
+init.fluidDensities = [ [ 0.7, 0.5 ], [ 0.5, 0.7] ]
 init.initRadius = 0.25 
 init.interfaceThickness = 5.0
 
 io.colourFreq = 1000
-io.laplaceFreq = 10000
+io.laplaceFreq = 1000
 io.densityFreq = 1000
 //io.velocitiesFreq = 1
 
-laplace.startCheck = 10000
+laplace.startCheck = 1000
 laplace.relAccuracy = 0.0 
 
 mask.maskInit = None
