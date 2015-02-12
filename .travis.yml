@@ -31,6 +31,10 @@ install:
   # Doveralls; coveralls.io for D
   - dub fetch doveralls
 
+  # Install h5py
+  - sudo apt-get install python-h5py -y
+  - ./tests/runnable/doc/plot/mplhelper.py -V
+
 script:
   # Run tests - split up the various testing sections to get timing for them separately
   - ./tests/travis-ci/build-configurations.sh ${DC}
