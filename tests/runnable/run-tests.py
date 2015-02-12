@@ -509,9 +509,10 @@ def generateLaTeXforTest(testRoot, filename):
 # Generate LaTeX for all tests (subject to filters)
 def generateLaTeX(options):
     matches = []
-    for testRoot, dirnames, filenames in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), options.only_below)):
-        for filename in fnmatch.filter(filenames, '*.json'):
-            matches.append([testRoot, filename])
+    for p in glob.glob(options.only_below):
+        for testRoot, dirnames, filenames in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), p)):
+            for filename in fnmatch.filter(filenames, '*.json'):
+                matches.append([testRoot, filename])
 
     for m in sorted(matches):
         generateLaTeXforTest(m[0], m[1])
@@ -572,9 +573,10 @@ def main():
         options.dub_build = "cov"
 
     matches = []
-    for testRoot, dirnames, filenames in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), options.only_below)):
-        for filename in fnmatch.filter(filenames, '*.json'):
-            matches.append([testRoot, filename])
+    for p in glob.glob(options.only_below):
+        for testRoot, dirnames, filenames in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), p)):
+            for filename in fnmatch.filter(filenames, '*.json'):
+                matches.append([testRoot, filename])
 
     nerr = 0
     for i, m in enumerate(sorted(matches)):

@@ -1,0 +1,46 @@
+[io]
+simulationName = bdist2-sc-2d
+outputFormat = HDF5
+outputPath = output
+createPath = true
+
+startOutput = 0
+
+checkpoint.cpFreq = 0
+
+hdf5.writeChunked = false
+
+[lb]
+timesteps = 100
+components = 2
+fieldNames = [ "red", "blue" ]
+
+tau = [ 1.0, 1.0 ]
+
+eqdist.eqDistForm = BDist2
+
+io.densityFreq = 100
+io.populationFreq = 100
+
+force.gcc = [ [ 0.0, 3.6 ], [ 3.6, 0.0 ] ] // LB3D gcc is 36 times that of DLBC
+force.enableShanChen = true
+force.globalAcc = [ 0.0, 0.0 ]
+force.psiForm = Exponential
+
+init.fluidInit = [ EqDistLamellae , EqDistLamellae ]
+init.fluidDensities = [ [0.7, 0.04] , [0.04, 0.7] ]
+init.lamellaeWidths = [ 32, 32 ]
+init.initAxis = X
+
+mask.maskInit = None
+
+[parallel]
+showTopology = false
+nc = [ 0, 0 ]
+
+[lattice]
+gn = [64, 64 ]    // Lattice size
+
+[random]
+seed = 42
+

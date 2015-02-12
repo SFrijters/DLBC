@@ -1,0 +1,16 @@
+{
+  "name": "bdist2-2d",
+  "description": "Comparison of results with LB3D, using the BDist2 equilibrium distribution function",
+  "tags": [ "advection", "collision", "eqdist" ],
+
+  "configuration": "d2q9",
+  "input-file": "bdist2-2d.in",
+  "clean": [ "output" ],
+  "compare": {
+    "data": [ "density-red", "density-blue", "population-red", "population-blue" ],
+    "comparison": [
+      { "type": "h5diff", "files": "%data%-bdist2-2d-*-t00000000.h5" },
+      { "type": "h5diff", "files": "%data%-bdist2-2d-*-t00000010.h5" }
+    ]
+  }
+}
