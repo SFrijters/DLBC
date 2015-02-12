@@ -303,6 +303,11 @@ def cleanTest(testRoot, clean):
     src = os.path.join(testRoot, "src")
     if ( os.path.exists(src) ):
         os.remove(src)
+    for c in glob.glob(os.path.join(testRoot, "dlbc-*-*-*")):
+        f = os.path.join(testRoot, c)
+        if ( os.path.exists(f) ):
+            logDebug("  Removing '%s'" % f )
+            os.remove(f)
 
 def moveCovLst(options, configuration):
     covpath = constructCoveragePath(options)
