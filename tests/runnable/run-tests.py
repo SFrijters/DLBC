@@ -216,15 +216,18 @@ def compareTest(compare, testRoot):
                     nerr += logError("h5diff returned %d." % p.returncode)
         else:
             logFatal("Unknown comparison type.")
+
+    if ( len(getCompareShell(compare)) > 0 ):
+        logNotification("Running additional compare scripts ...")
     for s in getCompareShell(compare):
         command = [s]
         logDebug("  Executing '" + " ".join(command) + "'.")
         p = subprocess.Popen(command, cwd=testRoot)
         p.communicate()
         if ( p.returncode == 1 ):
-            logNotification("Script returned %d - ignored." % p.returncode)            
+            logNotification("Script '%s' returned %d - ignored." % ( s, p.returncode) )
         elif ( p.returncode != 0 ):
-            nerr += logError("Script returned %d." % p.returncode)
+            nerr += logError("Script '%s' returned %d." % ( s, p.returncode) )
     if ( nerr == 0 ):
         logNotification("  No errors found.")
     return nerr
