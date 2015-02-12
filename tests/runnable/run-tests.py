@@ -343,32 +343,30 @@ def mergeCovLst(f1, f2):
         if ( len(split1) != 2):
             merged.append(cov1[i])
         else:
-            count1 = split1[0]
+            count1 = split1[0].strip()
             line1 = split1[1]
             split2 = string.split(cov2[i], "|", 1)
-            count2 = split2[0]
+            count2 = split2[0].strip()
             line2 = split2[1]
 
             if ( line1 != line2 ):
                 logFatal("Coverage file error.", -1)
 
-            if ( count1 == "       " and count2 == "       " ):
+            if ( count1 == "" and count2 == "" ):
                 merged.append(cov1[i])
 
             else:
-                if ( count1 == "       " ): count1 = "0"
-                if ( count2 == "       " ): count2 = "0"
+                if ( count1 == "" ): count1 = "0"
+                if ( count2 == "" ): count2 = "0"
                 sum = int(count1) + int(count2)
-                if ( sum == 0 ):
-                    merged.append("%07d|%s" % ( sum, line1 ) )
-                else:
-                    merged.append("%7d|%s" % ( sum, line1 ) )
+                merged.append("%d|%s" % ( sum, line1 ) )
 
     with open(f1, 'w') as ff1:
         for l in merged:
             ff1.write(l)
 
 def mergeCovLstsUnittest(options, covpath):
+    logNotification("Merging unittest coverage information ...")
     for f in glob.glob(os.path.join(covpath, "*" + dlbcConfigurations[0] + "*.lst.tmp")):
         nf = f.replace(".lst.tmp", ".lst").replace("-" + dlbcConfigurations[0],"")
         shutil.move(f, os.path.join(covpath, nf))
@@ -381,6 +379,7 @@ def mergeCovLstsUnittest(options, covpath):
             os.remove(f2)
 
 def mergeCovLsts(options, testRoot, covpath):
+    logNotification("Merging runnable coverage information ...")
     for f1 in glob.glob(os.path.join(covpath, "*.lst")):
         f2 = os.path.join(testRoot, os.path.basename(f1))
         mergeCovLst(f1, f2)
@@ -398,6 +397,7 @@ def runUnittests(options):
     for c in dlbcConfigurations:
         dubBuild(options, c)
         exePath = constructTargetPath(options, c)
+        logNotification("Running unittests ...")
         command = [ exePath, "-v", options.dlbc_verbosity, "--version" ]
         nerr += runTest(command, covpath )
         moveCovLst(options, c)
@@ -513,10 +513,9 @@ def generateLaTeXforTest(testRoot, filename):
 # Generate LaTeX for all tests (subject to filters)
 def generateLaTeX(options):
     matches = []
-    for p in glob.glob(options.only_below):
-        for testRoot, dirnames, filenames in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), p)):
-            for filename in fnmatch.filter(filenames, '*.json'):
-                matches.append([testRoot, filename])
+    for testRoot, dirnames, filenames in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), options.only_below)):
+        for filename in fnmatch.filter(filenames, '*.json'):
+            matches.append([testRoot, filename])
 
     for m in sorted(matches):
         generateLaTeXforTest(m[0], m[1])
@@ -577,10 +576,9 @@ def main():
         options.dub_build = "cov"
 
     matches = []
-    for p in glob.glob(options.only_below):
-        for testRoot, dirnames, filenames in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), p)):
-            for filename in fnmatch.filter(filenames, '*.json'):
-                matches.append([testRoot, filename])
+    for testRoot, dirnames, filenames in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), options.only_below)):
+        for filename in fnmatch.filter(filenames, '*.json'):
+            matches.append([testRoot, filename])
 
     nerr = 0
     for i, m in enumerate(sorted(matches)):
