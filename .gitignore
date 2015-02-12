@@ -13,4 +13,5 @@ __dummy.html
 /tests/coverage/*
 *.h5
 *.pyc
+dub.selections.json
 
