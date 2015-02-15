@@ -7,7 +7,7 @@ else
 fi
 
 if [ "${DC}" == "dmd" ]; then
-    ./tests/runnable/run-tests.py --coverage --dub-compiler ${DC} --only-below ./lb
+    ./tests/runnable/run-tests.py --coverage --dub-compiler ${DC} --only-first
     cp tests/coverage/*.lst .
     dub run --compiler ${DC} doveralls
     rm -f *.lst
