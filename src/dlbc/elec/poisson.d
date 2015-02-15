@@ -178,7 +178,7 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
       }
     }
    else static if ( T.dimensions == 1 ) {
-      assert(moddity == 0);
+       // assert(moddity == 0);
       foreach(immutable ipass; 0..2) {
         for (int i = ipass%2; i < L.lengths[0]; i=i+2 ) {
           immutable offset = L.elPot.haloSize;
