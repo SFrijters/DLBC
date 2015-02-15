@@ -97,14 +97,6 @@ string[] inputFileData;
 bool warnUnset = false;
 
 /**
-   Minimal run for coverage testing only.
-   
-   Todo:
-     Implement better checks for this.
-*/
-bool onlyCoverage = false;
-
-/**
    The UDA to be used to denote a parameter variable.
 */
 static immutable string parameterUDA = "param";

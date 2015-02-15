@@ -12,7 +12,7 @@
    ---
      -h                 = show this help message and exit
      -p <path>          = path to parameter file (can be specified multiple times)
-     --coverage         = exit after one main loop to allow for fast coverage testing
+     --coverage         = exit the simulation prematurely to allow for fast coverage testing
      --parameter        = additional parameter value specified in the form
                           "foo=bar" (overrides values in the parameter files;
                           can be specified multiple times)
@@ -53,22 +53,23 @@
 
 module main;
 
-public import dlbc.elec.elec;
-public import dlbc.fields.field;
-public import dlbc.fields.init;
-public import dlbc.fields.parallel;
-public import dlbc.getopt;
-public import dlbc.io.checkpoint;
-public import dlbc.io.io;
-public import dlbc.io.hdf5;
-public import dlbc.lattice;
-public import dlbc.lb.lb;
-public import dlbc.logging;
-public import dlbc.parallel;
-public import dlbc.parameters;
-public import dlbc.random;
-public import dlbc.timers;
-public import dlbc.versions;
+import dlbc.elec.elec;
+import dlbc.fields.field;
+import dlbc.fields.init;
+import dlbc.fields.parallel;
+import dlbc.getopt;
+import dlbc.io.checkpoint;
+import dlbc.io.io;
+import dlbc.io.hdf5;
+import dlbc.lattice;
+import dlbc.lb.lb;
+import dlbc.logging;
+import dlbc.parallel;
+import dlbc.parameters;
+import dlbc.random;
+import dlbc.testing;
+import dlbc.timers;
+import dlbc.versions;
 
 /**
    The Main Is Mother, the Main Is Father.
@@ -137,10 +138,6 @@ int main(string[] args ) {
 void runTimeloop(T)(ref T L) if ( isLattice!T ) {
   L.dumpData(timestep);
 
-  if ( onlyCoverage ) {
-    timesteps = 1;
-  }
-
   while ( timestep < timesteps ) {
     ++timestep;
     writeLogRN("Starting timestep %d", timestep);
@@ -171,6 +168,8 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
     // writeLogRI("Global momentum = %s %s", L.fluids[0].globalMomentum!(gconn)(L.mask), L.fluids[1].globalMomentum!(gconn)(L.mask));
     // Output
     L.dumpData(timestep);
+
+    if ( onlyCoverage ) breakForCoverage();
   }
 }
 

@@ -36,6 +36,7 @@ MODULES =
         $(MODULE dlbc.random, "Random number generation.")
         $(MODULE dlbc.range, "Helper functions for ranges.")
         $(MODULE dlbc.revision, "Git revision information.")
+        $(MODULE dlbc.testing, "Helper functions for testing of the code.")
         $(MODULE dlbc.timers, "Timers for performance measurement.")
         $(MODULE dlbc.versions, "Functions that show information on compiler versions and code revision.")
 

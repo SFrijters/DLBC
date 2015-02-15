@@ -26,8 +26,9 @@ import std.getopt;
 import dlbc.lb.connectivity: gconn;
 import dlbc.io.io: restoreString;
 import dlbc.logging;
-import dlbc.parameters: commandLineParameters, parameterFileNames, showInputFileDataRaw, warnUnset, onlyCoverage;
+import dlbc.parameters: commandLineParameters, parameterFileNames, showInputFileDataRaw, warnUnset;
 import dlbc.revision;
+import dlbc.testing: onlyCoverage;
 
 /**
    Usage help text.
@@ -44,7 +45,8 @@ Usage:
 Options (defaults in brackets):
   -h                   show this help message and exit
   -p <path>            path to parameter file (can be specified multiple times)
-  --coverage           exit after one main loop to allow for fast coverage testing
+  --coverage           exit the simulation prematurely to allow for
+                       fast coverage testing
   --parameter          additional parameter value specified in the form
                        "foo=bar" (overrides values in the parameter files;
                        can be specified multiple times)

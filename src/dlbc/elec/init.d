@@ -34,6 +34,7 @@ import dlbc.logging;
 import dlbc.parallel;
 import dlbc.parameters;
 import dlbc.range;
+import dlbc.testing;
 
 /**
    Electric charge initial conditions.
@@ -160,6 +161,8 @@ private void equilibrateElec(T)(ref T L) if ( isLattice!T ) {
     }
   }
 
+  if ( onlyCoverage ) breakForCoverage();
+
   foreach(immutable vd; Iota!(0,econn.d) ) {
     externalField[vd] = externalFieldTmp[vd];
   }
@@ -172,7 +175,6 @@ private void equilibrateElec(T)(ref T L) if ( isLattice!T ) {
       break;
     }
   }
-
 }
 
 private void initChargeElec(T)(ref T L) if ( isLattice!T ) {
