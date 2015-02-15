@@ -274,6 +274,9 @@ def runTests(options, testRoot, configuration, inputFile, np, parameters, compar
             if ( options.coverage ):
                 command.append("--coverage")
             command = command + constructParameterCommand(m)
+            if ( options.timing ):
+                command.append("--parameter")
+                command.append("timers.enableIO=true")
             nerr += runTest(command, testRoot)
             compare = replaceTokensInCompare(compare, m, np)
             if ( not options.coverage ):
@@ -287,6 +290,9 @@ def runTests(options, testRoot, configuration, inputFile, np, parameters, compar
         command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
         if ( options.coverage ):
             command.append("--coverage")
+        if ( options.timing ):
+            command.append("--parameter")
+            command.append("timers.enableIO=true")
         nerr += runTest(command, testRoot)
         if ( not options.coverage ):
             nerr += compareTest(compare, testRoot)
@@ -552,6 +558,7 @@ def main():
     parser.add_argument("--only-tag", help="only consider tests which have this tag", metavar="")
     parser.add_argument("--plot", action="store_true", help="plot results of the tests")
     parser.add_argument("--plot-reference", action="store_true", help="only plot the reference data of the tests")
+    parser.add_argument("--timing", action="store_true", help="write timing information")
     
     options = parser.parse_args()
 
