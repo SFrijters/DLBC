@@ -13,6 +13,8 @@
 
 module dlbc.testing;
 
+import dlbc.io.hdf5;
+import dlbc.parallel;
 import dlbc.logging;
 
 /**
@@ -25,7 +27,10 @@ bool onlyCoverage = false;
 
 void breakForCoverage() {
   import std.c.stdlib: exit;
+  import core.runtime;
   writeLogRI("Requested --coverage, ending run.");
+  endHDF5();
+  endMpi();
   exit(0);
 }
 
