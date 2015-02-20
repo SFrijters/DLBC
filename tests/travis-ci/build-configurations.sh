@@ -7,11 +7,5 @@ else
     DC=$1
 fi
 
-for c in d3q19 d2q9 d1q5 d1q3; do
-for b in release cov unittest-cov; do
-    echo "Building dlbc ~master configuration '${c}', build type ${b}, using ${DC}."
-    time dub build --compiler=${DC} -c ${c} -b ${b} --force &> /dev/null
-    mv dlbc-${c} dlbc-${c}-${b}-${DC}
-done
-done
+./tests/runnable/process-tests.py --build-all --dub-compiler ${DC} --dub-force
 

@@ -17,6 +17,7 @@ dlbcConfigurations = [ "d1q3", "d1q5", "d2q9", "d3q19" ]
 
 def dubBuild(compiler, build, configuration, force, dlbcRoot):
     """ Build a DLBC executable for a particular compiler/build/configuration, if needed. """
+    import tester.logging
     logNotification("Preparing executable '%s' ..." % constructExeTargetName(configuration, build, compiler))
     exePath = constructExeTargetPath(configuration, build, compiler, dlbcRoot)
     if ( not force ):
@@ -26,16 +27,26 @@ def dubBuild(compiler, build, configuration, force, dlbcRoot):
 
     logInformation("  Building executable '%s' ..." % exePath)
     command = ["dub", "build", "--compiler", compiler, "-b", build, "-c", configuration, "--force"]
-    if ( verbosityLevel >= 5 ):
-        logDebug("  Executing '" + " ".join(command) + "'.")
-        p = subprocess.Popen(command, cwd=dlbcRoot)
-    else:
-        devnull = open('/dev/null', 'w')
-        logDebug("  Executing '" + " ".join(command) + "'.")
-        p = subprocess.Popen(command, cwd=dlbcRoot, stdout=devnull)
+    if ( tester.logging.verbosityLevel < 6 ):
+        command.append("--vquiet")
+    logDebug("  Executing '" + " ".join(command) + "'.")
+    p = subprocess.Popen(command, cwd=dlbcRoot)
     p.communicate()
     if ( p.returncode != 0 ):
         logFatal("Dub build command returned %d." % p.returncode, p.returncode)
     shutil.move(os.path.join(dlbcRoot, "dlbc-" + configuration), exePath)
     return exePath
+
+def buildAll(options):
+    """ Build all combinations of build type and configuration for the current compiler. """
+    nCombinations = len(dlbcConfigurations) * len(dubBuildChoices)
+    n = 1
+    import time
+    for c in dlbcConfigurations:
+        for b in dubBuildChoices:
+            logNotification("Building executable %d of %d ..." % ( n, nCombinations) )
+            t0 = time.time()
+            dubBuild(options.dub_compiler, b, c, options.dub_force, options.dlbc_root)
+            logInformation("  Took %f seconds." % (time.time() - t0))
+            n += 1
 

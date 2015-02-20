@@ -74,6 +74,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Helper script to execute the DLBC runnable test suite")
     parser.add_argument("-v", choices=verbosityChoices, default="Information", help="verbosity level of this script [%s]" % ", ".join(verbosityChoices), metavar="")
+    parser.add_argument("--build-all", action="store_true", help="only build all configurations and build types for the current compiler")
     parser.add_argument("--clean", action="store_true", help="only clean tests")
     parser.add_argument("--coverage", action="store_true", help="generate merged coverage information for unittests and runnable tests")
     parser.add_argument("--coverage-unittest", action="store_true", help="generate merged coverage information for unittests")
@@ -102,6 +103,11 @@ def main():
     tester.logging.verbosityLevel = getVerbosityLevel(options.v)
     tester.logging.logPrefix = options.log_prefix
     tester.logging.logTime = options.log_time
+
+    if ( options.build_all ):
+        buildAll(options)
+        return
+
     if ( options.describe ):
         tester.logging.verbosityLevel = 5
 
