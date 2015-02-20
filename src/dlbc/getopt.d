@@ -1,22 +1,17 @@
 // Written in the D programming language.
 
 /**
-Process command line arguments.
+   Process command line arguments.
 
-This module uses $(D std.getopt) as a parser, and processes the result
-according to the need of this program.
+   This module uses $(D std.getopt) as a parser, and processes the result
+   according to the need of this program.
 
-Copyright: Stefan Frijters 2011-2014
+   Copyright: Stefan Frijters 2011-2015
 
-License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
+   License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
-Authors: Stefan Frijters
+   Authors: Stefan Frijters
 
-Macros:
-        TR = <tr>$0</tr>
-        TH = <th>$0</th>
-        TD = <td>$0</td>
-        TABLE = <table border=1 cellpadding=4 cellspacing=0>$0</table>
 */
 
 module dlbc.getopt;
