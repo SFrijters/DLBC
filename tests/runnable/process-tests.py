@@ -103,7 +103,7 @@ def main():
     tester.logging.logPrefix = options.log_prefix
     tester.logging.logTime = options.log_time
     if ( options.describe ):
-        tester.logging.verbosity = 5
+        tester.logging.verbosityLevel = 5
 
     searchRoot = os.path.join(os.path.dirname(os.path.realpath(__file__)), options.only_below)
 
