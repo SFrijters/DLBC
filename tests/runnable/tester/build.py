@@ -37,4 +37,5 @@ def dubBuild(compiler, build, configuration, force, dlbcRoot):
     if ( p.returncode != 0 ):
         logFatal("Dub build command returned %d." % p.returncode, p.returncode)
     shutil.move(os.path.join(dlbcRoot, "dlbc-" + configuration), exePath)
+    return exePath
 
