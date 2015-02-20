@@ -11,9 +11,9 @@ import subprocess
 from logging import *
 from path import *
 
-dlbcConfigurations = [ "d1q3", "d1q5", "d2q9", "d3q19" ]
-dubBuildChoices = ["release", "test"]
 dubCompilerChoices = ["dmd", "gdc", "ldc2"]
+dubBuildChoices = ["release", "test"]
+dlbcConfigurations = [ "d1q3", "d1q5", "d2q9", "d3q19" ]
 
 def dubBuild(compiler, build, configuration, force, dlbcRoot):
     """ Build a DLBC executable for a particular compiler/build/configuration, if needed. """
@@ -23,10 +23,10 @@ def dubBuild(compiler, build, configuration, force, dlbcRoot):
         if ( os.path.isfile(exePath) ):
             logInformation("  Found executable '%s'." % exePath )
             return
- 
+
     logInformation("  Building executable '%s' ..." % exePath)
     command = ["dub", "build", "--compiler", compiler, "-b", build, "-c", configuration, "--force"]
-    if ( verbosity >= 5 ):
+    if ( verbosityLevel >= 5 ):
         logDebug("  Executing '" + " ".join(command) + "'.")
         p = subprocess.Popen(command, cwd=dlbcRoot)
     else:
