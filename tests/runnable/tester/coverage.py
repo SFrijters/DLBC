@@ -49,12 +49,19 @@ def mergeCovLst(f1, f2):
         else:
             count1 = split1[0].strip()
             line1 = split1[1]
-            split2 = string.split(cov2[i], "|", 1)
+            try:
+                split2 = string.split(cov2[i], "|", 1)
+            except IndexError:
+                logFatal("Coverage file error - file '%s' seems to be truncated." % f2, -1)
             count2 = split2[0].strip()
             line2 = split2[1]
 
             if ( line1 != line2 ):
-                logFatal("Coverage file error.", -1)
+                logError("Coverage file '" + f2 + "' line " + str(i) + ":")
+                logError(line2)
+                logError("Coverage file '" + f1 + "' line " + str(i) + ":")
+                logError(line1)
+                logFatal("Coverage file error - code is not the same.", -1)
 
             if ( count1 == "" and count2 == "" ):
                 merged.append(cov1[i])
