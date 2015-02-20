@@ -39,7 +39,7 @@ script:
   # Run tests - split up the various testing sections to get timing for them separately
   - ./tests/travis-ci/build-configurations.sh ${DC}
   - ./tests/travis-ci/doveralls-coverage.sh ${DC}
-  - if [[ "${DC}" == "dmd" ]]; then ./tests/runnable/process-tests.py --dub-compiler ${DC} ; fi
+  - ./tests/travis-ci/runnable-tests.sh ${DC}
 
 # Until the output files of the dub builds are set correctly,
 # don't expect the ldc tests to find the right executables...
