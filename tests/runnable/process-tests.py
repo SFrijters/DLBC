@@ -57,7 +57,7 @@ def processTest(testRoot, filename, options, n, i):
     nerr += runTest(options, testRoot, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn), getPlot(data, fn))
 
     if ( options.coverage ):
-        covpath = constructCoveragePath(options)
+        covpath = constructCoveragePath(options.dlbc_root)
         mergeCovLsts(options, testRoot, covpath)
         # Clean up the symlink
         os.remove(os.path.join(testRoot, "src"))

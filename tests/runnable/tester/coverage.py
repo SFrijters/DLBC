@@ -106,9 +106,10 @@ def runUnittests(options):
     if ( not os.path.isdir(os.path.join(covpath, "src"))):
         os.symlink(os.path.join(options.dlbc_root, "src"), os.path.join(covpath, "src"))
     for c in dlbcConfigurations:
-        exePath = dubBuild(options.dub_compiler, options.dub_build, c, options.dub_force, options.dlbc_root)
+        exePath = constructExeTargetPath(c, options.dub_build, options.dub_compiler, options.dlbc_root)
+        dubBuild(options.dub_compiler, options.dub_build, c, options.dub_force, options.dlbc_root)
         logNotification("Running unittests ...")
         command = [ exePath, "-v", options.dlbc_verbosity, "--version" ]
-        nerr += runTest(command, covpath )
+        nerr += runSubtest(command, covpath)
         moveCovLst(options.dlbc_root, c)
     mergeCovLstsUnittest(options, covpath)
