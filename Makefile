@@ -13,11 +13,14 @@ src/dlbc/revision.d: .git/HEAD .git/index
 
 test: clean test-clean test-build test-unittest test-runnable
 
-test-clean: test-clean-doc
+test-clean: test-clean-doc test-clean-pyc
 	./tests/runnable/process-tests.py --clean
 
 test-clean-doc:
 	cd tests/runnable/doc ; make clean
+
+test-clean-pyc:
+	cd tests/runnable/tester ; make clean
 
 test-build:
 	./tests/travis-ci/build-configurations.sh dmd
@@ -34,6 +37,8 @@ test-unittest:
 
 test-runnable:
 	./tests/runnable/process-tests.py
+
+clean-all: clean test-clean
 
 clean:
 	rm -f src/dlbc/revision.d
@@ -62,5 +67,4 @@ clean:
 	rm -f *~
 	rm -rf .dub
 	rm -f dub.selections.json
-
 
