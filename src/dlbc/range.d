@@ -1,3 +1,16 @@
+// Written in the D programming language.
+
+/**
+   Helper functions and templates for ranges.
+
+   Copyright: Stefan Frijters 2011-2015
+
+   License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
+
+   Authors: Stefan Frijters
+
+*/
+
 module dlbc.range;
 
 import std.range;

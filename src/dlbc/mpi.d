@@ -1,4 +1,16 @@
-/// mpi.h -> mpi.d
+// Written in the D programming language.
+
+/**
+   MPI wrapper, it is a partial conversion of mpi.h.
+
+   Copyright: Stefan Frijters 2011-2015
+
+   License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
+
+   Authors: Stefan Frijters
+
+*/
+
 module dlbc.mpi;
 
 @trusted nothrow @nogc:

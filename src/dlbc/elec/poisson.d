@@ -1,3 +1,16 @@
+// Written in the D programming language.
+
+/**
+   Poisson solvers.
+
+   Copyright: Stefan Frijters 2011-2015
+
+   License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
+
+   Authors: Stefan Frijters
+
+*/
+
 module dlbc.elec.poisson;
 
 import dlbc.lattice;
