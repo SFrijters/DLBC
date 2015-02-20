@@ -106,7 +106,7 @@ def runUnittests(options):
     if ( not os.path.isdir(os.path.join(covpath, "src"))):
         os.symlink(os.path.join(options.dlbc_root, "src"), os.path.join(covpath, "src"))
     for c in dlbcConfigurations:
-        dubBuild(options, c)
+        dubBuild(options.dub_compiler, options.dub_build, c, options.dub_force, options.dlbc_root)
         exePath = constructExeTargetPath(options, c)
         logNotification("Running unittests ...")
         command = [ exePath, "-v", options.dlbc_verbosity, "--version" ]
