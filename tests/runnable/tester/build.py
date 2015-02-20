@@ -12,7 +12,7 @@ from logging import *
 from path import *
 
 dubCompilerChoices = [ "dmd", "gdc", "ldc2" ]
-dubBuildChoices = [ "release", "test", "unittest-cov", "cov" ]
+dubBuildChoices = [ "release", "cov", "unittest-cov" ]
 dlbcConfigurations = [ "d1q3", "d1q5", "d2q9", "d3q19" ]
 
 def dubBuild(compiler, build, configuration, force, dlbcRoot):

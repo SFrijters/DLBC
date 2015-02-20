@@ -29,8 +29,9 @@
 
     "buildTypes":
     {
-        "release": { "buildOptions": ["debugInfo", "warningsAsErrors", "deprecationErrors", "optimize", "inline", "noBoundsCheck", "releaseMode"] },
-        "test": { "buildOptions": ["debugInfo", "warningsAsErrors", "deprecationErrors", "unittests", "debugMode", "coverage" ] },
+        "release":      { "buildOptions": ["debugInfo", "warningsAsErrors", "deprecationErrors", "optimize", "inline", "noBoundsCheck", "releaseMode"] },
+        "cov":          { "buildOptions": ["debugInfo", "warningsAsErrors", "deprecationErrors", "coverage", ] },
+        "unittest-cov": { "buildOptions": ["debugInfo", "warningsAsErrors", "deprecationErrors", "unittests", "coverage", "debugMode" ] }
 
     },
 }
