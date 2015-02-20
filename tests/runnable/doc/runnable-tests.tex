@@ -30,7 +30,7 @@
 \section{Runnable tests}
 
 DLBC aims to have an extensive suite of runnable tests. When executed, the output of the test will be compared to a reference dataset.
-To aid in managing tests, the script \textsc{./tests/runnable/run-tests.py} has been created.
+To aid in managing tests, the script \textsc{./tests/runnable/process-tests.py} has been created.
 Currently the script handles the following options:
 
 \input{generated/run-tests.tex}
@@ -45,7 +45,7 @@ Tests are specified through \textsc{.json} files. An example is shown below:
 \item \textbf{description} (required): Short description of the test. Usually one line.
 \item \textbf{tags} (optional): List of tags that give information about which subsystems of the code are being tested.
 \item \textbf{latex} (optional): Path to a file containing a LaTeX formatted (long) description of the test. The token \textsc{\%path\%} in the LaTeX file can be used to insert the path for plots; it will be replaced by the path to the reference data of the test.
-\item \textbf{plot} (optional): List of scripts to execute to generate plots. If \textsc{run-tests.py} is called with \textsc{--plot}, all tests are first executed, and the plots are based on the new data. If \textsc{--plot-reference} is used instead, the tests are not run, but the reference data is plotted.
+\item \textbf{plot} (optional): List of scripts to execute to generate plots. If \textsc{process-tests.py} is called with \textsc{--plot}, all tests are first executed, and the plots are based on the new data. If \textsc{--plot-reference} is used instead, the tests are not run, but the reference data is plotted.
 \item \textbf{configuration} (required): Version of DLBC to use; d3q19, d2q9, d1q5 or d1q3.
 \item \textbf{input-file} (required): Base input file to use. Ususally this will be the same as the directory name, plus \textsc{.in}.
 \item \textbf{np} (optional, default value is 1): Number of ranks to run the test on. This is overruled by the \textsc{parallel.nc} parameter, if specified.
@@ -59,7 +59,7 @@ Tests are specified through \textsc{.json} files. An example is shown below:
 \item \textsc{--parameter ``some.par=val2'' --parameter ``another.par=2''}
 \item \textsc{--parameter ``some.par=val2'' --parameter ``another.par=42''}
 \end{itemize}
-If \textsc{--only-first} is passed to \textsc{./run-tests.py}, only the first combination will be tested. This may be useful when doing a quick test. If no parameters are specified, nothing is passed to DLBC.
+If \textsc{--only-first} is passed to \textsc{./process-tests.py}, only the first combination will be tested. This may be useful when doing a quick test. If no parameters are specified, nothing is passed to DLBC.
 \item \textbf{compare} (required): How to compare the generated data to the reference data. Three values are currently used:
 \begin{itemize}
 \item \textbf{data} (required): Types of data to be compared. These will normally be the prefixes of the output files.

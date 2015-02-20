@@ -12,12 +12,12 @@ generated/example-json.tex: example.json.template
 
 generated/list-of-tests.tex:
 	mkdir -p generated
-	../run-tests.py --latex > $@
+	../process-tests.py --latex > $@
 
 generated/run-tests.tex:
 	mkdir -p generated
 	echo '\\begin{verbatim}' > $@
-	../run-tests.py -h >> $@
+	../process-tests.py -h >> $@
 	echo '\\end{verbatim}' >> $@
 
 clean:
