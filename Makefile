@@ -14,7 +14,7 @@ src/dlbc/revision.d: .git/HEAD .git/index
 test: clean test-clean test-build test-unittest test-runnable
 
 test-clean: test-clean-doc
-	./tests/runnable/run-tests.py --clean
+	./tests/runnable/process-tests.py --clean
 
 test-clean-doc:
 	cd tests/runnable/doc ; make clean
@@ -27,13 +27,13 @@ test-doc: test-plot
 	cd tests/runnable/doc ; make
 
 test-plot:
-	./tests/runnable/run-tests.py --plot-reference
+	./tests/runnable/process-tests.py --plot-reference
 
 test-unittest:
 	./tests/travis-ci/unittest-coverage.sh dmd
 
 test-runnable:
-	./tests/runnable/run-tests.py
+	./tests/runnable/process-tests.py
 
 clean:
 	rm -f src/dlbc/revision.d
