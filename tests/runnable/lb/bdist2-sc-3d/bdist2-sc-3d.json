@@ -10,7 +10,7 @@
     "data": [ "density-red", "density-blue", "population-red", "population-blue" ],
     "comparison": [
       { "type": "h5diff", "files": "%data%-bdist2-sc-3d-*-t00000000.h5" },
-      { "type": "h5diff", "files": "%data%-bdist2-sc-3d-*-t00000100.h5" }
+      { "type": "h5diff", "files": "%data%-bdist2-sc-3d-*-t00000100.h5", "accuracy": "1e-15" }
     ],
     "shell": [ "./compare-lower-dimensions.py" ]
   }

@@ -17,9 +17,10 @@
   ],
   "compare": {
     "data": ["mask", "population-red" ],
-    "comparison": [ 
+    "comparison": [
       { "type": "h5diff",
-        "files": "a%some.par%-b%another.par%/%data%-name-*-t00000000.h5" }
+        "files": "a%some.par%-b%another.par%/%data%-name-*-t00000000.h5",
+        "accuracy": "1e-14" }
     ],
     "shell": [ "./extra-comparison-script ],
   }

@@ -98,3 +98,21 @@ def getCompareShell(compare):
         logDebug("JSON file lacks a 'compare:shell' parameter. Assuming no additional shell commands need to be run.")
         return []
 
+
+def getCompareType(comparison):
+    """ Get optional accuracy parameter for h5diff from comparison. """
+    try:
+        return comparison["type"]
+    except KeyError:
+        logFatal("Comparison requires a 'type' parameter. Please notify the test designer.", -1)
+        return ""
+
+def getCompareAccuracy(comparison):
+    """ Get optional accuracy parameter for h5diff from comparison. """
+    try:
+        return comparison["accuracy"]
+    except KeyError:
+        logDebug("Comparison lacks an 'accuracy' parameter. Assuming no laxness.")
+        return ""
+
+

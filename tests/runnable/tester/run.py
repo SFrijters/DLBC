@@ -104,7 +104,7 @@ def runTest(options, testRoot, configuration, inputFile, np, parameters, compare
             command.append("timers.enableIO=true")
         nerr += runSubtest(command, testRoot)
         if ( not options.coverage ):
-            nerr += compareTest(compare, testRoot)
+            nerr += compareTest(compare, testRoot, options.dub_compiler, options.compare_strict, options.compare_lax )
     if ( options.plot ):
         plotTest(testRoot, plot, False)
     return nerr
