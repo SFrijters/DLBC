@@ -13,7 +13,7 @@
   "clean": [ "output/d3q19" ],
   "compare": {
     "data": [ "density-red", "density-blue", "colour-red-blue" ],
-    "comparison": [ { "type": "h5diff", "files": "d3q19/%data%-laplace-d3q19-gcc3.6-*-t00001000.h5" } ],
-      "shell": [ "./compare-lower-dimensions.py" ]
+    "comparison": [ { "type": "h5diff", "files": "d3q19/%data%-laplace-d3q19-gcc3.6-*-t00001000.h5", "accuracy": "1e-14" } ],
+      "shell": [ "./compare-lower-dimensions.py 1e-14" ]
   }
 }

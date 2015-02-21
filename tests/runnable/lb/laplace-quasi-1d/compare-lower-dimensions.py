@@ -3,6 +3,7 @@
 import glob
 import h5py
 import os
+import sys
 
 def compare(path, prefix, time, accuracy):
     # Read d3q19 array
@@ -75,10 +76,15 @@ def compare(path, prefix, time, accuracy):
         return -1
 
     return 0
-   
+
+if ( len(sys.argv) > 1 ):
+    acc = float(sys.argv[1])
+else:
+    acc = 1e-14
+
 for s in [ "reference-data", "output" ]:
     for p in [ "density-red", "density-blue" ]:
-        r = compare(s, p, 1000, 1e-14)
+        r = compare(s, p, 1000, acc)
         if ( r != 0 and r != 1 ):
             exit(-1)
 

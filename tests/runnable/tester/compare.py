@@ -9,6 +9,7 @@ from parsejson import *
 
 import glob
 import os
+import string
 import subprocess
 
 def compareTest(compare, testRoot, compiler, strict, lax):
@@ -43,7 +44,7 @@ def compareTest(compare, testRoot, compiler, strict, lax):
     if ( len(shellscripts) > 0 ):
         logNotification("Running additional compare scripts ...")
     for s in shellscripts:
-        command = [s]
+        command = string.split(s, " ")
         logDebug("  Executing '" + " ".join(command) + "'.")
         p = subprocess.Popen(command, cwd=testRoot)
         p.communicate()
