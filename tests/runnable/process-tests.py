@@ -94,10 +94,10 @@ def main():
     parser.add_argument("--only-tag", help="only consider tests which have this tag", metavar="")
     parser.add_argument("--plot", action="store_true", help="plot results of the tests")
     parser.add_argument("--plot-reference", action="store_true", help="only plot the reference data of the tests")
-    parser.add_argument("--timing", action="store_true", help="write timing information")
-    
+    parser.add_argument("--timers", action="store_true", help="run with all compilers and write timer information")
+
     options = parser.parse_args()
-    
+
     options.dlbc_root = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), options.dlbc_root))
 
     # Set global verbosity level
@@ -142,7 +142,12 @@ def main():
 
     nerr = 0
     for i, m in enumerate(sorted(matches)):
-        nerr += processTest(m[0], m[1], options, len(matches), i)
+        if ( options.timers ):
+            for compiler in dubCompilerChoices:
+                options.dub_compiler = compiler
+                nerr += processTest(m[0], m[1], options, len(matches), i)
+        else:
+            nerr += processTest(m[0], m[1], options, len(matches), i)
 
     if ( options.describe ):
         return

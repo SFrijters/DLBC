@@ -11,6 +11,7 @@ from compare import *
 from logging import *
 from path import *
 from plot import *
+from timers import *
 
 def mapParameterMatrix(parameters):
     """ Construct the cartesian product of all parameter values. """
@@ -83,12 +84,16 @@ def runTest(options, testRoot, configuration, inputFile, np, parameters, compare
             if ( options.coverage ):
                 command.append("--coverage")
             command = command + constructParameterCommand(m)
-            if ( options.timing ):
+            if ( options.timers ):
                 command.append("--parameter")
                 command.append("timers.enableIO=true")
             nerr += runSubtest(command, testRoot)
-            compare = replaceTokensInCompare(compare, m, np)
+
+            if ( options.timers ):
+                moveTimersData(testRoot, options.dub_compiler)
+
             if ( not options.coverage ):
+                compare = replaceTokensInCompare(compare, m, np)
                 nerr += compareTest(compare, testRoot, options.dub_compiler, options.compare_strict, options.compare_lax )
 
             if ( options.only_first ):
@@ -99,10 +104,14 @@ def runTest(options, testRoot, configuration, inputFile, np, parameters, compare
         command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
         if ( options.coverage ):
             command.append("--coverage")
-        if ( options.timing ):
+        if ( options.timers ):
             command.append("--parameter")
             command.append("timers.enableIO=true")
         nerr += runSubtest(command, testRoot)
+
+        if ( options.timers ):
+            moveTimersData(testRoot, options.dub_compiler)
+
         if ( not options.coverage ):
             nerr += compareTest(compare, testRoot, options.dub_compiler, options.compare_strict, options.compare_lax )
     if ( options.plot ):
