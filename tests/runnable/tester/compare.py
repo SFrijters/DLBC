@@ -25,10 +25,10 @@ def compareTest(compare, testRoot, compiler, strict, lax):
                 g2 = glob.glob(os.path.join(testRoot, "reference-data", c["files"].replace("%data%", d)))[0]
                 command = [ "h5diff" ]
                 if ( not strict and compiler != "dmd" and acc != "" ):
-                    logDebug("Applying non-strict accuracy cutoff '%s' ..." % acc )
+                    logDebug("  Applying non-strict accuracy cutoff '%s' ..." % acc )
                     command += [ "-d", acc ]
                 if ( lax and compiler == "dmd" ):
-                    logDebug("Applying lax accuracy cutoff '%s' ..." % acc )
+                    logDebug("  Applying lax accuracy cutoff '%s' ..." % acc )
                     command += [ "-d", acc ]
                 command += [ g1, g2, "/OutArray" ]
                 logDebug("  Executing '" + " ".join(command) + "'.")
@@ -39,9 +39,10 @@ def compareTest(compare, testRoot, compiler, strict, lax):
         else:
             logFatal("Unknown comparison type '%s'." % ctype)
 
-    if ( len(getCompareShell(compare)) > 0 ):
+    shellscripts = getCompareShell(compare)
+    if ( len(shellscripts) > 0 ):
         logNotification("Running additional compare scripts ...")
-    for s in getCompareShell(compare):
+    for s in shellscripts:
         command = [s]
         logDebug("  Executing '" + " ".join(command) + "'.")
         p = subprocess.Popen(command, cwd=testRoot)

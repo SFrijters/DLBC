@@ -89,7 +89,7 @@ def runTest(options, testRoot, configuration, inputFile, np, parameters, compare
             nerr += runSubtest(command, testRoot)
             compare = replaceTokensInCompare(compare, m, np)
             if ( not options.coverage ):
-                nerr += compareTest(compare, testRoot)
+                nerr += compareTest(compare, testRoot, options.dub_compiler, options.compare_strict, options.compare_lax )
 
             if ( options.only_first ):
                 break
