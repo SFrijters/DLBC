@@ -12,7 +12,8 @@ from logging import *
 from path import *
 
 dubCompilerChoices = [ "dmd", "gdc", "ldc2" ]
-dubBuildChoices = [ "release", "cov", "unittest-cov" ]
+dubBuildChoices = [ "release", "cov", "unittest-cov", "profile" ]
+dubBuildBuildAll = [ "release", "cov", "unittest-cov" ]
 dlbcConfigurations = [ "d1q3", "d1q5", "d2q9", "d3q19" ]
 
 def dubBuild(compiler, build, configuration, force, dlbcRoot):
@@ -39,11 +40,11 @@ def dubBuild(compiler, build, configuration, force, dlbcRoot):
 
 def buildAll(options):
     """ Build all combinations of build type and configuration for the current compiler. """
-    nCombinations = len(dlbcConfigurations) * len(dubBuildChoices)
+    nCombinations = len(dlbcConfigurations) * len(dubBuildAll)
     n = 1
     import time
     for c in dlbcConfigurations:
-        for b in dubBuildChoices:
+        for b in dubBuildBuildAll:
             logNotification("Building executable %d of %d ..." % ( n, nCombinations) )
             t0 = time.time()
             dubBuild(options.dub_compiler, b, c, options.dub_force, options.dlbc_root)

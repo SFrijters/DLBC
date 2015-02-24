@@ -29,9 +29,9 @@
 
     "buildTypes":
     {
-        "release":      { "buildOptions": ["debugInfo", "warningsAsErrors", "deprecationErrors", "optimize", "inline", "noBoundsCheck", "releaseMode"] },
-        "cov":          { "buildOptions": ["debugInfo", "warningsAsErrors", "deprecationErrors", "coverage", ] },
-        "unittest-cov": { "buildOptions": ["debugInfo", "warningsAsErrors", "deprecationErrors", "unittests", "coverage", "debugMode" ] }
-
+        "release":      { "buildOptions": ["debugInfo", "warningsAsErrors", "deprecationErrors", "optimize", "inline", "noBoundsCheck", "releaseMode" ] },
+        "cov":          { "buildOptions": ["debugInfo", "warningsAsErrors", "deprecationErrors", "coverage" ] },
+        "unittest-cov": { "buildOptions": ["debugInfo", "warningsAsErrors", "deprecationErrors", "unittests", "coverage", "debugMode" ] },
+        "profile":      { "buildOptions": ["debugInfo", "warningsAsErrors", "deprecationErrors", "optimize", "inline", "profile" ] }
     },
 }
