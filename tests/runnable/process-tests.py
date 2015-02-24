@@ -146,6 +146,7 @@ def main():
             for compiler in dubCompilerChoices:
                 options.dub_compiler = compiler
                 nerr += processTest(m[0], m[1], options, len(matches), i)
+            plotTimersData(m[0])
         else:
             nerr += processTest(m[0], m[1], options, len(matches), i)
 

@@ -17,6 +17,7 @@ parser.add_argument("-V", "--version", action="store_true", help="show versions"
 parser.add_argument("--dpi", help="set output DPI", type=int, default=600)
 parser.add_argument("--sans-serif", action="store_true", help="use sans-serif fonts", default=False)
 parser.add_argument("--relpath", default=".", help="relative path of the data files")
+parser.add_argument("--testpath", default=".", help="absolute path of the test")
 parser.add_argument("positional", nargs="*")
 
 options = parser.parse_args()
