@@ -84,12 +84,12 @@ def runTest(options, testRoot, configuration, inputFile, np, parameters, compare
             if ( options.coverage ):
                 command.append("--coverage")
             command = command + constructParameterCommand(m)
-            if ( options.timers ):
+            if ( options.timers or options.timers_all):
                 command.append("--parameter")
                 command.append("timers.enableIO=true")
             nerr += runSubtest(command, testRoot)
 
-            if ( options.timers ):
+            if ( options.timers or options.timers_all ):
                 moveTimersData(testRoot, options.dub_compiler)
 
             if ( not options.coverage ):
@@ -104,12 +104,12 @@ def runTest(options, testRoot, configuration, inputFile, np, parameters, compare
         command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
         if ( options.coverage ):
             command.append("--coverage")
-        if ( options.timers ):
+        if ( options.timers or options.timers_all ):
             command.append("--parameter")
             command.append("timers.enableIO=true")
         nerr += runSubtest(command, testRoot)
 
-        if ( options.timers ):
+        if ( options.timers or options.timers_all ):
             moveTimersData(testRoot, options.dub_compiler)
 
         if ( not options.coverage ):

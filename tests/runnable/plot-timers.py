@@ -36,7 +36,7 @@ for prefix in strippedFiles:
 
     ax2 = ax1.twinx()
 
-    rects = []
+    leg_rects = []
     compilers = []
 
     for i, compiler in enumerate(dubCompilerChoices):
@@ -45,23 +45,30 @@ for prefix in strippedFiles:
         compilers.append(compiler)
         data = np.genfromtxt(filename, dtype=None, unpack=True)
         data = np.sort(data)
-        main = filter(lambda x: x[0] == "main", data)[0][2]
+        main = filter(lambda x: x[0] == "main", data)[0][2]*0.001
         data = filter(lambda x: x[0] != "main", data)
+
         timers = map(lambda x: x[0], data)
-        t = map(lambda x: x[2], data)
+        t = map(lambda x: x[2]*0.001, data)
+        t.append(main - sum(t))
         t_rescaled = map(lambda x: float(x) / main, t)
         t_rescaled.append(1.0 - sum(t_rescaled))
         timers.append("other")
         ind = np.arange(len(timers))
-        main *= 0.001 # rescale to seconds
-        rect = ax1.bar(0.1 + i*barwidth, main, barwidth, color=pc(i))
-        rect = ax2.bar(2.1 + ind + i*barwidth, t_rescaled, barwidth, color=pc(i))
-        rects.append(rect[0])
+        rects = ax1.bar(0.1 + i*barwidth, main, barwidth, color=pc(i))
+        leg_rects.append(rects[0])
+        maxt = max(t)
+        for j in range(0,len(timers)):
+            rects = ax2.bar(2.1 + ind[j] + i*barwidth, t[j], barwidth, color=pc(i), alpha=0.5+0.5*t_rescaled[j])
+            rect = rects[0]
+            height = rect.get_height()
+            ax2.text(rect.get_x()+rect.get_width()/2., height + maxt*0.02, '%.2f' % t_rescaled[j],
+                ha='center', va='bottom', fontsize=6, rotation='vertical')
 
     # Styles
     ax1.set_xlabel(r"Timer")
     ax1.set_ylabel(r"Time (s)")
-    ax2.set_ylabel(r"Fraction of main")
+    ax2.set_ylabel(r"Time (s)")
     ticks = [ 0.5 ]
     ticks.extend(ind + 2.5)
     ax1.set_xticks(ticks)
@@ -70,8 +77,9 @@ for prefix in strippedFiles:
     timers = ["main"] + timers
     ax1.set_xticklabels( timers, rotation=45, fontsize=8)
     ax1.yaxis.get_major_formatter().set_powerlimits((0, 1))
+    ax2.yaxis.get_major_formatter().set_powerlimits((0, 1))
 
-    ax1.legend( rects, compilers, loc='upper right', title=r"" )
+    ax1.legend( leg_rects, compilers, loc='upper right', title=r"" )
 
     logInformation("  Writing plot '%s' ..." % ( os.path.normpath(os.path.join(options.testpath, options.relpath, prefix + ".pdf"))) )
     write_to_file(prefix)
