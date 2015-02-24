@@ -38,6 +38,10 @@ def processTest(testRoot, filename, options, n, i):
 
     describeTest(data, fn, n, i, True)
 
+    if ( options.timers_clean ):
+        cleanTimersData(testRoot)
+        return nerr
+
     if ( options.plot_reference ):
         plotTest(testRoot, getPlot(data, fn), True)
         return nerr
@@ -96,6 +100,7 @@ def main():
     parser.add_argument("--plot-reference", action="store_true", help="only plot the reference data of the tests")
     parser.add_argument("--timers", action="store_true", help="run tests and write timer information and plot")
     parser.add_argument("--timers-all", action="store_true", help="run with all compilers and write timer information and plot")
+    parser.add_argument("--timers-clean", action="store_true", help="clean timer data")
 
     options = parser.parse_args()
 

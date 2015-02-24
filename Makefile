@@ -13,7 +13,7 @@ src/dlbc/revision.d: .git/HEAD .git/index
 
 test: clean test-clean test-build test-unittest test-runnable
 
-test-clean: test-clean-doc test-clean-pyc
+test-clean: test-clean-doc test-clean-pyc test-clean-timers
 	./tests/runnable/process-tests.py --clean
 
 test-clean-doc:
@@ -21,6 +21,9 @@ test-clean-doc:
 
 test-clean-pyc:
 	cd tests/runnable/tester ; make clean
+
+test-clean-timers:
+	./tests/runnable/process-tests.py --timers-clean
 
 test-build:
 	./tests/travis-ci/build-configurations.sh dmd
