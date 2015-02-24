@@ -40,7 +40,7 @@ def dubBuild(compiler, build, configuration, force, dlbcRoot):
 
 def buildAll(options):
     """ Build all combinations of build type and configuration for the current compiler. """
-    nCombinations = len(dlbcConfigurations) * len(dubBuildAll)
+    nCombinations = len(dlbcConfigurations) * len(dubBuildBuildAll)
     n = 1
     import time
     for c in dlbcConfigurations:
