@@ -8,7 +8,7 @@ Files for the available compilers will be combined into a single plot.
 
 from tester.mplhelper import *
 
-rcParams['figure.subplot.left'] = 0.15
+rcParams['figure.subplot.left'] = 0.1
 rcParams['figure.subplot.right'] = 0.9
 rcParams['figure.subplot.bottom'] = 0.2
 rcParams['figure.subplot.top'] = 0.92
@@ -59,7 +59,7 @@ for prefix in strippedFiles:
         leg_rects.append(rects[0])
         maxt = max(t)
         for j in range(0,len(timers)):
-            rects = ax2.bar(2.1 + ind[j] + i*barwidth, t[j], barwidth, color=pc(i), alpha=0.5+0.5*t_rescaled[j])
+            rects = ax2.bar(2.1 + ind[j] + i*barwidth, t[j], barwidth, color=alpha_blending(pc(i),0.1+0.9*t_rescaled[j]))
             rect = rects[0]
             height = rect.get_height()
             ax2.text(rect.get_x()+rect.get_width()/2., height + maxt*0.02, '%.2f' % t_rescaled[j],
