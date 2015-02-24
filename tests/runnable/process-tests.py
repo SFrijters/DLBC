@@ -94,7 +94,8 @@ def main():
     parser.add_argument("--only-tag", help="only consider tests which have this tag", metavar="")
     parser.add_argument("--plot", action="store_true", help="plot results of the tests")
     parser.add_argument("--plot-reference", action="store_true", help="only plot the reference data of the tests")
-    parser.add_argument("--timers", action="store_true", help="run with all compilers and write timer information")
+    parser.add_argument("--timers", action="store_true", help="run tests and write timer information and plot")
+    parser.add_argument("--timers-all", action="store_true", help="run with all compilers and write timer information and plot")
 
     options = parser.parse_args()
 
@@ -142,11 +143,14 @@ def main():
 
     nerr = 0
     for i, m in enumerate(sorted(matches)):
-        if ( options.timers ):
+        if ( options.timers_all ):
             for compiler in dubCompilerChoices:
                 options.dub_compiler = compiler
                 nerr += processTest(m[0], m[1], options, len(matches), i)
-            plotTimersData(m[0])
+            plotTimersData(m[0], options.v)
+        elif ( options.timers ):
+            nerr += processTest(m[0], m[1], options, len(matches), i)
+            plotTimersData(m[0], options.v)
         else:
             nerr += processTest(m[0], m[1], options, len(matches), i)
 

@@ -5,6 +5,8 @@ import glob
 import os
 import sys
 
+from logging import *
+
 # Parser
 try:
     import argparse
@@ -13,6 +15,7 @@ except ImportError:
     print_versions()
 
 parser = argparse.ArgumentParser(description="Style helper script for matplotlib")
+parser.add_argument("-v", choices=verbosityChoices, default="Information", help="verbosity level of this script [%s]" % ", ".join(verbosityChoices), metavar="")
 parser.add_argument("-V", "--version", action="store_true", help="show versions")
 parser.add_argument("--dpi", help="set output DPI", type=int, default=600)
 parser.add_argument("--sans-serif", action="store_true", help="use sans-serif fonts", default=False)
@@ -21,6 +24,10 @@ parser.add_argument("--testpath", default=".", help="absolute path of the test")
 parser.add_argument("positional", nargs="*")
 
 options = parser.parse_args()
+
+# Set global verbosity level
+import logging
+logging.verbosityLevel = getVerbosityLevel(options.v)
 
 def print_versions():
     print( "\nPython       " + sys.version)
@@ -58,7 +65,7 @@ def print_versions():
         print( "             " + h5py.__file__)
         print( "  HDF5       " + h5py.version.hdf5_version)
     except ImportError:
-        print( "\nImportError while loadting H5py.")
+        print( "\nImportError while loading H5py.")
 
     import os
     print( "\nMplHelper " )

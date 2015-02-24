@@ -33,11 +33,11 @@ def moveTimersData(testRoot, compiler):
         targetFile = os.path.join(timersPath, targetFileName.replace(".asc", "-" + compiler + ".asc"))
         shutil.move(t, targetFile)
 
-def plotTimersData(testRoot):
+def plotTimersData(testRoot, verbosity):
     """ Plot timer data by calling the plot-timers.py script. """
     import subprocess
     logNotification("Plotting data for test ...")
-    command = [ "./plot-timers.py", "--testpath", testRoot, "--relpath", "timers" ]
+    command = [ "./plot-timers.py", "-v", verbosity, "--testpath", testRoot, "--relpath", "timers" ]
     logDebug("  Executing '" + " ".join(command) + "'")
     p = subprocess.Popen(command)
     p.communicate()
