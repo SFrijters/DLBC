@@ -103,10 +103,10 @@ struct MultiStopWatch {
     if ( count > 0 ) {
       if ( ("main" in timersAA) !is null ) {
 	double perc = 100.0 * to!double(multi.peek().msecs) / to!double(timersAA["main"].peekMulti().msecs);
-	writeLog!(vl, logRankFormat)("Timer %16s was run %6d times. Total runtime %8dms (%6.2f%%), average runtime %8.0fms.", "'"~name~"'", count, multi.peek().msecs, perc, to!double(multi.peek().msecs) / count);
+	writeLog!(vl, logRankFormat)("Timer %20s was run %6d times. Total runtime %8dms (%6.2f%%), average runtime %8.0fms.", "'"~name~"'", count, multi.peek().msecs, perc, to!double(multi.peek().msecs) / count);
       }
       else {
-	writeLog!(vl, logRankFormat)("Timer %16s was run %6d times. Total runtime %8dms, average runtime %8.0fms.", "'"~name~"'", count, multi.peek().msecs, to!double(multi.peek().msecs) / count);
+	writeLog!(vl, logRankFormat)("Timer %20s was run %6d times. Total runtime %8dms, average runtime %8.0fms.", "'"~name~"'", count, multi.peek().msecs, to!double(multi.peek().msecs) / count);
       }
     }
   }
@@ -148,6 +148,7 @@ void showFinalAllTimers(VL vl, LRF logRankFormat)() {
   import std.string: format;
   assert( ("main" in timersAA) !is null );
   auto untrackedTime = timersAA["main"].multi.peek().msecs;
+  auto main = to!double(timersAA["main"].peekMulti().msecs);
 
   import std.stdio;
   import dlbc.io.io;
@@ -167,8 +168,18 @@ void showFinalAllTimers(VL vl, LRF logRankFormat)() {
       untrackedTime -= timersAA[t[1]].multi.peek().msecs;
     }
   }
-  double perc = 100.0 * untrackedTime / to!double(timersAA["main"].peekMulti().msecs);
-  writeLog!(vl, logRankFormat)("%58s %8dms (%6.2f%%)", "Untracked runtime", untrackedTime, perc);
+  double perc = 100.0 * untrackedTime / main;
+  writeLog!(vl, logRankFormat)("%62s %8dms (%6.2f%%)", "Untracked runtime", untrackedTime, perc);
+
+  import dlbc.lattice: gn;
+  import dlbc.lb.lb: timesteps;
+  import dlbc.parallel: M;
+  int nls = 1;
+  foreach(n; gn) {
+    nls *= n;
+  }
+  writeLog!(vl, logRankFormat)("\nUpdated %d lattice sites for %d timesteps in %e seconds: %e LUPS (%e LUPS/rank).", 
+			       nls, timesteps, 0.001 * main, 1000.0 * nls * timesteps / main, 1000.0 * nls * timesteps / ( main * M.size ) );
 
   if ( dlbc.timers.enableIO && dlbc.io.io.enableIO ) {
     auto fileName = makeFilenameOutput!(FileFormat.Ascii)(fileNamePrefix, 0);
