@@ -110,6 +110,10 @@ struct Lattice(alias conn) {
   */
   ScalarFieldOf!(typeof(fluids))[] density;
   /**
+     Temporary fields to store psi values.
+  */
+  ScalarFieldOf!(typeof(fluids))[] psi;
+  /**
      Force fields.
   */
   VectorFieldOf!(typeof(fluids))[] force;
@@ -189,6 +193,7 @@ struct Lattice(alias conn) {
     //advectionArr.length = components;
     force.length = components;
     density.length = components;
+    psi.length = components;
 
     // Initialize arrays
     foreach(ref e; fluids ) {
@@ -202,6 +207,9 @@ struct Lattice(alias conn) {
     }
     forceDistributed = typeof(forceDistributed)(lengths);
     foreach(ref e; density ) {
+      e = typeof(e)(lengths);
+    }
+    foreach(ref e; psi ) {
       e = typeof(e)(lengths);
     }
     mask = typeof(mask)(lengths);
@@ -247,6 +255,8 @@ struct Lattice(alias conn) {
 
   /**
      Fills the lattice density arrays by recomputing the values from the populations.
+
+     Todo: move to proper module. Initialize field if necessary (do not init at the start).
   */
   void calculateDensities() {
     foreach(immutable nc1; 0..fluids.length ) {
@@ -259,13 +269,40 @@ struct Lattice(alias conn) {
 
   /**
      Mark all density fields on the lattice as invalid.
+
+     Todo: move to proper module. Why not mark density as invalid?
   */
   void markDensitiesAsInvalid() {
     foreach(immutable nc1; 0..fluids.length ) {
       fluids[nc1].markAsInvalid();
     }
   }
-    
+
+  /**
+     Fills the lattice psi arrays by recomputing the values from the densities.
+
+     Todo: move to proper module. Initialize field if necessary (do not init at the start).
+  */
+  void calculatePsi(PsiForm psiForm)() {
+    calculateDensities();
+    foreach(immutable nc1; 0..fluids.length ) {
+      if ( ! density[nc1].isValid ) {
+	density[nc1].psiField!psiForm(mask, psi[nc1]);
+	density[nc1].markAsValid();
+      }
+    }
+  }
+
+  /**
+     Mark all psi fields on the lattice as invalid.
+
+     Todo: move to proper module. Why not mark psi as invalid?
+  */
+  void markPsiAsInvalid() {
+    foreach(immutable nc1; 0..fluids.length ) {
+      density[nc1].markAsInvalid();
+    }
+  }
 }
 
 /**

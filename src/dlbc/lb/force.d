@@ -14,6 +14,7 @@
 module dlbc.lb.force;
 
 import dlbc.lb.lb;
+import dlbc.fields.field;
 import dlbc.fields.init;
 import dlbc.lattice;
 import dlbc.logging;
@@ -127,14 +128,15 @@ void resetForce(T)(ref T L) if (isLattice!T) {
 */
 void distributeForce(T)(ref T L) if (isLattice!T) {
   startTimer("main.force.distr");
+  L.calculateDensities();
   foreach(immutable p, ref e; L.forceDistributed) {
     double totalDensity = 0.0;
     foreach(immutable i; 0..components ) {
-      totalDensity += L.fluids[i][p].density();
+      totalDensity += L.density[i][p];
     }
     foreach(immutable i; 0..components ) {
       foreach(immutable j; 0..L.lbconn.d ) {
-        L.force[i][p][j] += L.forceDistributed[p][j] * ( L.fluids[i][p].density() / totalDensity );
+        L.force[i][p][j] += L.forceDistributed[p][j] * ( L.density[i][p] / totalDensity );
       }
     }
   }
@@ -192,7 +194,8 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc,
   }
 
   // It's actually faster to pre-calculate the densities, apparently...
-  L.calculateDensities();
+  // L.calculateDensities();
+  L.calculatePsi!psiForm();
 
   // Do all combinations of two fluids.
   foreach(immutable nc1; 0..L.fluids.length ) {
@@ -204,7 +207,8 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc,
       foreach(immutable p, ref force ; L.force[nc1] ) {
         // Only do lattice sites on which collision will take place.
         if ( isCollidable(L.mask[p]) ) {
-          immutable psiden1 = psi!psiForm(L.density[nc1][p]);
+          // immutable psiden1 = psi!psiForm(L.density[nc1][p]);
+          immutable psiden1 = L.psi[nc1][p];
           foreach(immutable vq; Iota!(1, conn.q - 1) ) { // [*]
             conn.vel_t nb;
             // Todo: better array syntax.
@@ -212,7 +216,8 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc,
               nb[vd] = p[vd] + cv[vq][vd];
             }
             // Only do lattice sites that are not walls.
-            immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi!psiForm(L.density[nc2][p]) : psi!psiForm(L.density[nc2][nb]));
+            // immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi!psiForm(L.density[nc2][p]) : psi!psiForm(L.density[nc2][nb]));
+            immutable psiden2 = ( isBounceBack(L.mask[nb]) ? L.psi[nc2][p] : L.psi[nc2][nb] );
             immutable prefactor = cw[vq] * psiden1 * psiden2 * cc;
             // The SC force function.
             foreach(immutable vd; Iota!(0, conn.d) ) {
@@ -269,6 +274,41 @@ double psi(PsiForm psiForm)(in double den) @safe pure nothrow @nogc {
   }
   else {
     static assert(0);
+  }
+}
+
+/**
+   Calculates the psi at every site of a field and stores it either in a pre-allocated field, or returns a new one.
+
+   Params:
+     density = field of densities
+     mask = mask field
+
+   Returns:
+     psi field
+
+   Todo:
+     add proper template constraint to the second form of the function instead of the static assert; dmd v2.066.0 segfaults.
+*/
+auto psiField(PsiForm psiForm, T, U)(in ref T density, in ref U mask) if ( isField!T && isMatchingMaskField!(U,T) ) {
+  alias conn = field.conn;
+
+  auto psi = ScalarFieldOf!T(density.lengths);
+  assert(haveCompatibleLengthsH(density, mask, psi));
+
+  foreach(immutable p, rho; density.arr) {
+    psi[p] = psi!psiForm(rho);
+  }
+  return density;
+}
+
+/// Ditto
+void psiField(PsiForm psiForm, T, U, V)(in ref T density, in ref U mask, ref V psiField) if (isField!T && isMaskField!U && isMatchingScalarField!(V,T) ) {
+  static assert(haveCompatibleDims!(density, mask, psiField));
+  assert(haveCompatibleLengthsH(density, mask, psiField));
+
+  foreach(immutable p, rho; density.arr) {
+    psiField[p] = psi!psiForm(rho);
   }
 }
 

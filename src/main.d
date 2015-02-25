@@ -138,6 +138,7 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
     writeLogRN("Starting timestep %d", timestep);
 
     L.exchangeHalo();
+    L.markPsiAsInvalid(); // advection will invalidate
     L.markDensitiesAsInvalid(); // advection will invalidate
     //L.advectLattice();
     foreach(ref e; L.fluids) {
