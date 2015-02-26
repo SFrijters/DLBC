@@ -140,10 +140,14 @@ private void calculateWeightedVelocity(T)(ref T L) if ( isLattice!T ) {
   foreach(immutable p, ref e; weightedVelocityBDist2) {
     e = 0.0;
     foreach(immutable f, fluid; L.fluids) {
-      foreach(immutable i, pop; fluid[p]) {
+      double[conn.d] perFluid = 0.0;
+      foreach(immutable vq, pop; fluid[p]) {
 	foreach(immutable vd; Iota!(0, conn.d) ) {
-	  e[vd] += pop * cv[i][vd] / tau[f];
+	  perFluid[vd] += pop * cv[vq][vd];
 	}
+      }
+      foreach(immutable vd; Iota!(0, conn.d) ) {
+	e[vd] += perFluid[vd] / tau[f];
       }
     }
   }
