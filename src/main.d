@@ -156,9 +156,7 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
 
     // Collision
     L.prepareToCollide();
-    foreach(immutable i, ref e; L.fluids) {
-      e.collideField(L.mask, L.force[i], tau[i]);
-    }
+    L.collideFields(tau, globalAcc);
 
     // writeLogRI("Global mass = %f %f", L.fluids[0].globalMass(L.mask), L.fluids[1].globalMass(L.mask));
     // writeLogRI("Global momentum = %s %s", L.fluids[0].globalMomentum!(gconn)(L.mask), L.fluids[1].globalMomentum!(gconn)(L.mask));

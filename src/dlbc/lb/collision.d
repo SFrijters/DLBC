@@ -53,7 +53,7 @@ void prepareToCollide(T)(ref T L) if ( isLattice!T ) {
      force = force field
      tau = relaxation time
 */
-void collideField(T, U, V)(ref T field, in ref U mask, in ref V force, in double tau) if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
+void collideFields(T)(ref T L, in double[] tau, in double[] globalAcc) if ( isLattice!T ) {
   startTimer("main.coll.coll");
   final switch(eqDistForm) {
     // Calls appropriate collideFieldEqDist
@@ -63,28 +63,29 @@ void collideField(T, U, V)(ref T field, in ref U mask, in ref V force, in double
 }
 
 /// Ditto
-private void collideFieldEqDist(EqDistForm eqDistForm, T, U, V)(ref T field, in ref U mask, in ref V force, in double[] globalAcc, in double tau) @safe nothrow @nogc if ( isPopulationField!T && isMaskField!U && isMatchingVectorField!(V,T) ) {
-  static assert(haveCompatibleDims!(field, mask, force));
-  assert(haveCompatibleLengthsH(field, mask, force));
-  assert(globalAcc.length == field.dimensions);
+private void collideFieldsEqDist(EqDistForm eqDistForm, T)(ref T L, in double[] tau, in double[] globalAcc) if ( isLattice!T ) {
+  assert(tau.length == L.fluids.length);
+  assert(globalAcc.length == L.lbconn.d);
 
-  alias conn = field.conn;
+  alias conn = L.lbconn;
 
-  immutable omega = 1.0 / tau;
-  foreach(immutable p, ref pop; field) {
-    if ( isCollidable(mask[p]) ) {
-      immutable den = pop.density();
-      double[conn.d] dv;
-      foreach(immutable vd; Iota!(0,conn.d) ) {
-        dv[vd] = tau * ( globalAcc[vd] + force[p][vd] / den);
-	// BDist2 requires the addition of the weighted velocity array
-	static if (eqDistForm == EqDistForm.BDist2) {
-	  dv[vd] += weightedVelocityBDist2[p][vd];
+  foreach(immutable i; 0..L.fluids.length) {
+    immutable omega = 1.0 / tau[i];
+    foreach(immutable p, ref pop; L.fluids[i]) {
+      if ( isCollidable(L.mask[p]) ) {
+	immutable den = pop.density();
+	double[conn.d] dv;
+	foreach(immutable vd; Iota!(0,conn.d) ) {
+	  dv[vd] = tau[i] * ( globalAcc[vd] + L.force[i][p][vd] / den);
+	  // BDist2 requires the addition of the weighted velocity array
+	  static if (eqDistForm == EqDistForm.BDist2) {
+	    dv[vd] += weightedVelocityBDist2[p][vd];
+	  }
 	}
-      }
-      immutable eq = eqDist!(eqDistForm, conn)(pop, dv);
-      foreach(immutable vq; Iota!(0,conn.q) ) {
-        pop[vq] = pop[vq] * ( 1.0 - omega ) + omega * eq[vq];
+	immutable eq = eqDist!(eqDistForm, conn)(pop, dv);
+	foreach(immutable vq; Iota!(0,conn.q) ) {
+	  pop[vq] = pop[vq] * ( 1.0 - omega ) + omega * eq[vq];
+	}
       }
     }
   }
@@ -99,7 +100,7 @@ private string edfMixin() {
   string mixinString;
   foreach(immutable edf; EnumMembers!EqDistForm) {
     mixinString ~= "case eqDistForm." ~ to!string(edf) ~ ":\n";
-    mixinString ~= "  field.collideFieldEqDist!(eqDistForm." ~ to!string(edf) ~ ")(mask, force, globalAcc, tau);";
+    mixinString ~= "  L.collideFieldsEqDist!(eqDistForm." ~ to!string(edf) ~ ")(tau, globalAcc);";
     mixinString ~= "  break;\n";
   }
   return mixinString;
