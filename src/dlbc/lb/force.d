@@ -86,13 +86,13 @@ void initForce(T)(ref T L) if ( isLattice!T ) {
 
     string header = "Shan-Chen enabled - interaction matrix:\n\n         ";
     string lines;
-    foreach(immutable i; 0..components ) {
-      header ~= format("%8d ",i);
-      lines ~= format("%8d ",i);
-      foreach(immutable j; 0..components) {
-        lines ~= format("%8f ",gcc[i][j]);
-        if ( i > j ) {
-          if ( gcc[i][j] != gcc[j][i] ) {
+    foreach(immutable f1; 0..L.fluids.length ) {
+      header ~= format("%8d ", f1);
+      lines ~= format("%8d ", f1);
+      foreach(immutable f2; 0..L.fluids.length ) {
+        lines ~= format("%8f ",gcc[f1][f2]);
+        if ( f1 > f2 ) {
+          if ( gcc[f1][f2] != gcc[f2][f1] ) {
             writeLogRW("Shan-Chen interaction not symmetric.");
           }
         }
@@ -113,8 +113,8 @@ void initForce(T)(ref T L) if ( isLattice!T ) {
      L = lattice
 */
 void resetForce(T)(ref T L) if (isLattice!T) {
-  foreach(ref e; L.force) {
-    e.initConst(0.0);
+  foreach(ref force; L.force) {
+    force.initConst(0.0);
   }
   L.forceDistributed.initConst(0.0);
 }
@@ -127,16 +127,17 @@ void resetForce(T)(ref T L) if (isLattice!T) {
      L = lattice
 */
 void distributeForce(T)(ref T L) if (isLattice!T) {
+  alias conn = L.lbconn;
   startTimer("main.force.distr");
   L.calculateDensities();
   foreach(immutable p, ref e; L.forceDistributed) {
     double totalDensity = 0.0;
-    foreach(immutable i; 0..components ) {
-      totalDensity += L.density[i][p];
+    foreach(immutable f; 0..L.fluids.length ) {
+      totalDensity += L.density[f][p];
     }
-    foreach(immutable i; 0..components ) {
-      foreach(immutable j; 0..L.lbconn.d ) {
-        L.force[i][p][j] += L.forceDistributed[p][j] * ( L.density[i][p] / totalDensity );
+    foreach(immutable f; 0..L.fluids.length ) {
+      foreach(immutable vd; Iota!(0, conn.d) ) {
+        L.force[f][p][vd] += L.forceDistributed[p][vd] * ( L.density[f][p] / totalDensity );
       }
     }
   }
@@ -198,17 +199,17 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc,
   L.calculatePsi!psiForm();
 
   // Do all combinations of two fluids.
-  foreach(immutable nc1; 0..L.fluids.length ) {
-    foreach(immutable nc2; 0..L.fluids.length ) {
+  foreach(immutable f1; 0..L.fluids.length ) {
+    foreach(immutable f2; 0..L.fluids.length ) {
       // This interaction has a particular coupling constant.
-      immutable cc = gcc[nc1][nc2];
+      immutable cc = gcc[f1][f2];
       // Skip zero interactions.
       if ( cc == 0.0 ) continue;
-      foreach(immutable p, ref force ; L.force[nc1] ) {
+      foreach(immutable p, ref force ; L.force[f1] ) {
         // Only do lattice sites on which collision will take place.
         if ( isCollidable(L.mask[p]) ) {
-          // immutable psiden1 = psi!psiForm(L.density[nc1][p]);
-          immutable psiden1 = L.psi[nc1][p];
+          // immutable psiden1 = psi!psiForm(L.density[f1][p]);
+          immutable psiden1 = L.psi[f1][p];
           foreach(immutable vq; Iota!(1, conn.q - 1) ) { // [*]
             conn.vel_t nb;
             // Todo: better array syntax.
@@ -216,8 +217,8 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc,
               nb[vd] = p[vd] + cv[vq][vd];
             }
             // Only do lattice sites that are not walls.
-            // immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi!psiForm(L.density[nc2][p]) : psi!psiForm(L.density[nc2][nb]));
-            immutable psiden2 = ( isBounceBack(L.mask[nb]) ? L.psi[nc2][p] : L.psi[nc2][nb] );
+            // immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi!psiForm(L.density[f2][p]) : psi!psiForm(L.density[f2][nb]));
+            immutable psiden2 = ( isBounceBack(L.mask[nb]) ? L.psi[f2][p] : L.psi[f2][nb] );
             immutable prefactor = cw[vq] * psiden1 * psiden2 * cc;
             // The SC force function.
             foreach(immutable vd; Iota!(0, conn.d) ) {
@@ -229,12 +230,12 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc,
     }
 
     // Wall interactions
-    immutable wc = gwc[nc1];
+    immutable wc = gwc[f1];
     if ( wc == 0.0 ) continue;
-    foreach(immutable p, ref force ; L.force[nc1] ) {
+    foreach(immutable p, ref force ; L.force[f1] ) {
       // Only do lattice sites on which collision will take place.
       if ( isCollidable(L.mask[p]) ) {
-        immutable psiden1 = psi!psiForm(L.density[nc1][p]);
+        immutable psiden1 = psi!psiForm(L.density[f1][p]);
         foreach(immutable vq; Iota!(0, conn.q) ) {
           conn.vel_t nb;
           // Todo: better array syntax.
@@ -242,7 +243,7 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc,
             nb[vd] = p[vd] + cv[vq][vd];
           }
           if ( isBounceBack(L.mask[nb]) ) {
-            immutable prefactor = cw[vq] * psiden1 * L.density[nc1][nb] * wc;
+            immutable prefactor = cw[vq] * psiden1 * L.density[f1][nb] * wc;
             // The SC force function.
             foreach(immutable vd; Iota!(0, conn.d) ) {
               force[vd] -= prefactor * cv[vq][vd];

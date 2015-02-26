@@ -71,14 +71,14 @@ private void collideFieldsEqDist(EqDistForm eqDistForm, T)(ref T L, in double[] 
 
   L.calculateDensities();
 
-  foreach(immutable i; 0..L.fluids.length) {
-    immutable omega = 1.0 / tau[i];
-    foreach(immutable p, ref pop; L.fluids[i]) {
+  foreach(immutable f; 0..L.fluids.length) {
+    immutable omega = 1.0 / tau[f];
+    foreach(immutable p, ref pop; L.fluids[f]) {
       if ( isCollidable(L.mask[p]) ) {
-	immutable den = L.density[i][p];
+	immutable den = L.density[f][p];
 	double[conn.d] dv;
 	foreach(immutable vd; Iota!(0,conn.d) ) {
-	  dv[vd] = tau[i] * ( globalAcc[vd] + L.force[i][p][vd] / den);
+	  dv[vd] = tau[f] * ( globalAcc[vd] + L.force[f][p][vd] / den);
 	  // BDist2 requires the addition of the weighted velocity array
 	  static if (eqDistForm == EqDistForm.BDist2) {
 	    dv[vd] += weightedVelocityBDist2[p][vd];
@@ -140,17 +140,17 @@ private void calculateWeightedVelocity(T)(ref T L) if ( isLattice!T ) {
   }
 
   // For all fluids, combine momentum and viscosity.
-  foreach(immutable p, ref e; weightedVelocityBDist2) {
-    e = 0.0;
-    foreach(immutable f, fluid; L.fluids) {
+  foreach(immutable p, ref wv; weightedVelocityBDist2) {
+    wv = 0.0;
+    foreach(immutable f; 0..L.fluids.length) {
       double[conn.d] perFluid = 0.0;
-      foreach(immutable vq, pop; fluid[p]) {
+      foreach(immutable vq; Iota!(0,conn.q) ) {
 	foreach(immutable vd; Iota!(0, conn.d) ) {
-	  perFluid[vd] += pop * cv[vq][vd];
+	  perFluid[vd] += L.fluids[f][p][vq] * cv[vq][vd];
 	}
       }
       foreach(immutable vd; Iota!(0, conn.d) ) {
-	e[vd] += perFluid[vd] / tau[f];
+	wv[vd] += perFluid[vd] / tau[f];
       }
     }
   }
@@ -158,13 +158,13 @@ private void calculateWeightedVelocity(T)(ref T L) if ( isLattice!T ) {
   L.calculateDensities();
 
   // Divide by total densities.
-  foreach(immutable p, ref e; weightedVelocityBDist2) {
+  foreach(immutable p, ref wv; weightedVelocityBDist2) {
     double totalDensity = 0.0;
     foreach(density; L.density) {
       totalDensity += density[p];
     }
     foreach(immutable vd; Iota!(0, conn.d) ) {
-      e[vd] /= totalDensity;
+      wv[vd] /= totalDensity;
     }
   }
 }
