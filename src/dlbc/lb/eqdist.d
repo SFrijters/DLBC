@@ -127,6 +127,7 @@ dotProduct(F1, F2)(in F1[] avector, in F2[] bvector)
    Params:
      population = population vector \(\vec{n}\)
      dv = velocity shift \(\Delta \vec{u}\)
+     rho0 = density of the population (optional)
      eqDistForm = form of the equilibrium distribution
      conn = connectivity
 
@@ -137,9 +138,13 @@ dotProduct(F1, F2)(in F1[] avector, in F2[] bvector)
      clean up BDist2 block; allow for connectivities other than D3Q19.
 */
 auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double[conn.d] dv) @safe nothrow @nogc {
-  static assert(population.length == conn.q);
-
   immutable rho0 = population.density();
+  return eqDist!(eqDistForm, conn)(population, dv, rho0);
+}
+
+/// Ditto
+auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double[conn.d] dv, in double rho0) @safe nothrow @nogc {
+  static assert(population.length == conn.q);
 
   T dist;
 

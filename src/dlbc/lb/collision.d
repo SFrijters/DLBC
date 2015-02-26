@@ -84,7 +84,7 @@ private void collideFieldsEqDist(EqDistForm eqDistForm, T)(ref T L, in double[] 
 	    dv[vd] += weightedVelocityBDist2[p][vd];
 	  }
 	}
-	immutable eq = eqDist!(eqDistForm, conn)(pop, dv);
+	immutable eq = eqDist!(eqDistForm, conn)(pop, dv, den);
 	foreach(immutable vq; Iota!(0,conn.q) ) {
 	  pop[vq] = pop[vq] * ( 1.0 - omega ) + omega * eq[vq];
 	}
