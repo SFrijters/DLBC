@@ -139,18 +139,22 @@ dotProduct(F1, F2)(in F1[] avector, in F2[] bvector)
 auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double[conn.d] dv) @safe nothrow @nogc {
   static assert(population.length == conn.q);
 
-  immutable cv = conn.velocities;
-  immutable cw = conn.weights;
-  immutable css = conn.css;
   immutable rho0 = population.density();
-  immutable pv = population.velocity!(conn)(rho0);
 
-  double[conn.d] v;
-  foreach(immutable vd; Iota!(0,conn.d) ) {
-    v[vd] = dv[vd] + pv[vd];
-  }
-  immutable vdotv = v.dotProduct(v);
   T dist;
+
+  static if ( eqDistForm == EqDistForm.SecondOrder ||
+	      eqDistForm == EqDistForm.ThirdOrder ) {
+    immutable cv = conn.velocities;
+    immutable cw = conn.weights;
+    immutable css = conn.css;
+    immutable pv = population.velocity!(conn)(rho0);
+    double[conn.d] v;
+    foreach(immutable vd; Iota!(0,conn.d) ) {
+      v[vd] = dv[vd] + pv[vd];
+    }
+    immutable vdotv = v.dotProduct(v);
+  }
 
   static if ( eqDistForm == EqDistForm.SecondOrder ) {
     immutable css2 = 2.0 * css;
