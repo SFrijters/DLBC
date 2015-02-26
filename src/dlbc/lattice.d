@@ -348,7 +348,7 @@ void initLattice(T)(ref T L) if (isLattice!T) {
      gn = global lattice size
      nc = number of processes
 */
-private bool canDivide(const size_t[] gn, const int[] nc) @safe pure nothrow {
+private bool canDivide(in size_t[] gn, in int[] nc) @safe pure nothrow @nogc {
   assert(gn.length == nc.length);
   foreach(immutable i, g; gn) {
     if ( g % nc[i] != 0 ) {
