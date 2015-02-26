@@ -69,11 +69,13 @@ private void collideFieldsEqDist(EqDistForm eqDistForm, T)(ref T L, in double[] 
 
   alias conn = L.lbconn;
 
+  L.calculateDensities();
+
   foreach(immutable i; 0..L.fluids.length) {
     immutable omega = 1.0 / tau[i];
     foreach(immutable p, ref pop; L.fluids[i]) {
       if ( isCollidable(L.mask[p]) ) {
-	immutable den = pop.density();
+	immutable den = L.density[i][p];
 	double[conn.d] dv;
 	foreach(immutable vd; Iota!(0,conn.d) ) {
 	  dv[vd] = tau[i] * ( globalAcc[vd] + L.force[i][p][vd] / den);
