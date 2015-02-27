@@ -7,7 +7,7 @@ else
 fi
 
 if [ "${DC}" == "dmd" ]; then
-    ./tests/runnable/process-tests.py --dub-compiler ${DC} --only-first
+    ./tests/runnable/process-tests.py --dub-compiler ${DC} --only-first --compare-lax
 else
     echo "Runnable tests are performed only with dmd."
 fi
