@@ -124,11 +124,7 @@ void initEqDistSphere(T)(ref T field, in double density1, in double density2,
 
   assert(initSphereOffset.length == conn.d);
 
-  // Calculate eqDist for unity density.
-  double[conn.q] pop0 = 0.0;
-  pop0[0] = 1.0;
-  double[conn.d] dv = 0.0;
-  typeof(pop0) eqpop = eqDist!conn(pop0, dv)[];
+  immutable eqpop = eqDistUnity!conn().idup;
 
   // Initialize sites.
   foreach(immutable p, ref e; field.arr) {
@@ -175,11 +171,7 @@ void initEqDistCylinder(T)(ref T field, in double density1, in double density2, 
 
   assert(initCylinderOffset.length == conn.d);
 
-  // Calculate eqDist for unity density.
-  double[conn.q] pop0 = 0.0;
-  pop0[0] = 1.0;
-  double[conn.d] dv = 0.0;
-  typeof(pop0) eqpop = eqDist!conn(pop0, dv)[];
+  immutable eqpop = eqDistUnity!conn().idup;
 
   // Initialize sites.
   foreach(immutable p, ref e; field.arr) {
@@ -237,11 +229,7 @@ void initEqDistTwoSpheres(T)(ref T field, in double density1, in double density2
   assert(initSphereOffset.length == conn.d);
   assert(initSeparation.length == conn.d);
 
-  // Calculate eqDist for unity density.
-  double[conn.q] pop0 = 0.0;
-  pop0[0] = 1.0;
-  double[conn.d] dv = 0.0;
-  typeof(pop0) eqpop = eqDist!conn(pop0, dv)[];
+  immutable eqpop = eqDistUnity!conn().idup;
 
   // Initialize sites.
   foreach(immutable p, ref e; field.arr) {
@@ -307,10 +295,8 @@ void initEqDistLamellae(T, U)(ref T field, in U[] values, in double[] widths, in
   assert(widths.length == values.length);
 
   alias conn = field.conn;
-  double[conn.q] pop0 = 0.0;
-  pop0[0] = 1.0;
-  double[conn.d] dv = 0.0;
-  typeof(pop0) eqpop = eqDist!conn(pop0, dv)[];
+
+  immutable eqpop = eqDistUnity!conn().idup;
 
   size_t ax = to!int(preferredAxis);
 

@@ -379,6 +379,19 @@ private string edfMixin() {
   return mixinString;
 }
 
+/**
+   Calculate equilibrium density for unity density and zero velocity.
+
+   Returns:
+     equilibrium distribution \(\vec{n}^{\mathrm{eq}}\)
+*/
+auto eqDistUnity(alias conn)() {
+  double[conn.q] pop0 = 0.0;
+  pop0[0] = 1.0;
+  double[conn.d] dv = 0.0;
+  return eqDist!(conn)(pop0, dv)[];
+}
+
 unittest {
   // Check mass and momentum conservation of the equilibrium distributions.
   import dlbc.lb.connectivity;
