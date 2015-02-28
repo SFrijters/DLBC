@@ -124,18 +124,20 @@ void initEqDistSphere(T)(ref T field, in double density1, in double density2,
 
   assert(initSphereOffset.length == conn.d);
 
-  immutable r = initSphereRadius;
+  // Calculate eqDist for unity density.
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
   double[conn.d] dv = 0.0;
   typeof(pop0) eqpop = eqDist!conn(pop0, dv)[];
+
+  // Initialize sites.
   foreach(immutable p, ref e; field.arr) {
     double[conn.d] gn, offset;
     foreach(immutable i; Iota!(0, conn.d) ) {
       gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
       offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * 0.5 + initSphereOffset[i]) + 0.5;
     }
-    immutable relpos = sqrt(offset.dotProduct(offset)) - r;
+    immutable relpos = sqrt(offset.dotProduct(offset)) - initSphereRadius;
     e = relpos.symmetricLinearTransition(interfaceThickness, density1, density2)*eqpop[];
   }
 }
@@ -173,11 +175,13 @@ void initEqDistCylinder(T)(ref T field, in double density1, in double density2, 
 
   assert(initCylinderOffset.length == conn.d);
 
-  immutable r = initCylinderRadius;
+  // Calculate eqDist for unity density.
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
   double[conn.d] dv = 0.0;
   typeof(pop0) eqpop = eqDist!conn(pop0, dv)[];
+
+  // Initialize sites.
   foreach(immutable p, ref e; field.arr) {
     double[conn.d] gn, offset;
     foreach(immutable i; Iota!(0, conn.d) ) {
@@ -189,7 +193,7 @@ void initEqDistCylinder(T)(ref T field, in double density1, in double density2, 
         offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * 0.5 + initCylinderOffset[i]) + 0.5;
       }
     }
-    immutable relpos = sqrt(offset.dotProduct(offset)) - r;
+    immutable relpos = sqrt(offset.dotProduct(offset)) - initCylinderRadius;
     e = relpos.symmetricLinearTransition(interfaceThickness, density1, density2)*eqpop[];
   }
 }
@@ -219,6 +223,69 @@ void initEqDistCylinderFrac(T)(ref T field, in double density1, in double densit
 
   initEqDistCylinder(field, density1, density2, preferredAxis, initCylinderRadius, initCylinderOffset, interfaceThickness);
 
+}
+
+
+void initEqDistTwoSpheres(T)(ref T field, in double density1, in double density2,
+			     in double initSphereRadius, in double[] initSphereOffset,
+			     in double interfaceThickness, in double[] initSeparation ) if ( isField!T ) {
+  import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
+  import std.math, std.conv, std.numeric;
+  import std.algorithm: min;
+  alias conn = field.conn;
+
+  assert(initSphereOffset.length == conn.d);
+  assert(initSeparation.length == conn.d);
+
+  // Calculate eqDist for unity density.
+  double[conn.q] pop0 = 0.0;
+  pop0[0] = 1.0;
+  double[conn.d] dv = 0.0;
+  typeof(pop0) eqpop = eqDist!conn(pop0, dv)[];
+
+  // Initialize sites.
+  foreach(immutable p, ref e; field.arr) {
+    double[conn.d] gn, offset1, offset2;
+    foreach(immutable i; Iota!(0, conn.d) ) {
+      gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
+      offset1[i] = gn[i] - to!double(M.nc[i] * field.n[i] * 0.5 + initSphereOffset[i] - 0.5 * initSeparation[i]) + 0.5;
+      offset2[i] = gn[i] - to!double(M.nc[i] * field.n[i] * 0.5 + initSphereOffset[i] + 0.5 * initSeparation[i]) + 0.5;
+    }
+    immutable relpos1 = sqrt(offset1.dotProduct(offset1)) - initSphereRadius;
+    immutable relpos2 = sqrt(offset2.dotProduct(offset2)) - initSphereRadius;
+    immutable relpos = min(relpos1, relpos2);
+    e = relpos.symmetricLinearTransition(interfaceThickness, density1, density2)*eqpop[];
+  }
+}
+
+
+void initEqDistTwoSpheresFrac(T)(ref T field, in double density1, in double density2,
+				 in double initSphereRadiusFrac, in double[] initSphereOffsetFrac,
+				 in double interfaceThickness, in double[] initSeparationFrac ) if ( isField!T ) {
+  import dlbc.lattice: gn;
+  import dlbc.range;
+
+  alias conn = field.conn;
+
+  assert(initSphereOffsetFrac.length == conn.d);
+  assert(initSeparationFrac.length == conn.d);
+
+  auto smallSize = gn[0];
+  foreach(immutable i; 0..gn.length) {
+    if ( gn[i] < smallSize ) {
+      smallSize = gn[i];
+    }
+  }
+
+  immutable initSphereRadius = initSphereRadiusFrac * smallSize;
+  double[conn.d] initSphereOffset;
+  double[conn.d] initSeparation;
+  foreach(immutable vd; Iota!(0,conn.d) ) {
+    initSphereOffset[vd] = initSphereOffsetFrac[vd] * smallSize;
+    initSeparation[vd] = initSeparationFrac[vd] * smallSize;
+  }
+
+  initEqDistTwoSpheres(field, density1, density2, initSphereRadius, initSphereOffset, interfaceThickness, initSeparation);
 }
 
 void initEqDistWall(T, U)(ref T field, in double density, ref U mask) if ( isField!T && isMaskField!U ) {

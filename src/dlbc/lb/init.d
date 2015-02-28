@@ -29,6 +29,8 @@ module dlbc.lb.init;
 /// Ditto
 @("param") double[] initOffset;
 /// Ditto
+@("param") double[] initSeparation;
+/// Ditto
 @("param") Axis initAxis;
 /// Ditto
 @("param") double interfaceThickness = 0.0;
@@ -84,7 +86,7 @@ enum FluidInit {
   EqDistRandom,
   /**
      Initialize all sites of fluid i within a radius $(D initRadius) from the centre
-     of the system with offset $(D initOffset) the equilibrium population for density
+     of the system with offset $(D initOffset) with the equilibrium population for density
      $(D fluidDensities[i][0]), and all other sites with the equilibrium population
      for density $(D fluidDensities[i][1]). The interface is modeled by a linear transition
      with a length $(D interfaceThickness).
@@ -118,6 +120,27 @@ enum FluidInit {
   */
   EqDistCylinderFrac,
   /**
+     Initialize all sites of fluid i, within a radius $(D initRadius) from the centre of
+     either of two spheres, whose centres are separated by a distance $(D initSeparation)
+     and whose combined centre of mass is located at the centre of the system with offset
+     $(D initOffset), with the equilibrium population for density
+     $(D fluidDensities[i][0]), and all other sites with the equilibrium population
+     for density $(D fluidDensities[i][1]). The interface is modeled by a linear transition
+     with a length $(D interfaceThickness).
+  */
+  EqDistTwoSpheres,
+  /**
+     Initialize all sites of fluid i, within a radius $(D initRadius) * system size
+     from the centre of either of two spheres, whose centres are separated by a distance
+     $(D initSeparation) * system size and whose combined centre of mass is located at the
+     centre of the system with offset $(D initOffset) * system size, with the equilibrium
+     population for density $(D fluidDensities[i][0]), and all other sites with the
+     equilibrium population for density $(D fluidDensities[i][1]). Here, system size is taken
+     to be the shortest axis of the system. The interface is modeled by a linear
+     transition with a length $(D interfaceThickness).
+  */
+  EqDistTwoSpheresFrac,
+  /**
      Initialize all sites of fluid i with $(D preferredAxis)-coordinate inside a
      particular lamella of a set of lamellae of width $(D lamellaeWidths) with the
      equilibrium population for density $(D fluidDensities[i][j])$ where j is the number
@@ -150,7 +173,8 @@ void initFluid(T)(ref T field, in size_t i) if ( isPopulationField!T ) {
   checkArrayParameterLength(fluidInit, "lb.init.fluidInit", components);
   checkArrayParameterLength(fluidDensities, "lb.init.fluidDensities", components);
   checkArrayParameterLength(fluidPerturb, "lb.init.fluidPerturb", components);
-  checkArrayParameterLength(initOffset, "lb.init.sphereOffset", conn.d);
+  checkArrayParameterLength(initOffset, "lb.init.initOffset", conn.d);
+  checkArrayParameterLength(initSeparation, "lb.init.initSeparation", conn.d);
   checkArrayParameterLength(tau, "lb.lb.tau", components, true);
 
   if ( to!int(initAxis) >= field.dimensions ) {
@@ -199,6 +223,14 @@ void initFluid(T)(ref T field, in size_t i) if ( isPopulationField!T ) {
   case(FluidInit.EqDistCylinderFrac):
     checkFDArrayParameterLength(2);
     field.initEqDistCylinderFrac(fluidDensities[i][0], fluidDensities[i][1], initAxis, initRadius, initOffset, interfaceThickness);
+    break;
+  case(FluidInit.EqDistTwoSpheres):
+    checkFDArrayParameterLength(2);
+    field.initEqDistTwoSpheres(fluidDensities[i][0], fluidDensities[i][1], initRadius, initOffset, interfaceThickness, initSeparation);
+    break;
+  case(FluidInit.EqDistTwoSpheresFrac):
+    checkFDArrayParameterLength(2);
+    field.initEqDistTwoSpheresFrac(fluidDensities[i][0], fluidDensities[i][1], initRadius, initOffset, interfaceThickness, initSeparation);
     break;
   case(FluidInit.EqDistLamellae):
     checkFDArrayParameterLength(lamellaeWidths.length);
