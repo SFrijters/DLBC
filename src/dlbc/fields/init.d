@@ -122,6 +122,8 @@ void initEqDistSphere(T)(ref T field, in double density1, in double density2,
   import std.math, std.conv, std.numeric;
   alias conn = field.conn;
 
+  assert(initSphereOffset.length == conn.d);
+
   immutable r = initSphereRadius;
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
@@ -140,8 +142,9 @@ void initEqDistSphere(T)(ref T field, in double density1, in double density2,
 
 void initEqDistSphereFrac(T)(ref T field, in double density1, in double density2,
                              in double initSphereRadiusFrac, in double[] initSphereOffsetFrac, in double interfaceThickness) if ( isField!T ) {
-  import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range, dlbc.lattice;
-  import std.math, std.conv, std.numeric;
+  import dlbc.lattice: gn;
+  import dlbc.range;
+
   alias conn = field.conn;
 
   assert(initSphereOffsetFrac.length == conn.d);
@@ -163,12 +166,14 @@ void initEqDistSphereFrac(T)(ref T field, in double density1, in double density2
 }
 
 void initEqDistCylinder(T)(ref T field, in double density1, in double density2, in Axis preferredAxis,
-                           in double initSphereRadius, in double[] initSphereOffset, in double interfaceThickness) if ( isField!T ) {
+                           in double initCylinderRadius, in double[] initCylinderOffset, in double interfaceThickness) if ( isField!T ) {
   import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
   import std.math, std.conv, std.numeric;
   alias conn = field.conn;
 
-  immutable r = initSphereRadius;
+  assert(initCylinderOffset.length == conn.d);
+
+  immutable r = initCylinderRadius;
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
   double[conn.d] dv = 0.0;
@@ -181,7 +186,7 @@ void initEqDistCylinder(T)(ref T field, in double density1, in double density2, 
       }
       else {
         gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
-        offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * 0.5 + initSphereOffset[i]) + 0.5;
+        offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * 0.5 + initCylinderOffset[i]) + 0.5;
       }
     }
     immutable relpos = sqrt(offset.dotProduct(offset)) - r;
@@ -190,10 +195,12 @@ void initEqDistCylinder(T)(ref T field, in double density1, in double density2, 
 }
 
 void initEqDistCylinderFrac(T)(ref T field, in double density1, in double density2, in Axis preferredAxis,
-                               in double initSphereFrac, in double[] initSphereOffset, in double interfaceThickness) if ( isField!T ) {
-  import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range, dlbc.lattice;
-  import std.math, std.conv, std.numeric;
+                               in double initCylinderRadiusFrac, in double[] initCylinderOffsetFrac, in double interfaceThickness) if ( isField!T ) {
+  import dlbc.lattice: gn;
+  import dlbc.range;
   alias conn = field.conn;
+
+  assert(initCylinderOffsetFrac.length == conn.d);
 
   size_t smallSize = 0;
   foreach(immutable i; 0..gn.length) {
@@ -204,25 +211,14 @@ void initEqDistCylinderFrac(T)(ref T field, in double density1, in double densit
     }
   }
 
-  immutable r = initSphereFrac * smallSize;
-  double[conn.q] pop0 = 0.0;
-  pop0[0] = 1.0;
-  double[conn.d] dv = 0.0;
-  typeof(pop0) eqpop = eqDist!conn(pop0, dv)[];
-  foreach(immutable p, ref e; field.arr) {
-    double[conn.d] gn, offset;
-    foreach(immutable i; Iota!(0, conn.d) ) {
-      if ( i == to!int(preferredAxis) ) {
-        offset[i] = 0.0;
-      }
-      else {
-        gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
-        offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * ( 0.5 + initSphereOffset[i]) ) + 0.5;
-      }
-    }
-    immutable relpos = sqrt(offset.dotProduct(offset)) - r;
-    e = relpos.symmetricLinearTransition(interfaceThickness, density1, density2)*eqpop[];
+  immutable initCylinderRadius = initCylinderRadiusFrac * smallSize;
+  double[conn.d] initCylinderOffset;
+  foreach(immutable vd; Iota!(0,conn.d) ) {
+    initCylinderOffset[vd] = initCylinderOffsetFrac[vd] * smallSize;
   }
+
+  initEqDistCylinder(field, density1, density2, preferredAxis, initCylinderRadius, initCylinderOffset, interfaceThickness);
+
 }
 
 void initEqDistWall(T, U)(ref T field, in double density, ref U mask) if ( isField!T && isMaskField!U ) {
@@ -292,57 +288,17 @@ void initEqDistLamellae(T, U)(ref T field, in U[] values, in double[] widths, in
 
 
 void initEqDistLamellaeFrac(T, U)(ref T field, in U[] values, in double[] widthsFrac, in Axis preferredAxis, in double interfaceThickness) if ( isField!T ) {
-  import std.math: abs;
-  import std.algorithm: sum;
+  import dlbc.lattice: gn;
   assert(widthsFrac.length == values.length);
-
-  alias conn = field.conn;
-  double[conn.q] pop0 = 0.0;
-  pop0[0] = 1.0;
-  double[conn.d] dv = 0.0;
-  typeof(pop0) eqpop = eqDist!conn(pop0, dv)[];
 
   size_t ax = to!int(preferredAxis);
 
-  auto interfaces = [0.0 ] ~ widthsFrac.dup;
-  foreach(immutable i, ref w; interfaces ) {
-    import dlbc.lattice: gn;
-    interfaces[i] *= gn[ax]; // Fractional
-    if ( i > 0 ) {
-      w += interfaces[i-1];
-    }
+  double[] widths;
+  foreach(immutable i; 0..widthsFrac.length) {
+    widths ~= widthsFrac[i] * gn[ax];
   }
-  interfaces[] -= 0.5;
-
-  foreach(immutable p, ref e; field.arr) {
-    double gp = p[ax] + M.c[ax] * field.n[ax] - to!double(field.haloSize);
-    ptrdiff_t closestInterface;
-    double minDiff;
-    foreach(immutable i, ref w; interfaces) {
-      if ( i == 0 ) {
-        minDiff = abs(interfaces[i] - gp);
-        closestInterface = i;
-      }
-      else {
-        double diff = abs(interfaces[i] - gp);
-        if ( diff < minDiff ) {
-          minDiff = diff;
-          closestInterface = i;
-        }
-      }
-    }
-
-    minDiff = gp - interfaces[closestInterface];
-    if ( closestInterface == 0 ) {
-      e = minDiff.symmetricLinearTransition(interfaceThickness, values[$-1], values[closestInterface])*eqpop[];
-    }
-    else if ( closestInterface == values.length ) {
-      e = minDiff.symmetricLinearTransition(interfaceThickness, values[closestInterface-1], values[0])*eqpop[];
-    }
-    else {
-      e = minDiff.symmetricLinearTransition(interfaceThickness, values[closestInterface-1], values[closestInterface])*eqpop[];
-    }
-  }
+    
+  initEqDistLamellae(field, values, widths, preferredAxis, interfaceThickness);
 }
 
 /// Only inits physical sites!
