@@ -1,0 +1,20 @@
+{
+  "name": "merging-droplets-2d",
+  "description": "Two droplets merging",
+  "tags": [ "advection", "collision", "eqdist", "force" ],
+
+  "configuration": "d2q9",
+  "input-file": "merging-droplets-2d.in",
+  "clean": [ "output" ],
+  "parameters": [
+    { "parameter": "lb.timesteps", "values": [ "0100", "1000" ] }
+  ],
+  "compare": {
+    "data": [ "colour-red-blue", "density-red", "density-blue", "population-red", "population-blue" ],
+    "comparison": [
+      { "type": "h5diff", "files": "%data%-merging-droplets-2d-*-t00000000.h5" },
+      { "type": "h5diff", "files": "%data%-merging-droplets-2d-*-t00000100.h5", "accuracy": "1e-15" },
+      { "type": "h5diff", "files": "%data%-merging-droplets-2d-*-t0000%lb.timesteps%.h5", "accuracy": "1e-14" }
+    ]
+  }
+}
