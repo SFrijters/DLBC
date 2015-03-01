@@ -34,14 +34,6 @@ def constructParameterCommand(tuple):
         command.append(p[0] + "=" + p[1])
     return command
 
-def replaceTokensInCompare(compare, parameters, np):
-    """ Replace tokens in compare matrix, except %data%. """
-    for c in compare["comparison"]:
-        for p in parameters:
-            c["files"] = c["files"].replace("%"+p[0]+"%", p[1])
-        c["files"] = c["files"].replace("%np%", str(np))
-    return compare
-
 def runSubtest(command, testRoot):
     """ Run a single parameter set for a single test. Returns number of errors encountered. """
     import time
@@ -93,8 +85,8 @@ def runTest(options, testRoot, configuration, inputFile, np, parameters, compare
                 moveTimersData(testRoot, options.dub_compiler)
 
             if ( not options.coverage ):
-                compare = replaceTokensInCompare(compare, m, np)
-                nerr += compareTest(compare, testRoot, options.dub_compiler, options.compare_strict, options.compare_lax )
+                compareThis = replaceTokensInCompare(compare, m, np)
+                nerr += compareTest(compareThis, testRoot, options.dub_compiler, options.compare_strict, options.compare_lax )
 
             if ( options.only_first ):
                 break

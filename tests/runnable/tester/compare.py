@@ -55,3 +55,14 @@ def compareTest(compare, testRoot, compiler, strict, lax):
     if ( nerr == 0 ):
         logInformation("  No errors found.")
     return nerr
+
+def replaceTokensInCompare(compare, parameters, np):
+    """ Replace tokens in compare matrix, except %data%. """
+    import copy
+    compareNew = copy.deepcopy(compare)
+    for c in compareNew["comparison"]:
+        for p in parameters:
+            c["files"] = c["files"].replace("%"+p[0]+"%", p[1])
+        c["files"] = c["files"].replace("%np%", str(np))
+    return compareNew
+
