@@ -1,6 +1,7 @@
 all: clean doc
 
 doc: generated/example-json.tex generated/list-of-tests.tex generated/run-tests.tex
+	../process-tests.py --plot-reference
 	pdflatex runnable-tests.tex
 	pdflatex runnable-tests.tex
 
