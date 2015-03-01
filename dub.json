@@ -1,6 +1,6 @@
 {
     "name": "dlbc",
-    "description": "Lattice Boltzmann simulation package",
+    "description": "Lattice Boltzmann simulation package for fluid dynamics",
     "homepage": "https://github.com/SFrijters/DLBC",
     "authors": ["Stefan Frijters"],
     "copyright": "Copyright © Stefan Frijters 2011-2015",
