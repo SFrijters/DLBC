@@ -18,7 +18,7 @@ dlbcConfigurations = [ "d1q3", "d1q5", "d2q9", "d3q19" ]
 
 def dubBuild(compiler, build, configuration, force, dlbcRoot):
     """ Build a DLBC executable for a particular compiler/build/configuration, if needed. """
-    import tester.logging
+    import dlbct.logging
     logNotification("Preparing executable '%s' ..." % constructExeTargetName(configuration, build, compiler))
     exePath = constructExeTargetPath(configuration, build, compiler, dlbcRoot)
     if ( not force ):
@@ -28,7 +28,7 @@ def dubBuild(compiler, build, configuration, force, dlbcRoot):
 
     logInformation("  Building executable '%s' ..." % exePath)
     command = ["dub", "build", "--compiler", compiler, "-b", build, "-c", configuration, "--force"]
-    if ( tester.logging.verbosityLevel < 6 ):
+    if ( dlbct.logging.verbosityLevel < 6 ):
         command.append("--vquiet")
     logDebug("  Executing '" + " ".join(command) + "'.")
     p = subprocess.Popen(command, cwd=dlbcRoot)

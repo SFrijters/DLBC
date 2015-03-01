@@ -8,8 +8,8 @@ docs.json
 __dummy.html
 *.obj
 /tests/runnable/doc/generated
-/tests/runnable/*/*/output/*
-/tests/runnable/*/*/reference-data/*.pdf
+/tests/runnable/tests/*/*/output/*
+/tests/runnable/tests/*/*/reference-data/*.pdf
 /tests/coverage/*
 *.h5
 *.pyc

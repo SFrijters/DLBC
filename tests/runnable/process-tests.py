@@ -6,14 +6,14 @@ Helper script to execute the various elements of DLBC runnable test suite.
 
 import glob, fnmatch, os, shutil, subprocess, sys
 
-from tester.build import *
-from tester.coverage import *
-from tester.describe import *
-from tester.latex import *
-from tester.logging import *
-from tester.plot import *
-from tester.parsejson import *
-from tester.run import *
+from dlbct.build import *
+from dlbct.coverage import *
+from dlbct.describe import *
+from dlbct.latex import *
+from dlbct.logging import *
+from dlbct.plot import *
+from dlbct.parsejson import *
+from dlbct.run import *
     
 def processTest(testRoot, filename, options, n, i):
     """ Do everything required for a single test. """
@@ -107,17 +107,17 @@ def main():
     options.dlbc_root = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), options.dlbc_root))
 
     # Set global verbosity level
-    import tester.logging
-    tester.logging.verbosityLevel = getVerbosityLevel(options.v)
-    tester.logging.logPrefix = options.log_prefix
-    tester.logging.logTime = options.log_time
+    import dlbct.logging
+    dlbct.logging.verbosityLevel = getVerbosityLevel(options.v)
+    dlbct.logging.logPrefix = options.log_prefix
+    dlbct.logging.logTime = options.log_time
 
     if ( options.build_all ):
         buildAll(options)
         return
 
     if ( options.describe ):
-        tester.logging.verbosityLevel = 5
+        dlbct.logging.verbosityLevel = 5
 
     searchRoot = os.path.join(os.path.dirname(os.path.realpath(__file__)), options.only_below)
 

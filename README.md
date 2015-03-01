@@ -1,7 +1,7 @@
 # D Lattice Boltzmann Code
 [![Build Status](https://travis-ci.org/SFrijters/DLBC.svg?branch=master)](https://travis-ci.org/SFrijters/DLBC) [![Coverage Status](https://coveralls.io/repos/SFrijters/DLBC/badge.svg)](https://coveralls.io/r/SFrijters/DLBC)
 
-![Two merging droplets](tests/runnable/lb/merging-droplets-3d/reference-data/merging-droplets-3d.gif)
+![Two merging droplets](tests/runnable/tests/lb/merging-droplets-3d/reference-data/merging-droplets-3d.gif)
 
 DLBC is a fully paralellized implementation of the [lattice Boltzmann method](http://en.wikipedia.org/wiki/Lattice_Boltzmann_methods) for simulating fluid dynamics, using the [D programming language](http://dlang.org/). The goal is to prove the suitability of the D programming language for scientific computing / HPC and provide a well-tested and well-documented benchmark code, which will also perform well.
 

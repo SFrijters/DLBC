@@ -6,7 +6,7 @@ Helper script to plot timer data for DLBC.
 Files for the available compilers will be combined into a single plot.
 """
 
-from tester.mplhelper import *
+from dlbct.mplhelper import *
 
 rcParams['figure.subplot.left'] = 0.1
 rcParams['figure.subplot.right'] = 0.9

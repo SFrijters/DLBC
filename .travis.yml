@@ -33,7 +33,7 @@ install:
 
   # Install h5py
   - sudo apt-get install python-h5py -y
-  - ./tests/runnable/tester/mplhelper.py -V
+  - ./tests/runnable/dlbct/mplhelper.py -V
 
 script:
   # Run tests - split up the various testing sections to get timing for them separately

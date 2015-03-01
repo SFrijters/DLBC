@@ -20,7 +20,7 @@ test-clean-doc:
 	cd tests/runnable/doc ; make clean
 
 test-clean-pyc:
-	cd tests/runnable/tester ; make clean
+	cd tests/runnable/dlbct ; make clean
 
 test-clean-timers:
 	./tests/runnable/process-tests.py --timers-clean
