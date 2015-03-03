@@ -389,7 +389,7 @@ auto eqDistUnity(alias conn)() {
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
   double[conn.d] dv = 0.0;
-  return eqDist!(conn)(pop0, dv)[];
+  return eqDist!(conn)(pop0, dv);
 }
 
 unittest {

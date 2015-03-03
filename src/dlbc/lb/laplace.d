@@ -232,7 +232,7 @@ void dumpLaplace(T)(ref T L, in uint t) if ( isLattice!T ) {
 
    Bugs: Cubes at the edge of the domain don't wrap properly.
 */
-private double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in ptrdiff_t[dim] offset, in int volumeAverage) @safe if ( isLattice!T ) {
+private double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in ptrdiff_t[dim] offset, in int volumeAverage) if ( isLattice!T ) {
   alias conn = L.lbconn;
   double[] ldensity;
   ldensity.length = L.fluids.length;
@@ -242,13 +242,15 @@ private double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in 
   lnsites.length = L.fluids.length;
   lnsites[] = 0;
 
+  L.calculateDensities();
+
   foreach(immutable f, ref field; L.fluids) {
     foreach(immutable p, pop; field) {
       ptrdiff_t[field.dimensions] gn;
       bool isInVolume = true;
       foreach(immutable vd; Iota!(0, conn.d) ) {
         gn[vd] = p[vd] + M.c[vd] * field.n[vd] - field.haloSize;
-        if ( gn[vd] < -volumeAverage + offset[vd] || gn[vd] > volumeAverage + offset[vd] ) isInVolume = false;
+        if ( gn[vd] < ( -volumeAverage + offset[vd] ) || gn[vd] > ( volumeAverage + offset[vd] ) ) isInVolume = false;
       }
       if (isInVolume && isFluid(L.mask[p]) ) {
         lnsites[f]++;
