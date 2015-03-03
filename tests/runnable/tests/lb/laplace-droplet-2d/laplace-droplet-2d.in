@@ -1,0 +1,39 @@
+// Parameters to test Laplace's law for two fluids.
+
+[io]
+simulationName = laplace-droplet-2d-gcc%lb.force.gcc[1][0]%
+outputFormat = HDF5
+outputPath = output
+createPath = true
+
+checkpoint.cpFreq = 0
+
+[lb]
+timesteps = 10000
+components = 2
+fieldNames = [ "red", "blue" ]
+tau = [ 1.0, 1.0 ]
+
+force.enableShanChen = true
+force.gcc = [ [ 0.0, 3.6 ], [ 3.6, 0.0 ] ]
+force.psiForm = Exponential
+
+init.fluidInit = [ EqDistSphereFrac , EqDistSphereFrac ]
+init.fluidDensities = [ [0.7, 0.04], [0.04, 0.7] ]
+init.initRadius = 0.25 
+init.interfaceThickness = 5.0
+
+io.colourFreq = 100
+io.laplaceFreq = 100
+io.densityFreq = 100
+
+laplace.startCheck = 1000
+laplace.relAccuracy = 0.0 
+
+mask.maskInit = None
+
+eqdist.eqDistForm = BDist2
+
+[lattice]
+gn = [ 64, 64 ]
+

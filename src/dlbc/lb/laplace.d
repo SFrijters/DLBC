@@ -197,7 +197,7 @@ void dumpLaplace(T)(ref T L, in uint t) if ( isLattice!T ) {
     writeLogRD("l = %e, b = %e, D = %e", l, b, D);
   }
   else {
-    writeLogRW("Droplet deformation calculation is only available for 2D systems.");
+    writeLogRW("Droplet deformation calculation is only available for 2d systems.");
   }
 
   double rel = sigma / previousSigma - 1.0;
