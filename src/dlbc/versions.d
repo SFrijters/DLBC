@@ -37,6 +37,21 @@ void showRevisionInfo(VL vl, LRF logRankFormat)() {
   else {
     writeLog!(vl, logRankFormat)("Executable built from unknown revision." );
   }
+  version (D_Coverage) {
+    writeLog!(vl, logRankFormat)("  Code coverage analysis instrumentation is being generated" );
+  }
+  version (D_Ddoc) {
+    writeLog!(vl, logRankFormat)("  DDoc documentation is being generated." );
+  }
+  version (D_NoBoundsChecks) {
+    writeLog!(vl, logRankFormat)("  Array bounds checks are disabled." );
+  }
+  version (D_SIMD) {
+    writeLog!(vl, logRankFormat)("  Vector extensions (via __simd) are supported." );
+  }
+  version (unittest) {
+    writeLog!(vl, logRankFormat)("  Unit tests are enabled." );
+  }
 }
 
 /**
