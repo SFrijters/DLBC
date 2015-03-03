@@ -43,7 +43,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module main;
@@ -138,12 +137,11 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
     writeLogRN("Starting timestep %d", timestep);
 
     L.exchangeHalo();
+
+    // Advection
+    L.advectFields();
     L.markPsiAsInvalid(); // advection will invalidate
     L.markDensitiesAsInvalid(); // advection will invalidate
-    //L.advectLattice();
-    foreach(ref e; L.fluids) {
-      e.advectField(L.mask, L.advection);
-    }
 
     // Electric charges
     L.executeElecTimestep();

@@ -8,7 +8,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.lb.collision;
@@ -37,6 +36,9 @@ import dlbc.logging;
 */
 void prepareToCollide(T)(ref T L) if ( isLattice!T ) {
   alias conn = L.lbconn;
+
+  if ( L.fluids.length == 0 ) return;
+
   startTimer("main.coll.prep");
   if ( eqDistForm == EqDistForm.BDist2 ) {
     L.calculateWeightedVelocity();
@@ -54,6 +56,9 @@ void prepareToCollide(T)(ref T L) if ( isLattice!T ) {
      tau = relaxation time
 */
 void collideFields(T)(ref T L, in double[] tau, in double[] globalAcc) if ( isLattice!T ) {
+
+  if ( L.fluids.length == 0 ) return;
+
   startTimer("main.coll.coll");
   final switch(eqDistForm) {
     // Calls appropriate collideFieldEqDist
@@ -63,7 +68,7 @@ void collideFields(T)(ref T L, in double[] tau, in double[] globalAcc) if ( isLa
 }
 
 /// Ditto
-private void collideFieldsEqDist(EqDistForm eqDistForm, T)(ref T L, in double[] tau, in double[] globalAcc) if ( isLattice!T ) {
+private void collideFieldsKernel(EqDistForm eqDistForm, T)(ref T L, in double[] tau, in double[] globalAcc) if ( isLattice!T ) {
   assert(tau.length == L.fluids.length);
   assert(globalAcc.length == L.lbconn.d);
 
@@ -102,7 +107,7 @@ private string edfMixin() {
   string mixinString;
   foreach(immutable edf; EnumMembers!EqDistForm) {
     mixinString ~= "case eqDistForm." ~ to!string(edf) ~ ":\n";
-    mixinString ~= "  L.collideFieldsEqDist!(eqDistForm." ~ to!string(edf) ~ ")(tau, globalAcc);";
+    mixinString ~= "  L.collideFieldsKernel!(eqDistForm." ~ to!string(edf) ~ ")(tau, globalAcc);";
     mixinString ~= "  break;\n";
   }
   return mixinString;
