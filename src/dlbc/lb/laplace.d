@@ -35,6 +35,14 @@ import std.stdio;
    Keep sigma in memory for convergence criteria.
 */
 private double previousSigma;
+/**
+   Append to file or overwrite.
+*/
+private bool appendToFile = false;
+/**
+   Prefix for output files.
+*/
+private immutable string fileNamePrefix = "laplace";
 
 /**
    Calculate Laplace pressure and write it to screen.
@@ -192,11 +200,17 @@ void dumpLaplace(T)(ref T L, in uint t) if ( isLattice!T ) {
     writeLogRW("Droplet deformation calculation is only available for 2D systems.");
   }
 
-  double rel = abs(sigma / previousSigma - 1.0 );
-  writeLogRN("<LAPLACE> %8d %e %e %e %e %e %e", t, sigma, rel, measuredR, inPres, outPres, D );
+  double rel = sigma / previousSigma - 1.0;
+  writeLogRI("Laplace calculation report for t = %d:", t);
+  writeLogRI("  sigma = %e (%e relative change)", sigma, rel); 
+  writeLogRI("  radius = %e, inPres = %e, outPres = %e", measuredR, inPres, outPres);
+  writeLogRI("  deformation = %e", D);
+  writeToFile(gcc[0][1], initRadius, t, sigma, rel, measuredR, inPres, outPres, D );
+  
   if ( t >= startCheck ) {
-    if ( ( !isNaN(relAccuracy) && relAccuracy > 0.0 && rel < relAccuracy ) || ( t >= timesteps ) ) {
-      writeLogRI("<LAPLACE FINAL> %8d %e %e %e %e %e %e %f %f", t, sigma, rel, measuredR, inPres, outPres, D, gcc[0][1], initRadius );
+    if ( ( !isNaN(relAccuracy) && relAccuracy > 0.0 && abs(rel) < relAccuracy ) || ( t >= timesteps ) ) {
+      writeLogRN("Laplace calculation reached required accuracy %e.", relAccuracy );
+      writeToFile(gcc[0][1], initRadius, t, sigma, rel, measuredR, inPres, outPres, D );
       timesteps = t; // jump to the end of the simulation
     }
     if ( isNaN(sigma) ) {
@@ -237,7 +251,6 @@ private double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in 
         if ( gn[vd] < -volumeAverage + offset[vd] || gn[vd] > volumeAverage + offset[vd] ) isInVolume = false;
       }
       if (isInVolume && isFluid(L.mask[p]) ) {
-        // writeLogRD("In volume: %s %s.",p, gn);
         lnsites[f]++;
         ldensity[f] += L.density[f][p];
       }
@@ -257,9 +270,29 @@ private double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in 
   foreach(immutable i, ref e; gdensity) {
     e /= gnsites[i];
   }
-
-  // writeLogRD("densities: %s %s",gdensity,gnsites);
-
   return gdensity;
+}
+
+/**
+   Write Laplace information to file.
+*/
+private void writeToFile(in double gcc, in double initR, in uint t, in double sigma, in double rel, in double measuredR, in double inPres, in double outPres, in double D) {
+  import dlbc.io.io;
+  auto fileName = makeFilenameOutput!(FileFormat.Ascii)(fileNamePrefix, 0);
+
+  writeLogRI("Writing to file '%s'.", fileName);
+
+  string fileMode = "a";
+  if ( ! appendToFile ) {
+    fileMode = "w";
+  }
+
+  auto f = File(fileName, fileMode); // open for writing
+  if ( ! appendToFile ) {
+    f.writefln("#? %9s %12s %8s %13s %13s %12s %12s %12s %12s", "gcc", "initR", "t", "sigma", "rel", "measuredR", "inPres", "outPres", "D");
+  }
+  f.writefln("%e %e %8d %+e %+e %e %e %e %e", gcc, initR, t, sigma, rel, measuredR, inPres, outPres, D);
+  // After the first output, start appending.
+  appendToFile = true;
 }
 
