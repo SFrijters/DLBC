@@ -6,7 +6,7 @@
   "configuration": "d3q19",
   "input-file": "laplace-droplet-3d.in",
   "parameters": [
-    { "parameter": "lb.timesteps", "values": [ "00000100" ] }
+    { "parameter": "lb.timesteps", "values": [ "00000100", "00010000" ] }
   ],
   "clean": [ "output" ],
   "compare": {
