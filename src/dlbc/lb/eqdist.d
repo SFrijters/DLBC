@@ -428,3 +428,9 @@ unittest {
   eqDistForm = eqDistFormTemp;
 }
 
+unittest {
+  version(D_Coverage) {
+    cast(void) edfMixin();
+  }
+}
+

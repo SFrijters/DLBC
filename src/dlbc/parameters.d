@@ -501,7 +501,7 @@ string replaceFnameTokens(string name) {
 /**
    Parse out the index of a parameter token for an array parameter.
 */
-private int[] arrayFnameIndex(string name, string token) {
+private int[] arrayFnameIndex(in string name, in string token) {
   import std.regex;
   foreach(c; match(name, regex(`%`~token~r"\[(?P<idx1>[0-9]+)\]\[(?P<idx2>[0-9]+)\]%","g")) ) {
     return [ to!int(c["idx1"]), to!int(c["idx2"]) ];
@@ -552,3 +552,12 @@ void setParameter(T)(ref T parameter, T value) {
   broadcastParameter(parameter);
 }
 
+unittest {
+  auto qmn = makeQualModuleName("io.io.outputFormat");
+  assert(qmn == "io.outputFormat");
+
+  version(D_Coverage) {
+    cast(void) createParameterMixins();
+    cast(void) createImports();
+  }
+}

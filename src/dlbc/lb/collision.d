@@ -174,3 +174,9 @@ private void calculateWeightedVelocity(T)(ref T L) if ( isLattice!T ) {
   }
 }
 
+unittest {
+  version(D_Coverage) {
+    cast(void) edfMixin();
+  }
+}
+
