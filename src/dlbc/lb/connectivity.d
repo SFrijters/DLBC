@@ -195,7 +195,7 @@ template dimOf(alias conn) {
    Find velocity vectors pointing in the opposite direction and
    fill an array such that $(D velocities[bounce[i]] = -velocities[i]).
 */
-private auto generateBounce(T)(const T velocities) @safe pure nothrow @nogc {
+private auto generateBounce(T)(in T velocities) @safe pure nothrow @nogc {
   import std.algorithm: any;
   size_t[velocities.length] bounce;
   int[velocities[0].length] diff;
@@ -247,13 +247,6 @@ private auto generateSpeedOfSound(uint d, uint q)() @safe pure nothrow @nogc {
   }
 }
 
-unittest {
-  assert(generateSpeedOfSound!(3,19) == 1.0/3.0);
-  assert(generateSpeedOfSound!(2,9) == 1.0/3.0);
-  assert(generateSpeedOfSound!(1,5) == 1.0);
-  assert(generateSpeedOfSound!(1,3) == 1.0/3.0);
-}
-
 private auto generateWeights(uint d, uint q)() @safe pure nothrow @nogc {
   double[q] weights;
   // 3D
@@ -299,20 +292,6 @@ private auto generateWeights(uint d, uint q)() @safe pure nothrow @nogc {
     static assert(0);
   }
   return weights;
-}
-
-unittest {
-  import std.algorithm: sum;
-  import std.numeric: approxEqual;
-  assert(approxEqual(sum(generateWeights!(3, 19)[]), 1.0));
-  assert(sum(generateWeights!(3, 7)[]) == 1.0);
-  assert(sum(generateWeights!(3, 1)[]) == 1.0);
-  assert(sum(generateWeights!(2, 9)[]) == 1.0);
-  assert(sum(generateWeights!(2, 5)[]) == 1.0);
-  assert(sum(generateWeights!(2, 1)[]) == 1.0);
-  assert(sum(generateWeights!(1, 5)[]) == 1.0);
-  assert(sum(generateWeights!(1, 3)[]) == 1.0);
-  assert(sum(generateWeights!(1, 1)[]) == 1.0);
 }
 
 private auto generateVelocities(uint d, uint q)() @safe pure nothrow @nogc {
@@ -450,4 +429,128 @@ template isMatchingPopulation(T, conn) {
   enum isMatchingPopulation = ( T.length == conn.q );
 }
 
+unittest {
+  auto velocities = generateVelocities!(3,19);
+  auto bounce = generateBounce(velocities);
+  assert(velocities.length == bounce.length);
+  foreach(immutable vq; 0..velocities.length) {
+    foreach(immutable vd; 0..velocities[0].length) {
+      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
+    }
+  }
+}
+
+unittest {
+  auto velocities = generateVelocities!(3,7);
+  auto bounce = generateBounce(velocities);
+  assert(velocities.length == bounce.length);
+  foreach(immutable vq; 0..velocities.length) {
+    foreach(immutable vd; 0..velocities[0].length) {
+      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
+    }
+  }
+}
+
+unittest {
+  auto velocities = generateVelocities!(3,1);
+  auto bounce = generateBounce(velocities);
+  assert(velocities.length == bounce.length);
+  foreach(immutable vq; 0..velocities.length) {
+    foreach(immutable vd; 0..velocities[0].length) {
+      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
+    }
+  }
+}
+
+unittest {
+  auto velocities = generateVelocities!(2,9);
+  auto bounce = generateBounce(velocities);
+  assert(velocities.length == bounce.length);
+  foreach(immutable vq; 0..velocities.length) {
+    foreach(immutable vd; 0..velocities[0].length) {
+      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
+    }
+  }
+}
+
+unittest {
+  auto velocities = generateVelocities!(2,5);
+  auto bounce = generateBounce(velocities);
+  assert(velocities.length == bounce.length);
+  foreach(immutable vq; 0..velocities.length) {
+    foreach(immutable vd; 0..velocities[0].length) {
+      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
+    }
+  }
+}
+
+unittest {
+  auto velocities = generateVelocities!(2,1);
+  auto bounce = generateBounce(velocities);
+  assert(velocities.length == bounce.length);
+  foreach(immutable vq; 0..velocities.length) {
+    foreach(immutable vd; 0..velocities[0].length) {
+      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
+    }
+  }
+}
+
+unittest {
+  auto velocities = generateVelocities!(1,5);
+  auto bounce = generateBounce(velocities);
+  assert(velocities.length == bounce.length);
+  foreach(immutable vq; 0..velocities.length) {
+    foreach(immutable vd; 0..velocities[0].length) {
+      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
+    }
+  }
+}
+
+unittest {
+  auto velocities = generateVelocities!(1,3);
+  auto bounce = generateBounce(velocities);
+  assert(velocities.length == bounce.length);
+  foreach(immutable vq; 0..velocities.length) {
+    foreach(immutable vd; 0..velocities[0].length) {
+      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
+    }
+  }
+}
+
+unittest {
+  auto velocities = generateVelocities!(1,1);
+  auto bounce = generateBounce(velocities);
+  assert(velocities.length == bounce.length);
+  foreach(immutable vq; 0..velocities.length) {
+    foreach(immutable vd; 0..velocities[0].length) {
+      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
+    }
+  }
+}
+
+unittest {
+  assert(generateSpeedOfSound!(3,19) == 1.0/3.0);
+  assert(generateSpeedOfSound!(3,7) == 1.0/3.0);
+  assert(generateSpeedOfSound!(3,1) == 1.0/3.0);
+  assert(generateSpeedOfSound!(2,9) == 1.0/3.0);
+  assert(generateSpeedOfSound!(2,5) == 1.0/3.0);
+  assert(generateSpeedOfSound!(2,1) == 1.0/3.0);
+  assert(generateSpeedOfSound!(1,5) == 1.0);
+  assert(generateSpeedOfSound!(1,3) == 1.0/3.0);
+  assert(generateSpeedOfSound!(1,1) == 1.0/3.0);
+}
+
+unittest {
+  import std.algorithm: sum;
+  import std.numeric: approxEqual;
+  assert(approxEqual(sum(generateWeights!(3, 19)[]), 1.0));
+  assert(sum(generateWeights!(3, 7)[]) == 1.0);
+  assert(sum(generateWeights!(3, 1)[]) == 1.0);
+  assert(sum(generateWeights!(2, 9)[]) == 1.0);
+  assert(sum(generateWeights!(2, 5)[]) == 1.0);
+  assert(sum(generateWeights!(2, 1)[]) == 1.0);
+  assert(sum(generateWeights!(1, 5)[]) == 1.0);
+  assert(sum(generateWeights!(1, 3)[]) == 1.0);
+  assert(sum(generateWeights!(1, 1)[]) == 1.0);
+}
 
