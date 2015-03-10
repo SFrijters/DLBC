@@ -28,7 +28,7 @@ io.velocitiesFreq = 10000
 gn = [22, 4]
 
 [parallel]
-// nc =
+nc = [1, 1]
 
 [elec]
 enableElec = true
@@ -38,7 +38,7 @@ localDiel = true
 fluidOnElec = false
 elecOnFluid = true
 
-// poisson.solver =
+poisson.solver = SOR
 
 externalField = [ 0.0, 0.025 ]
 
@@ -52,7 +52,7 @@ poisson.sorToleranceRel = 1.19209290e-7
 flux.thermalDiffusionCoeff = 0.01
 
 init.chargeInit = UniformDensity
-// init.chargeDensitySolid =
+init.chargeDensitySolid = 0.003125
 init.dielInit = UniformFromBjerrumLength
 init.bjerrumLength = 0.4
 init.saltConc = 0.0

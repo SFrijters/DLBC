@@ -15,6 +15,7 @@ fieldNames = [ "red", "blue" ]
 tau = [ 1.0, 1.0 ]
 
 force.enableShanChen = true
+force.gcc = [ [ 0.0, 3.6 ], [ 3.6, 0.0 ] ]
 force.psiForm = Exponential
 
 init.fluidInit = [ EqDistLamellaeFrac , EqDistLamellaeFrac ]
