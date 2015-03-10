@@ -11,6 +11,8 @@ import subprocess
 from logging import *
 from path import *
 
+buildTimers = {}
+
 dubCompilerChoices = [ "dmd", "gdc", "ldc2" ]
 dubBuildChoices = [ "release", "cov", "unittest-cov", "profile" ]
 dubBuildBuildAll = [ "release", "cov", "unittest-cov" ]
@@ -48,6 +50,44 @@ def buildAll(options):
             logNotification("Building executable %d of %d ..." % ( n, nCombinations) )
             t0 = time.time()
             dubBuild(options.dub_compiler, b, c, options.dub_force, options.dlbc_root)
-            logInformation("  Took %f seconds." % (time.time() - t0))
+            timeElapsed = time.time() - t0
+            timerName = constructExeTargetName(c, b, options.dub_compiler)
+            buildTimers[timerName] = timeElapsed
+            logInformation("  Took %f seconds." % timeElapsed)
             n += 1
+
+def reportBuildTimers(warnTime):
+    bnlen = max([len(t) for t in buildTimers])
+
+    logNotification("\n" + "="*80 + "\n")
+    logNotification("  %*s %12s" % (bnlen, "build", "time (s)"))
+    logNotification("%s" % "_"*(bnlen+15))
+
+    totalTime = 0.0
+    warnings = 0
+    for build in sorted(buildTimers):
+        time = buildTimers[build]
+        totalTime += time
+        if ( time > warnTime ):
+            logNotification("! %*s %12e" % (bnlen, build, time))
+            warnings += 1
+        else:
+            logNotification("  %*s %12e" % (bnlen, build, time))
+
+    logNotification("%s" % "_"*(bnlen+15))
+
+    import time
+    fTime = time.strftime("%H:%M:%S", time.gmtime(totalTime))
+
+    logNotification("  %*s %12e" % (bnlen, "total", totalTime))
+    logNotification("  %*s %12s" % (bnlen, "", fTime))
+
+    if ( warnings > 0 ):
+        if ( warnings == 1 ):
+            logNotification("Encountered %d time warning." % warnings)
+        else:
+            logNotification("Encountered %d time warnings." % warnings)
+    else:
+        logNotification("Encountered zero time warnings.")
+
 

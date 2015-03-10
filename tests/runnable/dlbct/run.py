@@ -161,8 +161,7 @@ def coverageCommand(options, coverageOverrides):
 
     return command
 
-def reportTimers(warnTime):
-
+def reportRunTimers(warnTime):
     tnlen = max([len(t) for t in runSubtestTimers])
 
     logNotification("\n" + "="*80 + "\n")
@@ -181,7 +180,12 @@ def reportTimers(warnTime):
             logNotification("  %*s %12e" % (tnlen, test, time))
 
     logNotification("%s" % "_"*(tnlen+15))
+
+    import time
+    fTime = time.strftime("%H:%M:%S", time.gmtime(totalTime))
+
     logNotification("  %*s %12e" % (tnlen, "total", totalTime))
+    logNotification("  %*s %12s" % (tnlen, "", fTime))
 
     if ( warnings > 0 ):
         if ( warnings == 1 ):

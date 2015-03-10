@@ -114,6 +114,7 @@ def main():
 
     if ( options.build_all ):
         buildAll(options)
+        reportBuildTimers(120.0)
         return
 
     if ( options.describe ):
@@ -167,7 +168,7 @@ def main():
     else:
         warnTime = 30.0
 
-    reportTimers(warnTime)
+    reportRunTimers(warnTime)
 
     # Final report
     logNotification("\n" + "="*80)
