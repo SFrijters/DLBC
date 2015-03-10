@@ -33,5 +33,20 @@
       { "parameter": "lb.timesteps", "value": "1" }
     ]
   }
+
+  "fast": {
+    "parameters": [
+      { "parameter": "lb.timesteps", "value": "100" }
+    ],
+    "compare": {
+      "data": ["mask", "population-red" ],
+      "comparison": [
+        { "type": "h5diff",
+          "files": "a%some.par%-b%another.par%/%data%-name-*-t00000100.h5",
+          "accuracy": "1e-14" }
+      ]
+    }
+  }
+
 }
 

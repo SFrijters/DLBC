@@ -5,16 +5,13 @@
 
   "configuration": "d3q19",
   "input-file": "laplace-droplet-3d.in",
-  "parameters": [
-    { "parameter": "lb.timesteps", "values": [ "00000100", "00010000" ] }
-  ],
   "clean": [ "output" ],
+
   "compare": {
     "data": [ "density-red", "density-blue", "colour-red-blue" ],
-    "comparison": [ 
+    "comparison": [
       { "type": "h5diff", "files": "%data%-laplace-droplet-3d-gcc3.6-*-t00000000.h5" },
-      { "type": "h5diff", "files": "%data%-laplace-droplet-3d-gcc3.6-*-t00000100.h5", "accuracy": "1e-15" },
-      { "type": "h5diff", "files": "%data%-laplace-droplet-3d-gcc3.6-*-t%lb.timesteps%.h5", "accuracy": "1e-15" }
+      { "type": "h5diff", "files": "%data%-laplace-droplet-3d-gcc3.6-*-t00010000.h5", "accuracy": "1e-15" }
     ]
   },
 
@@ -22,5 +19,22 @@
     "parameters": [
       { "parameter": "lb.timesteps", "value": "1" }
     ]
+  },
+
+  "fast": {
+    "parameters": [
+      { "parameter": "lb.timesteps", "value": "10" },
+      { "parameter": "lb.io.colourFreq", "value": "10" },
+      { "parameter": "lb.io.densityFreq", "value": "10" },
+      { "parameter": "lb.io.laplaceFreq", "value": "10" }
+    ],
+    "compare": {
+      "data": [ "colour-red-blue", "density-red", "density-blue" ],
+      "comparison": [
+        { "type": "h5diff", "files": "%data%-laplace-droplet-3d-*-t00000000.h5" },
+        { "type": "h5diff", "files": "%data%-laplace-droplet-3d-*-t00000010.h5" }
+      ]
+    }
   }
 }
+

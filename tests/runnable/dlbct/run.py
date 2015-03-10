@@ -209,9 +209,9 @@ def reportRunTimers(warnTime):
 
     if ( timeWarnings > 0 ):
         if ( timeWarnings == 1 ):
-            logNotification("Encountered %d time warning." % timeWarnings)
+            logNotification("\nEncountered %d time warning (t > %.1f seconds)." % (timeWarnings, warnTime))
         else:
-            logNotification("Encountered %d time warnings." % timeWarnings)
+            logNotification("\nEncountered %d time warnings (t > %.1f seconds)." % (timeWarnings, warnTime))
     else:
-        logNotification("Encountered zero time warnings.")
+        logNotification("\nEncountered zero time warnings (t > %.1f seconds)." % warnTime)
 
