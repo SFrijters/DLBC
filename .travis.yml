@@ -30,6 +30,7 @@ install:
 
   # Doveralls; coveralls.io for D
   - dub fetch doveralls
+  - dub build --compiler ${DC} doveralls
 
   # Install h5py
   - sudo apt-get install python-h5py -y
