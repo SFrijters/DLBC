@@ -50,7 +50,6 @@ import dlbc.logging;
 import dlbc.parallel;
 import dlbc.parameters;
 import dlbc.range;
-import dlbc.testing;
 
 /**
    Electric charge initial conditions.

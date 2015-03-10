@@ -22,7 +22,6 @@ import dlbc.io.io: restoreString;
 import dlbc.logging;
 import dlbc.parameters: commandLineParameters, parameterFileNames, showInputFileDataRaw, warnUnset;
 import dlbc.revision;
-import dlbc.testing: coverageBreak;
 
 /**
    Usage help text.
