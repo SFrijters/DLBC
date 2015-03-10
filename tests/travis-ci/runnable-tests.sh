@@ -7,7 +7,8 @@ else
 fi
 
 if [ "${DC}" == "dmd" ]; then
-    ./tests/runnable/process-tests.py --dub-compiler ${DC} --only-first --compare-lax
+    echo "Running only the first subtest of each test, in fast mode. Lax comparison is enabled."
+    ./tests/runnable/process-tests.py --dub-compiler ${DC} --only-first --compare-lax --fast
 else
     echo "Runnable tests are performed only with dmd."
 fi

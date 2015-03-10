@@ -57,8 +57,18 @@ def processTest(testRoot, filename, options, n, i):
         if ( not os.path.isdir(os.path.join(testRoot, "src"))):
             os.symlink(os.path.join(options.dlbc_root, "src"), os.path.join(testRoot, "src"))
 
+
+    if ( options.fast ):
+        compareOverrides = getFastOverrides(data, fn)
+        if ( compareOverrides ):
+            compare = compareOverrides["compare"]
+        else:
+            compare = getCompare(data, fn)
+    else:
+        compare = getCompare(data, fn)
+        
     # Run the tests
-    nerr += runTest(options, testRoot, testName, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn), getPlot(data, fn), getCoverageOverrides(data, fn))
+    nerr += runTest(options, testRoot, testName, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), compare, getPlot(data, fn), getCoverageOverrides(data, fn), getFastOverrides(data, fn))
 
     if ( options.coverage ):
         covpath = constructCoveragePath(options.dlbc_root)
@@ -90,6 +100,7 @@ def main():
     parser.add_argument("--dub-build", choices=dubBuildChoices, default="release", help="build type to be passed to dub [%s]" % ", ".join(dubBuildChoices), metavar="" )
     parser.add_argument("--dub-compiler", choices=dubCompilerChoices, default="dmd", help="compiler to be passed to dub [%s]" % ", ".join(dubCompilerChoices), metavar="")
     parser.add_argument("--dub-force", action="store_true", help="force dub build")
+    parser.add_argument("--fast", action="store_true", help="run shorter versions of long tests")
     parser.add_argument("--latex", action="store_true", help="only write LaTeX output to stdout")
     parser.add_argument("--log-prefix", action="store_true", help="prefix log messages with the log level")
     parser.add_argument("--log-time", action="store_true", help="prefix log messages with the time")
@@ -166,7 +177,10 @@ def main():
     if ( options.coverage ):
         warnTime = 5.0
     else:
-        warnTime = 30.0
+        if ( options.fast ):
+            warnTime = 30.0
+        else:
+            warnTime = 300.0
 
     reportRunTimers(warnTime)
 

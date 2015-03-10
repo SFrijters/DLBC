@@ -37,10 +37,14 @@ def compare(path, prefix, time, relpath, accuracy):
         return -1
 
     return 0
-   
+
 for s in [ "reference-data", "output" ]:
     for p in [ "density-red", "density-blue" ]:
+        r = compare(s, p, 10, "../bdist2-sc-2d", 1e-14)
+        if ( r != 0 and r != 1 ):
+            exit(-1)
         r = compare(s, p, 100, "../bdist2-sc-2d", 1e-14)
         if ( r != 0 and r != 1 ):
             exit(-1)
+
 

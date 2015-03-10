@@ -58,7 +58,7 @@ def getNC(map):
             return p[1]
     return "[0,0]"
 
-def runTest(options, testRoot, testName, configuration, inputFile, np, parameters, compare, plot, coverageOverrides):
+def runTest(options, testRoot, testName, configuration, inputFile, np, parameters, compare, plot, coverageOverrides, fastOverrides):
     """ Run all parameter sets for a single test. Returns number of errors encountered. """
     logNotification("Running subtests ...")
     nerr = 0
@@ -84,6 +84,7 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
             command = command + constructParameterCommand(m)
 
             command = command + coverageCommand(options, coverageOverrides)
+            command = command + fastCommand(options, fastOverrides)
 
             if ( options.timers or options.timers_all):
                 command.append("--parameter")
@@ -109,6 +110,7 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
         command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
 
         command = command + coverageCommand(options, coverageOverrides)
+        command = command + fastCommand(options, fastOverrides)
 
         if ( options.timers or options.timers_all ):
             command.append("--parameter")
@@ -158,7 +160,18 @@ def coverageCommand(options, coverageOverrides):
                 command.append(p["parameter"] + "=" + p["value"])
         except KeyError:
             logFatal("coverage parameter does not have a well-formed parameters parameter.")
+    return command
 
+def fastCommand(options, fastOverrides):
+    command = []
+    if ( options.fast and fastOverrides):
+        try:
+            parameters = fastOverrides["parameters"]
+            for p in parameters:
+                command.append("--parameter")
+                command.append(p["parameter"] + "=" + p["value"])
+        except KeyError:
+            logFatal("fast parameter does not have a well-formed parameters parameter.")
     return command
 
 def reportRunTimers(warnTime):

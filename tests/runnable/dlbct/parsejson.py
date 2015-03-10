@@ -122,3 +122,11 @@ def getCoverageOverrides(data, fn):
         logDebug("JSON file %s lacks a 'coverage' parameter. Assuming no special options are needed." % fn)
         return None
 
+def getFastOverrides(data, fn):
+    """ Get optional fast option overrides. """
+    try:
+        return data["fast"]
+    except KeyError:
+        logDebug("JSON file %s lacks a 'fast' parameter. Assuming no special options are needed." % fn)
+        return None
+

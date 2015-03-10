@@ -70,6 +70,11 @@ If \textsc{--only-first} is passed to \textsc{./process-tests.py}, only the firs
 \begin{itemize}
 \item \textbf{parameters} (optional): List of parameter names and values to be passed to DLBC. Unlike the main parameters option, only one value per parameter is permitted.
 \end{itemize}
+\item \textbf{fast} (optional): Overrides when faster tests are required. This should normally reduce the number of timesteps via a parameter option.
+\begin{itemize}
+\item \textbf{parameters} (optional): List of parameter names and values to be passed to DLBC. Unlike the main parameters option, only one value per parameter is permitted.
+\item \textbf{compare} (optional): How to compare the generated data to the reference data. This works the same as the main compare option.
+\end{itemize}
 \end{itemize}
 
 \subsection{List of tests}

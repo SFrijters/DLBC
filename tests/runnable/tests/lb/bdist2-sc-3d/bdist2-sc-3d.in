@@ -21,6 +21,7 @@ tau = [ 1.0, 1.0 ]
 
 eqdist.eqDistForm = BDist2
 
+io.colourFreq = 100
 io.densityFreq = 100
 io.populationFreq = 100
 

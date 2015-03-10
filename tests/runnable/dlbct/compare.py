@@ -22,8 +22,18 @@ def compareTest(compare, testRoot, compiler, strict, lax):
         if ( ctype == "h5diff" ):
             for d in compare["data"]:
                 # Here we replace the %data% token for each item in the data array
-                g1 = glob.glob(os.path.join(testRoot, "output", c["files"].replace("%data%", d)))[0]
-                g2 = glob.glob(os.path.join(testRoot, "reference-data", c["files"].replace("%data%", d)))[0]
+                try:
+                    search = os.path.join(testRoot, "output", c["files"].replace("%data%", d))
+                    g1 = glob.glob(search)[0]
+                except IndexError:
+                    logFatal("Could not find any files matching '%s'." % search, -1)
+
+                try:
+                    search = os.path.join(testRoot, "reference-data", c["files"].replace("%data%", d))
+                    g2 = glob.glob(search)[0]
+                except IndexError:
+                    logFatal("Could not find any files matching '%s'." % search, -1)
+
                 command = [ "h5diff" ]
                 if ( not strict and compiler != "dmd" and acc != "" ):
                     logDebug("  Applying non-strict accuracy cutoff '%s' ..." % acc )

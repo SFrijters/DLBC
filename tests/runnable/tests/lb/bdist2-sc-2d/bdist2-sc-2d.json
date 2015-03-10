@@ -7,7 +7,7 @@
   "input-file": "bdist2-sc-2d.in",
   "clean": [ "output" ],
   "compare": {
-    "data": [ "density-red", "density-blue", "population-red", "population-blue" ],
+    "data": [ "colour-red-blue", "density-red", "density-blue", "population-red", "population-blue" ],
     "comparison": [
       { "type": "h5diff", "files": "%data%-bdist2-sc-2d-*-t00000000.h5" },
       { "type": "h5diff", "files": "%data%-bdist2-sc-2d-*-t00000100.h5", "accuracy": "1e-14" }
@@ -18,5 +18,22 @@
     "parameters": [
       { "parameter": "lb.timesteps", "value": "1" }
     ]
+  },
+
+  "fast": {
+    "parameters": [
+      { "parameter": "lb.timesteps", "value": "10" },
+      { "parameter": "lb.io.colourFreq", "value": "10" },
+      { "parameter": "lb.io.densityFreq", "value": "10" },
+      { "parameter": "lb.io.populationFreq", "value": "10" }
+    ],
+    "compare": {
+      "data": [ "colour-red-blue", "density-red", "density-blue", "population-red", "population-blue" ],
+      "comparison": [
+        { "type": "h5diff", "files": "%data%-bdist2-sc-2d-*-t00000000.h5" },
+        { "type": "h5diff", "files": "%data%-bdist2-sc-2d-*-t00000010.h5", "accuracy": "1e-15" }
+      ]
+    }
   }
+
 }
