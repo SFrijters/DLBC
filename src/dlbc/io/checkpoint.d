@@ -11,7 +11,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.io.checkpoint;
@@ -58,7 +57,7 @@ private alias globalsSourceModules = TypeTuple!(
                          "dlbc.parameters",
                          );
 
-private bool hasAttribute(alias attr, string field)() @safe pure nothrow {
+private bool hasAttribute(alias attr, string field)() @safe pure nothrow @nogc {
   import std.typetuple;
   static if(__traits(compiles, __traits(getAttributes, mixin(field)))) {
     alias attrs = TypeTuple!(__traits(getAttributes, mixin(field)));
@@ -67,13 +66,13 @@ private bool hasAttribute(alias attr, string field)() @safe pure nothrow {
   else {
     return false;
   }
-}  
+}
 
-private bool isCpField(string field)() @safe pure nothrow {
+private bool isCpField(string field)() @safe pure nothrow @nogc {
   return hasAttribute!(Exchange, field);
 }
 
-private auto createCheckpointMixins() {
+private auto createCheckpointMixins() @safe pure nothrow {
   import std.traits;
 
   string mixinStringDump;
@@ -109,7 +108,7 @@ private immutable checkpointMixins = createCheckpointMixins();
      L = the lattice
      t = current time step
 */
-void dumpCheckpoint(T)(ref T L, uint t) {
+void dumpCheckpoint(T)(ref T L, in uint t) {
   startTimer("main.io.cp");
   writeLogRN("Writing checkpoint for t = %d.", t);
   mixin(checkpointMixins[0]);
@@ -143,7 +142,7 @@ void readCheckpoint(T)(ref T L) {
      L = the lattice
      t = time step to delete
 */
-void removeCheckpoint(T)(ref T L, int t) {
+void removeCheckpoint(T)(ref T L, in uint t) {
   if ( t < 0 ) return;
   startTimer("main.io.cp");
   writeLogRN("Removing checkpoint for t = %d.", t);
@@ -184,7 +183,7 @@ private void broadcastRestoreString() {
      name = name of the field, to be prepended to the file name
      time = current timestep
 */
-string makeFilenameCpOutput(FileFormat fileFormat)(const string name, const uint time) {
+string makeFilenameCpOutput(FileFormat fileFormat)(in string name, in uint time) {
   import std.string;
 
   assert( simulationIdIsBcast, "Do not attempt to create a file name without first calling broadcastSimulationId() once.");
@@ -210,7 +209,7 @@ string makeFilenameCpOutput(FileFormat fileFormat)(const string name, const uint
      name = name of the field, to be prepended to the file name
      simulationName = used in the file name
 */
-string makeFilenameCpRestore(FileFormat fileFormat)(const string name, const string simulationName) {
+string makeFilenameCpRestore(FileFormat fileFormat)(in string name, in string simulationName) {
   import std.string;
 
   assert( simulationIdIsBcast, "Do not attempt to create a file name without first calling broadcastSimulationId() once.");
@@ -232,7 +231,7 @@ mixin(createGlobalsMixins());
 /**
    Creates an string mixin to define $(D dumpCheckpointGlobals), $(D readCheckpointGlobals), and $(D  broadcastCheckpointGlobals ).
 */
-private auto createGlobalsMixins() {
+private auto createGlobalsMixins() @safe pure nothrow {
   string mixinStringDump;
   string mixinStringRead;
   string mixinStringBcast;
@@ -302,12 +301,20 @@ private auto createGlobalsMixins() {
 /**
    Creates an string mixin to import the modules specified in $(D globalsSourceModules).
 */
-private auto createImports() {
+private auto createImports() @safe pure nothrow {
   string mixinString;
 
   foreach(fullModuleName; globalsSourceModules) {
     mixinString ~= "import " ~ fullModuleName ~ ";";
   }
   return mixinString;
+}
+
+unittest {
+  version(D_Coverage) {
+    auto cpmixins = createCheckpointMixins();
+    auto glmixins = createGlobalsMixins();
+    auto imports = createImports();
+  }
 }
 
