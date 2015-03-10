@@ -69,10 +69,31 @@ def compareTest(compare, testRoot, compiler, strict, lax):
 def replaceTokensInCompare(compare, parameters, np):
     """ Replace tokens in compare matrix, except %data%. """
     import copy
+    import re
     compareNew = copy.deepcopy(compare)
     for c in compareNew["comparison"]:
         for p in parameters:
-            c["files"] = c["files"].replace("%"+p[0]+"%", p[1])
+            if ( "[" in p[1] ):
+                # Is array
+                pstr = "(%" + p[0] + "((\[[0-9]+\])*)%)"
+                pattern = re.compile(pstr)
+                indices = pattern.search(c["files"])
+                if ( indices ):
+                    token = indices.groups()[0]
+                    ind = indices.groups()[1]
+                    values = ind.split("[")[1:]
+                    values = [ int(v.replace("]", "")) for v in values ]
+                    ev = eval(p[1])
+                    if ( len(values) == 1 ):
+                        repl = ev[values[0]]
+                    elif ( len(values) == 2 ):
+                        repl = ev[values[0]][values[1]]
+                    c["files"] = c["files"].replace(token, str(repl))
+                else:
+                    c["files"] = c["files"].replace("%"+p[0]+"%", p[1])
+            else:
+                c["files"] = c["files"].replace("%"+p[0]+"%", p[1])
+        # Replace %np%
         c["files"] = c["files"].replace("%np%", str(np))
     return compareNew
 

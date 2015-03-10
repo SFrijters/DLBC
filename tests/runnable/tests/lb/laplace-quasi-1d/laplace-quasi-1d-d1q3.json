@@ -11,6 +11,6 @@
   "clean": [ "output/d1q3" ],
   "compare": {
     "data": [ "density-red", "density-blue", "colour-red-blue" ],
-    "comparison": [ { "type": "h5diff", "files": "d1q3/%data%-laplace-d1q3-gcc3.6-*-t00001000.h5", "accuracy": "1e-15" } ]
+    "comparison": [ { "type": "h5diff", "files": "d1q3/%data%-laplace-d1q3-gcc%lb.force.gcc[0][1]%-*-t00001000.h5", "accuracy": "1e-15" } ]
   }
 }
