@@ -14,6 +14,7 @@ from plot import *
 from timers import *
 
 runSubtestTimers = {}
+runSubtestErrors = {}
 
 def mapParameterMatrix(parameters):
     """ Construct the cartesian product of all parameter values. """
@@ -48,6 +49,7 @@ def runSubtest(command, testRoot, timerName):
         nerr += logError("DLBC returned %d" % p.returncode)
     timeElapsed = time.time() - t0
     runSubtestTimers[timerName] = timeElapsed
+    runSubtestErrors[timerName] = p.returncode
     logInformation("  Took %f seconds." % timeElapsed)
     return nerr
 
@@ -182,15 +184,20 @@ def reportRunTimers(warnTime):
     logNotification("%s" % "_"*(tnlen+15))
 
     totalTime = 0.0
-    warnings = 0
+    timeWarnings = 0
     for test in sorted(runSubtestTimers):
         time = runSubtestTimers[test]
+        err = runSubtestErrors[test]
         totalTime += time
+        prefix = " "
         if ( time > warnTime ):
-            logNotification("! %*s %12e" % (tnlen, test, time))
-            warnings += 1
-        else:
-            logNotification("  %*s %12e" % (tnlen, test, time))
+            prefix = "!"
+            timeWarnings += 1
+
+        if ( err > 0 ):
+            prefix = "X"
+
+        logNotification("%s %*s %12e" % (prefix, tnlen, test, time))
 
     logNotification("%s" % "_"*(tnlen+15))
 
@@ -200,12 +207,11 @@ def reportRunTimers(warnTime):
     logNotification("  %*s %12e" % (tnlen, "total", totalTime))
     logNotification("  %*s %12s" % (tnlen, "", fTime))
 
-    if ( warnings > 0 ):
-        if ( warnings == 1 ):
-            logNotification("Encountered %d time warning." % warnings)
+    if ( timeWarnings > 0 ):
+        if ( timeWarnings == 1 ):
+            logNotification("Encountered %d time warning." % timeWarnings)
         else:
-            logNotification("Encountered %d time warnings." % warnings)
+            logNotification("Encountered %d time warnings." % timeWarnings)
     else:
         logNotification("Encountered zero time warnings.")
-    
 
