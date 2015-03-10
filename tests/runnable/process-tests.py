@@ -36,7 +36,7 @@ def processTest(testRoot, filename, options, n, i):
         describeTest(data, fn, n, i)
         return nerr
 
-    describeTest(data, fn, n, i, True)
+    testName = describeTest(data, fn, n, i, True)
 
     if ( options.timers_clean ):
         cleanTimersData(testRoot)
@@ -58,7 +58,7 @@ def processTest(testRoot, filename, options, n, i):
             os.symlink(os.path.join(options.dlbc_root, "src"), os.path.join(testRoot, "src"))
 
     # Run the tests
-    nerr += runTest(options, testRoot, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn), getPlot(data, fn), getCoverageOverrides(data, fn))
+    nerr += runTest(options, testRoot, testName, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCompare(data, fn), getPlot(data, fn), getCoverageOverrides(data, fn))
 
     if ( options.coverage ):
         covpath = constructCoveragePath(options.dlbc_root)
@@ -161,6 +161,13 @@ def main():
 
     if ( options.describe ):
         return
+
+    if ( options.coverage ):
+        warnTime = 5.0
+    else:
+        warnTime = 30.0
+
+    reportTimers(warnTime)
 
     # Final report
     logNotification("\n" + "="*80)

@@ -20,4 +20,5 @@ def describeTest(data, fn, n, i, withLines=False):
     logNotification(istr + getName(data, fn) + " (" + os.path.relpath(fn) + ") [" + getConfiguration(data, fn) + "]:" )
     logNotification(textwrap.fill(getDescription(data, fn), initial_indent=initialIndent, subsequent_indent=subsequentIndent, width=80))
     logNotification("")
+    return getName(data, fn)
 

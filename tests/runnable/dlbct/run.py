@@ -13,6 +13,8 @@ from path import *
 from plot import *
 from timers import *
 
+runSubtestTimers = {}
+
 def mapParameterMatrix(parameters):
     """ Construct the cartesian product of all parameter values. """
     tuples = []
@@ -34,7 +36,7 @@ def constructParameterCommand(tuple):
         command.append(p[0] + "=" + p[1])
     return command
 
-def runSubtest(command, testRoot):
+def runSubtest(command, testRoot, timerName):
     """ Run a single parameter set for a single test. Returns number of errors encountered. """
     import time
     nerr = 0
@@ -44,7 +46,9 @@ def runSubtest(command, testRoot):
     p.communicate()
     if ( p.returncode != 0 ):
         nerr += logError("DLBC returned %d" % p.returncode)
-    logInformation("  Took %f seconds." % (time.time() - t0))
+    timeElapsed = time.time() - t0
+    runSubtestTimers[timerName] = timeElapsed
+    logInformation("  Took %f seconds." % timeElapsed)
     return nerr
 
 def getNC(map):
@@ -54,7 +58,7 @@ def getNC(map):
             return p[1]
     return "[0,0]"
 
-def runTest(options, testRoot, configuration, inputFile, np, parameters, compare, plot, coverageOverrides):
+def runTest(options, testRoot, testName, configuration, inputFile, np, parameters, compare, plot, coverageOverrides):
     """ Run all parameter sets for a single test. Returns number of errors encountered. """
     logNotification("Running subtests ...")
     nerr = 0
@@ -70,8 +74,10 @@ def runTest(options, testRoot, configuration, inputFile, np, parameters, compare
 
             if ( options.only_first ):
                 logInformation("  Running parameter set %d of %d (only this one will be executed) ..." % (i+1, nSubtests))
+                timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
             else:
                 logInformation("  Running parameter set %d of %d ..." % (i+1, nSubtests))
+                timerName = os.path.relpath(os.path.join(testRoot, testName), "tests") + " " + str(i+1)
 
             # Prepare command
             command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
@@ -84,7 +90,7 @@ def runTest(options, testRoot, configuration, inputFile, np, parameters, compare
                 command.append("timers.enableIO=true")
 
             # Run subtest
-            nerr += runSubtest(command, testRoot)
+            nerr += runSubtest(command, testRoot, timerName)
 
             # Postprocessing
             if ( options.timers or options.timers_all ):
@@ -99,6 +105,7 @@ def runTest(options, testRoot, configuration, inputFile, np, parameters, compare
 
     else:
         logInformation("  Running parameter set 1 of 1 ...")
+        timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
         command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
 
         command = command + coverageCommand(options, coverageOverrides)
@@ -106,7 +113,7 @@ def runTest(options, testRoot, configuration, inputFile, np, parameters, compare
         if ( options.timers or options.timers_all ):
             command.append("--parameter")
             command.append("timers.enableIO=true")
-        nerr += runSubtest(command, testRoot)
+        nerr += runSubtest(command, testRoot, timerName)
 
         if ( options.timers or options.timers_all ):
             moveTimersData(testRoot, options.dub_compiler)
@@ -153,4 +160,35 @@ def coverageCommand(options, coverageOverrides):
             logFatal("coverage parameter does not have a well-formed parameters parameter.")
 
     return command
+
+def reportTimers(warnTime):
+
+    tnlen = max([len(t) for t in runSubtestTimers])
+
+    logNotification("\n" + "="*80 + "\n")
+    logNotification("  %*s %12s" % (tnlen, "test", "time (s)"))
+    logNotification("%s" % "_"*(tnlen+15))
+
+    totalTime = 0.0
+    warnings = 0
+    for test in sorted(runSubtestTimers):
+        time = runSubtestTimers[test]
+        totalTime += time
+        if ( time > warnTime ):
+            logNotification("! %*s %12e" % (tnlen, test, time))
+            warnings += 1
+        else:
+            logNotification("  %*s %12e" % (tnlen, test, time))
+
+    logNotification("%s" % "_"*(tnlen+15))
+    logNotification("  %*s %12e" % (tnlen, "total", totalTime))
+
+    if ( warnings > 0 ):
+        if ( warnings == 1 ):
+            logNotification("Encountered %d time warning." % warnings)
+        else:
+            logNotification("Encountered %d time warnings." % warnings)
+    else:
+        logNotification("Encountered zero time warnings.")
+    
 

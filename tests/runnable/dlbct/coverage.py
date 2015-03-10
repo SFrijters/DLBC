@@ -117,6 +117,6 @@ def runUnittests(options):
         dubBuild(options.dub_compiler, options.dub_build, c, options.dub_force, options.dlbc_root)
         logNotification("Running unittests ...")
         command = [ exePath, "-v", options.dlbc_verbosity, "--version" ]
-        nerr += runSubtest(command, covpath)
+        nerr += runSubtest(command, covpath, "unittest-%s" % c)
         moveCovLst(options.dlbc_root, c)
     mergeCovLstsUnittest(options, covpath)
