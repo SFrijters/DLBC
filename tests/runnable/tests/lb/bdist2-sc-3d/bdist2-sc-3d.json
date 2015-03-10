@@ -13,5 +13,11 @@
       { "type": "h5diff", "files": "%data%-bdist2-sc-3d-*-t00000100.h5", "accuracy": "1e-15" }
     ],
     "shell": [ "./compare-lower-dimensions.py" ]
+  },
+
+  "coverage": {
+    "parameters": [
+      { "parameter": "lb.timesteps", "value": "1" }
+    ]
   }
 }

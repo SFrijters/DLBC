@@ -16,5 +16,11 @@
       { "type": "h5diff", "files": "%data%-merging-droplets-2d-*-t00000100.h5", "accuracy": "1e-15" },
       { "type": "h5diff", "files": "%data%-merging-droplets-2d-*-t0000%lb.timesteps%.h5", "accuracy": "1e-14" }
     ]
+  },
+
+  "coverage": {
+    "parameters": [
+      { "parameter": "lb.timesteps", "value": "1" }
+    ]
   }
 }

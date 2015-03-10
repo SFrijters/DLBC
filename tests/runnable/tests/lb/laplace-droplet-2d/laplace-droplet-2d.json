@@ -16,5 +16,11 @@
       { "type": "h5diff", "files": "%data%-laplace-droplet-2d-gcc3.6-*-t00000100.h5", "accuracy": "1e-15" },
       { "type": "h5diff", "files": "%data%-laplace-droplet-2d-gcc3.6-*-t%lb.timesteps%.h5", "accuracy": "1e-15" }
     ]
+  },
+
+  "coverage": {
+    "parameters": [
+      { "parameter": "lb.timesteps", "value": "1" }
+    ]
   }
 }

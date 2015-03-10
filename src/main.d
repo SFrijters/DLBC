@@ -12,7 +12,6 @@
    ---
      -h                 = show this help message and exit
      -p <path>          = path to parameter file (can be specified multiple times)
-     --coverage         = exit the simulation prematurely to allow for fast coverage testing
      --parameter        = additional parameter value specified in the form
                           "foo=bar" (overrides values in the parameter files;
                           can be specified multiple times)
@@ -61,7 +60,6 @@ import dlbc.logging;
 import dlbc.parallel;
 import dlbc.parameters;
 import dlbc.random;
-import dlbc.testing;
 import dlbc.timers;
 import dlbc.versions;
 
@@ -160,8 +158,6 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
     // writeLogRI("Global momentum = %s %s", L.fluids[0].globalMomentum!(gconn)(L.mask), L.fluids[1].globalMomentum!(gconn)(L.mask));
     // Output
     L.dumpData(timestep);
-
-    if ( onlyCoverage ) breakForCoverage();
   }
 }
 

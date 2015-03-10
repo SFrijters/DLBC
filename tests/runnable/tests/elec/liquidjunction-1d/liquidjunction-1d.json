@@ -13,6 +13,13 @@
       { "type": "h5diff", "files": "%data%-liquidjunction-1d-*-t00001000.h5" },
       { "type": "h5diff", "files": "%data%-liquidjunction-1d-*-t00100000.h5" }
     ]
+  },
+
+  "coverage": {
+    "parameters": [
+      { "parameter": "elec.poisson.sorToleranceRel", "value": "1.0e-3" },
+      { "parameter": "lb.timesteps", "value": "1" }
+    ]
   }
 }
 

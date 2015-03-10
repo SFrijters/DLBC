@@ -12,5 +12,11 @@
       { "type": "h5diff", "files": "%data%-bdist2-sc-2d-*-t00000000.h5" },
       { "type": "h5diff", "files": "%data%-bdist2-sc-2d-*-t00000100.h5", "accuracy": "1e-14" }
     ]
+  },
+
+  "coverage": {
+    "parameters": [
+      { "parameter": "lb.timesteps", "value": "1" }
+    ]
   }
 }

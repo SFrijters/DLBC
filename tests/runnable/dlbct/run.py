@@ -54,7 +54,7 @@ def getNC(map):
             return p[1]
     return "[0,0]"
 
-def runTest(options, testRoot, configuration, inputFile, np, parameters, compare, plot):
+def runTest(options, testRoot, configuration, inputFile, np, parameters, compare, plot, coverageOverrides):
     """ Run all parameter sets for a single test. Returns number of errors encountered. """
     logNotification("Running subtests ...")
     nerr = 0
@@ -72,15 +72,21 @@ def runTest(options, testRoot, configuration, inputFile, np, parameters, compare
                 logInformation("  Running parameter set %d of %d (only this one will be executed) ..." % (i+1, nSubtests))
             else:
                 logInformation("  Running parameter set %d of %d ..." % (i+1, nSubtests))
+
+            # Prepare command
             command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
-            if ( options.coverage ):
-                command.append("--coverage")
             command = command + constructParameterCommand(m)
+
+            command = command + coverageCommand(options, coverageOverrides)
+
             if ( options.timers or options.timers_all):
                 command.append("--parameter")
                 command.append("timers.enableIO=true")
+
+            # Run subtest
             nerr += runSubtest(command, testRoot)
 
+            # Postprocessing
             if ( options.timers or options.timers_all ):
                 moveTimersData(testRoot, options.dub_compiler)
 
@@ -94,8 +100,9 @@ def runTest(options, testRoot, configuration, inputFile, np, parameters, compare
     else:
         logInformation("  Running parameter set 1 of 1 ...")
         command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
-        if ( options.coverage ):
-            command.append("--coverage")
+
+        command = command + coverageCommand(options, coverageOverrides)
+
         if ( options.timers or options.timers_all ):
             command.append("--parameter")
             command.append("timers.enableIO=true")
@@ -133,4 +140,17 @@ def cleanTest(testRoot, clean):
         if ( os.path.exists(f) ):
             logDebug("  Removing '%s'" % f )
             os.remove(f)
+
+def coverageCommand(options, coverageOverrides):
+    command = []
+    if ( options.coverage and coverageOverrides ):
+        try:
+            parameters = coverageOverrides["parameters"]
+            for p in parameters:
+                command.append("--parameter")
+                command.append(p["parameter"] + "=" + p["value"])
+        except KeyError:
+            logFatal("coverage parameter does not have a well-formed parameters parameter.")
+
+    return command
 

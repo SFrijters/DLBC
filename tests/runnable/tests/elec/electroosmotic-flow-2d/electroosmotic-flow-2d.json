@@ -15,6 +15,13 @@
   "compare": {
     "data": ["mask", "elChargeN", "elChargeP", "elPot", "elDiel", "elField" ],
     "comparison": [ { "type": "h5diff", "files": "sigma%elec.init.chargeDensitySolid%-np%np%-%elec.poisson.solver%/%data%-electroosmotic-flow-2D-*-t00010000.h5", "accuracy": "1e-18" } ]
+  },
+
+  "coverage": {
+    "parameters": [
+      { "parameter": "elec.poisson.sorToleranceRel", "value": "1.0e-3" },
+      { "parameter": "lb.timesteps", "value": "1" }
+    ]
   }
 }
 

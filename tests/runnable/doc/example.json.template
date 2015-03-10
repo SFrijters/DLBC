@@ -9,12 +9,14 @@
   "input-file": "example-test.in",
   "np": 2,
   "clean": [ "output" ],
+
   "parameters": [
     { "parameter": "some.par",
       "values": [ "val1", "val2" ] },
     { "parameter": "another.par",
       "values": [ "1", "2", "42 ] }
   ],
+
   "compare": {
     "data": ["mask", "population-red" ],
     "comparison": [
@@ -23,6 +25,13 @@
         "accuracy": "1e-14" }
     ],
     "shell": [ "./extra-comparison-script ],
+  },
+
+  "coverage": {
+    "parameters": [
+      { "parameter": "elec.poisson.sorToleranceRel", "value": "1.0e-3" },
+      { "parameter": "lb.timesteps", "value": "1" }
+    ]
   }
 }
 

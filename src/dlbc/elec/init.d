@@ -177,8 +177,6 @@ private void equilibrateElec(T)(ref T L) if ( isLattice!T ) {
     }
   }
 
-  if ( onlyCoverage ) breakForCoverage();
-
   foreach(immutable vd; Iota!(0,econn.d) ) {
     externalField[vd] = externalFieldTmp[vd];
   }

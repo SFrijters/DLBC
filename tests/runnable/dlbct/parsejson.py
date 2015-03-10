@@ -98,7 +98,6 @@ def getCompareShell(compare):
         logDebug("JSON file lacks a 'compare:shell' parameter. Assuming no additional shell commands need to be run.")
         return []
 
-
 def getCompareType(comparison):
     """ Get optional accuracy parameter for h5diff from comparison. """
     try:
@@ -115,4 +114,11 @@ def getCompareAccuracy(comparison):
         logDebug("Comparison lacks an 'accuracy' parameter. Assuming no laxness.")
         return ""
 
+def getCoverageOverrides(data, fn):
+    """ Get optional coverage option overrides. """
+    try:
+        return data["coverage"]
+    except KeyError:
+        logDebug("JSON file %s lacks a 'coverage' parameter. Assuming no special options are needed." % fn)
+        return None
 

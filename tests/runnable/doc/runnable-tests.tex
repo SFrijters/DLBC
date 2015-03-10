@@ -66,8 +66,11 @@ If \textsc{--only-first} is passed to \textsc{./process-tests.py}, only the firs
 \item \textbf{comparision} (required): An array of comparison operations to be run. The value \textsc{type} specifies which comparision command to invoke. Currently, only \textsc{h5diff} is supported. The value \textsc{files} then are used for testing. Some tokens are supported, denoted \textsc{\%token\%}: all parameters specified are available as tokens, as well as \textsc{data}, which takes its values from the data array described above, and \textsc{np}, which takes its value from the \textsc{np} value, if specified, or the product of the values in the \textsc{parallel.nc} parameter, if specified for testing. The optional parameter \textsc{accuracy} can be used to pass a requested (absolute) accuracy to \textsc{h5diff}. This will only be used if the compiler is not \textsc{dmd} and \textsc{--compare-strict} is not specified, or if the compiler is \textsc{dmd} and \textsc{--compare-lax} is specified.
 \item \textbf{shell} (optional): Extra shell commands to be executed. These should return a 0 exit code on success, 1 for warning and any other value on failure.
 \end{itemize}
+\item \textbf{coverage} (optional): Overrides when only coverage information needs to be generated.
+\begin{itemize}
+\item \textbf{parameters} (optional): List of parameter names and values to be passed to DLBC. Unlike the main parameters option, only one value per parameter is permitted.
 \end{itemize}
-
+\end{itemize}
 
 \subsection{List of tests}
 

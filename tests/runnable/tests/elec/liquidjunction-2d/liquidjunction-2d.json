@@ -8,8 +8,15 @@
   "clean": [ "output" ],
   "compare": {
     "data": [ "elChargeN", "elChargeP", "elPot", "elDiel", "elField" ],
-    "comparison": [ 
+    "comparison": [
       { "type": "h5diff", "files": "%data%-liquidjunction-2d-*-t00001000.h5" }
+    ]
+  },
+
+  "coverage": {
+    "parameters": [
+      { "parameter": "elec.poisson.sorToleranceRel", "value": "1.0e-3" },
+      { "parameter": "lb.timesteps", "value": "1" }
     ]
   }
 }
