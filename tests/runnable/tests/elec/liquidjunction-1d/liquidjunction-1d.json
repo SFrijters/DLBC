@@ -9,7 +9,8 @@
   "clean": [ "output" ],
   "compare": {
     "data": [ "elChargeN", "elChargeP", "elPot", "elDiel", "elField" ],
-    "comparison": [ 
+    "comparison": [
+      { "type": "h5diff", "files": "%data%-liquidjunction-1d-*-t00000000.h5" },
       { "type": "h5diff", "files": "%data%-liquidjunction-1d-*-t00001000.h5" },
       { "type": "h5diff", "files": "%data%-liquidjunction-1d-*-t00100000.h5" }
     ]
@@ -20,6 +21,20 @@
       { "parameter": "elec.poisson.sorToleranceRel", "value": "1.0e-3" },
       { "parameter": "lb.timesteps", "value": "1" }
     ]
+  },
+
+  "fast": {
+    "parameters": [
+      { "parameter": "lb.timesteps", "value": "1000" }
+    ],
+    "compare": {
+      "data": [ "elChargeN", "elChargeP", "elPot", "elDiel", "elField" ],
+      "comparison": [
+        { "type": "h5diff", "files": "%data%-liquidjunction-1d-*-t00000000.h5" },
+      	{ "type": "h5diff", "files": "%data%-liquidjunction-1d-*-t00001000.h5" }
+      ]
+    }
   }
+
 }
 
