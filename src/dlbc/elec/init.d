@@ -205,6 +205,7 @@ private void initChargeElec(T)(ref T L) if ( isLattice!T ) {
     break;
   case(ElecChargeInit.Lamellae):
     L.initChargeElecLamellae(chargeLamellae, lamellaeWidths, initAxis);
+    break;
   }
 }
 
