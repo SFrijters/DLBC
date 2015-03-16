@@ -70,6 +70,14 @@ def plot_dataset(dirstr,globstr):
 #     eps = []
 #     Ez = []
 
+    import h5py
+
+    g = sorted(glob.glob("output/elPot-*t00010000*h5"))
+    f = h5py.File(g[0],'r')
+    dset = f['OutArray']
+    phi = dset[:,:]
+
+
 #     g = sorted(glob.glob(dirstr+"elec_*"+globstr+"*asc"))
 #     print "globbing '%s'" % g
 #     for f in g:
@@ -96,42 +104,40 @@ def plot_dataset(dirstr,globstr):
 #     y = [ e - 1 for e in list(y) ]
 #     z = [ e - 1 for e in list(z) ]
 
-#     phi0 = phi[0]
-#     # Scale y-axis
-# #    phi = [ e - phi0 for e in list(phi) ]
+    phi0 = phi[0]
+    # Scale y-axis
+    phi = [ e - phi0 for e in phi ]
 
-#     import numpy as np
-#     import matplotlib.pyplot as plt
-#     import scipy.interpolate
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import scipy.interpolate
 
-#     # Set up a regular grid of interpolation points
-#     print "Set up grid"
-#     yi, zi = np.linspace(min(y), max(y), 100), np.linspace(min(z), max(z), 100)
-#     yi, zi = np.meshgrid(yi, zi)
+    # Set up a regular grid of interpolation points
+    print "Set up grid"
+    yi, zi = np.linspace(min(y), max(y), 100), np.linspace(min(z), max(z), 100)
+    yi, zi = np.meshgrid(yi, zi)
 
-#     # Interpolate
-#     print "Interpolate"
-#     # rbf = scipy.interpolate.Rbf(y, z, phi, function='linear')
-#     # phii = rbf(yi, zi)
+    # Interpolate
+    print "Interpolate"
+    # rbf = scipy.interpolate.Rbf(y, z, phi, function='linear')
+    # phii = rbf(yi, zi)
 
-#     phii = scipy.interpolate.griddata((y, z), phi, (yi, zi), method='linear')
+    phii = scipy.interpolate.griddata((y, z), phi, (yi, zi), method='linear')
 
-# #     print "imshow"
-# #     plt.imshow(phii, vmin=min(phi), vmax=max(phi), origin='lower',
-# #                extent=[min(y), max(y), min(z), max(z)])
-# #     print "scatter"
-# # #    plt.scatter(y, z, c=phi)
-# #     plt.colorbar()
-# #    plt.show()
+#     print "imshow"
+#     plt.imshow(phii, vmin=min(phi), vmax=max(phi), origin='lower',
+#                extent=[min(y), max(y), min(z), max(z)])
+#     print "scatter"
+# #    plt.scatter(y, z, c=phi)
+#     plt.colorbar()
+#    plt.show()
 
-#     CS = plt.contour(yi,zi,phii,50)
-#     plt.clabel(CS, inline=1, fontsize=10)
+    CS = plt.contour(yi,zi,phii,50)
+    plt.clabel(CS, inline=1, fontsize=10)
 
     # lbl = r"$\Delta \phi_{\mathrm{sim}}$"
     # i = 0
     # p, = ax.contour(y,z,phi)
-
-    import h5py
 
     g = sorted(glob.glob(dirstr+"colour-red-blue-*"+globstr+"*h5"))
     f = h5py.File(g[0],'r')
@@ -364,18 +370,23 @@ def plot_E(dirstr,globstr,D,R):
 
 fig, ax = plt.subplots()
 
-globstr = "t00002600"
+globstr = "t00003000"
 
 #D, R = plot_dataset("../../output/",globstr)
 
 import h5py
 
-g = sorted(glob.glob("../../output/colour-red-blue-*"+globstr+"*h5"))
-f = h5py.File(g[],'r')
+g = sorted(glob.glob("output/colour-red-blue-*"+globstr+"*h5"))
+f = h5py.File(g[0],'r')
 dset = f['OutArray']
 a = dset[:,:]
 
-g = sorted(glob.glob("../../output/colour-red-blue-*t00002000*h5"))
+g = sorted(glob.glob("output/elDiel-*"+globstr+"*h5"))
+f = h5py.File(g[0],'r')
+dset = f['OutArray']
+a = dset[:,:]
+
+g = sorted(glob.glob("output/colour-red-blue-*t00000000*h5"))
 f = h5py.File(g[0],'r')
 dset = f['OutArray']
 ref = dset[:,:]
@@ -383,11 +394,63 @@ ref = dset[:,:]
 #a = -a
 
 diff = a - ref
+diff = a
 
 density = plt.imshow(diff)
 density.set_cmap('gray')
 
 plt.colorbar()
+
+g = sorted(glob.glob("output/elPot-*"+globstr+"*h5"))
+f = h5py.File(g[0],'r')
+dset = f['OutArray']
+phi = dset[:,:]
+
+phi0 = phi[0]
+# Scale y-axis
+phi = [ e - phi0 for e in phi ]
+
+#print phi
+
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.interpolate
+
+# Set up a regular grid of interpolation points
+print "Set up grid"
+y = irange(0,63,1)
+z = irange(0,63,1)
+
+#print y, z
+
+
+y = np.array(y)
+z = np.array(z)
+
+yi, zi = np.linspace(min(y), max(y), 100), np.linspace(min(z), max(z), 100)
+yi, zi = np.meshgrid(yi, zi)
+
+#print yi
+
+# Interpolate
+print "Interpolate"
+# rbf = scipy.interpolate.Rbf(y, z, phi, function='linear')
+# phii = rbf(yi, zi)
+
+#phii = scipy.interpolate.griddata((y, z), phi, (yi, zi), method='linear')
+
+#     print "imshow"
+#     plt.imshow(phii, vmin=min(phi), vmax=max(phi), origin='lower',
+#                extent=[min(y), max(y), min(z), max(z)])
+#     print "scatter"
+# #    plt.scatter(y, z, c=phi)
+#     plt.colorbar()
+#    plt.show()
+
+CS = plt.contour(y,z,phi,20)
+plt.clabel(CS, inline=1, fontsize=10)
+
+
 plt.show()
 
 #Ez = plot_dataset("output/elec_*t00000100*asc")

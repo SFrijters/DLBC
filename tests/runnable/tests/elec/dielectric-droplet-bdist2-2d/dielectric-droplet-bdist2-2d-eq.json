@@ -1,0 +1,15 @@
+{
+  "name": "dielectric-droplet-bdist2-2d-eq",
+  "description": "Equilibration phase for a 2d droplet.",
+  "plot": [ "./test-contour.py" ],
+
+  "configuration": "d2q9",
+  "input-file": "dielectric-droplet-bdist2-2d-eq.in",
+  "clean": [ "output" ],
+  "compare": {
+    "data": ["mask", "elChargeN", "elChargeP", "elPot", "elDiel", "elField" ],
+    "comparison": [ { "type": "h5diff", "files": "sigma%elec.init.chargeDensitySolid%-np%np%-%elec.poisson.solver%/%data%-electroosmotic-flow-2D-*-t00010000.h5", "accuracy": "1e-18" } ]
+  }
+
+}
+
