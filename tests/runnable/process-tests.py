@@ -68,7 +68,7 @@ def processTest(testRoot, filename, options, n, i):
         compare = getCompare(data, fn)
         
     # Run the tests
-    nerr += runTest(options, testRoot, testName, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), compare, getPlot(data, fn), getCoverageOverrides(data, fn), getFastOverrides(data, fn))
+    nerr += runTest(options, testRoot, testName, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCheckpoint(data, fn), compare, getPlot(data, fn), getCoverageOverrides(data, fn), getFastOverrides(data, fn))
 
     if ( options.coverage ):
         covpath = constructCoveragePath(options.dlbc_root)

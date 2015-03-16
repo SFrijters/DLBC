@@ -30,13 +30,13 @@
 \section{Runnable tests}
 
 DLBC aims to have an extensive suite of runnable tests. When executed, the output of the test will be compared to a reference dataset.
-To aid in managing tests, the script \textsc{./tests/runnable/process-tests.py} has been created.
+To aid in managing tests, the script \texttt{./tests/runnable/process-tests.py} has been created.
 Currently the script handles the following options:
 
 \input{generated/run-tests.tex}
 
 \noindent
-Tests are specified through \textsc{.json} files. An example is shown below:
+Tests are specified through \texttt{.json} files. An example is shown below:
 
 \input{generated/example-json.tex}
 
@@ -44,26 +44,30 @@ Tests are specified through \textsc{.json} files. An example is shown below:
 \item \textbf{name} (required): Short name of the test. Usually this will be the same as the directory name.
 \item \textbf{description} (required): Short description of the test. Usually one line.
 \item \textbf{tags} (optional): List of tags that give information about which subsystems of the code are being tested.
-\item \textbf{latex} (optional): Path to a file containing a LaTeX formatted (long) description of the test. The token \textsc{\%path\%} in the LaTeX file can be used to insert the path for plots; it will be replaced by the path to the reference data of the test.
-\item \textbf{plot} (optional): List of scripts to execute to generate plots. If \textsc{process-tests.py} is called with \textsc{--plot}, all tests are first executed, and the plots are based on the new data. If \textsc{--plot-reference} is used instead, the tests are not run, but the reference data is plotted.
+\item \textbf{latex} (optional): Path to a file containing a LaTeX formatted (long) description of the test. The token \texttt{\%path\%} in the LaTeX file can be used to insert the path for plots; it will be replaced by the path to the reference data of the test.
+\item \textbf{plot} (optional): List of scripts to execute to generate plots. If \texttt{process-tests.py} is called with \texttt{--plot}, all tests are first executed, and the plots are based on the new data. If \texttt{--plot-reference} is used instead, the tests are not run, but the reference data is plotted.
 \item \textbf{configuration} (required): Version of DLBC to use; d3q19, d2q9, d1q5 or d1q3.
-\item \textbf{input-file} (required): Base input file to use. Ususally this will be the same as the directory name, plus \textsc{.in}.
-\item \textbf{np} (optional, default value is 1): Number of ranks to run the test on. This is overruled by the \textsc{parallel.nc} parameter, if specified.
+\item \textbf{input-file} (required): Base input file to use. Ususally this will be the same as the directory name, plus \texttt{.in}.
+\item \textbf{np} (optional, default value is 1): Number of ranks to run the test on. This is overruled by the \texttt{parallel.nc} parameter, if specified.
 \item \textbf{clean} (optional): List of paths to remove when cleaning the test.
 \item \textbf{parameters} (optional): List of parameter names and values to be passed to DLBC. All combinations of values will be run, e.g. in this example the following will be passed:
 \begin{itemize}
-\item \textsc{--parameter ``some.par=val1'' --parameter ``another.par=1''}
-\item \textsc{--parameter ``some.par=val1'' --parameter ``another.par=2''}
-\item \textsc{--parameter ``some.par=val1'' --parameter ``another.par=42''}
-\item \textsc{--parameter ``some.par=val2'' --parameter ``another.par=1''}
-\item \textsc{--parameter ``some.par=val2'' --parameter ``another.par=2''}
-\item \textsc{--parameter ``some.par=val2'' --parameter ``another.par=42''}
+\item \texttt{--parameter ``some.par=val1'' --parameter ``another.par=1''}
+\item \texttt{--parameter ``some.par=val1'' --parameter ``another.par=2''}
+\item \texttt{--parameter ``some.par=val1'' --parameter ``another.par=42''}
+\item \texttt{--parameter ``some.par=val2'' --parameter ``another.par=1''}
+\item \texttt{--parameter ``some.par=val2'' --parameter ``another.par=2''}
+\item \texttt{--parameter ``some.par=val2'' --parameter ``another.par=42''}
 \end{itemize}
-If \textsc{--only-first} is passed to \textsc{./process-tests.py}, only the first combination will be tested. This may be useful when doing a quick test. If no parameters are specified, nothing is passed to DLBC.
+If \texttt{--only-first} is passed to \texttt{./process-tests.py}, only the first combination will be tested. This may be useful when doing a quick test. If no parameters are specified, nothing is passed to DLBC.
+\item \textbf{checkpoint} (optional): Restore from checkpoint if necessary.
+\begin{itemize}
+\item \textbf{name} (required): Name of the checkpoint, i.e. the string passed to the \texttt{-r} option.
+\end{itemize}
 \item \textbf{compare} (required): How to compare the generated data to the reference data. Three values are currently used:
 \begin{itemize}
 \item \textbf{data} (required): Types of data to be compared. These will normally be the prefixes of the output files.
-\item \textbf{comparision} (required): An array of comparison operations to be run. The value \textsc{type} specifies which comparision command to invoke. Currently, only \textsc{h5diff} is supported. The value \textsc{files} then are used for testing. Some tokens are supported, denoted \textsc{\%token\%}: all parameters specified are available as tokens, as well as \textsc{data}, which takes its values from the data array described above, and \textsc{np}, which takes its value from the \textsc{np} value, if specified, or the product of the values in the \textsc{parallel.nc} parameter, if specified for testing. The optional parameter \textsc{accuracy} can be used to pass a requested (absolute) accuracy to \textsc{h5diff}. This will only be used if the compiler is not \textsc{dmd} and \textsc{--compare-strict} is not specified, or if the compiler is \textsc{dmd} and \textsc{--compare-lax} is specified.
+\item \textbf{comparision} (required): An array of comparison operations to be run. The value \texttt{type} specifies which comparision command to invoke. Currently, only \texttt{h5diff} is supported. The value \texttt{files} then are used for testing. Some tokens are supported, denoted \texttt{\%token\%}: all parameters specified are available as tokens, as well as \texttt{data}, which takes its values from the data array described above, and \texttt{np}, which takes its value from the \texttt{np} value, if specified, or the product of the values in the \texttt{parallel.nc} parameter, if specified for testing. The optional parameter \texttt{accuracy} can be used to pass a requested (absolute) accuracy to \texttt{h5diff}. This will only be used if the compiler is not \texttt{dmd} and \texttt{--compare-strict} is not specified, or if the compiler is \texttt{dmd} and \texttt{--compare-lax} is specified.
 \item \textbf{shell} (optional): Extra shell commands to be executed. These should return a 0 exit code on success, 1 for warning and any other value on failure.
 \end{itemize}
 \item \textbf{coverage} (optional): Overrides when only coverage information needs to be generated.

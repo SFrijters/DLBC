@@ -53,6 +53,14 @@ def getConfiguration(data, fn):
     except KeyError:
         logFatal("JSON file %s lacks a configuration. Please notify the test designer." % fn, -1)
 
+def getCheckpoint(data, fn):
+    """ Get checkpoint information. """
+    try:
+        return data["checkpoint"]
+    except KeyError:
+        logDebug("JSON file %s lacks a 'checkpoint' parameter. Assuming no checkpoint restore." % fn)
+        return None
+
 def getInputFile(data, fn):
     """ Get input file name. """
     try:

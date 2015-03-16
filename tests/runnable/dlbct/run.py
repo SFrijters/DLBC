@@ -60,7 +60,7 @@ def getNC(map):
             return p[1]
     return "[0,0]"
 
-def runTest(options, testRoot, testName, configuration, inputFile, np, parameters, compare, plot, coverageOverrides, fastOverrides):
+def runTest(options, testRoot, testName, configuration, inputFile, np, parameters, checkpoint, compare, plot, coverageOverrides, fastOverrides):
     """ Run all parameter sets for a single test. Returns number of errors encountered. """
     logNotification("Running subtests ...")
     nerr = 0
@@ -87,6 +87,7 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
 
             command = command + coverageCommand(options, coverageOverrides)
             command = command + fastCommand(options, fastOverrides)
+            command = command + checkpointCommand(options, checkpoint)
 
             if ( options.timers or options.timers_all):
                 command.append("--parameter")
@@ -113,6 +114,7 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
 
         command = command + coverageCommand(options, coverageOverrides)
         command = command + fastCommand(options, fastOverrides)
+        command = command + checkpointCommand(options, checkpoint)
 
         if ( options.timers or options.timers_all ):
             command.append("--parameter")
@@ -174,6 +176,17 @@ def fastCommand(options, fastOverrides):
                 command.append(p["parameter"] + "=" + p["value"])
         except KeyError:
             logFatal("fast parameter does not have a well-formed parameters parameter.")
+    return command
+
+def checkpointCommand(options, checkpoint):
+    command = []
+    if ( checkpoint ):
+        try:
+            name = checkpoint["name"]
+            command.append("-r")
+            command.append(name)
+        except KeyError:
+            logFatal("checkpoint parameter does not have a well-formed name parameter.")
     return command
 
 def reportRunTimers(warnTime):
