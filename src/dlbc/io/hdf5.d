@@ -123,7 +123,9 @@ hsize_t hdf5LengthOf(T)() @property {
      time = current timestep
      isCheckpoint = whether this is checkpoint-related (different file name, write globals)
 */
-void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const bool isCheckpoint = false) if ( isField!T ) {
+void dumpFieldHDF5(T)(ref T field, in string name, in int time = 0, in bool isCheckpoint = false) if ( isField!T ) {
+  if ( field.size <= 1 ) return;
+
   hsize_t[] dimsg;
   hsize_t[] dimsl;
   hsize_t[] count;
@@ -134,13 +136,11 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
 
   immutable type_id = hdf5Typeof!(T.type);
   immutable typeLen = hdf5LengthOf!(T.type);
+  // One more dimension to store the vector component.
+  immutable dim = ( typeLen > 1 ) ? ( field.d + 1 ) : field.d;
 
-  if ( field.size <= 1 ) return;
-
-  auto dim = field.dimensions;
   static if ( field.d == 3 ) {
     if ( typeLen > 1 ) {
-      dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], gn[1], gn[2], typeLen ];
       dimsl = [ field.nH[0], field.nH[1], field.nH[2], typeLen ];
       count = [ 1, 1, 1, 1 ];
@@ -161,7 +161,6 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
   }
   else static if ( field.d == 2 ) {
     if ( typeLen > 1 ) {
-      dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], gn[1], typeLen ];
       dimsl = [ field.nH[0], field.nH[1], typeLen ];
       count = [ 1, 1, 1 ];
@@ -182,7 +181,6 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
   }
   else static if ( field.d == 1 ) {
     if ( typeLen > 1 ) {
-      dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], typeLen ];
       dimsl = [ field.nH[0], typeLen ];
       count = [ 1, 1 ];
@@ -218,11 +216,13 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
   }
   auto fileName = fileNameString.toStringz();
 
-  // if (hdf_use_ibm_largeblock_io) then
-  //   if (dbg_report_hdf5) call log_msg("HDF using IBM_largeblock_io")
-  //   call MPI_Info_create(info, err)
-  //   call MPI_Info_set(info, "IBM_largeblock_io", "true", err)
-  // end if
+  /+
+   if (hdf_use_ibm_largeblock_io) then
+   if (dbg_report_hdf5) call log_msg("HDF using IBM_largeblock_io")
+   call MPI_Info_create(info, err)
+   call MPI_Info_set(info, "IBM_largeblock_io", "true", err)
+   end if
+  +/
 
   // Create the file collectively.
   auto fapl_id = H5Pcreate(H5P_FILE_ACCESS);
@@ -288,7 +288,7 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
 /**
    Write metadata as attributes.
 */
-void dumpMetadata(const hid_t root_id) {
+void dumpMetadata(in hid_t root_id) {
   import dlbc.revision;
   auto group_id = H5Gcreate2(root_id, "metadata", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   dumpAttributeHDF5(revisionHash, "revisionHash", group_id);
@@ -307,7 +307,9 @@ void dumpMetadata(const hid_t root_id) {
      fileNameString = name of the file to be read from
      isCheckpoint = whether this is checkpoint related (reads checkpoint globals)
 */
-void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isCheckpoint = false) if ( isField!T ) {
+void readFieldHDF5(T)(ref T field, in string fileNameString, in bool isCheckpoint = false) if ( isField!T ) {
+  if ( field.size <= 1 ) return;
+
   hsize_t[] dimsg;
   hsize_t[] dimsl;
   hsize_t[] count;
@@ -318,13 +320,11 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
 
   immutable type_id = hdf5Typeof!(T.type);
   immutable typeLen = hdf5LengthOf!(T.type);
+  // One more dimension to store the vector component.
+  immutable dim = ( typeLen > 1 ) ? ( field.d + 1 ) : field.d;
 
-  if ( field.size <= 1 ) return;
-
-  auto dim = field.dimensions;
   static if ( field.d == 3 ) {
     if ( typeLen > 1 ) {
-      dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], gn[1], gn[2], typeLen ];
       dimsl = [ field.nH[0], field.nH[1], field.nH[2], typeLen ];
       count = [ 1, 1, 1, 1 ];
@@ -345,7 +345,6 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
   }
   else static if ( field.d == 2 ) {
     if ( typeLen > 1 ) {
-      dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], gn[1], typeLen ];
       dimsl = [ field.nH[0], field.nH[1], typeLen ];
       count = [ 1, 1, 1 ];
@@ -366,7 +365,6 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
   }
   else static if ( field.d == 1 ) {
     if ( typeLen > 1 ) {
-      dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], typeLen ];
       dimsl = [ field.nH[0], typeLen ];
       count = [ 1, 1 ];
@@ -395,11 +393,13 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
 
   writeLogRI("HDF reading from file '%s'.", fileNameString);
 
-  // if (hdf_use_ibm_largeblock_io) then
-  //   if (dbg_report_hdf5) call log_msg("HDF using IBM_largeblock_io")
-  //   call MPI_Info_create(info, err)
-  //   call MPI_Info_set(info, "IBM_largeblock_io", "true", err)
-  // end if
+  /+
+    if (hdf_use_ibm_largeblock_io) then
+    if (dbg_report_hdf5) call log_msg("HDF using IBM_largeblock_io")
+    call MPI_Info_create(info, err)
+    call MPI_Info_set(info, "IBM_largeblock_io", "true", err)
+  end if
+  +/
 
   // Create the file collectively.
   auto fapl_id = H5Pcreate(H5P_FILE_ACCESS);
@@ -451,7 +451,7 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
      name = name of the attribute
      loc_id = id of the location to attach to
 */
-void dumpAttributeHDF5(T)(const T data, const string name, hid_t loc_id) {
+void dumpAttributeHDF5(T)(in T data, in string name, in hid_t loc_id) {
   auto attrname = name.toStringz();
   hid_t sid, aid, type;
   static if ( is (T == string ) ) {
@@ -527,7 +527,7 @@ T readAttributeHDF5(T)(const string name, hid_t loc_id) {
    Params:
      loc_id = id of the locataion to attach to
 */
-void dumpInputFileAttributes(hid_t loc_id) {
+void dumpInputFileAttributes(in hid_t loc_id) {
   import dlbc.parameters: inputFileData;
   hid_t sid, aid, type;
   auto attrname = defaultInputFileAName.toStringz();
@@ -556,7 +556,7 @@ void dumpInputFileAttributes(hid_t loc_id) {
 
    Returns: array of strings corresponding to lines of the input file.
 */
-string[] readInputFileAttributes(const string fileNameString) {
+string[] readInputFileAttributes(in string fileNameString) {
   import dlbc.parameters: inputFileData;
   import std.conv;
 
