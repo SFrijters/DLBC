@@ -210,6 +210,14 @@ struct Lattice(alias conn) {
       }
     }
   }
+
+  unittest {
+    version(D_Coverage) {
+      assert(isExchangeField!("mask"));
+      assert(!isExchangeField!("advection"));
+    }
+  }
+
 }
 
 /**
