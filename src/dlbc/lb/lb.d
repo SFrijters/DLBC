@@ -47,17 +47,3 @@ public import dlbc.lb.velocity;
 */
 @("global") uint timestep = 0;
 
-/**
-   Initialize various LB related fields.
-*/
-void initLBFields(T)(ref T L) if ( isLattice!T ) {
-  assert(L.fluids.length == 0);
-  L.fluids.length = components;
-  foreach(immutable f; 0..L.fluids.length ) {
-    L.fluids[f] = typeof(L.fluids[f])(L.lengths);
-  }
-  L.advection = typeof(L.advection)(L.lengths);
-  L.initMaskField();
-  L.initDensityFields();
-}
-

@@ -94,23 +94,61 @@ int main(string[] args ) {
   // Prepare for HDF5 output.
   startHDF5();
 
-  // Start Main timer.
-  // initAllTimers();
+  // Start timers.
   startTimer("main");
   startTimer("main.preloop");
 
+  // Read, broadcast, and show parameters.
   initParameters();
-  initCommon();
-  // Try and create the local lattice structure.
+
+  // Create, broadcast, and show id of current simulation.
+  initSimulationId();
+
+  // Warn if output paths do not exist.
+  checkPaths();
+
+  // Make cartesian grid now that we have values ncx, ncy, ncz everywhere.
+  reorderMpi(M, nc);
+
+  // Initialize random number generator.
+  initRNG();
+
+  // Create the local lattice structure.
   gconn.show!(VL.Information)();
   auto L = Lattice!(gconn)(gn, components, fieldNames, M);
-  L.initLattice();
 
+  // Prepare various LB related fields: fluids, advection, mask, density.
+  L.prepareLBFields();
+  // Prepare force and psi fields.
+  L.prepareForce();
+
+  // Check parameters, and initialize derived quantities for elec.
+  L.initElecConstants();
+  // Prepare various elec related fields: elChargeP, elChargeN, elPot,
+  // elDiel, elField, elFluxP, elFluxN.
+  L.prepareElecFields();
+
+  // Either restore fields from checkpoints or initialize them.
+  if ( isRestoring() ) {
+    L.readCheckpoint();
+  }
+  else {
+    L.initMask();
+    L.initFluids();
+    L.initElec();
+  }
+  L.exchangeHalo();
+
+  // First data dump
+  L.dumpData(timestep);
   stopTimer("main.preloop");
+
+  // Let's go loopy.
   L.runTimeloop();
 
   stopTimer("main");
 
+  // Final wrap-up.
   showFinalAllTimers!(VL.Information, LRF.Root)();
 
   endHDF5();
@@ -128,8 +166,6 @@ int main(string[] args ) {
      L = the lattice
 */
 void runTimeloop(T)(ref T L) if ( isLattice!T ) {
-  L.dumpData(timestep);
-
   while ( timestep < timesteps ) {
     ++timestep;
     writeLogRN("Starting timestep %d", timestep);
@@ -138,8 +174,6 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
 
     // Advection
     L.advectFields();
-    L.markPsiAsStale(); // advection will invalidate
-    L.markDensitiesAsStale(); // advection will invalidate
 
     // Electric charges
     L.executeElecTimestep();
@@ -154,29 +188,8 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
     L.prepareToCollide();
     L.collideFields(tau, globalAcc);
 
-    // writeLogRI("Global mass = %f %f", L.fluids[0].globalMass(L.mask), L.fluids[1].globalMass(L.mask));
-    // writeLogRI("Global momentum = %s %s", L.fluids[0].globalMomentum!(gconn)(L.mask), L.fluids[1].globalMomentum!(gconn)(L.mask));
     // Output
     L.dumpData(timestep);
   }
-}
-
-/**
-   Easy to call set of initialisation routines.
-   This has been split off from main() to enable easy implementation of
-   multiple runs of simulations, such as for the testing modules.
-*/
-void initCommon() {
-  // Create, broadcast, and show id of current simulation.
-  initSimulationId();
-
-  // Warn if output paths do not exist.
-  checkPaths();
-
-  // Make cartesian grid now that we have values ncx, ncy, ncz everywhere.
-  reorderMpi(M, nc);
-
-  // Initialize random number generator.
-  initRNG();
 }
 

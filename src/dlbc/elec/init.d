@@ -96,20 +96,9 @@ enum ElecDielInit {
   Capacitor,
 }
 
-void initElec(T)(ref T L) if ( isLattice!T ) {
-  if ( ! enableElec ) return;
-
-  // Initialize elec fields.
-  L.elPot.initConst(0);
-  L.elField.initConst(0);
-  L.initDielElec();
-  L.initChargeElec();
-
-  // Equilibrate.
-  L.exchangeHalo();
-  L.equilibrateElec();
-}
-
+/**
+   Check parameters, and initialize derived quantities for elec.
+*/
 void initElecConstants(T)(ref T L) if ( isLattice!T ) {
   if ( ! enableElec ) return;
 
@@ -149,6 +138,40 @@ void initElecConstants(T)(ref T L) if ( isLattice!T ) {
   writeLogRI("Derived quantity: averageDiel = %e, dielContrast = %e", averageDiel, dielContrast);
   L.initPoissonSolver();
   initElecFlux();
+}
+
+/**
+   Prepare various elec related fields: elChargeP, elChargeN,
+   elPot, elDiel, elField, elFluxP, and elFluxN.
+*/
+void prepareElecFields(T)(ref T L) if ( isLattice!T ) {
+  if ( ! enableElec ) return;
+
+  L.elChargeP = typeof(L.elChargeP)(L.lengths);
+  L.elChargeN = typeof(L.elChargeN)(L.lengths);
+  L.elPot     = typeof(L.elPot)(L.lengths);
+  L.elDiel    = typeof(L.elDiel)(L.lengths);
+  L.elField   = typeof(L.elField)(L.lengths);
+  L.elFluxP   = typeof(L.elFluxP)(L.lengths);
+  L.elFluxN   = typeof(L.elFluxN)(L.lengths);
+}
+
+/**
+   Initialize elec fields: elPot, elField, elDiel, elChargeP, and elChargeN.
+   Then, equilibrate.
+*/
+void initElec(T)(ref T L) if ( isLattice!T ) {
+  if ( ! enableElec ) return;
+
+  // Initialize elec fields.
+  L.elPot.initConst(0);
+  L.elField.initConst(0);
+  L.initDielElec();
+  L.initChargeElec();
+
+  // Equilibrate.
+  L.exchangeHalo();
+  L.equilibrateElec();
 }
 
 private void equilibrateElec(T)(ref T L) if ( isLattice!T ) {
@@ -229,7 +252,7 @@ private void initDielElec(T)(ref T L) if ( isLattice!T ) {
   }
 }
 
-private void initChargeElecUniform(T)(ref T L, bool asDensity) if ( isLattice!T ) {
+private void initChargeElecUniform(T)(ref T L, in bool asDensity) if ( isLattice!T ) {
   import std.conv: to;
   auto nFluidSites = L.mask.countFluidSites();
   auto nSolidSites = L.mask.countSolidSites();
@@ -359,20 +382,4 @@ private void initDielCapacitor(T)(ref T L, in double dielConstant, in double die
   size_t i = to!int(initAxis);
   L.elDiel.initLamellae([dielConstant, dielConstant2], [L.gn[i]/2, L.gn[i]/2], initAxis);
 }
-
-/**
-   Initialize various LB related fields.
-*/
-void initElecFields(T)(ref T L) if ( isLattice!T ) {
-  if ( ! enableElec ) return;
-
-  L.elChargeP = typeof(L.elChargeP)(L.lengths);
-  L.elChargeN = typeof(L.elChargeN)(L.lengths);
-  L.elPot     = typeof(L.elPot)(L.lengths);
-  L.elDiel    = typeof(L.elDiel)(L.lengths);
-  L.elField   = typeof(L.elField)(L.lengths);
-  L.elFluxP   = typeof(L.elFluxP)(L.lengths);
-  L.elFluxN   = typeof(L.elFluxN)(L.lengths);
-}
-
 

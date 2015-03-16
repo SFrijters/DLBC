@@ -64,7 +64,7 @@ enum PsiForm {
    Params:
      L = lattice
 */
-void initForce(T)(ref T L) if ( isLattice!T ) {
+void prepareForce(T)(ref T L) if ( isLattice!T ) {
   import dlbc.parameters: checkArrayParameterLength;
   import std.string: format;
   // Firstly, the acceleration vector is checked for length.
@@ -101,10 +101,56 @@ void initForce(T)(ref T L) if ( isLattice!T ) {
     writeLogRI(header ~ "\n" ~ lines);
   }
 
+  L.prepareForceFields();
   // Because doubles are initialised as NaNs we set zeros here.
-  L.initForceFields();
   L.resetForce();
-  L.initPsiFields();
+  L.preparePsiFields();
+}
+
+/**
+   Initialize the force field array and the fields themselves.
+*/
+private void prepareForceFields(T)(ref T L) if ( isLattice!T ) {
+  assert(L.force.length == 0);
+  L.force.length = L.fluids.length;
+  foreach(immutable f; 0..L.force.length ) {
+    L.force[f] = typeof(L.force[f])(L.lengths);
+  }
+  L.forceDistributed = typeof(L.forceDistributed)(L.lengths);
+}
+
+/**
+   Initialize the pre-calculated psi field array and the fields themselves.
+*/
+private void preparePsiFields(T)(ref T L) if ( isLattice!T ) {
+  assert(L.psi.length == 0);
+  L.psi.length = L.fluids.length;
+  foreach(immutable f; 0..L.psi.length ) {
+    L.psi[f] = typeof(L.psi[f])(L.lengths);
+  }
+}
+
+/**
+   Fills the lattice psi arrays by recomputing the values from the densities.
+*/
+void precalculatePsi(PsiForm psiForm, T)(ref T L) if ( isLattice!T ) {
+  L.precalculateDensities();
+  foreach(immutable f; 0..L.fluids.length ) {
+    if ( L.psi[f].isStale ) {
+      assert(L.density[f].isFresh);
+      L.density[f].psiField!psiForm(L.mask, L.psi[f]);
+      L.psi[f].markAsFresh();
+    }
+  }
+}
+
+/**
+   Mark all psi fields on the lattice as invalid.
+*/
+void markPsiAsStale(T)(ref T L) if ( isLattice!T ) {
+  foreach(immutable f; 0..L.fluids.length ) {
+    L.psi[f].markAsStale();
+  }
 }
 
 /**
@@ -113,7 +159,7 @@ void initForce(T)(ref T L) if ( isLattice!T ) {
    Params:
      L = lattice
 */
-void resetForce(T)(ref T L) if (isLattice!T) {
+void resetForce(T)(ref T L) if ( isLattice!T ) {
   foreach(ref force; L.force) {
     force.initConst(0.0);
   }
@@ -127,7 +173,7 @@ void resetForce(T)(ref T L) if (isLattice!T) {
    Params:
      L = lattice
 */
-void distributeForce(T)(ref T L) if (isLattice!T) {
+void distributeForce(T)(ref T L) if ( isLattice!T ) {
   alias conn = L.lbconn;
   startTimer("main.force.distr");
   L.precalculateDensities();
@@ -171,7 +217,7 @@ void distributeForce(T)(ref T L) if (isLattice!T) {
 
    Todo: add unittest.
 */
-void addShanChenForce(T)(ref T L) if (isLattice!T) {
+void addShanChenForce(T)(ref T L) if ( isLattice!T ) {
   if ( ! enableShanChen ) return;
   startTimer("main.force.addSC");
   // Use a final switch here so we don't need to bother with a switch for psi in the inner loop later.
@@ -186,7 +232,7 @@ void addShanChenForce(T)(ref T L) if (isLattice!T) {
   stopTimer("main.force.addSC");
 }
 /// Ditto
-private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc, in double[] gwc) if (isLattice!T) {
+private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc, in double[] gwc) if ( isLattice!T ) {
   alias conn = L.lbconn;
   immutable cv = conn.velocities;
   immutable cw = conn.weights;
@@ -332,51 +378,5 @@ unittest {
   density = 2.0;
   assert(psi!(PsiForm.Linear)(density) == 2.0);
   assert(approxEqual(psi!(PsiForm.Exponential)(density), 0.86466471676) );
-}
-
-/**
-   Initialize the force field array and the fields themselves.
-*/
-void initForceFields(T)(ref T L) if ( isLattice!T ) {
-  assert(L.force.length == 0);
-  L.force.length = L.fluids.length;
-  foreach(immutable f; 0..L.force.length ) {
-    L.force[f] = typeof(L.force[f])(L.lengths);
-  }
-  L.forceDistributed = typeof(L.forceDistributed)(L.lengths);
-}
-
-/**
-   Initialize the pre-calculated psi field array and the fields themselves.
-*/
-void initPsiFields(T)(ref T L) if ( isLattice!T ) {
-  assert(L.psi.length == 0);
-  L.psi.length = L.fluids.length;
-  foreach(immutable f; 0..L.psi.length ) {
-    L.psi[f] = typeof(L.psi[f])(L.lengths);
-  }
-}
-
-/**
-   Fills the lattice psi arrays by recomputing the values from the densities.
-*/
-void precalculatePsi(PsiForm psiForm, T)(ref T L) if ( isLattice!T ) {
-  L.precalculateDensities();
-  foreach(immutable f; 0..L.fluids.length ) {
-    if ( L.psi[f].isStale ) {
-      assert(L.density[f].isFresh);
-      L.density[f].psiField!psiForm(L.mask, L.psi[f]);
-      L.psi[f].markAsFresh();
-    }
-  }
-}
-
-/**
-   Mark all psi fields on the lattice as invalid.
-*/
-void markPsiAsStale(T)(ref T L) if ( isLattice!T ) {
-  foreach(immutable f; 0..L.fluids.length ) {
-    L.psi[f].markAsStale();
-  }
 }
 

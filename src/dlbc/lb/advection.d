@@ -23,16 +23,23 @@ import dlbc.timers;
    Advect the LB population fields over one time step. The advected values are first
    stored in a temporary field, and at the end the fields are swapped.
 
+   This function also marks derived pre-calculated fields as stale.
+
    Params:
      L = lattice
 */
-
 void advectFields(T)(ref T L) if ( isLattice!T ) {
   if ( L.fluids.length == 0 ) return;
 
   startTimer("main.advection");
 
   L.advectFieldsKernel();
+
+  // Advection will make densities and therefore also psi fields stale.
+  import dlbc.lb.density: markDensitiesAsStale;
+  import dlbc.lb.force: markPsiAsStale;
+  L.markDensitiesAsStale();
+  L.markPsiAsStale();
 
   stopTimer("main.advection");
 }

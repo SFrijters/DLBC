@@ -116,28 +116,28 @@ auto countSolidSites(T)(ref T field) @safe nothrow @nogc {
    Initialise the mask field depending on the $(D maskInit) parameter.
 
    Params:
-     mask = mask field to be initialised.
+     L = lattice
 */
-void initMask(T)(ref T mask) if (isMaskField!T) {
-  if ( to!int(initAxis) >= mask.dimensions ) {
-    writeLogF("lb.mask.initAxis = %s is out of range (max is %s).", initAxis, to!Axis(mask.dimensions - 1));
+void initMask(T)(ref T L) if (isLattice!T) {
+  if ( to!int(initAxis) >= L.mask.dimensions ) {
+    writeLogF("lb.mask.initAxis = %s is out of range (max is %s).", initAxis, to!Axis(L.mask.dimensions - 1));
   }
 
   final switch(maskInit) {
   case(MaskInit.None):
-    mask.initConst(Mask.None);
+    L.mask.initConst(Mask.None);
     break;
   case(MaskInit.File):
-    mask.readField(maskFile);
+    L.mask.readField(maskFile);
     break;
   case(MaskInit.Tube):
-    mask.initTube(initAxis);
+    L.mask.initTube(initAxis);
     break;
   case(MaskInit.Walls):
-    mask.initWalls(initAxis, wallOffset);
+    L.mask.initWalls(initAxis, wallOffset);
     break;
   case(MaskInit.Box):
-    mask.initBox();
+    L.mask.initBox();
     break;
   }
 }

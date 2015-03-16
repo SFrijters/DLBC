@@ -58,7 +58,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.parameters;
@@ -129,8 +128,10 @@ private alias parameterSourceModules = TypeTuple!(
 */
 private string[] setParams;
 
+/**
+   Read, broadcast, and show parameters.
+*/
 void initParameters() {
-  // Read, broadcast, and show parameters.
   if (M.isRoot) {
     readParameterSetFromCliFiles();
     parseParametersFromCli();
@@ -176,6 +177,9 @@ private void readParameterSetFromCliFiles() {
   }
 }
 
+/**
+   Parse parameters from the command line.
+*/
 private void parseParametersFromCli() {
   if ( commandLineParameters.length > 0 ) {
     string currentSection = "";
@@ -547,6 +551,13 @@ private auto createImports() {
   return mixinString;
 }
 
+/**
+   Set a single parameter and broadcast it.
+
+   Params:
+     parameter = parameter to set
+     value = value to set
+*/
 void setParameter(T)(ref T parameter, T value) {
   parameter = value;
   broadcastParameter(parameter);

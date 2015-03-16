@@ -213,43 +213,6 @@ struct Lattice(alias conn) {
 }
 
 /**
-   Template to check if a type is a lattice.
-*/
-template isLattice(T) {
-  enum isLattice = is(T:Lattice!(Connectivity!(d,q)), uint d, uint q);
-}
-
-/**
-   Initialization of the lattice: initialize the force arrays, and the fluids and mask,
-   unless we are restoring, in which case read the checkpoint.
-
-   Params:
-     L = the lattice
-*/
-void initLattice(T)(ref T L) if (isLattice!T) {
-  L.initLBFields();
-  L.initForce();
-  L.initElecConstants();
-  L.initElecFields();
-
-  if ( isRestoring() ) {
-    L.readCheckpoint();
-    L.exchangeHalo();
-  }
-  else {
-    L.mask.initMask();
-    foreach(immutable i, ref e; L.fluids) {
-      e.initFluid(i);
-      // Coloured walls.
-      import dlbc.fields.init: initEqDistWall;
-      e.initEqDistWall(1.0, L.mask);
-    }
-    L.initElec();
-    L.exchangeHalo();
-  }
-}
-
-/**
    Check if all global lattice lengths are divisible by
    the number of processes in that direction.
 
@@ -265,5 +228,12 @@ private bool canDivide(in size_t[] gn, in int[] nc) @safe pure nothrow @nogc {
     }
   }
   return true;
+}
+
+/**
+   Template to check if a type is a lattice.
+*/
+template isLattice(T) {
+  enum isLattice = is(T:Lattice!(Connectivity!(d,q)), uint d, uint q);
 }
 

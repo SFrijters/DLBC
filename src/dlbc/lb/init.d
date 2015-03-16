@@ -43,6 +43,31 @@ import dlbc.logging;
 import dlbc.parameters: checkArrayParameterLength;
 
 /**
+   Prepare various LB related fields: fluids, advection, mask, density.
+*/
+void prepareLBFields(T)(ref T L) if ( isLattice!T ) {
+  assert(L.fluids.length == 0);
+  L.fluids.length = components;
+  foreach(immutable f; 0..L.fluids.length ) {
+    L.fluids[f] = typeof(L.fluids[f])(L.lengths);
+  }
+  L.advection = typeof(L.advection)(L.lengths);
+  L.initMaskField();
+  L.initDensityFields();
+}
+
+/**
+   Initialize fluid fields.
+*/
+void initFluids(T)(ref T L) if ( isLattice!T ) {
+  foreach(immutable f; 0..L.fluids.length) {
+    L.fluids[f].initFluid(f);
+    // Coloured walls.
+    L.fluids[f].initEqDistWall(1.0, L.mask);
+  }
+}
+
+/**
    Lattice-Boltzmann initial conditions.
 */
 enum FluidInit {
