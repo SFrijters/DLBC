@@ -41,6 +41,10 @@ void addElecForce(T)(ref T L) if (isLattice!T) {
 
   startTimer("main.elec.force");
 
+  if ( localDiel ) {
+    L.calculateDensities();
+  }
+
   immutable cv = econn.velocities;
 
   foreach(immutable p, ref F; L.forceDistributed ) {
