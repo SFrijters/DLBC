@@ -8,7 +8,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.lb.force;
@@ -103,7 +102,9 @@ void initForce(T)(ref T L) if ( isLattice!T ) {
   }
 
   // Because doubles are initialised as NaNs we set zeros here.
+  L.initForceFields();
   L.resetForce();
+  L.initPsiFields();
 }
 
 /**
@@ -129,14 +130,16 @@ void resetForce(T)(ref T L) if (isLattice!T) {
 void distributeForce(T)(ref T L) if (isLattice!T) {
   alias conn = L.lbconn;
   startTimer("main.force.distr");
-  L.calculateDensities();
+  L.precalculateDensities();
   foreach(immutable p, ref e; L.forceDistributed) {
     double totalDensity = 0.0;
     foreach(immutable f; 0..L.fluids.length ) {
+      assert(L.density[f].isFresh);
       totalDensity += L.density[f][p];
     }
     foreach(immutable f; 0..L.fluids.length ) {
       foreach(immutable vd; Iota!(0, conn.d) ) {
+        assert(L.density[f].isFresh);
         L.force[f][p][vd] += L.forceDistributed[p][vd] * ( L.density[f][p] / totalDensity );
       }
     }
@@ -194,9 +197,8 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc,
     assert(cv[0][vd] == 0);
   }
 
-  // It's actually faster to pre-calculate the densities, apparently...
-  // L.calculateDensities();
-  L.calculatePsi!psiForm();
+  // It's actually faster to pre-calculate the psi values, apparently...
+  L.precalculatePsi!psiForm();
 
   // Do all combinations of two fluids.
   foreach(immutable f1; 0..L.fluids.length ) {
@@ -209,6 +211,7 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc,
         // Only do lattice sites on which collision will take place.
         if ( isCollidable(L.mask[p]) ) {
           // immutable psiden1 = psi!psiForm(L.density[f1][p]);
+          assert(L.psi[f1].isFresh);
           immutable psiden1 = L.psi[f1][p];
           foreach(immutable vq; Iota!(1, conn.q - 1) ) { // [*]
             conn.vel_t nb;
@@ -217,7 +220,7 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc,
               nb[vd] = p[vd] + cv[vq][vd];
             }
             // Only do lattice sites that are not walls.
-            // immutable psiden2 = ( isBounceBack(L.mask[nb]) ? psi!psiForm(L.density[f2][p]) : psi!psiForm(L.density[f2][nb]));
+            assert(L.psi[f2].isFresh);
             immutable psiden2 = ( isBounceBack(L.mask[nb]) ? L.psi[f2][p] : L.psi[f2][nb] );
             immutable prefactor = cw[vq] * psiden1 * psiden2 * cc;
             // The SC force function.
@@ -235,7 +238,8 @@ private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc,
     foreach(immutable p, ref force ; L.force[f1] ) {
       // Only do lattice sites on which collision will take place.
       if ( isCollidable(L.mask[p]) ) {
-        immutable psiden1 = psi!psiForm(L.density[f1][p]);
+        assert(L.psi[f1].isFresh);
+        immutable psiden1 = L.psi[f1][p];
         foreach(immutable vq; Iota!(0, conn.q) ) {
           conn.vel_t nb;
           // Todo: better array syntax.
@@ -328,5 +332,51 @@ unittest {
   density = 2.0;
   assert(psi!(PsiForm.Linear)(density) == 2.0);
   assert(approxEqual(psi!(PsiForm.Exponential)(density), 0.86466471676) );
+}
+
+/**
+   Initialize the force field array and the fields themselves.
+*/
+void initForceFields(T)(ref T L) if ( isLattice!T ) {
+  assert(L.force.length == 0);
+  L.force.length = L.fluids.length;
+  foreach(immutable f; 0..L.force.length ) {
+    L.force[f] = typeof(L.force[f])(L.lengths);
+  }
+  L.forceDistributed = typeof(L.forceDistributed)(L.lengths);
+}
+
+/**
+   Initialize the pre-calculated psi field array and the fields themselves.
+*/
+void initPsiFields(T)(ref T L) if ( isLattice!T ) {
+  assert(L.psi.length == 0);
+  L.psi.length = L.fluids.length;
+  foreach(immutable f; 0..L.psi.length ) {
+    L.psi[f] = typeof(L.psi[f])(L.lengths);
+  }
+}
+
+/**
+   Fills the lattice psi arrays by recomputing the values from the densities.
+*/
+void precalculatePsi(PsiForm psiForm, T)(ref T L) if ( isLattice!T ) {
+  L.precalculateDensities();
+  foreach(immutable f; 0..L.fluids.length ) {
+    if ( L.psi[f].isStale ) {
+      assert(L.density[f].isFresh);
+      L.density[f].psiField!psiForm(L.mask, L.psi[f]);
+      L.psi[f].markAsFresh();
+    }
+  }
+}
+
+/**
+   Mark all psi fields on the lattice as invalid.
+*/
+void markPsiAsStale(T)(ref T L) if ( isLattice!T ) {
+  foreach(immutable f; 0..L.fluids.length ) {
+    L.psi[f].markAsStale();
+  }
 }
 

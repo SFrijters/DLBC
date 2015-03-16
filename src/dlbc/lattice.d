@@ -8,7 +8,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.lattice;
@@ -123,9 +122,6 @@ struct Lattice(alias conn) {
      Temporary field to store advected fluids.
   */
   BaseElementType!(typeof(fluids)) advection;
-
-  //BaseElementType!(typeof(fluids))[] advectionArr;
-
   /**
      Density of positive ions (used by elec only).
   */
@@ -157,7 +153,7 @@ struct Lattice(alias conn) {
 
   /**
      The constructor will verify that the local lattices can be set up correctly
-     with respect to the parallel decomposition, and allocate the fields.
+     with respect to the parallel decomposition.
 
      Params:
        gn = global size of the lattice
@@ -187,47 +183,9 @@ struct Lattice(alias conn) {
       this._size *= this._lengths[i];
       this._gsize *= gn[i];
     }
-
-    // Determine number of fluid arrays
-    fluids.length = components;
-    //advectionArr.length = components;
-    force.length = components;
-    density.length = components;
-    psi.length = components;
-
-    // Initialize arrays
-    foreach(ref e; fluids ) {
-      e = typeof(e)(lengths);
-    }
-    // foreach(ref e; advectionArr ) {
-    //   e = typeof(e)(lengths);
-    // }
-    foreach(ref e; force ) {
-      e = typeof(e)(lengths);
-    }
-    forceDistributed = typeof(forceDistributed)(lengths);
-    foreach(ref e; density ) {
-      e = typeof(e)(lengths);
-    }
-    foreach(ref e; psi ) {
-      e = typeof(e)(lengths);
-    }
-    mask = typeof(mask)(lengths);
-    advection = typeof(advection)(lengths);
-
-    // Global boolean
-    if ( enableElec ) {
-      elChargeP = typeof(elChargeP)(lengths);
-      elChargeN = typeof(elChargeN)(lengths);
-      elPot = typeof(elPot)(lengths);
-      elDiel = typeof(elDiel)(lengths);
-      elField = typeof(elField)(lengths);
-      elFluxP = typeof(elFluxP)(lengths);
-      elFluxN = typeof(elFluxN)(lengths);
-    }
   }
 
-  private static bool isExchangeField (string field)() @safe pure nothrow {
+  private static bool isExchangeField(string field)() @safe pure nothrow {
     import std.typetuple;
     alias attrs = TypeTuple!(__traits(getAttributes, mixin("Lattice."  ~ field)));
     return staticIndexOf!(Exchange, attrs) != -1;
@@ -252,57 +210,6 @@ struct Lattice(alias conn) {
       }
     }
   }
-
-  /**
-     Fills the lattice density arrays by recomputing the values from the populations.
-
-     Todo: move to proper module. Initialize field if necessary (do not init at the start).
-  */
-  void calculateDensities() {
-    foreach(immutable nc1; 0..fluids.length ) {
-      if ( ! fluids[nc1].isValid ) {
-	fluids[nc1].densityField(mask, density[nc1]);
-	fluids[nc1].markAsValid();
-      }
-    }
-  }
-
-  /**
-     Mark all density fields on the lattice as invalid.
-
-     Todo: move to proper module. Why not mark density as invalid?
-  */
-  void markDensitiesAsInvalid() {
-    foreach(immutable nc1; 0..fluids.length ) {
-      fluids[nc1].markAsInvalid();
-    }
-  }
-
-  /**
-     Fills the lattice psi arrays by recomputing the values from the densities.
-
-     Todo: move to proper module. Initialize field if necessary (do not init at the start).
-  */
-  void calculatePsi(PsiForm psiForm)() {
-    calculateDensities();
-    foreach(immutable nc1; 0..fluids.length ) {
-      if ( ! density[nc1].isValid ) {
-	density[nc1].psiField!psiForm(mask, psi[nc1]);
-	density[nc1].markAsValid();
-      }
-    }
-  }
-
-  /**
-     Mark all psi fields on the lattice as invalid.
-
-     Todo: move to proper module. Why not mark psi as invalid?
-  */
-  void markPsiAsInvalid() {
-    foreach(immutable nc1; 0..fluids.length ) {
-      density[nc1].markAsInvalid();
-    }
-  }
 }
 
 /**
@@ -320,6 +227,7 @@ template isLattice(T) {
      L = the lattice
 */
 void initLattice(T)(ref T L) if (isLattice!T) {
+  L.initLBFields();
   L.initForce();
   L.initElecConstants();
 

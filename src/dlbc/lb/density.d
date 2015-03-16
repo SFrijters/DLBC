@@ -8,7 +8,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.lb.density;
@@ -17,6 +16,7 @@ import dlbc.lb.connectivity;
 import dlbc.fields.field;
 import dlbc.lb.mask;
 import dlbc.lb.force;
+import dlbc.lattice: isLattice;
 
 version(unittest) {
   import dlbc.fields.init;
@@ -323,4 +323,37 @@ private auto pressurePsi(PsiForm form, alias conn, T)(in ref T[] density) {
   }
   return (pressure * conn.css);
 }
+
+/**
+   Initialize the pre-calculated density field array and the fields themselves.
+*/
+void initDensityFields(T)(ref T L) if ( isLattice!T ) {
+  assert(L.density.length == 0);
+  L.density.length = L.fluids.length;
+  foreach(immutable f; 0..L.density.length ) {
+    L.density[f] = typeof(L.density[f])(L.lengths);
+  }
+}
+
+/**
+   Fills the lattice density arrays by recomputing the values from the populations.
+*/
+void precalculateDensities(T)(ref T L) if ( isLattice!T ) {
+  foreach(immutable f; 0..L.fluids.length ) {
+    if ( L.density[f].isStale ) {
+      L.fluids[f].densityField(L.mask, L.density[f]);
+      L.density[f].markAsFresh();
+    }
+  }
+}
+
+/**
+   Mark all density fields on the lattice as invalid.
+*/
+void markDensitiesAsStale(T)(ref T L) if ( isLattice!T ) {
+  foreach(immutable f; 0..L.fluids.length ) {
+    L.density[f].markAsStale();
+  }
+}
+
 

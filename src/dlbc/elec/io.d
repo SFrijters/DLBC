@@ -8,7 +8,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.elec.io;
@@ -75,7 +74,8 @@ void calculateDielField(T)(ref T L) if ( isLattice!T ) {
   import dlbc.elec.poisson;
 
   if ( localDiel ) {
-    L.calculateDensities();
+    import dlbc.lb.density: precalculateDensities;
+    L.precalculateDensities();
   }
 
   foreach(immutable p, e; L.elDiel) {

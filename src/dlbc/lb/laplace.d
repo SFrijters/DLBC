@@ -15,6 +15,7 @@ module dlbc.lb.laplace;
 import dlbc.lattice;
 import dlbc.parallel;
 import dlbc.logging;
+import dlbc.lb.density: precalculateDensities;
 import dlbc.lb.lb;
 import dlbc.range;
 
@@ -242,7 +243,7 @@ private double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in 
   lnsites.length = L.fluids.length;
   lnsites[] = 0;
 
-  L.calculateDensities();
+  L.precalculateDensities();
 
   foreach(immutable f, ref field; L.fluids) {
     foreach(immutable p, pop; field) {
@@ -253,7 +254,8 @@ private double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in 
         if ( gn[vd] < ( -volumeAverage + offset[vd] ) || gn[vd] > ( volumeAverage + offset[vd] ) ) isInVolume = false;
       }
       if (isInVolume && isFluid(L.mask[p]) ) {
-        lnsites[f]++;
+        ++lnsites[f];
+	assert(L.density[f].isFresh());
         ldensity[f] += L.density[f][p];
       }
     }

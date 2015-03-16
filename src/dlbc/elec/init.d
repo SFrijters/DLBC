@@ -11,7 +11,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.elec.init;
@@ -101,6 +100,7 @@ void initElec(T)(ref T L) if ( isLattice!T ) {
   if ( ! enableElec ) return;
 
   // Initialize elec fields.
+  L.initElecFields();
   L.elPot.initConst(0);
   L.elField.initConst(0);
   L.initDielElec();
@@ -360,4 +360,18 @@ private void initDielCapacitor(T)(ref T L, in double dielConstant, in double die
   size_t i = to!int(initAxis);
   L.elDiel.initLamellae([dielConstant, dielConstant2], [L.gn[i]/2, L.gn[i]/2], initAxis);
 }
+
+/**
+   Initialize various LB related fields.
+*/
+void initElecFields(T)(ref T L) if ( isLattice!T ) {
+  L.elChargeP = typeof(L.elChargeP)(L.lengths);
+  L.elChargeN = typeof(L.elChargeN)(L.lengths);
+  L.elPot     = typeof(L.elPot)(L.lengths);
+  L.elDiel    = typeof(L.elDiel)(L.lengths);
+  L.elField   = typeof(L.elField)(L.lengths);
+  L.elFluxP   = typeof(L.elFluxP)(L.lengths);
+  L.elFluxN   = typeof(L.elFluxN)(L.lengths);
+}
+
 

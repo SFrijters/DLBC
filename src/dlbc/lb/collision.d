@@ -74,12 +74,13 @@ private void collideFieldsKernel(EqDistForm eqDistForm, T)(ref T L, in double[] 
 
   alias conn = L.lbconn;
 
-  L.calculateDensities();
+  L.precalculateDensities();
 
   foreach(immutable f; 0..L.fluids.length) {
     immutable omega = 1.0 / tau[f];
     foreach(immutable p, ref pop; L.fluids[f]) {
       if ( isCollidable(L.mask[p]) ) {
+	assert(L.density[f].isFresh);
 	immutable den = L.density[f][p];
 	double[conn.d] dv;
 	foreach(immutable vd; Iota!(0,conn.d) ) {
@@ -160,13 +161,14 @@ private void calculateWeightedVelocity(T)(ref T L) if ( isLattice!T ) {
     }
   }
 
-  L.calculateDensities();
+  L.precalculateDensities();
 
   // Divide by total densities.
   foreach(immutable p, ref wv; weightedVelocityBDist2) {
     double totalDensity = 0.0;
-    foreach(density; L.density) {
-      totalDensity += density[p];
+    foreach(immutable f; 0..L.density.length) {
+      assert(L.density[f].isFresh);
+      totalDensity += L.density[f][p];
     }
     foreach(immutable vd; Iota!(0, conn.d) ) {
       wv[vd] /= totalDensity;

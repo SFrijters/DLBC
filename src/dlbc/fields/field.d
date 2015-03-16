@@ -51,7 +51,7 @@ struct Field(T, alias c, uint hs) {
     size_t _size = 1;
     size_t _sizeH = 1;
     bool _isInitialized = false;
-    bool _isValid = false;
+    bool _isStale = true;
   }
 
   MultidimArray!(T, conn.d) arr, sbuffer, rbuffer;
@@ -98,8 +98,12 @@ struct Field(T, alias c, uint hs) {
   /**
      Check if field is valid.
   */
-  @property const isValid() {
-    return _isValid;
+  @property const isStale() {
+    return _isStale;
+  }
+  // Ditto
+  @property const isFresh() {
+    return ( ! _isStale );
   }
 
   /**
@@ -191,12 +195,12 @@ struct Field(T, alias c, uint hs) {
     }
   }
 
-  void markAsValid() {
-    _isValid = true;
+  void markAsStale() {
+    _isStale = true;
   }
 
-  void markAsInvalid() {
-    _isValid = false;
+  void markAsFresh() {
+    _isStale = false;
   }
 
   /**

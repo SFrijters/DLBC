@@ -101,7 +101,8 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
   double sorToleranceAbs = 0.01 * sorToleranceRel;
 
   if ( localDiel ) {
-    L.calculateDensities();
+    import dlbc.lb.density: precalculateDensities;
+    L.precalculateDensities();
   }
 
   localRnorm[0] = 0.0;
@@ -321,14 +322,13 @@ double getLocalDiel(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p)
 }
 
 double getLocalOP(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p) @safe nothrow @nogc if ( isLattice!T ) {
-  import dlbc.lb.density;
 
   if ( components < 2 ) {
     return 1.0;
   }
   else if ( components == 2 ) {
-    assert(L.density[0].isValid);
-    assert(L.density[1].isValid);
+    assert(L.density[0].isFresh);
+    assert(L.density[1].isFresh);
     return ( ( L.density[0][p] - L.density[1][p] ) / ( L.density[0][p] + L.density[1][p] ) );
   }
   else {

@@ -14,6 +14,7 @@ module dlbc.elec.force;
 
 import dlbc.elec.elec;
 import dlbc.lb.lb: components;
+import dlbc.lb.density: precalculateDensities;
 import dlbc.lattice;
 import dlbc.logging;
 import dlbc.range;
@@ -42,7 +43,7 @@ void addElecForce(T)(ref T L) if (isLattice!T) {
   startTimer("main.elec.force");
 
   if ( localDiel ) {
-    L.calculateDensities();
+    L.precalculateDensities();
   }
 
   immutable cv = econn.velocities;
@@ -90,5 +91,4 @@ void addElecForce(T)(ref T L) if (isLattice!T) {
   stopTimer("main.elec.force");
 
 }
-
 

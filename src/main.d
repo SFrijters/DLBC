@@ -104,10 +104,10 @@ int main(string[] args ) {
   // Try and create the local lattice structure.
   gconn.show!(VL.Information)();
   auto L = Lattice!(gconn)(gn, components, fieldNames, M);
-  initLattice(L);
+  L.initLattice();
 
   stopTimer("main.preloop");
-  runTimeloop(L);
+  L.runTimeloop();
 
   stopTimer("main");
 
@@ -138,8 +138,8 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
 
     // Advection
     L.advectFields();
-    L.markPsiAsInvalid(); // advection will invalidate
-    L.markDensitiesAsInvalid(); // advection will invalidate
+    L.markPsiAsStale(); // advection will invalidate
+    L.markDensitiesAsStale(); // advection will invalidate
 
     // Electric charges
     L.executeElecTimestep();

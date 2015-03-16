@@ -8,7 +8,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.lb.mask;
@@ -272,5 +271,14 @@ import dlbc.lb.connectivity;
 template MaskFieldOf(T) if ( isField!(BaseElementType!T) ) {
   alias BT = BaseElementType!(T);
   alias MaskFieldOf = Field!(Mask, dimOf!(BT.conn), BT.haloSize);
+}
+
+import dlbc.lattice: isLattice;
+
+/**
+   Initialize mask field.
+*/
+void initMaskField(T)(ref T L) if ( isLattice!T ) {
+  L.mask = typeof(L.mask)(L.lengths);
 }
 
