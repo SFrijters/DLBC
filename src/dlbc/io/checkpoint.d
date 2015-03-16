@@ -33,6 +33,11 @@ mixin(createImports());
 */
 @("param") string cpPath = ".";
 /**
+   Path to read checkpoint files from, relative to $(D dlbc.io.outputPath).
+   If this is the empty string, $(D cpPath) is used instead.
+*/
+@("param") string cpRestorePath = "";
+/**
    Frequency at which checkpoints should be written to disk.
 */
 @("param") int cpFreq;
@@ -223,7 +228,16 @@ string makeFilenameCpRestore(FileFormat fileFormat)(in string name, in string si
   else {
     static assert(0, "File name extension not specified for this file format.");
   }
-  return format("%s/%s/%s-%s.%s", outputPath, cpPath, name, simulationName, ext);
+
+  string relPath;
+  if ( cpRestorePath == "" ) {
+    relPath = cpPath;
+  }
+  else {
+    relPath = cpRestorePath;
+  }
+
+  return format("%s/%s/%s-%s.%s", outputPath, cpRestorePath, name, simulationName, ext);
 }
 
 mixin(createGlobalsMixins());
