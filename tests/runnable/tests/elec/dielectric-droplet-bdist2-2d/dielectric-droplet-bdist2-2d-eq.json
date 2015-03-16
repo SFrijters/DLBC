@@ -1,0 +1,44 @@
+{
+  "name": "dielectric-droplet-bdist2-2d-eq",
+  "description": "Equilibration phase for a 2d droplet.",
+  "plot": [ "./test-contour.py" ],
+
+  "configuration": "d2q9",
+  "input-file": "dielectric-droplet-bdist2-2d-eq.in",
+  "clean": [ "output" ],
+  "compare": {
+    "data": [ "elPot", "elDiel", "elField", "colour-red-blue", "force-red", "force-blue", "elChargeN", "elChargeP" ],
+    "comparison": [ 
+      { "type": "h5diff", "files": "%data%-dielectric-droplet-bdist2-2d-dropPhi0-eq-*-t00000000.h5" },
+      { "type": "h5diff", "files": "%data%-dielectric-droplet-bdist2-2d-dropPhi0-eq-*-t00010000.h5" }
+    ]
+  },
+
+  "fast": {
+    "parameters": [
+      { "parameter": "lb.timesteps", "value": "10" },
+      { "parameter": "elec.io.potFreq", "value": "10" },
+      { "parameter": "elec.io.dielFreq", "value": "10" },
+      { "parameter": "elec.io.chargeFreq", "value": "10" },
+      { "parameter": "elec.io.fieldFreq", "value": "10" },
+      { "parameter": "lb.io.forceFreq", "value": "10" },
+      { "parameter": "lb.io.colourFreq", "value": "10" }
+    ],
+    "compare": {
+      "data": [ "elPot", "elDiel", "elField", "colour-red-blue", "force-red", "force-blue", "elChargeN" ],
+      "comparison": [
+            { "type": "h5diff", "files": "%data%-dielectric-droplet-bdist2-2d-dropPhi0-eq-*-t00000000.h5" },
+      	    { "type": "h5diff", "files": "%data%-dielectric-droplet-bdist2-2d-dropPhi0-eq-*-t00000010.h5" }
+      ]
+    }
+  },
+
+  "coverage": {
+    "parameters": [
+      { "parameter": "elec.poisson.sorToleranceRel", "value": "1.0e-3" },
+      { "parameter": "lb.timesteps", "value": "1" }
+    ]
+  }
+
+}
+
