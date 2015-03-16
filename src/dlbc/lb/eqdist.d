@@ -72,50 +72,54 @@ Unqual!(CommonType!(F1, F2))
 dotProduct(F1, F2)(in F1[] avector, in F2[] bvector)
     @trusted pure nothrow @nogc
 {
-    immutable n = avector.length;
-    assert(n == bvector.length);
-    auto avec = avector.ptr, bvec = bvector.ptr;
-    typeof(return) sum0 = 0, sum1 = 0;
+  immutable n = avector.length;
+  assert(n == bvector.length);
+  auto avec = avector.ptr, bvec = bvector.ptr;
+  typeof(return) sum0 = 0, sum1 = 0;
 
-    const all_endp = avec + n;
-    const smallblock_endp = avec + (n & ~3);
-    const bigblock_endp = avec + (n & ~15);
+  const all_endp = avec + n;
+  const smallblock_endp = avec + (n & ~3);
+  const bigblock_endp = avec + (n & ~15);
 
-    for (; avec != bigblock_endp; avec += 16, bvec += 16)
-    {
-        sum0 += avec[0] * bvec[0];
-        sum1 += avec[1] * bvec[1];
-        sum0 += avec[2] * bvec[2];
-        sum1 += avec[3] * bvec[3];
-        sum0 += avec[4] * bvec[4];
-        sum1 += avec[5] * bvec[5];
-        sum0 += avec[6] * bvec[6];
-        sum1 += avec[7] * bvec[7];
-        sum0 += avec[8] * bvec[8];
-        sum1 += avec[9] * bvec[9];
-        sum0 += avec[10] * bvec[10];
-        sum1 += avec[11] * bvec[11];
-        sum0 += avec[12] * bvec[12];
-        sum1 += avec[13] * bvec[13];
-        sum0 += avec[14] * bvec[14];
-        sum1 += avec[15] * bvec[15];
+  for (; avec != bigblock_endp; avec += 16, bvec += 16) {
+    assert(0, "dotProduct for max 4 length only.");
+    /+
+     sum0 += avec[0] * bvec[0];
+     sum1 += avec[1] * bvec[1];
+     sum0 += avec[2] * bvec[2];
+     sum1 += avec[3] * bvec[3];
+     sum0 += avec[4] * bvec[4];
+     sum1 += avec[5] * bvec[5];
+     sum0 += avec[6] * bvec[6];
+     sum1 += avec[7] * bvec[7];
+     sum0 += avec[8] * bvec[8];
+     sum1 += avec[9] * bvec[9];
+     sum0 += avec[10] * bvec[10];
+     sum1 += avec[11] * bvec[11];
+     sum0 += avec[12] * bvec[12];
+     sum1 += avec[13] * bvec[13];
+     sum0 += avec[14] * bvec[14];
+     sum1 += avec[15] * bvec[15];
+    +/
     }
 
     for (; avec != smallblock_endp; avec += 4, bvec += 4) {
-        sum0 += avec[0] * bvec[0];
-        sum1 += avec[1] * bvec[1];
-        sum0 += avec[2] * bvec[2];
-        sum1 += avec[3] * bvec[3];
+      assert(0, "dotProduct for max 4 length only.");
+      /+
+       sum0 += avec[0] * bvec[0];
+       sum1 += avec[1] * bvec[1];
+       sum0 += avec[2] * bvec[2];
+       sum1 += avec[3] * bvec[3];
+      +/
     }
 
     sum0 += sum1;
 
     /* Do trailing portion in naive loop. */
-    while (avec != all_endp)
-    {
-        sum0 += *avec * *bvec;
-        ++avec;
-        ++bvec;
+    while (avec != all_endp) {
+      sum0 += *avec * *bvec;
+      ++avec;
+      ++bvec;
     }
 
     return sum0;
