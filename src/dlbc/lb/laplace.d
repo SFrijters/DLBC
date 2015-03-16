@@ -24,7 +24,7 @@ import std.stdio;
 /**
    When to start checking relative accuracy of surface tension calculations.
 */
-@("param") int startCheck = 0;
+@("param") int startCheck = -1;
 /**
    The iterations end when $(D sigma / previousSigma - 1) is smaller than this,
    if its value is not NaN and is larger than zero.
@@ -206,8 +206,8 @@ void dumpLaplace(T)(ref T L, in uint t) if ( isLattice!T ) {
   writeLogRI("  radius = %e, inPres = %e, outPres = %e", measuredR, inPres, outPres);
   writeLogRI("  deformation = %e", D);
   writeToFile(gcc[0][1], initRadius, t, sigma, rel, measuredR, inPres, outPres, D );
-  
-  if ( t >= startCheck ) {
+
+  if ( startCheck > 0 && t >= startCheck ) {
     if ( ( !isNaN(relAccuracy) && relAccuracy > 0.0 && abs(rel) < relAccuracy ) || ( t >= timesteps ) ) {
       writeLogRN("Laplace calculation reached required accuracy %e.", relAccuracy );
       writeToFile(gcc[0][1], initRadius, t, sigma, rel, measuredR, inPres, outPres, D );
