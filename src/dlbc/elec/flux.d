@@ -8,7 +8,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.elec.flux;
@@ -22,6 +21,7 @@ import dlbc.lb.mask;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.range;
+import dlbc.timers;
 
 import std.math: exp;
 
@@ -69,12 +69,18 @@ package void initElecFlux() {
 */
 package bool moveElecCharges(T)(ref T L) if ( isLattice!T ) {
   bool isEquilibrated;
+
+  startTimer("main.elec.flux");
+
   L.resetFlux();
   L.calculateDiffusiveFlux();
   L.calculateAdvectiveFlux();
   isEquilibrated = L.applyFlux();
   L.elChargeP.exchangeHalo();
   L.elChargeN.exchangeHalo();
+
+  stopTimer("main.elec.flux");
+
   return isEquilibrated;
 }
 

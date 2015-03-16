@@ -8,7 +8,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.elec.poisson;
@@ -20,6 +19,7 @@ import dlbc.lb.lb: timestep;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.range;
+import dlbc.timers;
 
 @("param") PoissonSolver solver;
 
@@ -75,6 +75,9 @@ private void initPoissonSolverSOR(T)(ref T L) if( isLattice!T ) {
 
 void solvePoisson(T)(ref T L) if( isLattice!T ) {
   if ( ! enableElec ) return;
+
+  startTimer("main.elec.poisson");
+
   final switch(solver) {
   case(PoissonSolver.None):
     writeLogF("elec calculations require elec.poisson.solver to be set.");
@@ -86,6 +89,8 @@ void solvePoisson(T)(ref T L) if( isLattice!T ) {
     L.solvePoissonP3M();
     break;
   }
+
+  stopTimer("main.elec.poisson");
 }
 
 private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
@@ -276,7 +281,10 @@ private void solvePoissonP3M(T)(ref T L) if ( isLattice!T ) {
 
 void calculateElectricField(T)(ref T L) if ( isLattice!T ) {
   if ( ! enableElec ) return;
+
+  startTimer("main.elec.field");
   L.calculateElectricFieldFD();
+  stopTimer("main.elec.field");
 }
 
 private void calculateElectricFieldFD(T)(ref T L) if ( isLattice!T ) {

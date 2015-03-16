@@ -8,7 +8,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.elec.force;
@@ -16,10 +15,9 @@ module dlbc.elec.force;
 import dlbc.elec.elec;
 import dlbc.lb.lb: components;
 import dlbc.lattice;
-
 import dlbc.logging;
-
 import dlbc.range;
+import dlbc.timers;
 
 /**
    Enable electrostatic force.
@@ -40,6 +38,8 @@ import dlbc.range;
 */
 void addElecForce(T)(ref T L) if (isLattice!T) {
   if ( ( ! enableElec ) || ( ! elecOnFluid ) ) return;
+
+  startTimer("main.elec.force");
 
   immutable cv = econn.velocities;
 
@@ -82,6 +82,9 @@ void addElecForce(T)(ref T L) if (isLattice!T) {
       //writeLogRI("forceDistributed%s = %s", p, L.forceDistributed[p]) ;
     }
   }
+
+  stopTimer("main.elec.force");
+
 }
 
 
