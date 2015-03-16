@@ -95,6 +95,10 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
   double[2] globalRnorm, localRnorm;
   double sorToleranceAbs = 0.01 * sorToleranceRel;
 
+  if ( localDiel ) {
+    L.calculateDensities();
+  }
+
   localRnorm[0] = 0.0;
 
   foreach(immutable p, ref e; L.elPot) {
@@ -310,14 +314,17 @@ double getLocalDiel(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p)
 
 double getLocalOP(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p) @safe nothrow @nogc if ( isLattice!T ) {
   import dlbc.lb.density;
+
   if ( components < 2 ) {
     return 1.0;
   }
   else if ( components == 2 ) {
-    return ( ( L.fluids[0][p].density() - L.fluids[1][p].density() ) / ( L.fluids[0][p].density() + L.fluids[1][p].density() ) );
+    assert(L.density[0].isValid);
+    assert(L.density[1].isValid);
+    return ( ( L.density[0][p] - L.density[1][p] ) / ( L.density[0][p] + L.density[1][p] ) );
   }
   else {
-    assert(0);
+    assert(0, "Dielectric contrast not implemented for components > 2.");
   }
 }
 
