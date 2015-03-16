@@ -329,6 +329,8 @@ unittest {
     auto cpmixins = createCheckpointMixins();
     auto glmixins = createGlobalsMixins();
     auto imports = createImports();
+    assert(isCpField!("Lattice!gconn.mask"));
+    assert(!isCpField!("Lattice!gconn.nosuchfield"));
   }
 }
 
