@@ -341,7 +341,7 @@ void broadcastParameter(T)(ref T parameter) {
       MPI_Bcast(&arrlen, 1, mpiTypeof!(typeof(arrlen)), M.root, M.comm);
       parameter.length = arrlen;
       static if ( is (typeof(parameter[0]) == string ) ) {
-        for ( int i = 0; i < arrlen; i++ ) {
+        foreach(immutable i; 0..arrlen ) {
           MpiBcastString(parameter[i]);
         }
       }

@@ -297,7 +297,7 @@ void owriteLog(VL vl, T...)(const T args) {
       // First show the local log
       logString = to!string(strbuf[0..strlen]);
       writeln(strip(logString));
-      for (int srcRank = 1; srcRank < M.size; srcRank++ ) {
+      foreach(immutable srcRank; 1..M.size ) {
         // Then receive from each process first a string length...
         MPI_Recv(&strlen, 1, MPI_INT, srcRank, mpiTag, M.comm, &mpiStatus);
         strbuf.length = strlen;

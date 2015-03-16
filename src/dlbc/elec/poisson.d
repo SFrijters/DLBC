@@ -152,10 +152,10 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
       ksw = 0;
       foreach(immutable ipass; 0..2) {
         jsw = ksw;
-        for(int k = 0; k < L.lengths[2]; k++ ) {
+        for(int k = 0; k < L.lengths[2]; ++k ) {
           isw = jsw;
           if ( moddity == 1 ) isw = 1 - isw;
-          for (int j = 0; j < L.lengths[1]; j++ ) {
+          for (int j = 0; j < L.lengths[1]; ++j ) {
             for (int i = isw; i < L.lengths[0]; i = i+2 ) {
               immutable offset = L.elPot.haloSize;
               immutable ptrdiff_t[3] p = [i+offset, j+offset, k+offset];
@@ -181,7 +181,7 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
     else static if ( T.dimensions == 2 ) {
       assert(moddity == 0);
       foreach(immutable ipass; 0..2) {
-        for(int j = 0; j < L.lengths[1]; j++ ) {
+        for(int j = 0; j < L.lengths[1]; ++j ) {
           for (int i = (ipass + j%2)%2; i < L.lengths[0]; i=i+2 ) {
             immutable offset = L.elPot.haloSize;
             immutable ptrdiff_t[2] p = [i+offset, j+offset];

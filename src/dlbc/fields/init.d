@@ -369,7 +369,7 @@ private ptrdiff_t findLamella(in ptrdiff_t pos, in double[] widths) @safe pure {
   ptrdiff_t i = 0;
   ptrdiff_t upper = to!ptrdiff_t(floor(widths[0]));
   while ( pos > upper ) {
-    i++;
+    ++i;
     upper += widths[i];
   }
   return i;
@@ -380,7 +380,7 @@ private ptrdiff_t findLamella(in ptrdiff_t pos, in ptrdiff_t[] widths) @safe pur
   ptrdiff_t i = 0;
   ptrdiff_t upper = widths[0];
   while ( pos >= upper ) {
-    i++;
+    ++i;
     upper += widths[i];
   }
   return i;

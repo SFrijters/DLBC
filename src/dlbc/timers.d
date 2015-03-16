@@ -122,7 +122,7 @@ struct MultiStopWatch {
     single.reset();
     single.start();
     multi.start();
-    count++;
+    ++count;
     writeLog!(vl, logRankFormat)("Timer '%s' started run %d.", name, count);
   }
 
