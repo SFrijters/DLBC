@@ -100,7 +100,6 @@ void initElec(T)(ref T L) if ( isLattice!T ) {
   if ( ! enableElec ) return;
 
   // Initialize elec fields.
-  L.initElecFields();
   L.elPot.initConst(0);
   L.elField.initConst(0);
   L.initDielElec();
@@ -365,6 +364,8 @@ private void initDielCapacitor(T)(ref T L, in double dielConstant, in double die
    Initialize various LB related fields.
 */
 void initElecFields(T)(ref T L) if ( isLattice!T ) {
+  if ( ! enableElec ) return;
+
   L.elChargeP = typeof(L.elChargeP)(L.lengths);
   L.elChargeN = typeof(L.elChargeN)(L.lengths);
   L.elPot     = typeof(L.elPot)(L.lengths);

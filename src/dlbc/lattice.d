@@ -230,6 +230,7 @@ void initLattice(T)(ref T L) if (isLattice!T) {
   L.initLBFields();
   L.initForce();
   L.initElecConstants();
+  L.initElecFields();
 
   if ( isRestoring() ) {
     L.readCheckpoint();
