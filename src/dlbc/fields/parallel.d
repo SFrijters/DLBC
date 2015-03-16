@@ -37,7 +37,7 @@ import unstd.multidimarray;
 
    Todo: add unittest
 */
-void exchangeHalo(T, U)(ref T field, ref U M, uint haloSize) if ( isField!T && isMpiParams!U ) {
+void exchangeHalo(T, U)(ref T field, ref U M, in uint haloSize) if ( isField!T && isMpiParams!U ) {
   import std.conv: to;
 
   if ( ! field.canExchange() ) return;
@@ -143,7 +143,7 @@ void exchangeHalo(T, U)(ref T field, ref U M, uint haloSize) if ( isField!T && i
 }
 
 /// Ditto
-void exchangeHalo(T)(ref T field, uint haloSize) if (isField!T) {
+void exchangeHalo(T)(ref T field, in uint haloSize) if (isField!T) {
   field.exchangeHalo(.M, field.haloSize);
 }
 
@@ -160,8 +160,8 @@ void exchangeHalo(T)(ref T field) if (isField!T) {
 */
 private bool canExchange(T)(ref T field) @safe pure nothrow {
   import dlbc.range: Iota;
-  foreach(immutable i; Iota!(0, field.d) ) {
-    if ( field.lengths[i] == 0 ) return false;
+  foreach(immutable vd; Iota!(0, field.d) ) {
+    if ( field.lengths[vd] == 0 ) return false;
   }
   return true;
 }

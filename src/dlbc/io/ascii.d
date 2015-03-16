@@ -19,7 +19,7 @@ import dlbc.logging;
 import dlbc.timers;
 import std.stdio;
 
-void dumpProfiles(T)(ref T L, const string name, const uint time) {
+void dumpProfiles(T)(ref T L, in string name, in uint time) {
   Timers.io.start();
 
   auto fileName = makeFilenameOutput!(FileFormat.Ascii)(name ~ "x", time);

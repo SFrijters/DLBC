@@ -257,7 +257,7 @@ private auto createGlobalsMixins() @safe pure nothrow {
      Params:
        fileName = file to write to, in C string format
   */
-  void dumpCheckpointGlobals(const char* fileName) {
+  void dumpCheckpointGlobals(in char* fileName) {
     auto file_id = H5Fopen(fileName, H5F_ACC_RDWR, H5P_DEFAULT);
     auto root_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
     auto group_id = H5Gcreate2(root_id, "globals", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -269,7 +269,7 @@ private auto createGlobalsMixins() @safe pure nothrow {
      Params:
        fileName = file to read from, in C string format
   */
-  void readCheckpointGlobals(const char* fileName) {
+  void readCheckpointGlobals(in char* fileName) {
     auto file_id = H5Fopen(fileName, H5F_ACC_RDONLY, H5P_DEFAULT);
     auto root_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
     auto group_id = H5Gopen2(root_id, "globals", H5P_DEFAULT);

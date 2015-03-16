@@ -126,7 +126,7 @@ void checkPaths() {
    Params:
      path = path to check
 */
-bool isValidPath(const string path) {
+bool isValidPath(in string path) {
   import std.file;
   if ( path.exists() && path.isDir() ) {
     return true;
@@ -156,7 +156,7 @@ bool isValidPath(const string path) {
      name = name of the field, to be prepended to the file name
      time = current timestep
 */
-string makeFilenameOutput(FileFormat fileFormat)(const string name, const uint time) {
+string makeFilenameOutput(FileFormat fileFormat)(in string name, in int time) {
   import std.string;
 
   assert( simulationIdIsBcast, "Do not attempt to create a file name without first calling broadcastSimulationId() once.");
@@ -179,7 +179,7 @@ string makeFilenameOutput(FileFormat fileFormat)(const string name, const uint t
    Params:
      fileName = file to remove
 */
-void removeFile(const string fileName) {
+void removeFile(in string fileName) {
   import dlbc.parallel: M;
   import std.file;
   if ( M.isRoot() ) {
@@ -197,7 +197,7 @@ void removeFile(const string fileName) {
      L = current lattice
      t = current timestep
 */
-void dumpData(T)(ref T L, uint t) if ( isLattice!T ) {
+void dumpData(T)(ref T L, int t) if ( isLattice!T ) {
   if ( ! enableIO || t < startOutput ) {
     return;
   }
@@ -221,7 +221,7 @@ void dumpData(T)(ref T L, uint t) if ( isLattice!T ) {
      freq = dumping frequency
      t = current timestep
 */
-bool dumpNow(uint freq, uint t) @safe pure nothrow {
+bool dumpNow(uint freq, int t) @safe pure nothrow @nogc {
   return ( freq > 0 && ( t % freq == 0 ) );
 }
 
@@ -235,7 +235,7 @@ bool dumpNow(uint freq, uint t) @safe pure nothrow {
      name = name of the field, to be used in the file name
      time = current timestep
 */
-void dumpField(T)(ref T field, const string name, const uint time = 0) if (isField!T) {
+void dumpField(T)(ref T field, in string name, in int time = 0) if (isField!T) {
   startTimer("main.io.io");
   final switch(outputFormat) {
   case FileFormat.Ascii:
@@ -256,7 +256,7 @@ void dumpField(T)(ref T field, const string name, const uint time = 0) if (isFie
      field = field to be read
      fileName = name of the file
 */
-void readField(T)(ref T field, const string fileName) if (isField!T) {
+void readField(T)(ref T field, in string fileName) if (isField!T) {
   startTimer("main.io.io");
   final switch(outputFormat) {
   case FileFormat.Ascii:

@@ -103,7 +103,7 @@ void initEqDistPerturbFrac(T)(ref T field, in double density, in double perturb)
   }
 }
 
-void initEqDistRandom(T)(ref T field, const double density) if ( isField!T ) {
+void initEqDistRandom(T)(ref T field, in double density) if ( isField!T ) {
   import dlbc.lb.collision;
   import dlbc.lb.connectivity;
   alias conn = field.conn;

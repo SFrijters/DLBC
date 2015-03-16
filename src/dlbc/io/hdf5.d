@@ -481,7 +481,7 @@ void dumpAttributeHDF5(T)(in T data, in string name, in hid_t loc_id) {
      name = name of the attribute
      loc_id = id of the group
 */
-T readAttributeHDF5(T)(const string name, hid_t loc_id) {
+T readAttributeHDF5(T)(in string name, in hid_t loc_id) {
   import std.conv: to;
 
   auto attrname = name.toStringz();

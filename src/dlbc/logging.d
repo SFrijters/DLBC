@@ -8,7 +8,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.logging;
@@ -137,7 +136,7 @@ void unsquelchLog() @safe nothrow {
    Params:
      newVL = new verbosity level
 */
-void setGlobalVerbosityLevel(const VL newVL) @safe nothrow {
+void setGlobalVerbosityLevel(in VL newVL) @safe nothrow {
   globalVerbosityLevel = newVL;
 }
 
@@ -165,7 +164,7 @@ void showGlobalVerbosityLevel() {
      logRankFormat = which processes should write
      args = data to write
 */
-void writeLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
+void writeLog(VL vl, LRF logRankFormat, T...)(in T args) {
   import std.algorithm: canFind;
 
   final switch(logRankFormat) {
@@ -248,30 +247,30 @@ void writeLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
    Params:
      args = data to write
 */
-void writeLogRF(T...)(const T args) { writeLog!(VL.Fatal       , LRF.Root)(args); }
+void writeLogRF(T...)(in T args) { writeLog!(VL.Fatal       , LRF.Root)(args); }
 /// Ditto
-void writeLogRE(T...)(const T args) { writeLog!(VL.Error       , LRF.Root)(args); }
+void writeLogRE(T...)(in T args) { writeLog!(VL.Error       , LRF.Root)(args); }
 /// Ditto
-void writeLogRW(T...)(const T args) { writeLog!(VL.Warning     , LRF.Root)(args); }
+void writeLogRW(T...)(in T args) { writeLog!(VL.Warning     , LRF.Root)(args); }
 /// Ditto
-void writeLogRN(T...)(const T args) { writeLog!(VL.Notification, LRF.Root)(args); }
+void writeLogRN(T...)(in T args) { writeLog!(VL.Notification, LRF.Root)(args); }
 /// Ditto
-void writeLogRI(T...)(const T args) { writeLog!(VL.Information , LRF.Root)(args); }
+void writeLogRI(T...)(in T args) { writeLog!(VL.Information , LRF.Root)(args); }
 /// Ditto
-void writeLogRD(T...)(const T args) { writeLog!(VL.Debug       , LRF.Root)(args); }
+void writeLogRD(T...)(in T args) { writeLog!(VL.Debug       , LRF.Root)(args); }
 
 /// Ditto
-void writeLogF(T...)(const T args)  { writeLog!(VL.Fatal       , LRF.Any )(args); }
+void writeLogF(T...)(in T args)  { writeLog!(VL.Fatal       , LRF.Any )(args); }
 /// Ditto
-void writeLogE(T...)(const T args)  { writeLog!(VL.Error       , LRF.Any )(args); }
+void writeLogE(T...)(in T args)  { writeLog!(VL.Error       , LRF.Any )(args); }
 /// Ditto
-void writeLogW(T...)(const T args)  { writeLog!(VL.Warning     , LRF.Any )(args); }
+void writeLogW(T...)(in T args)  { writeLog!(VL.Warning     , LRF.Any )(args); }
 /// Ditto
-void writeLogN(T...)(const T args)  { writeLog!(VL.Notification, LRF.Any )(args); }
+void writeLogN(T...)(in T args)  { writeLog!(VL.Notification, LRF.Any )(args); }
 /// Ditto
-void writeLogI(T...)(const T args)  { writeLog!(VL.Information , LRF.Any )(args); }
+void writeLogI(T...)(in T args)  { writeLog!(VL.Information , LRF.Any )(args); }
 /// Ditto
-void writeLogD(T...)(const T args)  { writeLog!(VL.Debug       , LRF.Any )(args); }
+void writeLogD(T...)(in T args)  { writeLog!(VL.Debug       , LRF.Any )(args); }
 
 /**
    Write output to stdout from all processes, gathered by the root process and ordered by process rank.
@@ -280,7 +279,7 @@ void writeLogD(T...)(const T args)  { writeLog!(VL.Debug       , LRF.Any )(args)
      vl = verbosity level to write at
      args = data to write
 */
-void owriteLog(VL vl, T...)(const T args) {
+void owriteLog(VL vl, T...)(in T args) {
   enum mpiTag = 0;
   if (globalVerbosityLevel >= vl) {
     MPI_Status mpiStatus;
@@ -323,17 +322,17 @@ void owriteLog(VL vl, T...)(const T args) {
    Params:
      args = data to write
 */
-void owriteLogF(T...)(const T args) { owriteLog!(VL.Fatal)(args); }
+void owriteLogF(T...)(in T args) { owriteLog!(VL.Fatal)(args); }
 /// Ditto
-void owriteLogE(T...)(const T args) { owriteLog!(VL.Error)(args); }
+void owriteLogE(T...)(in T args) { owriteLog!(VL.Error)(args); }
 /// Ditto
-void owriteLogW(T...)(const T args) { owriteLog!(VL.Warning)(args); }
+void owriteLogW(T...)(in T args) { owriteLog!(VL.Warning)(args); }
 /// Ditto
-void owriteLogN(T...)(const T args) { owriteLog!(VL.Notification)(args); }
+void owriteLogN(T...)(in T args) { owriteLog!(VL.Notification)(args); }
 /// Ditto
-void owriteLogI(T...)(const T args) { owriteLog!(VL.Information)(args); }
+void owriteLogI(T...)(in T args) { owriteLog!(VL.Information)(args); }
 /// Ditto
-void owriteLogD(T...)(const T args) { owriteLog!(VL.Debug)(args); }
+void owriteLogD(T...)(in T args) { owriteLog!(VL.Debug)(args); }
 
 /**
    Creates a string with a text marker for verbosity level prepended to $(D args).
@@ -442,7 +441,7 @@ string makeCurrTimeString() {
 
    Returns: a string with formatted $(D args) centered in a header line.
 */
-string makeHeaderString(T...)(const T args) pure {
+string makeHeaderString(T...)(in T args) pure {
   import std.algorithm: canFind;
   import std.array: replicate;
 
@@ -479,7 +478,7 @@ string makeHeaderString(T...)(const T args) pure {
 
    Returns: a string with the values in $(D lengths) separated by "x" to denote grid size.
 */
-string makeLengthsString(T : size_t)(const T[] lengths) @safe pure {
+string makeLengthsString(T : size_t)(in T[] lengths) @safe pure {
   string str;
   if ( lengths.length > 1 ) {
     foreach( l ; lengths ) {
@@ -508,7 +507,7 @@ version(unittest) {
      Params:
        args = data to write
   */
-  void writeLogURW(T...)(const T args) {
+  void writeLogURW(T...)(in T args) {
     globalVerbosityLevel = VL.Debug;
     writeLog!(VL.Warning, LRF.Root)(args);
     globalVerbosityLevel = VL.Off;
@@ -525,7 +524,7 @@ debug {
        logRankFormat = which processes should write
        args = data to write
   */
-  @trusted nothrow void dwriteLog(const VL vl, const LRF logRankFormat, T...)(const T args) {
+  @trusted nothrow void dwriteLog(VL vl, LRF logRankFormat, T...)(in T args) {
     debug {
       import std.stdio;
       try {
@@ -545,29 +544,29 @@ debug {
      Params:
        args = data to write
   */
-  void dwriteLogRF(T...)(const T args) { dwriteLog!(VL.Fatal       , LRF.Root)(args); }
+  void dwriteLogRF(T...)(in T args) { dwriteLog!(VL.Fatal       , LRF.Root)(args); }
   /// Ditto
-  void dwriteLogRE(T...)(const T args) { dwriteLog!(VL.Error       , LRF.Root)(args); }
+  void dwriteLogRE(T...)(in T args) { dwriteLog!(VL.Error       , LRF.Root)(args); }
   /// Ditto
-  void dwriteLogRW(T...)(const T args) { dwriteLog!(VL.Warning     , LRF.Root)(args); }
+  void dwriteLogRW(T...)(in T args) { dwriteLog!(VL.Warning     , LRF.Root)(args); }
   /// Ditto
-  void dwriteLogRN(T...)(const T args) { dwriteLog!(VL.Notification, LRF.Root)(args); }
+  void dwriteLogRN(T...)(in T args) { dwriteLog!(VL.Notification, LRF.Root)(args); }
   /// Ditto
-  void dwriteLogRI(T...)(const T args) { dwriteLog!(VL.Information , LRF.Root)(args); }
+  void dwriteLogRI(T...)(in T args) { dwriteLog!(VL.Information , LRF.Root)(args); }
   /// Ditto
-  void dwriteLogRD(T...)(const T args) { dwriteLog!(VL.Debug       , LRF.Root)(args); }
+  void dwriteLogRD(T...)(in T args) { dwriteLog!(VL.Debug       , LRF.Root)(args); }
 
   /// Ditto
-  void dwriteLogF(T...)(const T args)  { dwriteLog!(VL.Fatal       , LRF.Any )(args); }
+  void dwriteLogF(T...)(in T args)  { dwriteLog!(VL.Fatal       , LRF.Any )(args); }
   /// Ditto
-  void dwriteLogE(T...)(const T args)  { dwriteLog!(VL.Error       , LRF.Any )(args); }
+  void dwriteLogE(T...)(in T args)  { dwriteLog!(VL.Error       , LRF.Any )(args); }
   /// Ditto
-  void dwriteLogW(T...)(const T args)  { dwriteLog!(VL.Warning     , LRF.Any )(args); }
+  void dwriteLogW(T...)(in T args)  { dwriteLog!(VL.Warning     , LRF.Any )(args); }
   /// Ditto
-  void dwriteLogN(T...)(const T args)  { dwriteLog!(VL.Notification, LRF.Any )(args); }
+  void dwriteLogN(T...)(in T args)  { dwriteLog!(VL.Notification, LRF.Any )(args); }
   /// Ditto
-  void dwriteLogI(T...)(const T args)  { dwriteLog!(VL.Information , LRF.Any )(args); }
+  void dwriteLogI(T...)(in T args)  { dwriteLog!(VL.Information , LRF.Any )(args); }
   /// Ditto
-  void dwriteLogD(T...)(const T args)  { dwriteLog!(VL.Debug       , LRF.Any )(args); }
+  void dwriteLogD(T...)(in T args)  { dwriteLog!(VL.Debug       , LRF.Any )(args); }
 }
 

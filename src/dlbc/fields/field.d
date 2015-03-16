@@ -111,7 +111,7 @@ struct Field(T, alias c, uint hs) {
      Params:
        lengths = lengths of the dimensions of the physical domain
   */
-  this (const size_t[conn.d] lengths) {
+  this (in size_t[conn.d] lengths) {
     import dlbc.range;
     writeLogRD("Initializing %s local field of type '%s' with halo of thickness %d.", lengths.makeLengthsString(), T.stringof, haloSize);
     this._lengths = lengths;
@@ -336,7 +336,7 @@ template VectorFieldOf(T) if ( isPopulationField!(BaseElementType!T) ) {
    Params:
      fields = fields whose lengthsH to check
 */
-bool haveCompatibleLengthsH(T...)(const T fields) @safe pure nothrow @nogc {
+bool haveCompatibleLengthsH(T...)(in T fields) @safe pure nothrow @nogc {
   if ( fields.length < 2 ) return true;
   immutable lengthsH = fields[0].lengthsH;
   foreach(ref field; fields) {
@@ -353,7 +353,7 @@ bool haveCompatibleLengthsH(T...)(const T fields) @safe pure nothrow @nogc {
    Params:
      fields = fields whose lengths to check
 */
-bool haveCompatibleLengths(T...)(const T fields) @safe pure nothrow @nogc {
+bool haveCompatibleLengths(T...)(in T fields) @safe pure nothrow @nogc {
   if ( fields.length < 2 ) return true;
   immutable lengths = fields[0].lengths;
   foreach(ref field; fields) {

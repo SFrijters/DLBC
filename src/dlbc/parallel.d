@@ -148,7 +148,7 @@ struct MpiParams(uint d) {
       M = MPI parameter struct
       args = command line arguments
 */
-void startMpi(T)(ref T M, const string[] args) if ( isMpiParams!T ) {
+void startMpi(T)(ref T M, in string[] args) if ( isMpiParams!T ) {
   import std.conv, std.string, std.algorithm, std.array;
 
   // Only run once
