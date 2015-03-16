@@ -154,9 +154,14 @@ def main():
 
     # Populate list of matching json files.
     matches = []
-    for testRoot, dirnames, filenames in os.walk(searchRoot):
-        for filename in fnmatch.filter(filenames, '*.json'):
-            matches.append([testRoot, filename])
+    if ( os.path.isfile(searchRoot) ):
+        testRoot = os.path.dirname(searchRoot)
+        filename = os.path.basename(searchRoot)
+        matches.append([testRoot, filename])
+    else:
+        for testRoot, dirnames, filenames in os.walk(searchRoot):
+            for filename in fnmatch.filter(filenames, '*.json'):
+                matches.append([testRoot, filename])
 
     nerr = 0
     for i, m in enumerate(sorted(matches)):
