@@ -97,15 +97,15 @@ void dumpLaplace(T)(ref T L, in uint t) if ( isLattice!T ) {
   double effMass = gMass[0] - ( L.gsize * outDen[0]);
 
   // Laplace law has different prefactor depending on dimensions.
-  static if ( T.dimensions == 3 ) {
+  static if ( T.lbconn.d == 3 ) {
     double measuredR = pow(effMass / ( 4.0 / 3.0 * PI * ( inDen[0] - outDen[0] ) ), 1.0/3.0);
     double sigma = measuredR * ( inPres - outPres ) / 2.0;
   }
-  else static if ( T.dimensions == 2 ) {
+  else static if ( T.lbconn.d == 2 ) {
     double measuredR = pow(effMass / ( PI * ( inDen[0] - outDen[0] ) ), 1.0/2.0);
     double sigma = measuredR * ( inPres - outPres );
   }
-  else static if ( T.dimensions == 1 ) {
+  else static if ( T.lbconn.d == 1 ) {
     double measuredR = effMass / ( inDen[0] - outDen[0] );
     double sigma = measuredR * ( inPres - outPres );
   }
@@ -118,7 +118,7 @@ void dumpLaplace(T)(ref T L, in uint t) if ( isLattice!T ) {
 
   // Deformation calculation.
   double D;
-  static if ( T.dimensions == 2 ) {
+  static if ( T.lbconn.d == 2 ) {
     import std.algorithm: min, max;
     double cutoff = 0.35;
     double Rx = 0.0;
@@ -233,7 +233,7 @@ void dumpLaplace(T)(ref T L, in uint t) if ( isLattice!T ) {
 
    Bugs: Cubes at the edge of the domain don't wrap properly.
 */
-private double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in ptrdiff_t[dim] offset, in int volumeAverage) if ( isLattice!T ) {
+private double[] volumeAveragedDensity(alias dims = T.lbconn.d, T)(ref T L, in ptrdiff_t[dims] offset, in int volumeAverage) if ( isLattice!T ) {
   alias conn = L.lbconn;
   double[] ldensity;
   ldensity.length = L.fluids.length;
@@ -247,7 +247,7 @@ private double[] volumeAveragedDensity(alias dim = T.dimensions, T)(ref T L, in 
 
   foreach(immutable f, ref field; L.fluids) {
     foreach(immutable p, pop; field) {
-      ptrdiff_t[field.dimensions] gn;
+      ptrdiff_t[field.d] gn;
       bool isInVolume = true;
       foreach(immutable vd; Iota!(0, conn.d) ) {
         gn[vd] = p[vd] + M.c[vd] * field.n[vd] - field.haloSize;

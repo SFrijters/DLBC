@@ -138,8 +138,7 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
   if ( field.size <= 1 ) return;
 
   auto dim = field.dimensions;
-
-  static if ( field.dimensions == 3 ) {
+  static if ( field.d == 3 ) {
     if ( typeLen > 1 ) {
       dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], gn[1], gn[2], typeLen ];
@@ -160,7 +159,7 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
       arrstart = [ field.haloSize, field.haloSize, field.haloSize ];
     }
   }
-  else static if ( field.dimensions == 2 ) {
+  else static if ( field.d == 2 ) {
     if ( typeLen > 1 ) {
       dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], gn[1], typeLen ];
@@ -181,7 +180,7 @@ void dumpFieldHDF5(T)(ref T field, const string name, const uint time = 0, const
       arrstart = [ field.haloSize, field.haloSize ];
     }
   }
-  else static if ( field.dimensions == 1 ) {
+  else static if ( field.d == 1 ) {
     if ( typeLen > 1 ) {
       dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], typeLen ];
@@ -323,8 +322,7 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
   if ( field.size <= 1 ) return;
 
   auto dim = field.dimensions;
-
-  static if ( field.dimensions == 3 ) {
+  static if ( field.d == 3 ) {
     if ( typeLen > 1 ) {
       dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], gn[1], gn[2], typeLen ];
@@ -345,7 +343,7 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
       arrstart = [ field.haloSize, field.haloSize, field.haloSize ];
     }
   }
-  else static if ( field.dimensions == 2 ) {
+  else static if ( field.d == 2 ) {
     if ( typeLen > 1 ) {
       dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], gn[1], typeLen ];
@@ -366,7 +364,7 @@ void readFieldHDF5(T)(ref T field, const string fileNameString, const bool isChe
       arrstart = [ field.haloSize, field.haloSize ];
     }
   }
-  else static if ( field.dimensions == 1 ) {
+  else static if ( field.d == 1 ) {
     if ( typeLen > 1 ) {
       dim++; // One more dimension to store the vector component.
       dimsg = [ gn[0], typeLen ];

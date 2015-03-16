@@ -27,6 +27,9 @@ import dlbc.range;
 */
 @("param") size_t[] gn;
 
+/**
+   Marker for fields whose halo should be exchanged every timestep.
+*/
 enum Exchange;
 
 /**
@@ -37,13 +40,12 @@ enum Exchange;
 */
 struct Lattice(alias conn) {
   alias lbconn = conn;
-  enum uint dimensions = conn.d;
 
   private {
-    size_t[conn.d] _lengths;
-    size_t[conn.d] _gn;
+    size_t[lbconn.d] _lengths;
+    size_t[lbconn.d] _gn;
     string[] _fieldNames;
-    MpiParams!(conn.d) _M;
+    MpiParams!(lbconn.d) _M;
     size_t _size = 1;
     size_t _gsize = 1;
   }
@@ -51,40 +53,37 @@ struct Lattice(alias conn) {
   /**
      Size of the local lattice.
   */
-  @property const lengths() @safe pure nothrow {
+  @property const lengths() @safe pure nothrow @nogc {
     return _lengths;
   }
-  /// Ditto
-  alias n = lengths;
   /**
      Vector containing the size of the global lattice
   */
-  @property const gn() @safe pure nothrow {
+  @property const gn() @safe pure nothrow @nogc {
     return _gn;
   }
   /**
      Names of the fluid fields.
   */
-  @property const fieldNames() @safe pure nothrow {
+  @property const fieldNames() @safe pure nothrow @nogc {
     return _fieldNames;
   }
   /**
      Number of physical sites of the local lattice.
   */
-  @property const size() @safe pure nothrow {
+  @property const size() @safe pure nothrow @nogc {
     return _size;
   }
   /**
      Number of physical sites of the local lattice.
   */
-  @property const gsize() @safe pure nothrow {
+  @property const gsize() @safe pure nothrow @nogc {
     return _gsize;
   }
-
   /**
      Parallelization properties.
   */
-  @property const M() @safe pure nothrow {
+  @property const M() @safe pure nothrow @nogc {
     return _M;
   }
 
@@ -100,6 +99,7 @@ struct Lattice(alias conn) {
   else {
     @Exchange Field!(double[lbconn.q], lbconn, 2)[] fluids;
   }
+
   /**
      Mask field.
   */
@@ -161,11 +161,11 @@ struct Lattice(alias conn) {
        fieldNames = names of the fluid fields
        M = MPI parameters
   */
-  this (T)( size_t[] gn, uint components, string[] fieldNames, T M ) if ( isMpiParams!T ) {
+  this (T)(size_t[] gn, in uint components, string[] fieldNames, in T M ) if ( isMpiParams!T ) {
     import dlbc.parameters: checkArrayParameterLength;
     import std.conv: to;
 
-    checkArrayParameterLength(gn, "lattice.gn", dimensions, true);
+    checkArrayParameterLength(gn, "lattice.gn", lbconn.d, true);
     checkArrayParameterLength(fieldNames, "lb.fieldNames", components, true);
 
     _gn = gn;
@@ -178,16 +178,16 @@ struct Lattice(alias conn) {
     }
 
     // Set the local sizes
-    foreach(immutable i; Iota!(0, dimensions) ) {
-      this._lengths[i] = to!int(gn[i] / M.nc[i]);
-      this._size *= this._lengths[i];
-      this._gsize *= gn[i];
+    foreach(immutable vd; Iota!(0, lbconn.d) ) {
+      this._lengths[vd] = to!int(gn[vd] / M.nc[vd]);
+      this._size *= this._lengths[vd];
+      this._gsize *= gn[vd];
     }
   }
 
   private static bool isExchangeField(string field)() @safe pure nothrow {
     import std.typetuple;
-    alias attrs = TypeTuple!(__traits(getAttributes, mixin("Lattice."  ~ field)));
+    alias attrs = TypeTuple!(__traits(getAttributes, mixin("Lattice." ~ field)));
     return staticIndexOf!(Exchange, attrs) != -1;
   }
 

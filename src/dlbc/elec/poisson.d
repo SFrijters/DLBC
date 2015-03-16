@@ -128,7 +128,7 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
         double nbPhi = L.getNbPot(p, cv[i]);
         depsphi += nbPhi;
       }
-      depsphi = dielGlobal * ( depsphi - 2.0 * T.dimensions * curPhi );
+      depsphi = dielGlobal * ( depsphi - 2.0 * T.lbconn.d * curPhi );
     }
     localRnorm[0] += abs(depsphi + curRho);
   }
@@ -147,7 +147,7 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
   foreach(immutable it; 0..sorMaxIterations) {
     localRnorm[1] = 0.0;
 
-    static if ( T.dimensions == 3 ) {
+    static if ( T.lbconn.d == 3 ) {
       int isw, jsw, ksw;
       ksw = 0;
       foreach(immutable ipass; 0..2) {
@@ -178,7 +178,7 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
         L.elPot.exchangeHalo();
       }
     }
-    else static if ( T.dimensions == 2 ) {
+    else static if ( T.lbconn.d == 2 ) {
       assert(moddity == 0);
       foreach(immutable ipass; 0..2) {
         for(int j = 0; j < L.lengths[1]; ++j ) {
@@ -200,7 +200,7 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
         L.elPot.exchangeHalo();
       }
     }
-   else static if ( T.dimensions == 1 ) {
+   else static if ( T.lbconn.d == 1 ) {
        // assert(moddity == 0);
       foreach(immutable ipass; 0..2) {
         for (int i = ipass%2; i < L.lengths[0]; i=i+2 ) {
@@ -254,7 +254,7 @@ private static immutable string sorKernel = q{
     double dielTot = 0.0;
     double curDiel = L.getLocalDiel(p);
     foreach(immutable iv; 1..cv.length) { // Do not iterate over self vector!
-      ptrdiff_t[T.dimensions] nb;
+      ptrdiff_t[T.lbconn.d] nb;
       double nbPhi = L.getNbPot(p, cv[iv], nb);
       double dielH = 0.5* ( L.getLocalDiel(nb) + curDiel );
       dielTot += dielH;
@@ -269,8 +269,8 @@ private static immutable string sorKernel = q{
       double nbPhi = L.getNbPot(p, cv[iv]);
       depsphi += nbPhi;
     }
-    residual = dielGlobal * ( depsphi - 2.0 * T.dimensions * curPhi ) + curRho;
-    L.elPot[p] += omega * residual / ( 2.0 * T.dimensions * dielGlobal);
+    residual = dielGlobal * ( depsphi - 2.0 * T.lbconn.d * curPhi ) + curRho;
+    L.elPot[p] += omega * residual / ( 2.0 * T.lbconn.d * dielGlobal);
   }
   // writeLogD("L.elPot %s = %e %e %e %e %e %e",p, L.elPot[p], curPhi, curRho, depsphi, residual, dielGlobal);
   localRnorm[1] += abs(residual);
@@ -306,7 +306,7 @@ private void calculateElectricFieldFD(T)(ref T L) if ( isLattice!T ) {
   }
 }
 
-double getLocalDiel(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p) @safe nothrow @nogc if ( isLattice!T ) {
+double getLocalDiel(alias dims = T.lbconn.d, T)(ref T L, in ptrdiff_t[dims] p) @safe nothrow @nogc if ( isLattice!T ) {
   import dlbc.lb.mask;
   if ( fluidOnElec ) {
     if ( L.mask[p] == Mask.Solid ) {
@@ -321,7 +321,7 @@ double getLocalDiel(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p)
   }
 }
 
-double getLocalOP(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p) @safe nothrow @nogc if ( isLattice!T ) {
+double getLocalOP(alias dims = T.lbconn.d, T)(ref T L, in ptrdiff_t[dims] p) @safe nothrow @nogc if ( isLattice!T ) {
 
   if ( components < 2 ) {
     return 1.0;
@@ -336,12 +336,12 @@ double getLocalOP(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p) @
   }
 }
 
-double getNbPot(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p, in ptrdiff_t[dims] cv) @safe nothrow @nogc if ( isLattice!T ) {
+double getNbPot(alias dims = T.lbconn.d, T)(ref T L, in ptrdiff_t[dims] p, in ptrdiff_t[dims] cv) @safe nothrow @nogc if ( isLattice!T ) {
   econn.vel_t nb;
   return L.getNbPot(p, cv, nb);
  }
 
-double getNbPot(alias dims = T.dimensions, T)(ref T L, in ptrdiff_t[dims] p, in ptrdiff_t[dims] cv, ref ptrdiff_t[dims] nb) @safe nothrow @nogc if ( isLattice!T ) {
+double getNbPot(alias dims = T.lbconn.d, T)(ref T L, in ptrdiff_t[dims] p, in ptrdiff_t[dims] cv, ref ptrdiff_t[dims] nb) @safe nothrow @nogc if ( isLattice!T ) {
   econn.vel_t gp;
   double potShift = 0.0;
 

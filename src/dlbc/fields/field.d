@@ -36,7 +36,6 @@ struct Field(T, alias c, uint hs) {
   alias type = T;
   alias conn = c;
   enum uint d = conn.d;
-  alias dimensions = d;
   enum uint q = conn.q;
   enum uint haloSize = hs;
 
