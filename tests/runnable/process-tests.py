@@ -91,6 +91,7 @@ def main():
     parser.add_argument("--build-all", action="store_true", help="only build all configurations and build types for the current compiler")
     parser.add_argument("--clean", action="store_true", help="only clean tests")
     parser.add_argument("--compare-lax", action="store_true", help="allow even the dmd compiler to use the accuracy parameter for comparison tests")
+    parser.add_argument("--compare-none", action="store_true", help="do not run comparison tests")
     parser.add_argument("--compare-strict", action="store_true", help="do not allow non-dmd compilers to use the accuracy parameter for comparison tests")
     parser.add_argument("--coverage", action="store_true", help="generate merged coverage information for unittests and runnable tests")
     parser.add_argument("--coverage-unittest", action="store_true", help="generate merged coverage information for unittests")

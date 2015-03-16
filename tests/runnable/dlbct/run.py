@@ -79,7 +79,7 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
                 timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
             else:
                 logInformation("  Running parameter set %d of %d ..." % (i+1, nSubtests))
-                timerName = os.path.relpath(os.path.join(testRoot, testName), "tests") + " " + str(i+1)
+                timerName = os.path.relpath(os.path.join(testRoot, testName), "tests") + " %2d" % (i+1)
 
             # Prepare command
             command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
@@ -102,7 +102,8 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
 
             if ( not options.coverage ):
                 compareThis = replaceTokensInCompare(compare, m, np)
-                nerr += compareTest(compareThis, testRoot, options.dub_compiler, options.compare_strict, options.compare_lax )
+                if ( not options.compare_none ):
+                    nerr += compareTest(compareThis, testRoot, options.dub_compiler, options.compare_strict, options.compare_lax )
 
             if ( options.only_first ):
                 break
@@ -125,7 +126,8 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
             moveTimersData(testRoot, options.dub_compiler)
 
         if ( not options.coverage ):
-            nerr += compareTest(compare, testRoot, options.dub_compiler, options.compare_strict, options.compare_lax )
+            if ( not options.compare_none ):
+                nerr += compareTest(compare, testRoot, options.dub_compiler, options.compare_strict, options.compare_lax )
     if ( options.plot ):
         plotTest(testRoot, plot, False)
     return nerr
