@@ -108,7 +108,7 @@ private immutable checkpointMixins = createCheckpointMixins();
      L = the lattice
      t = current time step
 */
-void dumpCheckpoint(T)(ref T L, in uint t) {
+void dumpCheckpoint(T)(ref T L, in int t) {
   startTimer("main.io.cp");
   writeLogRN("Writing checkpoint for t = %d.", t);
   mixin(checkpointMixins[0]);
@@ -142,7 +142,7 @@ void readCheckpoint(T)(ref T L) {
      L = the lattice
      t = time step to delete
 */
-void removeCheckpoint(T)(ref T L, in uint t) {
+void removeCheckpoint(T)(ref T L, in int t) {
   if ( t < 0 ) return;
   startTimer("main.io.cp");
   writeLogRN("Removing checkpoint for t = %d.", t);
@@ -183,7 +183,7 @@ private void broadcastRestoreString() {
      name = name of the field, to be prepended to the file name
      time = current timestep
 */
-string makeFilenameCpOutput(FileFormat fileFormat)(in string name, in uint time) {
+string makeFilenameCpOutput(FileFormat fileFormat)(in string name, in int time) {
   import std.string;
 
   assert( simulationIdIsBcast, "Do not attempt to create a file name without first calling broadcastSimulationId() once.");
