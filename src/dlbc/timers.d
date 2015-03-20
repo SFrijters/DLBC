@@ -26,6 +26,8 @@ import dlbc.logging;
 private immutable string mainTimerName = "main";
 private immutable string fileNamePrefix = "timers";
 
+private uint startTimestep;
+
 private MSW[string] timersAA;
 private string[] timerStack;
 
@@ -39,7 +41,7 @@ void startTimer(VL vl = VL.Debug, LRF logRankFormat = LRF.None)(in string name) 
   if ( ! timerStack.empty ) {
     immutable string parentName = timerNameFromStack();
     assert( (parentName in timersAA) !is null );
-    timersAA[parentName].stop!(vl, logRankFormat)();
+    timersAA[parentName].pause!(vl, logRankFormat)();
   }
 
   timerStack ~= name;
@@ -66,8 +68,9 @@ void startMainTimer(VL vl = VL.Debug, LRF logRankFormat = LRF.None)() {
 */
 void stopTimer(VL vl = VL.Debug, LRF logRankFormat = LRF.None)(in string name) {
   assert( timerStack.front == name );
-  
+
   immutable string fullName = timerNameFromStack();
+
   assert( (fullName in timersAA) !is null );
   timersAA[fullName].stop!(vl, logRankFormat)();
   timerStack.popBack();
@@ -75,7 +78,7 @@ void stopTimer(VL vl = VL.Debug, LRF logRankFormat = LRF.None)(in string name) {
   if ( ! timerStack.empty ) {
     immutable string parentName = timerNameFromStack();
     assert( (parentName in timersAA) !is null );
-    timersAA[parentName].start!(vl, logRankFormat)();
+    timersAA[parentName].resume!(vl, logRankFormat)();
   }
 }
 
@@ -92,6 +95,11 @@ void stopMainTimer(VL vl = VL.Debug, LRF logRankFormat = LRF.None)() {
 */
 private string timerNameFromStack() {
   return timerStack.join(".");
+}
+
+void setTimerStartTimestep() {
+  import dlbc.lb.lb: timestep;
+  startTimestep = timestep;
 }
 
 /**
@@ -143,6 +151,25 @@ struct MultiStopWatch {
     multi.stop();
     writeLog!(vl, logRankFormat)("Timer '%s' finished run %d in %dms. Total runtime %dms.", name, count, single.peek().msecs, multi.peek().msecs);
   }
+
+  /**
+     Pause the $(D MultiStopWatch) and write the current status to stdout, depending on the verbosity level and which processes are allowed to write.
+  */
+  void pause(VL vl = VL.Debug, LRF logRankFormat = LRF.None)() {
+    single.stop();
+    multi.stop();
+    writeLog!(vl, logRankFormat)("Timer '%s' paused run %d.", name, count);
+  }
+
+  /**
+     Resume the $(D MultiStopWatch) and write the current status to stdout, depending on the verbosity level and which processes are allowed to write.
+  */
+  void resume(VL vl = VL.Debug, LRF logRankFormat = LRF.None)() {
+    single.start();
+    multi.start();
+    writeLog!(vl, logRankFormat)("Timer '%s' paused run %d.", name, count);
+  }
+
 }
 /// Ditto
 alias MSW = MultiStopWatch;
@@ -167,9 +194,9 @@ void showFinalAllTimers(VL vl, LRF logRankFormat)() {
     totalTime += timersAA[t].multi.peek().msecs;
     maxWidth = max(maxWidth, t.length);
   }
-  
-  string formatStr = format("Timer %%%ds was run %%6d times. Total runtime %%8dms (%%6.2f%%%%), average runtime %%8.0fms.", maxWidth + 2); // +2 for the two single quotes
-  
+
+  string formatStr = format("Timer %%%ds was run %%6d times. Total runtime %%8dms (%%6.2f%%%%), average runtime %%6.2ems.", maxWidth + 2); // +2 for the two single quotes
+
   foreach(t; timersAA.keys
 	  .map!((a) => tuple(timersAA[a].multi.peek().msecs, a))
 	  .array
@@ -192,12 +219,13 @@ void showFinalAllTimers(VL vl, LRF logRankFormat)() {
   }
 
   import dlbc.lattice: gn;
-  import dlbc.lb.lb: timesteps;
   import dlbc.parallel: M;
   int nls = 1;
   foreach(n; gn) {
     nls *= n;
   }
+  import dlbc.lb.lb: timestep;
+  immutable timesteps = timestep - startTimestep;
   writeLog!(vl, logRankFormat)("\nUpdated %d lattice sites for %d timesteps in %e seconds: %e LUPS (%e LUPS/rank).", nls, timesteps, 0.001 * totalTime, 1000.0 * nls * timesteps / totalTime, 1000.0 * nls * timesteps / ( totalTime * M.size ) );
 
   if ( dlbc.timers.enableIO && dlbc.io.io.enableIO ) {

@@ -166,6 +166,7 @@ private void calculateDiffusiveFlux(T)(ref T L) @safe nothrow @nogc if ( isLatti
    Todo: implement this.
 */
 private void calculateAdvectiveFlux(T)(ref T L) if ( isLattice!T ) {
+  import dlbc.lb.lb: timestep;
   if ( ! fluidOnElec || ! enableAdvectiveFlux || timestep == 0 || components == 0 ) return; // Do not advect during initial equilibration.
   assert(0, "Advective flux not yet implemented.");
 }

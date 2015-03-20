@@ -131,6 +131,7 @@ int main(string[] args ) {
   // Either restore fields from checkpoints or initialize them.
   if ( isRestoring() ) {
     L.readCheckpoint();
+    setTimerStartTimestep();
   }
   else {
     L.initMask();

@@ -15,7 +15,6 @@ module dlbc.elec.poisson;
 import dlbc.lattice;
 import dlbc.elec.elec;
 import dlbc.fields.parallel;
-import dlbc.lb.lb: timestep;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.range;
@@ -107,6 +106,8 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
 
   localRnorm[0] = 0.0;
 
+  //startTimer("preloop");
+
   foreach(immutable p, ref e; L.elPot) {
     double depsphi = 0.0;
     double curRho = L.elChargeP[p] - L.elChargeN[p];
@@ -133,6 +134,8 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
     localRnorm[0] += abs(depsphi + curRho);
   }
 
+  //stopTimer("preloop");
+
   // writeLogD("localRnorm[0] = %e", localRnorm[0]);
 
   int oddity = 0;
@@ -145,6 +148,9 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
   writeLogRD("Moddity = %d", moddity);
 
   foreach(immutable it; 0..sorMaxIterations) {
+
+    //startTimer("loop");
+
     localRnorm[1] = 0.0;
 
     static if ( T.lbconn.d == 3 ) {
@@ -200,7 +206,7 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
         L.elPot.exchangeHalo();
       }
     }
-   else static if ( T.lbconn.d == 1 ) {
+    else static if ( T.lbconn.d == 1 ) {
        // assert(moddity == 0);
       foreach(immutable ipass; 0..2) {
         for (int i = ipass%2; i < L.lengths[0]; i=i+2 ) {
@@ -224,19 +230,28 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
       static assert(0);
     }
 
+    //stopTimer("loop");
+
     // writeLogD("localRnorm[1] = %f",localRnorm[1]);
 
+    // startTimer("reduce");
+    // scope(exit) {
+    // 	stopTimer("reduce");
+    // }
+
+    import dlbc.lb.lb: timestep;
     if ( it % sorCheckIterations == 0 ) {
       MPI_Allreduce(&localRnorm, &globalRnorm, 2, MPI_DOUBLE, MPI_SUM, L.M.comm);
       if ( globalRnorm[1] < sorToleranceAbs || globalRnorm[1] < sorToleranceRel*globalRnorm[0] ) {
         if ( sorShowIterations > 0 ) {
-          writeLogRI("Finished SOR iteration = %d at t = %d, rnorm = %e, tolA = %e, tolR = %e.", it + 1, timestep, globalRnorm[1], sorToleranceAbs, sorToleranceRel);
+          writeLogRD("  Finished SOR iteration = %d at t = %d, rnorm = %e, tolA = %e, tolR = %e.", it + 1, timestep, globalRnorm[1], sorToleranceAbs, sorToleranceRel);
+          writeLogRI("  Finished SOR for t = %d after %d iterations.", timestep, it + 1);
         }
         return;
       }
       else {
         if ( sorShowIterations > 0 && ( it % sorShowIterations == 0 ) ) {
-          writeLogRI("Performed SOR iteration = %d at t = %d, rnorm = %e, tolA = %e, tolR = %e.", it + 1, timestep, globalRnorm[1], sorToleranceAbs, sorToleranceRel);
+          writeLogRD("  Performed SOR iteration = %d at t = %d, rnorm = %e, tolA = %e, tolR = %e.", it + 1, timestep, globalRnorm[1], sorToleranceAbs, sorToleranceRel);
         }
       }
     }
