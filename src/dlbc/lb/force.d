@@ -175,7 +175,7 @@ void resetForce(T)(ref T L) if ( isLattice!T ) {
 */
 void distributeForce(T)(ref T L) if ( isLattice!T ) {
   alias conn = L.lbconn;
-  startTimer("main.force.distr");
+  startTimer("force.distr");
   L.precalculateDensities();
   foreach(immutable p, ref e; L.forceDistributed) {
     double totalDensity = 0.0;
@@ -190,7 +190,7 @@ void distributeForce(T)(ref T L) if ( isLattice!T ) {
       }
     }
   }
-  stopTimer("main.force.distr");
+  stopTimer("force.distr");
 }
 
 /**
@@ -219,7 +219,7 @@ void distributeForce(T)(ref T L) if ( isLattice!T ) {
 */
 void addShanChenForce(T)(ref T L) if ( isLattice!T ) {
   if ( ! enableShanChen ) return;
-  startTimer("main.force.addSC");
+  startTimer("force.addSC");
   // Use a final switch here so we don't need to bother with a switch for psi in the inner loop later.
   final switch(psiForm) {
     case PsiForm.Linear:
@@ -229,7 +229,7 @@ void addShanChenForce(T)(ref T L) if ( isLattice!T ) {
       L.addShanChenForcePsi!(PsiForm.Exponential)(gcc, gwc);
       break;
   }
-  stopTimer("main.force.addSC");
+  stopTimer("force.addSC");
 }
 /// Ditto
 private void addShanChenForcePsi(PsiForm psiForm, T)(ref T L, in double[][] gcc, in double[] gwc) if ( isLattice!T ) {

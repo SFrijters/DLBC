@@ -39,11 +39,11 @@ void prepareToCollide(T)(ref T L) if ( isLattice!T ) {
 
   if ( L.fluids.length == 0 ) return;
 
-  startTimer("main.coll.prep");
+  startTimer("lb.coll.prep");
   if ( eqDistForm == EqDistForm.BDist2 ) {
     L.calculateWeightedVelocity();
   }
-  stopTimer("main.coll.prep");
+  stopTimer("lb.coll.prep");
 }
 
 /**
@@ -59,12 +59,12 @@ void collideFields(T)(ref T L, in double[] tau, in double[] globalAcc) if ( isLa
 
   if ( L.fluids.length == 0 ) return;
 
-  startTimer("main.coll.coll");
+  startTimer("lb.coll.coll");
   final switch(eqDistForm) {
     // Calls appropriate collideFieldEqDist
     mixin(edfMixin());
   }
-  stopTimer("main.coll.coll");
+  stopTimer("lb.coll.coll");
 }
 
 /// Ditto

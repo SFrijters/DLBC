@@ -236,7 +236,7 @@ bool dumpNow(uint freq, int t) @safe pure nothrow @nogc {
      time = current timestep
 */
 void dumpField(T)(ref T field, in string name, in int time = 0) if (isField!T) {
-  startTimer("main.io.io");
+  startTimer("io.out");
   final switch(outputFormat) {
   case FileFormat.Ascii:
     assert(0, "Ascii dumping of fields not yet implemented.");
@@ -244,7 +244,7 @@ void dumpField(T)(ref T field, in string name, in int time = 0) if (isField!T) {
     dumpFieldHDF5(field, name, time);
     break;
   }
-  stopTimer("main.io.io");
+  stopTimer("io.out");
 }
 
 /**
@@ -257,7 +257,7 @@ void dumpField(T)(ref T field, in string name, in int time = 0) if (isField!T) {
      fileName = name of the file
 */
 void readField(T)(ref T field, in string fileName) if (isField!T) {
-  startTimer("main.io.io");
+  startTimer("io.in");
   final switch(outputFormat) {
   case FileFormat.Ascii:
     assert(0, "Ascii reading of fields not yet implemented.");
@@ -265,6 +265,6 @@ void readField(T)(ref T field, in string fileName) if (isField!T) {
     readFieldHDF5(field, fileName);
     break;
   }
-  stopTimer("main.io.io");
+  stopTimer("io.in");
 }
 

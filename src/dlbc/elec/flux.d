@@ -70,7 +70,7 @@ package void initElecFlux() {
 package bool moveElecCharges(T)(ref T L) if ( isLattice!T ) {
   bool isEquilibrated;
 
-  startTimer("main.elec.flux");
+  startTimer("elec.flux");
 
   L.resetFlux();
   L.calculateDiffusiveFlux();
@@ -79,7 +79,7 @@ package bool moveElecCharges(T)(ref T L) if ( isLattice!T ) {
   L.elChargeP.exchangeHalo();
   L.elChargeN.exchangeHalo();
 
-  stopTimer("main.elec.flux");
+  stopTimer("elec.flux");
 
   return isEquilibrated;
 }

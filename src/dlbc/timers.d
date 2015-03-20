@@ -15,27 +15,83 @@ module dlbc.timers;
 
 import std.datetime;
 
+import std.array;
 import dlbc.logging;
-
-private MSW[string] timersAA;
 
 /**
    Enable writing the timing data to disk in raw ascii format.
 */
 @("param") bool enableIO = false;
 
+private immutable string mainTimerName = "main";
 private immutable string fileNamePrefix = "timers";
 
+private MSW[string] timersAA;
+private string[] timerStack;
+
+/**
+   Start a timer. The full name of the timer depends on the timers currently on the stack.
+
+   Params:
+     name = local name of the timer
+*/
 void startTimer(VL vl = VL.Debug, LRF logRankFormat = LRF.None)(in string name) {
-  if ( (name in timersAA) is null ) {
-    timersAA[name] = MSW(name);
+  if ( ! timerStack.empty ) {
+    immutable string parentName = timerNameFromStack();
+    assert( (parentName in timersAA) !is null );
+    timersAA[parentName].stop!(vl, logRankFormat)();
   }
-  timersAA[name].start!(vl, logRankFormat)();
+
+  timerStack ~= name;
+  immutable string fullName = timerNameFromStack();
+  if ( (fullName in timersAA) is null ) {
+    timersAA[fullName] = MSW(fullName);
+  }
+  timersAA[fullName].start!(vl, logRankFormat)();
 }
 
+/**
+   Start the main timer. This should normally be the first timer that is started and the
+   last one to be stopped.
+*/
+void startMainTimer(VL vl = VL.Debug, LRF logRankFormat = LRF.None)() {
+  startTimer!(vl, logRankFormat)(mainTimerName);
+}
+
+/**
+   Stop a timer. The full name of the timer depends on the timers currently on the stack.
+
+   Params:
+     name = local name of the timer
+*/
 void stopTimer(VL vl = VL.Debug, LRF logRankFormat = LRF.None)(in string name) {
-  assert( (name in timersAA) !is null );
-  timersAA[name].stop!(vl, logRankFormat)();
+  assert( timerStack.front == name );
+  
+  immutable string fullName = timerNameFromStack();
+  assert( (fullName in timersAA) !is null );
+  timersAA[fullName].stop!(vl, logRankFormat)();
+  timerStack.popBack();
+
+  if ( ! timerStack.empty ) {
+    immutable string parentName = timerNameFromStack();
+    assert( (parentName in timersAA) !is null );
+    timersAA[parentName].start!(vl, logRankFormat)();
+  }
+}
+
+/**
+   Stop the main timer. This should normally be the first timer that is started and the
+   last one to be stopped.
+*/
+void stopMainTimer(VL vl = VL.Debug, LRF logRankFormat = LRF.None)() {
+  stopTimer!(vl, logRankFormat)(mainTimerName);
+}
+
+/**
+   Create the full name of the currently active timer.
+*/
+private string timerNameFromStack() {
+  return timerStack.join(".");
 }
 
 /**
@@ -51,7 +107,6 @@ struct MultiStopWatch {
      Name of the $(D MultiStopWatch).
   */
   string name;
-
   /**
      $(D MultiStopWatch) is constructed with a name.
 
@@ -63,60 +118,14 @@ struct MultiStopWatch {
   }
 
   /**
-     Peek into the embedded single run $(D StopWatch).
-
-     Returns: a $(D TickDuration) struct.
-  */
-  auto peekSingle() {
-    return single.peek();
-  }
-
-  /**
-     Peek into the embedded multiple run $(D StopWatch).
-
-     Returns: a $(D TickDuration) struct.
-  */
-  auto peekMulti() {
-    return multi.peek();
-  }
-
-  /**
      Write the current status of the $(D MultiStopWatch) to stdout, depending on the verbosity level and which processes are allowed to write.
-
-     Params:
-       vl = verbosity level to write at
-       logRankFormat = which processes should write
   */
   void show(VL vl, LRF logRankFormat)() {
     writeLog!(vl, logRankFormat)("Timer '%s' measuring run %d for %dms. Total runtime %dms.", name, count, single.peek().msecs, multi.peek().msecs);
   }
 
   /**
-     Write the current status of the $(D MultiStopWatch) to stdout, depending on the verbosity level and which processes are allowed to write.
-
-     Params:
-       vl = verbosity level to write at
-       logRankFormat = which processes should write
-  */
-  void showFinal(VL vl, LRF logRankFormat)() {
-    import std.conv: to;
-    if ( count > 0 ) {
-      if ( ("main" in timersAA) !is null ) {
-	double perc = 100.0 * to!double(multi.peek().msecs) / to!double(timersAA["main"].peekMulti().msecs);
-	writeLog!(vl, logRankFormat)("Timer %20s was run %6d times. Total runtime %8dms (%6.2f%%), average runtime %8.0fms.", "'"~name~"'", count, multi.peek().msecs, perc, to!double(multi.peek().msecs) / count);
-      }
-      else {
-	writeLog!(vl, logRankFormat)("Timer %20s was run %6d times. Total runtime %8dms, average runtime %8.0fms.", "'"~name~"'", count, multi.peek().msecs, to!double(multi.peek().msecs) / count);
-      }
-    }
-  }
-
-  /**
      Start the $(D MultiStopWatch) and write the current status to stdout, depending on the verbosity level and which processes are allowed to write.
-
-     Params:
-       vl = verbosity level to write at
-       logRankFormat = which processes should write
   */
   void start(VL vl = VL.Debug, LRF logRankFormat = LRF.None)() {
     single.reset();
@@ -128,10 +137,6 @@ struct MultiStopWatch {
 
   /**
      Stop the $(D MultiStopWatch) and write the current status to stdout, depending on the verbosity level and which processes are allowed to write.
-
-     Params:
-       vl = verbosity level to write at
-       logRankFormat = which processes should write
   */
   void stop(VL vl = VL.Debug, LRF logRankFormat = LRF.None)() {
     single.stop();
@@ -142,34 +147,49 @@ struct MultiStopWatch {
 /// Ditto
 alias MSW = MultiStopWatch;
 
+/**
+   Write final timer information to stdout, and write to file if requested through $(D enableIO).
+*/
 void showFinalAllTimers(VL vl, LRF logRankFormat)() {
   import std.algorithm, std.array;
   import std.conv: to;
   import std.string: format;
-  assert( ("main" in timersAA) !is null );
-  auto untrackedTime = timersAA["main"].multi.peek().msecs;
-  auto main = to!double(timersAA["main"].peekMulti().msecs);
+  assert( (mainTimerName in timersAA) !is null );
 
   import std.stdio;
   import dlbc.io.io;
 
   string ioBuffer;
 
+  double totalTime = 0;
+  size_t maxWidth = 0;
+  foreach(t; timersAA.keys) {
+    totalTime += timersAA[t].multi.peek().msecs;
+    maxWidth = max(maxWidth, t.length);
+  }
+  
+  string formatStr = format("Timer %%%ds was run %%6d times. Total runtime %%8dms (%%6.2f%%%%), average runtime %%8.0fms.", maxWidth + 2); // +2 for the two single quotes
+  
   foreach(t; timersAA.keys
 	  .map!((a) => tuple(timersAA[a].multi.peek().msecs, a))
 	  .array
-	  .sort!((a,b) => a[0] > b[0]) // descending order
+	  .sort!((a,b) => a[0] > b[0]) // descending order in duration
+	  .map!((a) => (a[1]))
 	  ) {
-    timersAA[t[1]].showFinal!(vl, logRankFormat)();
-    if ( enableIO ) {
-      ioBuffer ~= format("%s %d %d\n", timersAA[t[1]].name, timersAA[t[1]].count, timersAA[t[1]].peekMulti().msecs);
+
+    immutable time  = timersAA[t].multi.peek().msecs;
+    immutable count = timersAA[t].count;
+    immutable name  = timersAA[t].name;
+    immutable perc  = 100.0 * time / totalTime;
+
+    if ( count > 0 ) {
+      writeLog!(vl, logRankFormat, false)(formatStr, "'"~name~"'", count, time, perc, to!double(time) / count);
     }
-    if ( t[1] != "main" ) {
-      untrackedTime -= timersAA[t[1]].multi.peek().msecs;
+
+    if ( enableIO ) {
+      ioBuffer ~= format("%s %d %d\n", name, count, time);
     }
   }
-  double perc = 100.0 * untrackedTime / main;
-  writeLog!(vl, logRankFormat)("%62s %8dms (%6.2f%%)", "Untracked runtime", untrackedTime, perc);
 
   import dlbc.lattice: gn;
   import dlbc.lb.lb: timesteps;
@@ -178,8 +198,7 @@ void showFinalAllTimers(VL vl, LRF logRankFormat)() {
   foreach(n; gn) {
     nls *= n;
   }
-  writeLog!(vl, logRankFormat)("\nUpdated %d lattice sites for %d timesteps in %e seconds: %e LUPS (%e LUPS/rank).", 
-			       nls, timesteps, 0.001 * main, 1000.0 * nls * timesteps / main, 1000.0 * nls * timesteps / ( main * M.size ) );
+  writeLog!(vl, logRankFormat)("\nUpdated %d lattice sites for %d timesteps in %e seconds: %e LUPS (%e LUPS/rank).", nls, timesteps, 0.001 * totalTime, 1000.0 * nls * timesteps / totalTime, 1000.0 * nls * timesteps / ( totalTime * M.size ) );
 
   if ( dlbc.timers.enableIO && dlbc.io.io.enableIO ) {
     auto fileName = makeFilenameOutput!(FileFormat.Ascii)(fileNamePrefix, 0);

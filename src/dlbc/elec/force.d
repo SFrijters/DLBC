@@ -40,7 +40,7 @@ import dlbc.timers;
 void addElecForce(T)(ref T L) if (isLattice!T) {
   if ( ( ! enableElec ) || ( ! elecOnFluid ) ) return;
 
-  startTimer("main.elec.force");
+  startTimer("elec.force");
 
   if ( localDiel ) {
     L.precalculateDensities();
@@ -88,7 +88,7 @@ void addElecForce(T)(ref T L) if (isLattice!T) {
     }
   }
 
-  stopTimer("main.elec.force");
+  stopTimer("elec.force");
 
 }
 

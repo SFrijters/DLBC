@@ -76,7 +76,7 @@ private void initPoissonSolverSOR(T)(ref T L) if( isLattice!T ) {
 void solvePoisson(T)(ref T L) if( isLattice!T ) {
   if ( ! enableElec ) return;
 
-  startTimer("main.elec.poisson");
+  startTimer("elec.poisson");
 
   final switch(solver) {
   case(PoissonSolver.None):
@@ -90,7 +90,7 @@ void solvePoisson(T)(ref T L) if( isLattice!T ) {
     break;
   }
 
-  stopTimer("main.elec.poisson");
+  stopTimer("elec.poisson");
 }
 
 private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
@@ -283,9 +283,9 @@ private void solvePoissonP3M(T)(ref T L) if ( isLattice!T ) {
 void calculateElectricField(T)(ref T L) if ( isLattice!T ) {
   if ( ! enableElec ) return;
 
-  startTimer("main.elec.field");
+  startTimer("elec.field");
   L.calculateElectricFieldFD();
-  stopTimer("main.elec.field");
+  stopTimer("elec.field");
 }
 
 private void calculateElectricFieldFD(T)(ref T L) if ( isLattice!T ) {

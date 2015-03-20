@@ -31,7 +31,7 @@ import dlbc.timers;
 void advectFields(T)(ref T L) if ( isLattice!T ) {
   if ( L.fluids.length == 0 ) return;
 
-  startTimer("main.advection");
+  startTimer("lb.advection");
 
   L.advectFieldsKernel();
 
@@ -41,7 +41,7 @@ void advectFields(T)(ref T L) if ( isLattice!T ) {
   L.markDensitiesAsStale();
   L.markPsiAsStale();
 
-  stopTimer("main.advection");
+  stopTimer("lb.advection");
 }
 
 // Ditto

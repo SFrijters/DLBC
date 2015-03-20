@@ -95,8 +95,8 @@ int main(string[] args ) {
   startHDF5();
 
   // Start timers.
-  startTimer("main");
-  startTimer("main.preloop");
+  startMainTimer();
+  startTimer("preloop");
 
   // Read, broadcast, and show parameters.
   initParameters();
@@ -141,12 +141,12 @@ int main(string[] args ) {
 
   // First data dump
   L.dumpData(timestep);
-  stopTimer("main.preloop");
+  stopTimer("preloop");
 
   // Let's go loopy.
   L.runTimeloop();
 
-  stopTimer("main");
+  stopMainTimer();
 
   // Final wrap-up.
   showFinalAllTimers!(VL.Information, LRF.Root)();
