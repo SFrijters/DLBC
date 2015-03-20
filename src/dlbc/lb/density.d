@@ -334,6 +334,7 @@ void prepareDensityFields(T)(ref T L) if ( isLattice!T ) {
   foreach(immutable f; 0..L.density.length ) {
     L.density[f] = typeof(L.density[f])(L.lengths);
   }
+  // Advection will make the density fields stale.
   postAdvectionHooks.registerFunction(&markDensitiesAsStale!T);
 }
 
@@ -341,6 +342,7 @@ void prepareDensityFields(T)(ref T L) if ( isLattice!T ) {
    Fills the lattice density arrays by recomputing the values from the populations.
 */
 void precalculateDensities(T)(ref T L) if ( isLattice!T ) {
+  assert(L.density.length == L.fluids.length);
   foreach(immutable f; 0..L.fluids.length ) {
     if ( L.density[f].isStale ) {
       L.fluids[f].densityField(L.mask, L.density[f]);
@@ -353,6 +355,7 @@ void precalculateDensities(T)(ref T L) if ( isLattice!T ) {
    Mark all density fields on the lattice as invalid.
 */
 void markDensitiesAsStale(T)(ref T L) if ( isLattice!T ) {
+  assert(L.density.length == L.fluids.length);
   foreach(immutable f; 0..L.fluids.length ) {
     L.density[f].markAsStale();
   }

@@ -102,8 +102,7 @@ void prepareForce(T)(ref T L) if ( isLattice!T ) {
   }
 
   L.prepareForceFields();
-  // Because doubles are initialised as NaNs we set zeros here.
-  L.resetForce();
+  L.resetForce(); // Because doubles are initialised as NaNs we set zeros here.
   L.preparePsiFields();
 }
 
@@ -128,6 +127,7 @@ private void preparePsiFields(T)(ref T L) if ( isLattice!T ) {
   foreach(immutable f; 0..L.psi.length ) {
     L.psi[f] = typeof(L.psi[f])(L.lengths);
   }
+  // Advection will make the psi fields stale.
   postAdvectionHooks.registerFunction(&markPsiAsStale!T);
 }
 
@@ -136,6 +136,7 @@ private void preparePsiFields(T)(ref T L) if ( isLattice!T ) {
 */
 void precalculatePsi(PsiForm psiForm, T)(ref T L) if ( isLattice!T ) {
   L.precalculateDensities();
+  assert(L.psi.length == L.fluids.length);
   foreach(immutable f; 0..L.fluids.length ) {
     if ( L.psi[f].isStale ) {
       assert(L.density[f].isFresh);
@@ -149,6 +150,7 @@ void precalculatePsi(PsiForm psiForm, T)(ref T L) if ( isLattice!T ) {
    Mark all psi fields on the lattice as invalid.
 */
 void markPsiAsStale(T)(ref T L) if ( isLattice!T ) {
+  assert(L.psi.length == L.fluids.length);
   foreach(immutable f; 0..L.fluids.length ) {
     L.psi[f].markAsStale();
   }

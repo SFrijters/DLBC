@@ -43,7 +43,7 @@ void addElecForce(T)(ref T L) if (isLattice!T) {
   startTimer("elec.force");
 
   if ( localDiel ) {
-    L.precalculateDensities();
+    L.precalculateElDiel();
   }
 
   immutable cv = econn.velocities;
@@ -82,7 +82,8 @@ void addElecForce(T)(ref T L) if (isLattice!T) {
 
       // Add forces
       foreach(immutable j; Iota!(0, econn.d) ) {
-        F[j] += 0.5 * ( L.getLocalDiel(p) - averageDiel ) * grad_E2[j];
+	assert(L.elDiel.isFresh());
+        F[j] += 0.5 * ( L.elDiel[p] - averageDiel ) * grad_E2[j];
       }
       //writeLogRI("forceDistributed%s = %s", p, L.forceDistributed[p]) ;
     }
