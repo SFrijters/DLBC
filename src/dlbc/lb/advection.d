@@ -37,9 +37,11 @@ void advectFields(T)(ref T L) if ( isLattice!T ) {
 
   // Advection will make densities and therefore also psi fields stale.
   import dlbc.lb.density: markDensitiesAsStale;
-  import dlbc.lb.force: markPsiAsStale;
   L.markDensitiesAsStale();
+  import dlbc.lb.force: markPsiAsStale;
   L.markPsiAsStale();
+  import dlbc.elec.poisson: markElDielAsStale;
+  L.markElDielAsStale();
 
   stopTimer("lb.advection");
 }

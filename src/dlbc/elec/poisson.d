@@ -100,8 +100,7 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
   double sorToleranceAbs = 0.01 * sorToleranceRel;
 
   if ( localDiel ) {
-    import dlbc.lb.density: precalculateDensities;
-    L.precalculateDensities();
+    L.precalculateElDiel();
   }
 
   localRnorm[0] = 0.0;
@@ -114,11 +113,11 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
     double curPhi = e;
     
     if ( localDiel ) {
-      double curDiel = L.getLocalDiel(p);
+      double curDiel = L.elDiel[p];
       foreach(immutable i; 1..cv.length) { // Do not iterate over self vector!
         econn.vel_t nb;
         double nbPhi = L.getNbPot(p, cv[i], nb);
-        double nbDiel = L.getLocalDiel(nb);
+        double nbDiel = L.elDiel[nb];
         depsphi += ( nbDiel + curDiel ) * ( nbPhi - curPhi );
         // writeLogRD("%s %s %s %s", p, nb, nbPhi, nbDiel);
       }
@@ -267,11 +266,11 @@ private static immutable string sorKernel = q{
   double curPhi = L.elPot[p];
   if ( localDiel ) {
     double dielTot = 0.0;
-    double curDiel = L.getLocalDiel(p);
+    double curDiel = L.elDiel[p];
     foreach(immutable iv; 1..cv.length) { // Do not iterate over self vector!
       ptrdiff_t[T.lbconn.d] nb;
       double nbPhi = L.getNbPot(p, cv[iv], nb);
-      double dielH = 0.5* ( L.getLocalDiel(nb) + curDiel );
+      double dielH = 0.5* ( L.elDiel[nb] + curDiel );
       dielTot += dielH;
       depsphi += dielH * ( nbPhi - curPhi );
       // writeLogRD("%d %d %d %s %e %e %e", p[0] -1, p[1] -1, p[2] -1, nb, nbPhi, dielH, depsphi);
@@ -398,5 +397,25 @@ double getNbPot(alias dims = T.lbconn.d, T)(ref T L, in ptrdiff_t[dims] p, in pt
   double pot = L.elPot[nb] + potShift;
   //writeLogRD("p = %s, cv = %s, nb = %s %s, gp = %s, L.gn = %s",p,cv,nb, pot, gp, L.gn);
   return pot;
+}
+
+/**
+   Fills the lattice psi arrays by recomputing the values from the densities.
+*/
+void precalculateElDiel(T)(ref T L) if ( isLattice!T ) {
+  if ( L.elDiel.isStale() ) {
+    import dlbc.lb.density: precalculateDensities;
+    L.precalculateDensities();
+    foreach(immutable p, diel; L.elDiel.arr) {
+      L.elDiel[p] = L.getLocalDiel(p);
+    }
+  }
+}
+
+/**
+   Mark all psi fields on the lattice as invalid.
+*/
+void markElDielAsStale(T)(ref T L) if ( isLattice!T ) {
+  L.elDiel.markAsStale();
 }
 
