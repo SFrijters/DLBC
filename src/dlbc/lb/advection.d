@@ -37,15 +37,22 @@ void advectFields(T)(ref T L) if ( isLattice!T ) {
 
   startTimer("lb.advection");
 
-  startTimer("pre");
-  preAdvectionHooks.execute(L);
-  stopTimer("pre");
+  // Run pre-advection hooks
+  if ( preAdvectionHooks.length > 0 ) {
+    startTimer("pre");
+    preAdvectionHooks.execute(L);
+    stopTimer("pre");
+  }
 
+  // Advect
   L.advectFieldsKernel();
 
-  startTimer("post");
-  postAdvectionHooks.execute(L);
-  stopTimer("post");
+  // Run post-advection hooks
+  if ( postAdvectionHooks.length > 0 ) {
+    startTimer("post");
+    postAdvectionHooks.execute(L);
+    stopTimer("post");
+  }
 
   stopTimer("lb.advection");
 }

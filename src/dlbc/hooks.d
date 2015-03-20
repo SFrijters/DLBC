@@ -28,7 +28,7 @@ struct VoidHooks(T) {
   void registerFunction(int line = __LINE__, string file = __FILE__,
 			string funcName = __FUNCTION__)(TVoidFunc fun) {
     _hookedFunctions ~= fun;
-    writeLogRD("Registered function from %s l%d at address %s.", file, line, fun);
+    writeLogRD("Registered function from %s line %d at address %s.", file, line, fun);
   }
 
   void execute(ref T L) {
@@ -37,5 +37,9 @@ struct VoidHooks(T) {
       fun(L);
     }
   }
+
+  auto length() {
+    return _hookedFunctions.length;
+  }
 }
-  
+

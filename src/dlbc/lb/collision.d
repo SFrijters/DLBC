@@ -41,7 +41,7 @@ void prepareToCollide(T)(ref T L) if ( isLattice!T ) {
 
   startTimer("lb.coll.prep");
   if ( eqDistForm == EqDistForm.BDist2 ) {
-    L.calculateWeightedVelocity();
+    L.precalculateWeightedVelocity();
   }
   stopTimer("lb.coll.prep");
 }
@@ -134,7 +134,7 @@ else {
    Params:
      L = lattice
 */
-private void calculateWeightedVelocity(T)(ref T L) if ( isLattice!T ) {
+private void precalculateWeightedVelocity(T)(ref T L) if ( isLattice!T ) {
   import dlbc.lb.lb: tau;
 
   alias conn = L.lbconn;
