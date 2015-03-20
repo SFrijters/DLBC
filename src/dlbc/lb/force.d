@@ -128,6 +128,7 @@ private void preparePsiFields(T)(ref T L) if ( isLattice!T ) {
   foreach(immutable f; 0..L.psi.length ) {
     L.psi[f] = typeof(L.psi[f])(L.lengths);
   }
+  postAdvectionHooks.registerFunction(&markPsiAsStale!T);
 }
 
 /**

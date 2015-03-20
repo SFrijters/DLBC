@@ -12,6 +12,7 @@
 
 module dlbc.lb.density;
 
+import dlbc.lb.advection: postAdvectionHooks;
 import dlbc.lb.connectivity;
 import dlbc.fields.field;
 import dlbc.lb.mask;
@@ -327,12 +328,13 @@ private auto pressurePsi(PsiForm form, alias conn, T)(in ref T[] density) {
 /**
    Initialize the pre-calculated density field array and the fields themselves.
 */
-void initDensityFields(T)(ref T L) if ( isLattice!T ) {
+void prepareDensityFields(T)(ref T L) if ( isLattice!T ) {
   assert(L.density.length == 0);
   L.density.length = L.fluids.length;
   foreach(immutable f; 0..L.density.length ) {
     L.density[f] = typeof(L.density[f])(L.lengths);
   }
+  postAdvectionHooks.registerFunction(&markDensitiesAsStale!T);
 }
 
 /**

@@ -10,6 +10,7 @@ MODULES =
         $(MODULE dlbc.fields.init, "Initialization of fields.")
         $(MODULE dlbc.fields.parallel, "Parallelization of fields.")
         $(MODULE dlbc.getopt, "Process command line arguments.")
+        $(MODULE dlbc.hooks, "Helpers to register functions.")
         $(MODULE dlbc.io.ascii, "Functions that handle ascii output to disk.")
         $(MODULE dlbc.io.checkpoint, "Functions that handle the writing and reading of checkpoints.")
         $(MODULE dlbc.io.hdf5, "Functions that handle (parallel) IO to disk via HDF5.")

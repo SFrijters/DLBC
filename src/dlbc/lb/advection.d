@@ -12,12 +12,16 @@
 
 module dlbc.lb.advection;
 
+import dlbc.hooks;
 import dlbc.lattice: isLattice;
 import dlbc.lb.connectivity;
 import dlbc.lb.mask;
 import dlbc.fields.field;
 import dlbc.range;
 import dlbc.timers;
+
+LatticeHooks preAdvectionHooks;
+LatticeHooks postAdvectionHooks;
 
 /**
    Advect the LB population fields over one time step. The advected values are first
@@ -33,15 +37,15 @@ void advectFields(T)(ref T L) if ( isLattice!T ) {
 
   startTimer("lb.advection");
 
+  startTimer("pre");
+  preAdvectionHooks.execute(L);
+  stopTimer("pre");
+
   L.advectFieldsKernel();
 
-  // Advection will make densities and therefore also psi fields stale.
-  import dlbc.lb.density: markDensitiesAsStale;
-  L.markDensitiesAsStale();
-  import dlbc.lb.force: markPsiAsStale;
-  L.markPsiAsStale();
-  import dlbc.elec.poisson: markElDielAsStale;
-  L.markElDielAsStale();
+  startTimer("post");
+  postAdvectionHooks.execute(L);
+  stopTimer("post");
 
   stopTimer("lb.advection");
 }

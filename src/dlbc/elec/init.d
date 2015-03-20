@@ -44,6 +44,7 @@ import dlbc.fields.field;
 import dlbc.fields.init;
 import dlbc.fields.parallel;
 import dlbc.lb.mask;
+import dlbc.lb.advection: postAdvectionHooks;
 import dlbc.lattice;
 import dlbc.logging;
 import dlbc.parallel;
@@ -154,6 +155,8 @@ void prepareElecFields(T)(ref T L) if ( isLattice!T ) {
   L.elField   = typeof(L.elField)(L.lengths);
   L.elFluxP   = typeof(L.elFluxP)(L.lengths);
   L.elFluxN   = typeof(L.elFluxN)(L.lengths);
+
+  postAdvectionHooks.registerFunction(&markElDielAsStale!T);
 }
 
 /**
