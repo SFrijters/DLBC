@@ -67,7 +67,7 @@ void startMainTimer(VL vl = VL.Debug, LRF logRankFormat = LRF.None)() {
      name = local name of the timer
 */
 void stopTimer(VL vl = VL.Debug, LRF logRankFormat = LRF.None)(in string name) {
-  assert( timerStack.front == name );
+  assert( timerStack.back == name );
 
   immutable string fullName = timerNameFromStack();
 
