@@ -164,7 +164,7 @@ void showGlobalVerbosityLevel() {
      logRankFormat = which processes should write
      args = data to write
 */
-void writeLog(VL vl, LRF logRankFormat, T...)(in T args) {
+void writeLog(VL vl, LRF logRankFormat, bool wrapLines = true, T...)(in T args) {
   import std.algorithm: canFind;
 
   final switch(logRankFormat) {
@@ -195,7 +195,7 @@ void writeLog(VL vl, LRF logRankFormat, T...)(in T args) {
                 writeln(stripRight(outString));
               }
               else {
-                if ( (!outString.canFind("\n") ) && ( outString.length > columnWidth) ) {
+                if ( (!outString.canFind("\n") ) && ( outString.length > columnWidth) && wrapLines ) {
                   outString = stripRight(wrap(outString, columnWidth, null, indent));
                 }
                 writeln(strip(outString));
@@ -350,37 +350,16 @@ private string makeLogString(VL vl, LRF logRankFormat, T...)(T args) {
   import std.algorithm: canFind;
 
   immutable string rankTag = makeRankString!logRankFormat();
-  string vlTag, preTag;
+  immutable string vlTag = makeVLString!vl();
 
-  final switch(vl) {
-  case VL.Off:
-    vlTag = "[-] ";
-    break;
-  case VL.Fatal:
-    vlTag = "[F] ";
-    break;
-  case VL.Error:
-    vlTag = "[E] ";
-    break;
-  case VL.Warning:
-    vlTag = "[W] ";
-    break;
-  case VL.Notification:
-    vlTag = "[N] ";
-    break;
-  case VL.Information:
-    vlTag = "[I] ";
-    break;
-  case VL.Debug:
-    vlTag = "[D] ";
-    break;
-  }
-
+  // Add time, if requested.
+  string timeTag;
   if ( showTime ) {
-    vlTag = makeCurrTimeString() ~ " " ~ vlTag;
+    timeTag = makeCurrTimeString() ~ " ";
   }
 
   // Move any leading newlines in front of the tags.
+  string preTag;
   while (args[0].length > 0 && args[0][0..1] == "\n") {
     preTag ~= args[0][0..1];
     args[0] = args[0][1..$];
@@ -390,7 +369,7 @@ private string makeLogString(VL vl, LRF logRankFormat, T...)(T args) {
     return "";
   }
 
-  args[0] = preTag ~ vlTag ~ rankTag ~ args[0];
+  args[0] = preTag ~ timeTag ~ vlTag ~ rankTag ~ args[0];
 
   if (canFind(args[0], "%")) {
     return format(args);
@@ -418,6 +397,25 @@ private string makeRankString(LogRankFormat logRankFormat)() @safe {
     return format("[%#6.6d] ", M.rank);
   case LRF.Ordered:
     return format("<%#6.6d> ", M.rank);
+  }
+}
+
+private string makeVLString(VerbosityLevel vl)() @safe pure nothrow @nogc {
+  final switch(vl) {
+  case VL.Off:
+    return "[-] ";
+  case VL.Fatal:
+    return "[F] ";
+  case VL.Error:
+    return "[E] ";
+  case VL.Warning:
+    return "[W] ";
+  case VL.Notification:
+    return "[N] ";
+  case VL.Information:
+    return "[I] ";
+  case VL.Debug:
+    return "[D] ";
   }
 }
 
