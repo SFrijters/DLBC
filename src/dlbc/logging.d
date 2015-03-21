@@ -561,13 +561,15 @@ debug {
 }
 
 unittest {
-  import std.conv: to;
-  globalVerbosityLevel = VL.Debug;
-  writeLogRD("Test %d", 1);
-  writeLogRI("Test ", to!string(2));
-  writeLogRN("Test " ~ "3");
-  writeLogW("Test " ~ "4");
-  owriteLogE("Test " ~ "5");
-  globalVerbosityLevel = VL.Off;
+  version(D_Coverage) {
+    import std.conv: to;
+    globalVerbosityLevel = VL.Debug;
+    writeLogRD("Test %d", 1);
+    writeLogRI("Test ", to!string(2));
+    writeLogRN("Test " ~ "3");
+    writeLogW("Test " ~ "4");
+    owriteLogE("Test " ~ "5");
+    globalVerbosityLevel = VL.Off;
+  }
 }
 
