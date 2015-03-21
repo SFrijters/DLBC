@@ -30,7 +30,6 @@ MODULES =
         $(MODULE dlbc.lb.momentum, "LB momentum.")
         $(MODULE dlbc.lb.velocity, "LB velocities.")
         $(MODULE dlbc.logging, "Functions that handle (parallel) output to stdout.")
-        $(MODULE dlbc.mixinhelper, "Helper functions for CTFE.")
         $(MODULE dlbc.mpi, "Header file for MPI library.")
         $(MODULE dlbc.parallel, "Helper functions for parallelisation.")
         $(MODULE dlbc.parameters, "Helper functions for reading, storage and communication of simulation parameters.")
