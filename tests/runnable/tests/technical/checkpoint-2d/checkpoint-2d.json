@@ -1,0 +1,21 @@
+{
+  "name": "checkpoint-2d",
+  "description": "Restore from checkpoint and read input from hdf5 file.",
+
+  "configuration": "d2q9",
+  "input-file": "colour-red-blue-checkpoint-2d-20150321T122217-t00000000.h5",
+  "clean": [ "output" ],
+
+  "checkpoint": {
+    "name": "checkpoint-2d-20150321T122217-t00000000"
+  },
+
+  "compare": {
+    "data": [ "colour-red-blue", "density-red", "density-blue", "population-red", "population-blue" ],
+    "comparison": [
+      { "type": "h5diff", "files": "%data%-checkpoint-2d-*-t00000000.h5" },
+      { "type": "h5diff", "files": "%data%-checkpoint-2d-*-t00000010.h5" }
+    ]
+  }
+}
+
