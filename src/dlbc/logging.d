@@ -13,7 +13,14 @@
 module dlbc.logging;
 
 import std.conv;
-import std.stdio;
+
+version(D_Coverage) {
+  // For code coverage, execute all the logging, but squelch the actual output.
+  void writeln(T...)(T args) { }
+}
+else {
+  import std.stdio: writeln;
+}
 import std.string;
 
 import dlbc.parallel;
@@ -109,25 +116,10 @@ enum VerbosityLevel {
 alias VL = VerbosityLevel;
 
 version(unittest) {
-  VL globalVerbosityLevel = VL.Off;
+  private VL globalVerbosityLevel = VL.Off;
 }
 else {
   private VL globalVerbosityLevel = VL.Debug;
-}
-
-private VL squelchedGlobalVL;
-private bool isSquelched = false;
-
-void squelchLog() @safe nothrow {
-  if ( ! isSquelched ) {
-    squelchedGlobalVL = globalVerbosityLevel;
-    globalVerbosityLevel = VL.Off;
-    isSquelched = true;
-  }
-}
-
-void unsquelchLog() @safe nothrow {
-  globalVerbosityLevel = squelchedGlobalVL;
 }
 
 /**
@@ -566,5 +558,16 @@ debug {
   void dwriteLogI(T...)(in T args)  { dwriteLog!(VL.Information , LRF.Any )(args); }
   /// Ditto
   void dwriteLogD(T...)(in T args)  { dwriteLog!(VL.Debug       , LRF.Any )(args); }
+}
+
+unittest {
+  import std.conv: to;
+  globalVerbosityLevel = VL.Debug;
+  writeLogRD("Test %d", 1);
+  writeLogRI("Test ", to!string(2));
+  writeLogRN("Test " ~ "3");
+  writeLogW("Test " ~ "4");
+  owriteLogE("Test " ~ "5");
+  globalVerbosityLevel = VL.Off;
 }
 

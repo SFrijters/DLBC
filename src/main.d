@@ -73,9 +73,6 @@ import dlbc.versions;
      Zero exit code for success, non-zero exit code for failure.
 */
 int main(string[] args ) {
-  version(unittest) {
-    globalVerbosityLevel = VL.Debug;
-  }
 
   // Process the CLI parameters.
   processCLI(args);
