@@ -8,7 +8,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.io.io;
@@ -20,7 +19,6 @@ import dlbc.fields.field;
 import dlbc.lb.lb;
 import dlbc.lattice;
 import dlbc.logging;
-import dlbc.io.ascii;
 import dlbc.io.checkpoint;
 import dlbc.io.hdf5;
 import dlbc.parameters;
