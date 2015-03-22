@@ -14,7 +14,6 @@ module dlbc.elec.flux;
 
 import dlbc.lb.connectivity;
 import dlbc.elec.elec;
-import dlbc.fields.init;
 import dlbc.fields.parallel;
 import dlbc.lattice;
 import dlbc.lb.mask;
@@ -91,6 +90,7 @@ package bool moveElecCharges(T)(ref T L) if ( isLattice!T ) {
      L = lattice
 */
 private void resetFlux(T)(ref T L) @safe pure nothrow @nogc if ( isLattice!T ) {
+  import dlbc.fields.init: initConst;
   L.elFluxP.initConst(0.0);
   L.elFluxN.initConst(0.0);
 }

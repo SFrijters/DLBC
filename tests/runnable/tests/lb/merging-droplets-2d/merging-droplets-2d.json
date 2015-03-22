@@ -23,7 +23,9 @@
 
   "fast": {
     "parameters": [
-      { "parameter": "lb.timesteps", "value": "100" }
+      { "parameter": "lb.timesteps", "value": "100" },
+      { "parameter": "lb.io.colourFreq", "value": "100" },
+      { "parameter": "lb.io.densityFreq", "value": "100" }
     ],
     "compare": {
       "data": [ "colour-red-blue", "density-red", "density-blue", "population-red", "population-blue" ],

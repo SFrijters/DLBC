@@ -10,8 +10,8 @@
   "compare": {
     "data": [ "colour-red-blue", "density-red", "density-blue" ],
     "comparison": [
-      { "type": "h5diff", "files": "%data%-merging-droplets-3d-*-t00000000.h5" },
-      { "type": "h5diff", "files": "%data%-merging-droplets-3d-*-t00001000.h5", "accuracy": "1e-14" }
+      { "type": "h5diff", "files": "%data%-merging-droplets-3d-*t00000000.h5" },
+      { "type": "h5diff", "files": "%data%-merging-droplets-3d-*t00001000.h5", "accuracy": "1e-14" }
     ]
   },
 
@@ -30,8 +30,8 @@
     "compare": {
       "data": [ "colour-red-blue", "density-red", "density-blue" ],
       "comparison": [
-        { "type": "h5diff", "files": "%data%-merging-droplets-3d-*-t00000000.h5" },
-        { "type": "h5diff", "files": "%data%-merging-droplets-3d-*-t00000010.h5", "accuracy": "1e-15" }
+        { "type": "h5diff", "files": "%data%-merging-droplets-3d-*t00000000.h5" },
+        { "type": "h5diff", "files": "%data%-merging-droplets-3d-*t00000010.h5", "accuracy": "1e-15" }
       ]
     }
   }

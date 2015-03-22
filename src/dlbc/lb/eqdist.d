@@ -12,10 +12,6 @@
 
 module dlbc.lb.eqdist;
 
-import dlbc.lb.density;
-import dlbc.lb.velocity;
-import dlbc.range;
-
 /**
    Form of the equilibrium distribution function.
 */
@@ -39,91 +35,6 @@ enum EqDistForm {
   BDist2,
 }
 
-import std.range: isInputRange;
-import std.traits: CommonType, Unqual;
-/**
-   Computes the $(LUCKY dot product) of input ranges $(D a) and $(D
-   b). The two ranges must have the same length. If both ranges define
-   length, the check is done once; otherwise, it is done at each
-   iteration.
-
-   Todo: once dotProduct in phobos has the necessary attributes, remove these copies.
- */
-CommonType!(ElementType!(Range1), ElementType!(Range2))
-dotProduct(Range1, Range2)(Range1 a, Range2 b)
-    @safe pure nothrow @nogc
-    if (isInputRange!(Range1) && isInputRange!(Range2) &&
-            !(isArray!(Range1) && isArray!(Range2)))
-{
-    enum bool haveLen = hasLength!(Range1) && hasLength!(Range2);
-    static if (haveLen) enforce(a.length == b.length);
-    typeof(return) result = 0;
-    for (; !a.empty; a.popFront(), b.popFront())
-    {
-        result += a.front * b.front;
-    }
-    static if (!haveLen) enforce(b.empty);
-    return result;
-}
-
-/// Ditto
-Unqual!(CommonType!(F1, F2))
-dotProduct(F1, F2)(in F1[] avector, in F2[] bvector)
-    @trusted pure nothrow @nogc
-{
-  immutable n = avector.length;
-  assert(n == bvector.length);
-  auto avec = avector.ptr, bvec = bvector.ptr;
-  typeof(return) sum0 = 0, sum1 = 0;
-
-  const all_endp = avec + n;
-  const smallblock_endp = avec + (n & ~3);
-  const bigblock_endp = avec + (n & ~15);
-
-  for (; avec != bigblock_endp; avec += 16, bvec += 16) {
-    assert(0, "dotProduct for max 4 length only.");
-    /+
-     sum0 += avec[0] * bvec[0];
-     sum1 += avec[1] * bvec[1];
-     sum0 += avec[2] * bvec[2];
-     sum1 += avec[3] * bvec[3];
-     sum0 += avec[4] * bvec[4];
-     sum1 += avec[5] * bvec[5];
-     sum0 += avec[6] * bvec[6];
-     sum1 += avec[7] * bvec[7];
-     sum0 += avec[8] * bvec[8];
-     sum1 += avec[9] * bvec[9];
-     sum0 += avec[10] * bvec[10];
-     sum1 += avec[11] * bvec[11];
-     sum0 += avec[12] * bvec[12];
-     sum1 += avec[13] * bvec[13];
-     sum0 += avec[14] * bvec[14];
-     sum1 += avec[15] * bvec[15];
-    +/
-    }
-
-    for (; avec != smallblock_endp; avec += 4, bvec += 4) {
-      assert(0, "dotProduct for max 4 length only.");
-      /+
-       sum0 += avec[0] * bvec[0];
-       sum1 += avec[1] * bvec[1];
-       sum0 += avec[2] * bvec[2];
-       sum1 += avec[3] * bvec[3];
-      +/
-    }
-
-    sum0 += sum1;
-
-    /* Do trailing portion in naive loop. */
-    while (avec != all_endp) {
-      sum0 += *avec * *bvec;
-      ++avec;
-      ++bvec;
-    }
-
-    return sum0;
-}
-
 /**
    Generate an equilibrium distribution population \(\vec{n}^{\mathrm{eq}}\) of a population \(\vec{n}\).
 
@@ -141,12 +52,16 @@ dotProduct(F1, F2)(in F1[] avector, in F2[] bvector)
      clean up BDist2 block; allow for connectivities other than D3Q19.
 */
 auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double[conn.d] dv) @safe pure nothrow @nogc {
+  import dlbc.lb.density: density;
   immutable rho0 = population.density();
   return eqDist!(eqDistForm, conn)(population, dv, rho0);
 }
 
 /// Ditto
 auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double[conn.d] dv, in double rho0) @safe pure nothrow @nogc {
+  import dlbc.lb.velocity: velocity;
+  import dlbc.range: dotProduct, Iota;
+
   static assert(population.length == conn.q);
 
   T dist;
@@ -401,7 +316,10 @@ auto eqDistUnity(alias conn)(in EqDistForm edf) @safe pure nothrow @nogc {
 
 unittest {
   import dlbc.lb.connectivity: gconn;
+  import dlbc.lb.density: density;
+  import dlbc.lb.velocity: velocity;
   import dlbc.random;
+  import dlbc.range: Iota;
   import std.math: approxEqual;
   import std.traits: EnumMembers;
 

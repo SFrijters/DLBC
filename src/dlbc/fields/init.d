@@ -18,7 +18,7 @@ import dlbc.lb.mask: isMaskField, Mask;
 import dlbc.lb.connectivity: Axis;
 import dlbc.parallel: M;
 import dlbc.random;
-import dlbc.range: Iota;
+import dlbc.range: Iota, dotProduct;
 
 import std.conv: to;
 import std.traits: isIterable;

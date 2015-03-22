@@ -19,9 +19,9 @@ tau = [ 1.0, 1.0 ]
 
 eqdist.eqDistForm = BDist2
 
-io.densityFreq = 100
-io.populationFreq = 100
-io.colourFreq = 10
+io.densityFreq = 1000
+io.populationFreq = 1000
+io.colourFreq = 1000
 
 force.gcc = [ [ 0.0, 3.6 ], [ 3.6, 0.0 ] ] // LB3D gcc is 36 times that of DLBC
 force.enableShanChen = true
