@@ -77,6 +77,9 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
             if ( options.only_first ):
                 logInformation("  Running parameter set %d of %d (only this one will be executed) ..." % (i+1, nSubtests))
                 timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
+            elif ( options.only_serial and np > 1):
+                logInformation("  Parameter set %d of %d has np > 1, skipping ..." % (i+1, nSubtests))
+                continue
             else:
                 logInformation("  Running parameter set %d of %d ..." % (i+1, nSubtests))
                 timerName = os.path.relpath(os.path.join(testRoot, testName), "tests") + " %2d" % (i+1)
@@ -109,6 +112,9 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
                 break
 
     else:
+        if ( options.only_serial and np > 1):
+            logInformation("  Parameter set 1 of 1 has np > 1, skipping ...")
+            return nerr
         logInformation("  Running parameter set 1 of 1 ...")
         timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
         command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
@@ -192,35 +198,37 @@ def checkpointCommand(options, checkpoint):
     return command
 
 def reportRunTimers(warnTime):
-    tnlen = max([len(t) for t in runSubtestTimers])
-
-    logNotification("\n" + "="*80 + "\n")
-    logNotification("  %*s %12s" % (tnlen, "test", "time (s)"))
-    logNotification("%s" % "_"*(tnlen+15))
-
     totalTime = 0.0
     timeWarnings = 0
-    for test in sorted(runSubtestTimers):
-        time = runSubtestTimers[test]
-        err = runSubtestErrors[test]
-        totalTime += time
-        prefix = " "
-        if ( time > warnTime ):
-            prefix = "!"
-            timeWarnings += 1
 
-        if ( err > 0 ):
-            prefix = "X"
+    if ( len(runSubtestTimers) > 0 ):
+        tnlen = max([len(t) for t in runSubtestTimers])
 
-        logNotification("%s %*s %12e" % (prefix, tnlen, test, time))
+        logNotification("\n" + "="*80 + "\n")
+        logNotification("  %*s %12s" % (tnlen, "test", "time (s)"))
+        logNotification("%s" % "_"*(tnlen+15))
 
-    logNotification("%s" % "_"*(tnlen+15))
+        for test in sorted(runSubtestTimers):
+            time = runSubtestTimers[test]
+            err = runSubtestErrors[test]
+            totalTime += time
+            prefix = " "
+            if ( time > warnTime ):
+                prefix = "!"
+                timeWarnings += 1
 
-    import time
-    fTime = time.strftime("%H:%M:%S", time.gmtime(totalTime))
+            if ( err > 0 ):
+                prefix = "X"
 
-    logNotification("  %*s %12e" % (tnlen, "total", totalTime))
-    logNotification("  %*s %12s" % (tnlen, "", fTime))
+            logNotification("%s %*s %12e" % (prefix, tnlen, test, time))
+
+        logNotification("%s" % "_"*(tnlen+15))
+
+        import time
+        fTime = time.strftime("%H:%M:%S", time.gmtime(totalTime))
+
+        logNotification("  %*s %12e" % (tnlen, "total", totalTime))
+        logNotification("  %*s %12s" % (tnlen, "", fTime))
 
     if ( timeWarnings > 0 ):
         if ( timeWarnings == 1 ):
