@@ -429,106 +429,31 @@ template isMatchingPopulation(T, conn) {
   enum isMatchingPopulation = ( T.length == conn.q );
 }
 
-unittest {
-  auto velocities = generateVelocities!(3,19);
-  auto bounce = generateBounce(velocities);
-  assert(velocities.length == bounce.length);
-  foreach(immutable vq; 0..velocities.length) {
-    foreach(immutable vd; 0..velocities[0].length) {
-      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
+@safe pure nothrow @nogc unittest {
+
+  void testBounce(uint d, uint q)() @safe pure nothrow @nogc {
+    auto velocities = generateVelocities!(d,q);
+    auto bounce = generateBounce(velocities);
+    assert(velocities.length == bounce.length);
+    foreach(immutable vq; 0..velocities.length) {
+      foreach(immutable vd; 0..velocities[0].length) {
+	assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
+      }
     }
   }
+
+  testBounce!(3,19)();
+  testBounce!(3,7)();
+  testBounce!(3,1)();
+  testBounce!(2,9)();
+  testBounce!(2,5)();
+  testBounce!(2,1)();
+  testBounce!(1,5)();
+  testBounce!(1,3)();
+  testBounce!(1,1)();
 }
 
-unittest {
-  auto velocities = generateVelocities!(3,7);
-  auto bounce = generateBounce(velocities);
-  assert(velocities.length == bounce.length);
-  foreach(immutable vq; 0..velocities.length) {
-    foreach(immutable vd; 0..velocities[0].length) {
-      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
-    }
-  }
-}
-
-unittest {
-  auto velocities = generateVelocities!(3,1);
-  auto bounce = generateBounce(velocities);
-  assert(velocities.length == bounce.length);
-  foreach(immutable vq; 0..velocities.length) {
-    foreach(immutable vd; 0..velocities[0].length) {
-      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
-    }
-  }
-}
-
-unittest {
-  auto velocities = generateVelocities!(2,9);
-  auto bounce = generateBounce(velocities);
-  assert(velocities.length == bounce.length);
-  foreach(immutable vq; 0..velocities.length) {
-    foreach(immutable vd; 0..velocities[0].length) {
-      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
-    }
-  }
-}
-
-unittest {
-  auto velocities = generateVelocities!(2,5);
-  auto bounce = generateBounce(velocities);
-  assert(velocities.length == bounce.length);
-  foreach(immutable vq; 0..velocities.length) {
-    foreach(immutable vd; 0..velocities[0].length) {
-      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
-    }
-  }
-}
-
-unittest {
-  auto velocities = generateVelocities!(2,1);
-  auto bounce = generateBounce(velocities);
-  assert(velocities.length == bounce.length);
-  foreach(immutable vq; 0..velocities.length) {
-    foreach(immutable vd; 0..velocities[0].length) {
-      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
-    }
-  }
-}
-
-unittest {
-  auto velocities = generateVelocities!(1,5);
-  auto bounce = generateBounce(velocities);
-  assert(velocities.length == bounce.length);
-  foreach(immutable vq; 0..velocities.length) {
-    foreach(immutable vd; 0..velocities[0].length) {
-      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
-    }
-  }
-}
-
-unittest {
-  auto velocities = generateVelocities!(1,3);
-  auto bounce = generateBounce(velocities);
-  assert(velocities.length == bounce.length);
-  foreach(immutable vq; 0..velocities.length) {
-    foreach(immutable vd; 0..velocities[0].length) {
-      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
-    }
-  }
-}
-
-unittest {
-  auto velocities = generateVelocities!(1,1);
-  auto bounce = generateBounce(velocities);
-  assert(velocities.length == bounce.length);
-  foreach(immutable vq; 0..velocities.length) {
-    foreach(immutable vd; 0..velocities[0].length) {
-      assert(velocities[vq][vd] == -velocities[bounce[vq]][vd]);
-    }
-  }
-}
-
-unittest {
+@safe pure nothrow @nogc unittest {
   assert(generateSpeedOfSound!(3,19) == 1.0/3.0);
   assert(generateSpeedOfSound!(3,7) == 1.0/3.0);
   assert(generateSpeedOfSound!(3,1) == 1.0/3.0);
@@ -540,7 +465,7 @@ unittest {
   assert(generateSpeedOfSound!(1,1) == 1.0/3.0);
 }
 
-unittest {
+@safe pure nothrow @nogc unittest {
   import std.algorithm: sum;
   import std.numeric: approxEqual;
   assert(approxEqual(sum(generateWeights!(3, 19)[]), 1.0));
