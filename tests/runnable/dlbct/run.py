@@ -85,16 +85,12 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
                 timerName = os.path.relpath(os.path.join(testRoot, testName), "tests") + " %2d" % (i+1)
 
             # Prepare command
-            command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
+            command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity, "--parameter", "timers.enableIO=true" ]
             command = command + constructParameterCommand(m)
 
             command = command + coverageCommand(options, coverageOverrides)
             command = command + fastCommand(options, fastOverrides)
             command = command + checkpointCommand(options, checkpoint)
-
-            if ( options.timers or options.timers_all):
-                command.append("--parameter")
-                command.append("timers.enableIO=true")
 
             # Run subtest
             nerr += runSubtest(command, testRoot, timerName)
@@ -117,15 +113,12 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
             return nerr
         logInformation("  Running parameter set 1 of 1 ...")
         timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
-        command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity ]
+        command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity, "--parameter", "timers.enableIO=true"]
 
         command = command + coverageCommand(options, coverageOverrides)
         command = command + fastCommand(options, fastOverrides)
         command = command + checkpointCommand(options, checkpoint)
 
-        if ( options.timers or options.timers_all ):
-            command.append("--parameter")
-            command.append("timers.enableIO=true")
         nerr += runSubtest(command, testRoot, timerName)
 
         if ( options.timers or options.timers_all ):
