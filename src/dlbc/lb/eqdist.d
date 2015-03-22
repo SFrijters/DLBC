@@ -8,7 +8,6 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.lb.eqdist;
@@ -141,13 +140,13 @@ dotProduct(F1, F2)(in F1[] avector, in F2[] bvector)
    Todo:
      clean up BDist2 block; allow for connectivities other than D3Q19.
 */
-auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double[conn.d] dv) @safe nothrow @nogc {
+auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double[conn.d] dv) @safe pure nothrow @nogc {
   immutable rho0 = population.density();
   return eqDist!(eqDistForm, conn)(population, dv, rho0);
 }
 
 /// Ditto
-auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double[conn.d] dv, in double rho0) @safe nothrow @nogc {
+auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double[conn.d] dv, in double rho0) @safe pure nothrow @nogc {
   static assert(population.length == conn.q);
 
   T dist;
@@ -157,7 +156,7 @@ auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double
     immutable cv = conn.velocities;
     immutable cw = conn.weights;
     immutable css = conn.css;
-    immutable pv = population.velocity!(conn)(rho0);
+    immutable pv = population.velocity!conn(rho0);
     double[conn.d] v;
     foreach(immutable vd; Iota!(0,conn.d) ) {
       v[vd] = dv[vd] + pv[vd];
@@ -354,17 +353,18 @@ auto eqDist(EqDistForm eqDistForm, alias conn, T)(in ref T population, in double
     ++/
     else {
       dist = population; // this is currently a no-op
+      // assert(0, "EqDistForm.BDist2 not implemented for D1Q3.");
     }
   }
   else {
-    static assert(0);
+    static assert(0, "Unknown EqDistForm.");
   }
   return dist;
 }
 
 /// Ditto
-auto eqDist(alias conn, T)(in ref T population, in double[conn.d] dv) {
-  final switch(eqDistForm) {
+auto eqDist(alias conn, T)(in EqDistForm edf, in ref T population, in double[conn.d] dv) @safe pure nothrow @nogc {
+  final switch(edf) {
     // Returns appropriately templated eqDist
     mixin(edfMixin());
   }
@@ -384,52 +384,61 @@ private string edfMixin() {
 }
 
 /**
-   Calculate equilibrium density for unity density and zero velocity.
+   Calculate equilibrium distribution for unity density and zero velocity.
+
+   Params:
+     edf = form of the equilibrium distribution
 
    Returns:
      equilibrium distribution \(\vec{n}^{\mathrm{eq}}\)
 */
-auto eqDistUnity(alias conn)() {
+auto eqDistUnity(alias conn)(in EqDistForm edf) @safe pure nothrow @nogc {
   double[conn.q] pop0 = 0.0;
   pop0[0] = 1.0;
-  double[conn.d] dv = 0.0;
-  return eqDist!(conn)(pop0, dv);
+  immutable double[conn.d] dv = 0.0;
+  return eqDist!conn(edf, pop0, dv);
 }
 
 unittest {
-  // Check mass and momentum conservation of the equilibrium distributions.
-  import dlbc.lb.connectivity;
+  import dlbc.lb.connectivity: gconn;
   import dlbc.random;
   import std.math: approxEqual;
-  import std.traits;
+  import std.traits: EnumMembers;
+
+  immutable double[gconn.d] dv = 0.001;
   double[gconn.q] population, eq;
-  double[gconn.d] dv = 0.001;
   double[gconn.d] shifted;
+  double[gconn.d] zeroVelocity;
   population[] = 0.0;
+  zeroVelocity[] = 0.0;
 
   // Check all eqDists.
   foreach(immutable edf; EnumMembers!EqDistForm) {
     foreach(immutable vq; Iota!(0,gconn.q) ) {
       population[vq] = uniform(0.0, 1.0, rng);
+
+      // Test template form of eqDist.
       eq = eqDist!(edf, gconn)(population, dv);
       assert(approxEqual(eq.density(), population.density())); // Mass conservation
-      shifted[] = eq.velocity!(gconn)()[] - dv[];
-      // assert(approxEqual(shifted[], population.velocity!(gconn)()[])); // Momentum conservation
-    }
-  }
+      if ( edf != EqDistForm.BDist2 ) {
+	shifted[] = eq.velocity!gconn()[] - dv[];
+	assert(approxEqual(shifted[], population.velocity!gconn()[])); // Momentum conservation
+      }
 
-  auto eqDistFormTemp = eqDistForm;
-  foreach(immutable edf; EnumMembers!EqDistForm) {
-    eqDistForm = edf;
-    foreach(immutable vq; Iota!(0,gconn.q) ) {
-      population[vq] = uniform(0.0, 1.0, rng);
-      eq = eqDist!(gconn)(population, dv);
+      // Test runtime form of eqDist.
+      eq = eqDist!(edf, gconn)(population, dv);
       assert(approxEqual(eq.density(), population.density())); // Mass conservation
-      shifted[] = eq.velocity!(gconn)()[] - dv[];
-      // assert(approxEqual(shifted[], population.velocity!(gconn)()[])); // Momentum conservation
+      if ( edf != EqDistForm.BDist2 ) {
+	shifted[] = eq.velocity!gconn()[] - dv[];
+	assert(approxEqual(shifted[], population.velocity!gconn()[])); // Momentum conservation
+      }
+
+      // Test unity eqDist.
+      eq = eqDistUnity!gconn(edf);
+      assert(approxEqual(eq.density(), 1.0));
+      assert(eq.velocity!gconn() == zeroVelocity);
     }
   }
-  eqDistForm = eqDistFormTemp;
 }
 
 unittest {

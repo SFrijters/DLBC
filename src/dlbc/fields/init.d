@@ -8,22 +8,20 @@
    License: $(HTTP www.gnu.org/licenses/gpl-3.0.txt, GNU General Public License - version 3 (GPL-3.0)).
 
    Authors: Stefan Frijters
-
 */
 
 module dlbc.fields.init;
 
-import dlbc.fields.field;
+import dlbc.fields.field: isField;
 import dlbc.lb.eqdist;
-import dlbc.lb.mask;
+import dlbc.lb.mask: isMaskField, Mask;
 import dlbc.lb.connectivity: Axis;
-import dlbc.logging;
-import dlbc.parallel;
+import dlbc.parallel: M;
 import dlbc.random;
+import dlbc.range: Iota;
 
-import dlbc.range;
-
-import std.traits;
+import std.conv: to;
+import std.traits: isIterable;
 
 void initRank(T)(ref T field) @safe pure nothrow @nogc if ( isField!T ) {
   foreach( ref e; field.byElementForward) {
@@ -65,66 +63,45 @@ void initConstRandom(T)(ref T field, in double fill) if ( isField!T ) {
 }
 
 void initEqDist(T)(ref T field, in double density) @safe nothrow @nogc if ( isField!T ) {
-  import dlbc.lb.collision;
-  import dlbc.lb.connectivity;
   alias conn = field.conn;
-  double[conn.q] pop0 = 0.0;
-  pop0[0] = 1.0;
-  double[conn.d] dv = 0.0;
-  typeof(pop0) pop = density*eqDist!conn(pop0, dv)[];
+  double[conn.q] eqpop = density*eqDistUnity!conn(eqDistForm)[];
   foreach( ref e; field.byElementForward) {
-    e = pop;
+    e = eqpop;
   }
 }
 
 void initEqDistPerturb(T)(ref T field, in double density, in double perturb) if ( isField!T ) {
-  import dlbc.lb.collision;
-  import dlbc.lb.connectivity;
   alias conn = field.conn;
-  double[conn.d] dv = 0.0;
-  double[conn.q] pop0 = 0.0;
-  pop0[0] = 1.0;
+  immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
   foreach( ref e; field.byElementForward) {
-    typeof(pop0) pop = (density + uniform(-perturb, perturb, rng) ) * eqDist!conn(pop0, dv)[];
-    e = pop;
+    e = (density + uniform(-perturb, perturb, rng) ) * eqpop[];
   }
 }
 
 void initEqDistPerturbFrac(T)(ref T field, in double density, in double perturb) if ( isField!T ) {
-  import dlbc.lb.collision;
-  import dlbc.lb.connectivity;
   alias conn = field.conn;
-  double[conn.d] dv = 0.0;
-  double[conn.q] pop0 = 0.0;
-  pop0[0] = 1.0;
+  immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
   foreach( ref e; field.byElementForward) {
-    typeof(pop0) pop = density * (1.0 + uniform(-perturb, perturb, rng) ) * eqDist!conn(pop0, dv)[];
-    e = pop;
+    e = density * (1.0 + uniform(-perturb, perturb, rng) ) * eqpop[];
   }
 }
 
 void initEqDistRandom(T)(ref T field, in double density) if ( isField!T ) {
-  import dlbc.lb.collision;
-  import dlbc.lb.connectivity;
   alias conn = field.conn;
-  double[conn.q] pop0;
-  double[conn.d] dv = 0.0;
+  immutable double[conn.q] unity = eqDistUnity!conn(eqDistForm);
   foreach( ref e; field.byElementForward) {
-    pop0 = 0.0;
-    pop0[0] = uniform(0.0, 2.0, rng);
-    e = density*eqDist!conn(pop0, dv)[];
+    e = density * uniform(0.0, 2.0, rng) * unity[];
   }
 }
 
 void initEqDistSphere(T)(ref T field, in double density1, in double density2,
                          in double initSphereRadius, in double[] initSphereOffset, in double interfaceThickness) if ( isField!T ) {
-  import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
-  import std.math, std.conv, std.numeric;
+  import std.math: sqrt;
   alias conn = field.conn;
 
   assert(initSphereOffset.length == conn.d);
 
-  immutable eqpop = eqDistUnity!conn().idup;
+  immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
 
   // Initialize sites.
   foreach(immutable p, ref e; field.arr) {
@@ -141,8 +118,6 @@ void initEqDistSphere(T)(ref T field, in double density1, in double density2,
 void initEqDistSphereFrac(T)(ref T field, in double density1, in double density2,
                              in double initSphereRadiusFrac, in double[] initSphereOffsetFrac, in double interfaceThickness) if ( isField!T ) {
   import dlbc.lattice: gn;
-  import dlbc.range;
-
   alias conn = field.conn;
 
   assert(initSphereOffsetFrac.length == conn.d);
@@ -165,13 +140,12 @@ void initEqDistSphereFrac(T)(ref T field, in double density1, in double density2
 
 void initEqDistCylinder(T)(ref T field, in double density1, in double density2, in Axis preferredAxis,
                            in double initCylinderRadius, in double[] initCylinderOffset, in double interfaceThickness) if ( isField!T ) {
-  import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
-  import std.math, std.conv, std.numeric;
+  import std.math: sqrt;
   alias conn = field.conn;
 
   assert(initCylinderOffset.length == conn.d);
 
-  immutable eqpop = eqDistUnity!conn().idup;
+  immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
 
   // Initialize sites.
   foreach(immutable p, ref e; field.arr) {
@@ -193,7 +167,6 @@ void initEqDistCylinder(T)(ref T field, in double density1, in double density2, 
 void initEqDistCylinderFrac(T)(ref T field, in double density1, in double density2, in Axis preferredAxis,
                                in double initCylinderRadiusFrac, in double[] initCylinderOffsetFrac, in double interfaceThickness) if ( isField!T ) {
   import dlbc.lattice: gn;
-  import dlbc.range;
   alias conn = field.conn;
 
   assert(initCylinderOffsetFrac.length == conn.d);
@@ -221,15 +194,14 @@ void initEqDistCylinderFrac(T)(ref T field, in double density1, in double densit
 void initEqDistTwoSpheres(T)(ref T field, in double density1, in double density2,
 			     in double initSphereRadius, in double[] initSphereOffset,
 			     in double interfaceThickness, in double[] initSeparation ) if ( isField!T ) {
-  import dlbc.lb.collision, dlbc.lb.connectivity, dlbc.range;
-  import std.math, std.conv, std.numeric;
   import std.algorithm: min;
+  import std.math: sqrt;
   alias conn = field.conn;
 
   assert(initSphereOffset.length == conn.d);
   assert(initSeparation.length == conn.d);
 
-  immutable eqpop = eqDistUnity!conn().idup;
+  immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
 
   // Initialize sites.
   foreach(immutable p, ref e; field.arr) {
@@ -251,8 +223,6 @@ void initEqDistTwoSpheresFrac(T)(ref T field, in double density1, in double dens
 				 in double initSphereRadiusFrac, in double[] initSphereOffsetFrac,
 				 in double interfaceThickness, in double[] initSeparationFrac ) if ( isField!T ) {
   import dlbc.lattice: gn;
-  import dlbc.range;
-
   alias conn = field.conn;
 
   assert(initSphereOffsetFrac.length == conn.d);
@@ -277,9 +247,6 @@ void initEqDistTwoSpheresFrac(T)(ref T field, in double density1, in double dens
 }
 
 void initEqDistWall(T, U)(ref T field, in double density, ref U mask) if ( isField!T && isMaskField!U ) {
-  import dlbc.lb.collision;
-  import dlbc.lb.connectivity;
-  import dlbc.lb.mask;
   alias conn = field.conn;
   foreach(immutable p, ref e; field.arr) {
     if ( mask[p] == Mask.Solid ) {
@@ -291,14 +258,12 @@ void initEqDistWall(T, U)(ref T field, in double density, ref U mask) if ( isFie
 
 void initEqDistLamellae(T, U)(ref T field, in U[] values, in double[] widths, in Axis preferredAxis, in double interfaceThickness) if ( isField!T ) {
   import std.math: abs;
-  import std.algorithm: sum;
-  assert(widths.length == values.length);
-
   alias conn = field.conn;
 
-  immutable eqpop = eqDistUnity!conn().idup;
+  assert(widths.length == values.length);
 
-  size_t ax = to!int(preferredAxis);
+  immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
+  immutable ax = to!int(preferredAxis);
 
   auto interfaces = [0.0 ] ~ widths.dup;
   foreach(immutable i, ref w; interfaces) {
@@ -344,7 +309,7 @@ void initEqDistLamellaeFrac(T, U)(ref T field, in U[] values, in double[] widths
   import dlbc.lattice: gn;
   assert(widthsFrac.length == values.length);
 
-  size_t ax = to!int(preferredAxis);
+  immutable ax = to!int(preferredAxis);
 
   double[] widths;
   foreach(immutable i; 0..widthsFrac.length) {
