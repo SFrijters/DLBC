@@ -51,7 +51,6 @@ void initRNG() {
 }
 
 unittest {
-  import std.stdio;
   immutable double s0v0 = 1.0976270048640728305144875776022672653198242187500000;
   immutable double s0v1 = 1.1856892330538686408658577420283108949661254882812500;
   immutable double s0v2 = 1.4303787302762218658358506218064576387405395507812500;
@@ -64,19 +63,10 @@ unittest {
   immutable double s42v1 = 1.5930859687722020989752991226851008832454681396484375;
   immutable double s42v2 = 1.9014286235676676195538448155275546014308929443359375;
 
-  double val;
   rng.seed(0);
-  val = uniform(0.0, 2.0, rng);
-  writefln("%.50f %.50f", val, s0v0);
-  assert( val == s0v0);
-
-  val = uniform(0.0, 2.0, rng);
-  writefln("%.50f %.50f", val, s0v1);
-  assert( val == s0v1);
-
-  val = uniform(0.0, 2.0, rng);
-  writefln("%.50f %.50f", val, s0v2);
-  assert( val == s0v2);
+  assert( uniform(0.0, 2.0, rng) == s0v0);
+  assert( uniform(0.0, 2.0, rng) == s0v1);
+  assert( uniform(0.0, 2.0, rng) == s0v2);
 
   rng.seed(1);
   assert( uniform(0.0, 2.0, rng) == s1v0);
