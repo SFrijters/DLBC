@@ -16,7 +16,14 @@ def compareTest(compare, testRoot, compiler, strict, lax):
     """ Run all necessary comparisons for a single subtest. """
     logNotification("Comparing test result to reference data ...")
     nerr = 0
-    for c in compare["comparison"]:
+
+    try:
+        comparisons = compare["comparison"]
+    except KeyError:
+        logWarning("Parameter compare does not contain any comparisons.")
+        comparisons = []
+
+    for c in comparisons:
         ctype = getCompareType(c)
         acc = getCompareAccuracy(c)
         if ( ctype == "h5diff" ):
