@@ -1,5 +1,5 @@
 [io]
-simulationName = fluid-init-const-2d
+simulationName = fluid-init-eqdistperturb-2d
 outputPath = output
 
 [lattice]
@@ -16,9 +16,15 @@ io.populationFreq = 1
 io.colourFreq = 1
 io.maskFreq = 1
 
+[random]
+seed = 42
+shiftSeedByRank = false
+
 // Init
 [lb]
-init.fluidInit = [ Const, Const ]
+eqdist.eqDistForm = BDist2
+init.fluidInit = [ EqDistPerturb, EqDistPerturb ]
 init.fluidDensities = [ [ 0.5 ], [ 1.0 ] ]
+init.fluidPerturb = [ 0.1, 0.2 ]
 mask.maskInit = None
 

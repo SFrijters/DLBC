@@ -5,6 +5,7 @@
 
   "configuration": "d2q9",
   "input-file": "fluid-init-eqdist-2d.in",
+  "np": 4,
   "clean": [ "output" ],
 
   "compare": {
