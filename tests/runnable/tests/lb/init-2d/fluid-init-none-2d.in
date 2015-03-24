@@ -1,0 +1,37 @@
+[io]
+simulationName = fluid-init-none-2d
+outputFormat = HDF5
+outputPath = output
+createPath = true
+
+startOutput = 0
+
+checkpoint.cpFreq = 0
+
+hdf5.writeChunked = false
+
+[lb]
+timesteps = 0
+components = 2
+fieldNames = [ "red", "blue" ]
+
+tau = [ 1.0, 1.0 ]
+
+eqdist.eqDistForm = BDist2
+
+io.populationFreq = 1
+io.colourFreq = 1
+io.maskFreq = 1
+
+init.fluidInit = [ None, None ]
+mask.maskInit = None
+
+[parallel]
+nc = [ 2, 2 ]
+
+[lattice]
+gn = [ 64, 64 ]
+
+[random]
+seed = 42
+
