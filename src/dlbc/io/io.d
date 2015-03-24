@@ -38,7 +38,7 @@ import dlbc.timers;
 /**
    File format of the output.
 */
-@("param") FileFormat outputFormat;
+@("param") FileFormat outputFormat = FileFormat.HDF5;
 /**
    Relative path to create output files at.
 */
@@ -46,7 +46,7 @@ import dlbc.timers;
 /**
    Whether or not to create directories if necessary.
 */
-@("param") bool createPath = false;
+@("param") bool createPath = true;
 /**
    From which timestep to start writing files.
 */
@@ -74,13 +74,13 @@ string restoreString;
 */
 enum FileFormat {
   /**
-     Plain text ascii.
-  */
-  Ascii,
-  /**
      (Parallel) HDF5.
   */
   HDF5,
+  /**
+     Plain text ascii.
+  */
+  Ascii,
 }
 
 /**
