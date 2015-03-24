@@ -24,6 +24,11 @@ public import std.random;
   of identical domains.
 */
 @("param") int seed;
+/**
+   If set to true, each rank's RNG will be seeded with $(D seed + M.rank),
+   otherwise, all ranks will be seeded with only $(D seed).
+*/
+@("param") bool shiftSeedByRank = true;
 
 /**
   The PRNG is currently the Mersenne Twister with standard initialisation values.
@@ -34,8 +39,14 @@ Mt19937 rng;
    Initialises the PRNG on each process.
 */
 void initRNG() {
-  writeLogRI("Initializing random number generator of type '%s' with seed %d plus MPI rank.", typeof(rng).stringof, seed);
   // Each process gets a different seed.
-  rng.seed(seed + M.rank);
+  if ( shiftSeedByRank ) {
+    writeLogRI("Initializing random number generator of type '%s' with seed %d plus MPI rank.", typeof(rng).stringof, seed);
+    rng.seed(seed + M.rank);
+  }
+  else {
+    writeLogRI("Initializing random number generator of type '%s' with seed %d.", typeof(rng).stringof, seed);
+    rng.seed(seed);
+  }
 }
 
