@@ -218,9 +218,17 @@ void initFluid(T)(ref T field, in size_t i) if ( isPopulationField!T ) {
     checkFDArrayParameterLength(1);
     field.initConst(fluidDensities[i][0]);
     break;
+  case(FluidInit.ConstRandom):
+    checkFDArrayParameterLength(1);
+    field.initConstRandom(fluidDensities[i][0]);
+    break;
   case(FluidInit.EqDist):
     checkFDArrayParameterLength(1);
     field.initEqDist(fluidDensities[i][0]);
+    break;
+  case(FluidInit.EqDistRandom):
+    checkFDArrayParameterLength(1);
+    field.initEqDistRandom(fluidDensities[i][0]);
     break;
   case(FluidInit.EqDistPerturb):
     checkFDArrayParameterLength(1);
@@ -229,14 +237,6 @@ void initFluid(T)(ref T field, in size_t i) if ( isPopulationField!T ) {
   case(FluidInit.EqDistPerturbFrac):
     checkFDArrayParameterLength(1);
     field.initEqDistPerturbFrac(fluidDensities[i][0], fluidPerturb[i]);
-    break;
-  case(FluidInit.ConstRandom):
-    checkFDArrayParameterLength(1);
-    field.initConstRandom(fluidDensities[i][0]);
-    break;
-  case(FluidInit.EqDistRandom):
-    checkFDArrayParameterLength(1);
-    field.initEqDistRandom(fluidDensities[i][0]);
     break;
   case(FluidInit.EqDistSphere):
     checkFDArrayParameterLength(2);
