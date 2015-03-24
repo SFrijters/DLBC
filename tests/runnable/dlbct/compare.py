@@ -12,7 +12,7 @@ import os
 import string
 import subprocess
 
-def compareTest(compare, testRoot, compiler, strict, lax):
+def compareTest(compare, testRoot, timerName, compiler, strict, lax):
     """ Run all necessary comparisons for a single subtest. """
     logNotification("Comparing test result to reference data ...")
     nerr = 0
@@ -71,6 +71,10 @@ def compareTest(compare, testRoot, compiler, strict, lax):
             nerr += logError("Script '%s' returned %d." % ( s, p.returncode) )
     if ( nerr == 0 ):
         logInformation("  No errors found.")
+
+    import run
+    run.runSubtestErrors[timerName] += nerr
+
     return nerr
 
 def replaceTokensInCompare(compare, parameters, np):

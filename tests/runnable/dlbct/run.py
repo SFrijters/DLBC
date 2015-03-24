@@ -105,7 +105,7 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
             if ( not options.coverage ):
                 compareThis = replaceTokensInCompare(compare, m, np)
                 if ( not options.compare_none ):
-                    nerr += compareTest(compareThis, testRoot, options.dub_compiler, options.compare_strict, options.compare_lax )
+                    nerr += compareTest(compareThis, testRoot, timerName, options.dub_compiler, options.compare_strict, options.compare_lax )
 
             if ( options.only_first ):
                 break
@@ -131,7 +131,7 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
 
         if ( not options.coverage ):
             if ( not options.compare_none ):
-                nerr += compareTest(compare, testRoot, options.dub_compiler, options.compare_strict, options.compare_lax )
+                nerr += compareTest(compare, testRoot, timerName, options.dub_compiler, options.compare_strict, options.compare_lax )
     if ( options.plot ):
         plotTest(testRoot, plot, False)
     return nsuc, nerr
