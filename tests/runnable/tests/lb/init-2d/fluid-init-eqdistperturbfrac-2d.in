@@ -1,0 +1,30 @@
+[io]
+simulationName = fluid-init-eqdistperturbfrac-2d
+outputPath = output
+
+[lattice]
+gn = [ 64, 64 ]
+
+[parallel]
+nc = [ 2, 2 ]
+
+[lb]
+timesteps = 0
+components = 2
+fieldNames = [ "red", "blue" ]
+io.populationFreq = 1
+io.colourFreq = 1
+io.maskFreq = 1
+
+[random]
+seed = 42
+shiftSeedByRank = false
+
+// Init
+[lb]
+eqdist.eqDistForm = BDist2
+init.fluidInit = [ EqDistPerturbFrac, EqDistPerturbFrac ]
+init.fluidDensities = [ [ 0.5 ], [ 1.0 ] ]
+init.fluidPerturb = [ 0.2, 0.2 ]
+mask.maskInit = None
+

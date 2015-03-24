@@ -2,7 +2,7 @@
 
 import crandom
 
-relpath = "output"
+relpath = "reference-data"
 
 nerr = 0
 nerr += crandom.compareRandomField2d("fluid-init-eqdistperturb-2d", "population-red", relpath, 0.5, 1e-2)

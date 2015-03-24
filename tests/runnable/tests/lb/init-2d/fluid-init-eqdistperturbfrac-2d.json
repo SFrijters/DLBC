@@ -1,0 +1,19 @@
+{
+  "name": "fluid-init-eqdistperturbfrac-2d",
+  "description": "Initialize two fluids with init EqDistPerturbFrac.",
+  "tags": [ "init" ],
+
+  "configuration": "d2q9",
+  "input-file": "fluid-init-eqdistperturbfrac-2d.in",
+  "np": 4,
+  "clean": [ "output" ],
+
+  "compare": {
+    "data": [ "population-red", "population-blue", "colour-red-blue", "mask" ],
+    "comparison": [ 
+      { "type": "h5diff", "files": "%data%-fluid-init-eqdistperturbfrac-2d-*t00000000.h5" }
+     ],
+    "shell": [ "./compare-fluid-init-eqdistperturbfrac-2d.py" ]
+  }
+}
+
