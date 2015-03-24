@@ -47,9 +47,9 @@ def runSubtest(command, testRoot, timerName):
     p.communicate()
     if ( p.returncode != 0 ):
         nerr += logError("DLBC returned %d" % p.returncode)
+        runSubtestErrors[timerName] += 1
     timeElapsed = time.time() - t0
     runSubtestTimers[timerName] = timeElapsed
-    runSubtestErrors[timerName] = p.returncode
     logInformation("  Took %f seconds." % timeElapsed)
     return nerr
 
@@ -78,12 +78,17 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
             if ( options.only_first ):
                 logInformation("  Running parameter set %d of %d (only this one will be executed) ..." % (i+1, nSubtests))
                 timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
+                runSubtestErrors[timerName] = 0
             elif ( options.only_serial and np > 1):
                 logInformation("  Parameter set %d of %d has np > 1, skipping ..." % (i+1, nSubtests))
+                timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
+                runSubtestErrors[timerName] = -1
+                runSubtestTimers[timerName] = 0.0
                 continue
             else:
                 logInformation("  Running parameter set %d of %d ..." % (i+1, nSubtests))
                 timerName = os.path.relpath(os.path.join(testRoot, testName), "tests") + " %2d" % (i+1)
+                runSubtestErrors[timerName] = 0
 
             # Prepare command
             command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity, "--parameter", "timers.enableIO=true" ]
@@ -111,11 +116,15 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
                 break
 
     else:
+        timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
         if ( options.only_serial and np > 1):
             logInformation("  Parameter set 1 of 1 has np > 1, skipping ...")
+            runSubtestErrors[timerName] = -1
+            runSubtestTimers[timerName] = 0.0
             return nsuc, nerr
+
+        runSubtestErrors[timerName] = 0
         logInformation("  Running parameter set 1 of 1 ...")
-        timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
         command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity, "--parameter", "timers.enableIO=true"]
 
         command = command + coverageCommand(options, coverageOverrides)
@@ -217,6 +226,8 @@ def reportRunTimers(warnTime):
 
             if ( err > 0 ):
                 prefix = "X"
+            elif ( err < 0 ):
+                prefix = "s"
 
             logNotification("%s %*s %12e" % (prefix, tnlen, test, time))
 

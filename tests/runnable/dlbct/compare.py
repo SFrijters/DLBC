@@ -68,7 +68,8 @@ def compareTest(compare, testRoot, timerName, compiler, strict, lax):
         if ( p.returncode == 1 ):
             logInformation("  Script '%s' returned %d - ignored." % ( s, p.returncode) )
         elif ( p.returncode != 0 ):
-            nerr += logError("Script '%s' returned %d." % ( s, p.returncode) )
+            logError("Script '%s' returned %d." % ( s, p.returncode) )
+            nerr += 1
     if ( nerr == 0 ):
         logInformation("  No errors found.")
 
