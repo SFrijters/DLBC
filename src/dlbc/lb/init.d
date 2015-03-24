@@ -52,7 +52,7 @@ void prepareLBFields(T)(ref T L) if ( isLattice!T ) {
     L.fluids[f] = typeof(L.fluids[f])(L.lengths);
   }
   L.advection = typeof(L.advection)(L.lengths);
-  L.initMaskField();
+  L.prepareMaskField();
   L.prepareDensityFields();
 }
 

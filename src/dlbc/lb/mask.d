@@ -30,13 +30,11 @@ module dlbc.lb.mask;
 */
 @("param") int wallOffset;
 
-import std.conv: to;
-
-import dlbc.fields.init;
-import dlbc.io.io;
+import dlbc.lb.connectivity;
 import dlbc.logging;
-import dlbc.parallel;
 import dlbc.range;
+
+import std.conv: to;
 
 /**
    Possible initialisations for the mask field.
@@ -90,7 +88,8 @@ enum Mask {
    Returns:
      Global number of lattice sites which have the particular $(D Mask).
 */
-auto countSites(Mask mask, T)(ref T field) @trusted nothrow @nogc {
+auto countSites(Mask mask, T)(ref T field) nothrow @nogc {
+  import dlbc.parallel;
   int localCount = 0;
   foreach(immutable p, ref e; field) {
     if ( e == mask ) {
@@ -103,12 +102,12 @@ auto countSites(Mask mask, T)(ref T field) @trusted nothrow @nogc {
 }
 
 /// Ditto
-auto countFluidSites(T)(ref T field) @safe nothrow @nogc {
+auto countFluidSites(T)(ref T field) nothrow @nogc {
   return countSites!(Mask.None)(field);
 }
 
 /// Ditto
-auto countSolidSites(T)(ref T field) @safe nothrow @nogc {
+auto countSolidSites(T)(ref T field) nothrow @nogc {
   return countSites!(Mask.Solid)(field);
 }
 
@@ -119,8 +118,10 @@ auto countSolidSites(T)(ref T field) @safe nothrow @nogc {
      L = lattice
 */
 void initMask(T)(ref T L) if (isLattice!T) {
+  import dlbc.fields.init;
+
   if ( to!int(initAxis) >= L.mask.dimensions ) {
-    writeLogF("lb.mask.initAxis = %s is out of range (max is %s).", initAxis, to!Axis(L.mask.dimensions - 1));
+    writeLogRW("lb.mask.initAxis = %s is out of range (max is %s).", initAxis, to!Axis(L.mask.dimensions - 1));
   }
 
   final switch(maskInit) {
@@ -128,85 +129,18 @@ void initMask(T)(ref T L) if (isLattice!T) {
     L.mask.initConst(Mask.None);
     break;
   case(MaskInit.File):
+    import dlbc.io.io: readField;
     L.mask.readField(maskFile);
     break;
   case(MaskInit.Tube):
-    L.mask.initTube(initAxis);
+    L.mask.initTube(Mask.Solid, Mask.None, initAxis);
     break;
   case(MaskInit.Walls):
-    L.mask.initWalls(initAxis, wallOffset);
+    L.mask.initWalls(Mask.Solid, Mask.None, initAxis, wallOffset);
     break;
   case(MaskInit.Box):
-    L.mask.initBox();
+    L.mask.initBox(Mask.Solid, Mask.None);
     break;
-  }
-}
-
-/**
-   Initialises walls of thickness 1 of $(D Mask.Solid) on all sides of the system.
-
-   Params:
-     field = (mask) field to initialise
-
-   Todo: add function attributes once opApply can support it.
-*/
-void initBox(T)(ref T field) /** @safe nothrow @nogc **/ if ( isMaskField!T ) {
-  foreach(immutable p, ref e; field.arr) {
-    ptrdiff_t[field.dimensions] gn;
-    e = Mask.None;
-    foreach(immutable i; Iota!(0, field.dimensions) ) {
-      gn[i] = p[i] + M.c[i] * field.n[i] - field.haloSize;
-      if ( gn[i] == 0 || gn[i] == (field.n[i] * M.nc[i] - 1) ) {
-        e = Mask.Solid;
-      }
-    }
-  }
-}
-
-/**
-   Initialises walls of thickness 1 of $(D Mask.Solid) to form a tube in
-   the direction of $(D initAxis).
-
-   Params:
-     field = (mask) field to initialise
-     initAxis = direction of the tube
-
-   Todo: add function attributes once opApply can support it.
-*/
-void initTube(T)(ref T field, in Axis initAxis) /** @safe nothrow @nogc **/ if ( isMaskField!T ) {
-  foreach(immutable p, ref e; field.arr) {
-    ptrdiff_t[field.dimensions] gn;
-    e = Mask.None;
-    foreach(immutable i; Iota!(0, field.dimensions) ) {
-      gn[i] = p[i] + M.c[i] * field.n[i] - field.haloSize;
-      if ( i != to!int(initAxis) && ( ( gn[i] == 0 || gn[i] == (field.n[i] * M.nc[i] - 1) ) ) ) {
-        e = Mask.Solid;
-      }
-    }
-  }
-}
-
-/**
-   Initialises walls of thickness 1 of $(D Mask.Solid) to form solid planes
-   perpendicular to the $(D initAxis) direction.
-
-   Params:
-     field = (mask) field to initialise
-     initAxis = walls are placed perpendicular to this axis
-     wallOffset = distance from the side of the domain at which walls are placed
-
-   Todo: add function attributes once opApply can support it.
-*/
-void initWalls(T)(ref T field, in Axis initAxis, in int wallOffset) /** @safe nothrow @nogc **/ if ( isMaskField!T ) {
-  foreach(immutable p, ref e; field.arr) {
-    ptrdiff_t[field.dimensions] gn;
-    e = Mask.None;
-    foreach(immutable i; Iota!(0, field.dimensions) ) {
-      gn[i] = p[i] + M.c[i] * field.n[i] - field.haloSize;
-      if ( i == to!int(initAxis) && ( gn[i] == wallOffset || gn[i] == (field.n[i] * M.nc[i] - 1 - wallOffset) ) ) {
-        e = Mask.Solid;
-      }
-    }
   }
 }
 
@@ -260,25 +194,23 @@ template isMaskField(T) {
   enum isMaskField = ( isField!T && is(T.type == Mask) );
 }
 
+import dlbc.fields.field;
 /**
    Type of mask Field matching Field T.
-   
+
    Params:
      T = field to match
 */
-import dlbc.fields.field;
-import dlbc.lb.connectivity;
 template MaskFieldOf(T) if ( isField!(BaseElementType!T) ) {
   alias BT = BaseElementType!(T);
   alias MaskFieldOf = Field!(Mask, dimOf!(BT.conn), BT.haloSize);
 }
 
 import dlbc.lattice: isLattice;
-
 /**
-   Initialize mask field.
+   Prepare the mask field.
 */
-void initMaskField(T)(ref T L) if ( isLattice!T ) {
+void prepareMaskField(T)(ref T L) if ( isLattice!T ) {
   L.mask = typeof(L.mask)(L.lengths);
 }
 

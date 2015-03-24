@@ -373,3 +373,73 @@ private U symmetricLinearTransition(T, U)(in T pos, in T width, in U negval, in 
   }
 }
 
+/**
+   Initialises walls of thickness 1 of $(D fillWall) on all sides of the system,
+   and $(D fillVoid) on other sites.
+
+   Params:
+     field = (mask) field to initialise
+     fillWall = fill value on wall
+     fillWall = fill value on other sites
+*/
+void initBox(T, U)(ref T field, in U fillWall, in U fillVoid) if ( isField!T ) {
+  foreach(immutable p, ref e; field.arr) {
+    ptrdiff_t[field.dimensions] gn;
+    e = fillVoid;
+    foreach(immutable vd; Iota!(0, field.dimensions) ) {
+      gn[vd] = p[vd] + M.c[vd] * field.n[vd] - field.haloSize;
+      if ( gn[vd] == 0 || gn[vd] == (field.n[vd] * M.nc[vd] - 1) ) {
+        e = fillWall;
+      }
+    }
+  }
+}
+
+/**
+   Initialises walls of thickness 1 of $(D fillWall) to form a tube in
+   the direction of $(D initAxis), and $(D fillVoid) on other sites.
+
+   Params:
+     field = (mask) field to initialise
+     fillWall = fill value on wall
+     fillVoid = fill value on other sites
+     initAxis = direction of the tube
+*/
+void initTube(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis initAxis) if ( isField!T ) {
+  foreach(immutable p, ref e; field.arr) {
+    ptrdiff_t[field.dimensions] gn;
+    e = fillVoid;
+    foreach(immutable vd; Iota!(0, field.dimensions) ) {
+      gn[vd] = p[vd] + M.c[vd] * field.n[vd] - field.haloSize;
+      if ( vd != to!int(initAxis) && ( ( gn[vd] == 0 || gn[vd] == (field.n[vd] * M.nc[vd] - 1) ) ) ) {
+        e = fillWall;
+      }
+    }
+  }
+}
+
+/**
+   Initialises walls of thickness 1 of $(D fillWall) to form solid planes
+   perpendicular to the $(D initAxis) direction and $(D fillVoid) on other sites.
+
+   Params:
+     field = (mask) field to initialise
+     fillWall = fill value on wall
+     fillVoid = fill value on other sites
+     initAxis = walls are placed perpendicular to this axis
+     wallOffset = distance from the side of the domain at which walls are placed
+*/
+void initWalls(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis initAxis, in int wallOffset) if ( isField!T ) {
+  foreach(immutable p, ref e; field.arr) {
+    ptrdiff_t[field.dimensions] gn;
+    e = fillVoid;
+    foreach(immutable vd; Iota!(0, field.dimensions) ) {
+      gn[vd] = p[vd] + M.c[vd] * field.n[vd] - field.haloSize;
+      if ( vd == to!int(initAxis) && ( gn[vd] == wallOffset || gn[vd] == (field.n[vd] * M.nc[vd] - 1 - wallOffset) ) ) {
+        e = fillWall;
+      }
+    }
+  }
+}
+
+
