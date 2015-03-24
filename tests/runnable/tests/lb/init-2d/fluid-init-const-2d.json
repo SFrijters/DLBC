@@ -1,0 +1,15 @@
+{
+  "name": "fluid-init-const-2d",
+  "description": "Initialize two fluids with init Const.",
+  "tags": [ "init" ],
+
+  "configuration": "d2q9",
+  "input-file": "fluid-init-const-2d.in",
+  "clean": [ "output" ],
+
+  "compare": {
+    "data": [ "population-red", "population-blue", "colour-red-blue", "mask" ],
+    "comparison": [ { "type": "h5diff", "files": "%data%-fluid-init-const-2d-*t00000000.h5" } ]
+  }
+}
+
