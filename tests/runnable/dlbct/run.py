@@ -64,6 +64,7 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
     """ Run all parameter sets for a single test. Returns number of errors encountered. """
     logNotification("Running subtests ...")
     nerr = 0
+    nsuc = 0
     exePath = constructExeTargetPath(configuration, options.dub_build, options.dub_compiler, options.dlbc_root)
     if ( parameters ):
         map, nSubtests = mapParameterMatrix(parameters)
@@ -93,7 +94,9 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
             command = command + checkpointCommand(options, checkpoint)
 
             # Run subtest
-            nerr += runSubtest(command, testRoot, timerName)
+            nerrst = runSubtest(command, testRoot, timerName) 
+            nerr += nerrst
+            if ( nerrst == 0 ): nsuc = nsuc + 1
 
             # Postprocessing
             if ( options.timers or options.timers_all ):
@@ -110,7 +113,7 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
     else:
         if ( options.only_serial and np > 1):
             logInformation("  Parameter set 1 of 1 has np > 1, skipping ...")
-            return nerr
+            return nsuc, nerr
         logInformation("  Running parameter set 1 of 1 ...")
         timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
         command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity, "--parameter", "timers.enableIO=true"]
@@ -119,7 +122,9 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
         command = command + fastCommand(options, fastOverrides)
         command = command + checkpointCommand(options, checkpoint)
 
-        nerr += runSubtest(command, testRoot, timerName)
+        nerrst = runSubtest(command, testRoot, timerName)
+        nerr += nerrst
+        if ( nerrst == 0 ): nsuc = nsuc + 1
 
         if ( options.timers or options.timers_all ):
             moveTimersData(testRoot, options.dub_compiler)
@@ -129,7 +134,7 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
                 nerr += compareTest(compare, testRoot, options.dub_compiler, options.compare_strict, options.compare_lax )
     if ( options.plot ):
         plotTest(testRoot, plot, False)
-    return nerr
+    return nsuc, nerr
 
 def cleanTest(testRoot, clean):
     """ Clean a single test. This removes all coverage *.lst files, as well as all paths listed in clean. """

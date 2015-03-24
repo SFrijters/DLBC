@@ -66,13 +66,17 @@ def processTest(testRoot, filename, options, n, i):
             compare = getCompare(data, fn)
     else:
         compare = getCompare(data, fn)
-        
+
     # Run the tests
-    nerr += runTest(options, testRoot, testName, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCheckpoint(data, fn), compare, getPlot(data, fn), getCoverageOverrides(data, fn), getFastOverrides(data, fn))
+    nsuct, nerrt = runTest(options, testRoot, testName, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCheckpoint(data, fn), compare, getPlot(data, fn), getCoverageOverrides(data, fn), getFastOverrides(data, fn))
+    nerr += nerrt
 
     if ( options.coverage ):
-        covpath = constructCoveragePath(options.dlbc_root)
-        mergeCovLsts(options, testRoot, covpath)
+        if ( nsuct > 0 ):
+            covpath = constructCoveragePath(options.dlbc_root)
+            mergeCovLsts(options, testRoot, covpath)
+        else:
+            logNotification("No succesful tests, not merging coverage information ...")
         # Clean up the symlink
         os.remove(os.path.join(testRoot, "src"))
     jsonData.close()
