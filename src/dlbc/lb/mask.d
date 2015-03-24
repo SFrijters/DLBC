@@ -121,7 +121,7 @@ void initMask(T)(ref T L) if (isLattice!T) {
   import dlbc.fields.init;
 
   if ( to!int(initAxis) >= L.mask.dimensions ) {
-    writeLogRW("lb.mask.initAxis = %s is out of range (max is %s).", initAxis, to!Axis(L.mask.dimensions - 1));
+    writeLogRW("lb.mask.initAxis = %s is out of range (max is %s), this may have unintended consequences.", initAxis, to!Axis(L.mask.dimensions - 1));
   }
 
   final switch(maskInit) {

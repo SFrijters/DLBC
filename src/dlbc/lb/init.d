@@ -199,10 +199,16 @@ void initFluid(T)(ref T field, in size_t i) if ( isPopulationField!T ) {
   checkArrayParameterLength(fluidPerturb, "lb.init.fluidPerturb", components);
   checkArrayParameterLength(initOffset, "lb.init.initOffset", conn.d);
   checkArrayParameterLength(initSeparation, "lb.init.initSeparation", conn.d);
-  checkArrayParameterLength(tau, "lb.lb.tau", components, true);
+  // If we don't actually want to collide at least once, we don't care about tau
+  if ( timesteps > 0 ) {
+    checkArrayParameterLength(tau, "lb.lb.tau", components, true);
+  }
+  else {
+    checkArrayParameterLength(tau, "lb.lb.tau", components, false);
+  }
 
   if ( to!int(initAxis) >= field.dimensions ) {
-    writeLogF("lb.init.initAxis = %s is out of range (max is %s).", initAxis, to!Axis(field.dimensions - 1));
+    writeLogRW("lb.init.initAxis = %s is out of range (max is %s), this may have unintended consequences.", initAxis, to!Axis(field.dimensions - 1));
   }
 
   final switch(fluidInit[i]) {
