@@ -50,6 +50,7 @@ void initConst(T, U)(ref T field, in U fill) @safe pure nothrow @nogc if ( isFie
 }
 
 void initConstRandom(T)(ref T field, in double fill) if ( isField!T ) {
+  initRNG();
   foreach( ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
@@ -71,6 +72,7 @@ void initEqDist(T)(ref T field, in double density) @safe nothrow @nogc if ( isFi
 }
 
 void initEqDistPerturb(T)(ref T field, in double density, in double perturb) if ( isField!T ) {
+  initRNG();
   alias conn = field.conn;
   immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
   foreach( ref e; field.byElementForward) {
@@ -79,6 +81,7 @@ void initEqDistPerturb(T)(ref T field, in double density, in double perturb) if 
 }
 
 void initEqDistPerturbFrac(T)(ref T field, in double density, in double perturb) if ( isField!T ) {
+  initRNG();
   alias conn = field.conn;
   immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
   foreach( ref e; field.byElementForward) {
@@ -87,6 +90,7 @@ void initEqDistPerturbFrac(T)(ref T field, in double density, in double perturb)
 }
 
 void initEqDistRandom(T)(ref T field, in double density) if ( isField!T ) {
+  initRNG();
   alias conn = field.conn;
   immutable double[conn.q] unity = eqDistUnity!conn(eqDistForm);
   foreach( ref e; field.byElementForward) {
