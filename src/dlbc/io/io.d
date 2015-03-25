@@ -200,6 +200,8 @@ void dumpData(T)(ref T L, int t) if ( isLattice!T ) {
     return;
   }
 
+  writeLogRN("Dumping data.");
+
   // Checkpointing has its own routine.
   if (dumpNow(cpFreq,t)) {
     dumpCheckpoint(L, t);

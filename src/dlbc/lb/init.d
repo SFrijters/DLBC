@@ -51,6 +51,9 @@ import dlbc.random;
    Prepare various LB related fields: fluids, advection, mask, density.
 */
 void prepareLBFields(T)(ref T L) if ( isLattice!T ) {
+
+  writeLogRI("Preparing LB fields.");
+
   assert(L.fluids.length == 0);
   L.fluids.length = components;
   foreach(immutable f; 0..L.fluids.length ) {
