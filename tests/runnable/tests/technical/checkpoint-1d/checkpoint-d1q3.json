@@ -1,0 +1,21 @@
+{
+  "name": "checkpoint-d1q3",
+  "description": "Restore from checkpoint and read input from hdf5 file.",
+
+  "configuration": "d1q3",
+  "input-file": "reference-data/colour-red-blue-checkpoint-d1q3-t00000000.h5",
+  "clean": [ "output" ],
+
+  "checkpoint": {
+    "name": "checkpoint-d1q3-t00000000"
+  },
+
+  "compare": {
+    "data": [ "colour-red-blue", "density-red", "density-blue", "population-red", "population-blue" ],
+    "comparison": [
+      { "type": "h5diff", "files": "%data%-checkpoint-d1q3-*t00000000.h5" },
+      { "type": "h5diff", "files": "%data%-checkpoint-d1q3-*t00000010.h5" }
+    ]
+  }
+}
+
