@@ -24,6 +24,10 @@ module dlbc.lb.init;
 /// Ditto
 @("param") double[] fluidPerturb;
 /// Ditto
+@("param") bool[] randomReseed;
+/// Ditto
+@("param") int[] randomSeed;
+/// Ditto
 @("param") double initRadius;
 /// Ditto
 @("param") double[] initOffset;
@@ -41,6 +45,7 @@ import dlbc.lb.lb;
 import dlbc.fields.init;
 import dlbc.logging;
 import dlbc.parameters: checkArrayParameterLength;
+import dlbc.random;
 
 /**
    Prepare various LB related fields: fluids, advection, mask, density.
@@ -60,8 +65,43 @@ void prepareLBFields(T)(ref T L) if ( isLattice!T ) {
    Initialize fluid fields.
 */
 void initFluids(T)(ref T L) if ( isLattice!T ) {
+  alias conn = T.lbconn;
+
+  writeLogRN("Initializing fluids.");
+
+  checkArrayParameterLength(fluidInit, "lb.init.fluidInit", components);
+  checkArrayParameterLength(fluidDensities, "lb.init.fluidDensities", components);
+  checkArrayParameterLength(fluidPerturb, "lb.init.fluidPerturb", components);
+  checkArrayParameterLength(initOffset, "lb.init.initOffset", conn.d);
+  checkArrayParameterLength(initSeparation, "lb.init.initSeparation", conn.d);
+  checkArrayParameterLength(randomReseed, "lb.init.randomReseed", components);
+  checkArrayParameterLength(randomSeed, "lb.init.randomSeed", components);
+  // If we don't actually want to collide at least once, we don't care about tau
+  if ( timesteps > 0 ) {
+    checkArrayParameterLength(tau, "lb.lb.tau", components, true);
+  }
+  else {
+    checkArrayParameterLength(tau, "lb.lb.tau", components, false);
+  }
+
+  if ( to!int(initAxis) >= conn.d ) {
+    writeLogRW("lb.init.initAxis = %s is out of range (max is %s), this may have unintended consequences.", initAxis, to!Axis(conn.d - 1));
+  }
+
   foreach(immutable f; 0..L.fluids.length) {
-    L.fluids[f].initFluid(f);
+    if ( randomReseed[f] ) {
+      RNG lrng;
+      if ( shiftSeedByRank ) {
+	lrng.seed(randomSeed[f] + M.rank);
+      }
+      else {
+	lrng.seed(randomSeed[f]);
+      }
+      L.fluids[f].initFluid(f, lrng);
+    }
+    else {
+      L.fluids[f].initFluid(f, rng);
+    }
     // Coloured walls.
     L.fluids[f].initEqDistWall(1.0, L.mask);
   }
@@ -189,27 +229,10 @@ enum FluidInit {
      field = fluid field to initialize
      i = number of the fluid field
 */
-void initFluid(T)(ref T field, in size_t i) if ( isPopulationField!T ) {
+void initFluid(T)(ref T field, in size_t i, ref RNG lrng) if ( isPopulationField!T ) {
   import std.conv: to;
 
-  alias conn = field.conn;
-
-  checkArrayParameterLength(fluidInit, "lb.init.fluidInit", components);
-  checkArrayParameterLength(fluidDensities, "lb.init.fluidDensities", components);
-  checkArrayParameterLength(fluidPerturb, "lb.init.fluidPerturb", components);
-  checkArrayParameterLength(initOffset, "lb.init.initOffset", conn.d);
-  checkArrayParameterLength(initSeparation, "lb.init.initSeparation", conn.d);
-  // If we don't actually want to collide at least once, we don't care about tau
-  if ( timesteps > 0 ) {
-    checkArrayParameterLength(tau, "lb.lb.tau", components, true);
-  }
-  else {
-    checkArrayParameterLength(tau, "lb.lb.tau", components, false);
-  }
-
-  if ( to!int(initAxis) >= field.dimensions ) {
-    writeLogRW("lb.init.initAxis = %s is out of range (max is %s), this may have unintended consequences.", initAxis, to!Axis(field.dimensions - 1));
-  }
+  writeLogRI("  Initializing fluid %d.", i);
 
   final switch(fluidInit[i]) {
   case(FluidInit.None):
@@ -220,7 +243,7 @@ void initFluid(T)(ref T field, in size_t i) if ( isPopulationField!T ) {
     break;
   case(FluidInit.ConstRandom):
     checkFDArrayParameterLength(1);
-    field.initConstRandom(fluidDensities[i][0]);
+    field.initConstRandom(fluidDensities[i][0], lrng);
     break;
   case(FluidInit.EqDist):
     checkFDArrayParameterLength(1);
@@ -228,15 +251,15 @@ void initFluid(T)(ref T field, in size_t i) if ( isPopulationField!T ) {
     break;
   case(FluidInit.EqDistRandom):
     checkFDArrayParameterLength(1);
-    field.initEqDistRandom(fluidDensities[i][0]);
+    field.initEqDistRandom(fluidDensities[i][0], lrng);
     break;
   case(FluidInit.EqDistPerturb):
     checkFDArrayParameterLength(1);
-    field.initEqDistPerturb(fluidDensities[i][0], fluidPerturb[i]);
+    field.initEqDistPerturb(fluidDensities[i][0], fluidPerturb[i], lrng);
     break;
   case(FluidInit.EqDistPerturbFrac):
     checkFDArrayParameterLength(1);
-    field.initEqDistPerturbFrac(fluidDensities[i][0], fluidPerturb[i]);
+    field.initEqDistPerturbFrac(fluidDensities[i][0], fluidPerturb[i], lrng);
     break;
   case(FluidInit.EqDistSphere):
     checkFDArrayParameterLength(2);

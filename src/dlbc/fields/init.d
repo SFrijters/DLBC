@@ -24,7 +24,7 @@ import std.conv: to;
 import std.traits: isIterable;
 
 void initRank(T)(ref T field) @safe pure nothrow @nogc if ( isField!T ) {
-  foreach( ref e; field.byElementForward) {
+  foreach(ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
         c = M.rank;
@@ -37,7 +37,7 @@ void initRank(T)(ref T field) @safe pure nothrow @nogc if ( isField!T ) {
 }
 
 void initConst(T, U)(ref T field, in U fill) @safe pure nothrow @nogc if ( isField!T ) {
-  foreach( ref e; field.byElementForward) {
+  foreach(ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
         c = fill;
@@ -49,16 +49,15 @@ void initConst(T, U)(ref T field, in U fill) @safe pure nothrow @nogc if ( isFie
   }
 }
 
-void initConstRandom(T)(ref T field, in double fill) if ( isField!T ) {
-  initRNG();
-  foreach( ref e; field.byElementForward) {
+void initConstRandom(T)(ref T field, in double fill, ref RNG lrng) if ( isField!T ) {
+  foreach(ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
       foreach( ref c; e ) {
-        c = fill * uniform(0.0, 2.0, rng);
+	c = fill * uniform(0.0, 2.0, lrng);
       }
     }
     else {
-      e = fill * uniform(0.0, 2.0, rng);
+      e = fill * uniform(0.0, 2.0, lrng);
     }
   }
 }
@@ -71,30 +70,27 @@ void initEqDist(T)(ref T field, in double density) @safe nothrow @nogc if ( isFi
   }
 }
 
-void initEqDistPerturb(T)(ref T field, in double density, in double perturb) if ( isField!T ) {
-  initRNG();
+void initEqDistPerturb(T)(ref T field, in double density, in double perturb, ref RNG lrng) if ( isField!T ) {
   alias conn = field.conn;
   immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
   foreach( ref e; field.byElementForward) {
-    e = (density + uniform(-perturb, perturb, rng) ) * eqpop[];
+    e = (density + uniform(-perturb, perturb, lrng) ) * eqpop[];
   }
 }
 
-void initEqDistPerturbFrac(T)(ref T field, in double density, in double perturb) if ( isField!T ) {
-  initRNG();
+void initEqDistPerturbFrac(T)(ref T field, in double density, in double perturb, ref RNG lrng) if ( isField!T ) {
   alias conn = field.conn;
   immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
   foreach( ref e; field.byElementForward) {
-    e = density * (1.0 + uniform(-perturb, perturb, rng) ) * eqpop[];
+    e = density * (1.0 + uniform(-perturb, perturb, lrng) ) * eqpop[];
   }
 }
 
-void initEqDistRandom(T)(ref T field, in double density) if ( isField!T ) {
-  initRNG();
+void initEqDistRandom(T)(ref T field, in double density, ref RNG lrng) if ( isField!T ) {
   alias conn = field.conn;
   immutable double[conn.q] unity = eqDistUnity!conn(eqDistForm);
   foreach( ref e; field.byElementForward) {
-    e = density * uniform(0.0, 2.0, rng) * unity[];
+    e = density * uniform(0.0, 2.0, lrng) * unity[];
   }
 }
 

@@ -19,6 +19,13 @@ import dlbc.parallel;
 public import std.random;
 
 /**
+  The PRNG is currently the Mersenne Twister with standard initialisation values.
+*/
+alias RNG = Mt19937;
+/// Ditto
+RNG rng;
+
+/**
   The seed for the PRNG to be used. Depending on the initialisation this value
   may be modified according to the rank of the process to avoid the creation
   of identical domains.
@@ -29,11 +36,6 @@ public import std.random;
    otherwise, all ranks will be seeded with only $(D seed).
 */
 @("param") bool shiftSeedByRank = true;
-
-/**
-  The PRNG is currently the Mersenne Twister with standard initialisation values.
-*/
-Mt19937 rng;
 
 /**
    Initialises the PRNG on each process.
