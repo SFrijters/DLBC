@@ -9,7 +9,7 @@ startOutput = 0
 checkpoint.cpFreq = 5
 checkpoint.cpPath = cp
 checkpoint.cpRestorePath = ../reference-data/cp
-checkpoint.cpKeep = 2
+checkpoint.cpKeep = 1
 
 hdf5.writeChunked = false
 

@@ -3,18 +3,18 @@
   "description": "Restore from checkpoint and read input from hdf5 file.",
 
   "configuration": "d3q19",
-  "input-file": "colour-red-blue-checkpoint-3d-20150321T123216-t00000000.h5",
+  "input-file": "reference-data/colour-red-blue-checkpoint-3d-t00000000.h5",
   "clean": [ "output" ],
 
   "checkpoint": {
-    "name": "checkpoint-3d-20150321T123216-t00000000"
+    "name": "checkpoint-3d-t00000000"
   },
 
   "compare": {
     "data": [ "colour-red-blue", "density-red", "density-blue", "population-red", "population-blue" ],
     "comparison": [
-      { "type": "h5diff", "files": "%data%-checkpoint-3d-*-t00000000.h5" },
-      { "type": "h5diff", "files": "%data%-checkpoint-3d-*-t00000005.h5" }
+      { "type": "h5diff", "files": "%data%-checkpoint-3d*-t00000000.h5" },
+      { "type": "h5diff", "files": "%data%-checkpoint-3d*-t00000005.h5" }
     ]
   }
 }
