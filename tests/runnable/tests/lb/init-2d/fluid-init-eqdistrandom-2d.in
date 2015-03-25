@@ -17,7 +17,6 @@ io.colourFreq = 1
 io.maskFreq = 1
 
 [random]
-seed = 42
 shiftSeedByRank = false
 
 // Init
@@ -25,5 +24,7 @@ shiftSeedByRank = false
 eqdist.eqDistForm = BDist2
 init.fluidInit = [ EqDistRandom, EqDistRandom ]
 init.fluidDensities = [ [ 0.5 ], [ 1.0 ] ]
+init.randomReseed = [ True, True ]
+init.randomSeed = [ 42, 43 ]
 mask.maskInit = None
 

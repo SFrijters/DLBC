@@ -4,7 +4,7 @@
 from mplhelper import *
 #### END HEADER
 
-relpath = "output"
+relpath = "reference-data"
 
 g = sorted(glob.glob(relpath + "/colour-red-blue-*h5"))
 for fn in g:

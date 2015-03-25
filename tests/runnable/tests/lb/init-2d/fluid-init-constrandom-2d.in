@@ -17,12 +17,13 @@ io.colourFreq = 1
 io.maskFreq = 1
 
 [random]
-seed = 42
 shiftSeedByRank = false
 
 // Init
 [lb]
 init.fluidInit = [ ConstRandom, ConstRandom ]
 init.fluidDensities = [ [ 0.5 ], [ 1.0 ] ]
+init.randomReseed = [ True, True ]
+init.randomSeed = [ 42, 43 ]
 mask.maskInit = None
 
