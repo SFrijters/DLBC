@@ -41,6 +41,7 @@ def runSubtest(command, testRoot, timerName):
     """ Run a single parameter set for a single test. Returns number of errors encountered. """
     import time
     nerr = 0
+    runSubtestErrors[timerName] = 0
     logDebug("  Executing '" + " ".join(command) + "'")
     t0 = time.time()
     p = subprocess.Popen(command, cwd=testRoot)
