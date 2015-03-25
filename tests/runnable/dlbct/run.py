@@ -61,12 +61,13 @@ def getNC(map):
             return p[1]
     return "[0,0]"
 
-def runTest(options, testRoot, testName, configuration, inputFile, np, parameters, checkpoint, compare, plot, coverageOverrides, fastOverrides):
+def runTest(options, testRoot, testName, disabled, configuration, inputFile, np, parameters, checkpoint, compare, plot, coverageOverrides, fastOverrides):
     """ Run all parameter sets for a single test. Returns number of errors encountered. """
     logNotification("Running subtests ...")
     nerr = 0
     nsuc = 0
     exePath = constructExeTargetPath(configuration, options.dub_build, options.dub_compiler, options.dlbc_root)
+
     if ( parameters ):
         map, nSubtests = mapParameterMatrix(parameters)
         for i, m in enumerate(map):
@@ -76,13 +77,19 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
             if ( nc != "[0,0]" ):
                 np = reduce(lambda x, y: int(x) * int(y), nc[1:-1].split(","), 1)
 
-            if ( options.only_first ):
+            if ( disabled ):
+                logInformation("  Test has been disabled, skipping ...")
+                timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
+                runSubtestErrors[timerName] = -2
+                runSubtestTimers[timerName] = 0.0
+                break
+            elif ( options.only_first ):
                 logInformation("  Running parameter set %d of %d (only this one will be executed) ..." % (i+1, nSubtests))
                 timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
                 runSubtestErrors[timerName] = 0
             elif ( options.only_serial and np > 1):
                 logInformation("  Parameter set %d of %d has np > 1, skipping ..." % (i+1, nSubtests))
-                timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
+                timerName = os.path.relpath(os.path.join(testRoot, testName), "tests") + " %2d" % (i+1)
                 runSubtestErrors[timerName] = -1
                 runSubtestTimers[timerName] = 0.0
                 continue
@@ -118,7 +125,13 @@ def runTest(options, testRoot, testName, configuration, inputFile, np, parameter
 
     else:
         timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
-        if ( options.only_serial and np > 1):
+        if ( disabled ):
+            logInformation("  Test has been disabled, skipping ...")
+            timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
+            runSubtestErrors[timerName] = -2
+            runSubtestTimers[timerName] = 0.0
+            return nsuc, nerr
+        elif ( options.only_serial and np > 1):
             logInformation("  Parameter set 1 of 1 has np > 1, skipping ...")
             runSubtestErrors[timerName] = -1
             runSubtestTimers[timerName] = 0.0
@@ -209,6 +222,11 @@ def reportRunTimers(warnTime):
     totalTime = 0.0
     timeWarnings = 0
 
+    tests = 0
+    skipped = 0
+    errors = 0
+    disabled = 0
+
     if ( len(runSubtestTimers) > 0 ):
         tnlen = max([len(t) for t in runSubtestTimers])
 
@@ -217,6 +235,7 @@ def reportRunTimers(warnTime):
         logNotification("%s" % "_"*(tnlen+15))
 
         for test in sorted(runSubtestTimers):
+            tests += 1
             time = runSubtestTimers[test]
             err = runSubtestErrors[test]
             totalTime += time
@@ -227,10 +246,20 @@ def reportRunTimers(warnTime):
 
             if ( err > 0 ):
                 prefix = "X"
-            elif ( err < 0 ):
+                errors += 1
+            elif ( err == -1 ):
                 prefix = "s"
+                skipped += 1
+            elif ( err == -2 ):
+                prefix = "D"
+                disabled += 1
+            elif ( err < -2 ):
+                prefix = "?"
 
-            logNotification("%s %*s %12e" % (prefix, tnlen, test, time))
+            if ( time == 0 ):
+                logNotification("%s %*s %12s" % (prefix, tnlen, test, "---"))
+            else:
+                logNotification("%s %*s %12e" % (prefix, tnlen, test, time))
 
         logNotification("%s" % "_"*(tnlen+15))
 
@@ -240,11 +269,20 @@ def reportRunTimers(warnTime):
         logNotification("  %*s %12e" % (tnlen, "total", totalTime))
         logNotification("  %*s %12s" % (tnlen, "", fTime))
 
-    if ( timeWarnings > 0 ):
-        if ( timeWarnings == 1 ):
-            logNotification("\nEncountered %d time warning (t > %.1f seconds)." % (timeWarnings, warnTime))
-        else:
-            logNotification("\nEncountered %d time warnings (t > %.1f seconds)." % (timeWarnings, warnTime))
+    logNotification("\nFound %d tests (of which %d are disabled) and skipped %d; executed %d." % ( tests, disabled, skipped, tests-disabled-skipped ) )
+
+    if ( timeWarnings == 1 ):
+        logNotification("  Encountered %d time warning (t > %.1f seconds)." % (timeWarnings, warnTime))
+    elif ( timeWarnings > 1 ):
+        logNotification("  Encountered %d time warnings (t > %.1f seconds)." % (timeWarnings, warnTime))
     else:
-        logNotification("\nEncountered zero time warnings (t > %.1f seconds)." % warnTime)
+        logNotification("  Encountered zero time warnings (t > %.1f seconds)." % warnTime)
+
+    if ( errors == 1 ):
+        logNotification("  Encountered %d error." % errors)
+    elif ( errors > 1 ):
+        logNotification("  Encountered %d errors." % errors)
+    else:
+        logNotification("  Encountered zero errors.")
+
 

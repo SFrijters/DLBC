@@ -15,7 +15,7 @@ from dlbct.plot import *
 from dlbct.parsejson import *
 from dlbct.run import *
     
-def processTest(testRoot, filename, options, n, i):
+def processTest(testRoot, filename, options, singleTest, n, i):
     """ Do everything required for a single test. """
 
     nerr = 0
@@ -67,8 +67,13 @@ def processTest(testRoot, filename, options, n, i):
     else:
         compare = getCompare(data, fn)
 
+    if ( ( "disabled" in filename ) and ( not singleTest ) ):
+        disabled = True
+    else:
+        disabled = False
+
     # Run the tests
-    nsuct, nerrt = runTest(options, testRoot, testName, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCheckpoint(data, fn), compare, getPlot(data, fn), getCoverageOverrides(data, fn), getFastOverrides(data, fn))
+    nsuct, nerrt = runTest(options, testRoot, testName, disabled, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCheckpoint(data, fn), compare, getPlot(data, fn), getCoverageOverrides(data, fn), getFastOverrides(data, fn))
     nerr += nerrt
 
     if ( options.coverage ):
@@ -164,9 +169,11 @@ def main():
         testRoot = os.path.dirname(searchRoot)
         filename = os.path.basename(searchRoot)
         matches.append([testRoot, filename])
+        singleTest = True
     else:
+        singleTest = False
         for testRoot, dirnames, filenames in os.walk(searchRoot):
-            for filename in fnmatch.filter(filenames, '*.json'):
+            for filename in fnmatch.filter(filenames, '*.json*'):
                 matches.append([testRoot, filename])
 
     nerr = 0
@@ -174,13 +181,13 @@ def main():
         if ( options.timers_all ):
             for compiler in dubCompilerChoices:
                 options.dub_compiler = compiler
-                nerr += processTest(m[0], m[1], options, len(matches), i)
+                nerr += processTest(m[0], m[1], options, singleTest, len(matches), i)
             plotTimersData(m[0], options.v)
         elif ( options.timers ):
-            nerr += processTest(m[0], m[1], options, len(matches), i)
+            nerr += processTest(m[0], m[1], options, singleTest, len(matches), i)
             plotTimersData(m[0], options.v)
         else:
-            nerr += processTest(m[0], m[1], options, len(matches), i)
+            nerr += processTest(m[0], m[1], options, singleTest, len(matches), i)
 
     if ( options.describe ):
         return

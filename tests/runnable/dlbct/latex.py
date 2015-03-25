@@ -28,6 +28,9 @@ def generateLaTeXforTest(testRoot, filename):
     tags = getTags(data, fn)
     latex = getLatex(data, fn)
 
+    if ( "disabled" in filename ):
+        name = name + " (disabled)"
+
     print("\\subsubsection{%s}\n" % name)
     print("\\label{sssec:%s}\n" % name)
     print("\\textbf{Description:} %s\\\\" % description)
@@ -45,7 +48,7 @@ def generateLaTeX(searchRoot):
     """ Generate LaTeX for all tests below searchRoot. """
     matches = []
     for testRoot, dirnames, filenames in os.walk(searchRoot):
-        for filename in fnmatch.filter(filenames, '*.json'):
+        for filename in fnmatch.filter(filenames, '*.json*'):
             matches.append([testRoot, filename])
 
     for m in sorted(matches):

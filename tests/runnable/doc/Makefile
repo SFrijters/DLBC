@@ -4,10 +4,10 @@ doc: generated/example-json.tex generated/list-of-tests.tex generated/run-tests.
 	pdflatex runnable-tests.tex
 	pdflatex runnable-tests.tex
 
-generated/example-json.tex: example.json.template
+generated/example-json.tex: example._json.template
 	mkdir -p generated
 	echo '\\begin{verbatim}' > $@
-	cat example.json.template >> $@
+	cat example._json.template >> $@
 	echo '\\end{verbatim}' >> $@
 
 generated/list-of-tests.tex:
