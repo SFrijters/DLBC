@@ -1,0 +1,28 @@
+[io]
+simulationName = fluid-init-eqdistsphere-2d
+outputPath = output
+
+[lattice]
+gn = [ 128, 64 ]
+
+[parallel]
+nc = [ 2, 2 ]
+
+[lb]
+timesteps = 0
+components = 2
+fieldNames = [ "red", "blue" ]
+io.populationFreq = 1
+io.colourFreq = 1
+io.maskFreq = 1
+
+// Init
+[lb]
+eqdist.eqDistForm = BDist2
+init.fluidInit = [ EqDistSphere, EqDistSphere ]
+init.fluidDensities = [ [ 1.0, 0.0 ], [ 0.0, 1.0 ] ]
+init.initRadius = 16.0
+init.initOffset = [ 12.8, 0.0 ]
+init.interfaceThickness = 4.0
+mask.maskInit = None
+

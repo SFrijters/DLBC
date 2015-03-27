@@ -132,7 +132,7 @@ void initEqDistSphereFrac(T)(ref T field, in double density1, in double density2
   immutable initSphereRadius = initSphereRadiusFrac * smallSize;
   double[conn.d] initSphereOffset;
   foreach(immutable vd; Iota!(0,conn.d) ) {
-    initSphereOffset[vd] = initSphereOffsetFrac[vd] * smallSize;
+    initSphereOffset[vd] = initSphereOffsetFrac[vd] * gn[vd];
   }
 
   initEqDistSphere(field, density1, density2, initSphereRadius, initSphereOffset, interfaceThickness);
