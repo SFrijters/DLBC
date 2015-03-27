@@ -1,0 +1,29 @@
+[io]
+simulationName = fluid-init-eqdistspherefrac-boundary-2d
+outputPath = output
+
+[lattice]
+gn = [ 128, 64 ]
+
+[parallel]
+nc = [ 2, 2 ]
+
+[lb]
+timesteps = 0
+components = 2
+fieldNames = [ "red", "blue" ]
+io.populationFreq = 1
+io.colourFreq = 1
+io.maskFreq = 1
+
+// Init
+[lb]
+eqdist.eqDistForm = BDist2
+init.fluidInit = [ EqDistSphereFrac, EqDistSphereFrac ]
+init.fluidDensities = [ [ 1.0, 0.0 ], [ 0.0, 1.0 ] ]
+init.initRadius = 0.25
+// Passing over periodic boundary conditions will only initialize the part of the sphere that is in the primary box
+init.initOffset = [ 0.5, 0.5 ]
+init.interfaceThickness = 4.0
+mask.maskInit = None
+
