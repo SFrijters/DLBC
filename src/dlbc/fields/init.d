@@ -435,12 +435,12 @@ void initWalls(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis initAxis
 }
 
 
-void initEqDistWall(T, U)(ref T field, in double density, ref U mask) if ( isField!T && isMaskField!U ) {
+void initEqDistWall(T, U)(ref T field, ref U mask) if ( isField!T && isMaskField!U ) {
   alias conn = field.conn;
   foreach(immutable p, ref e; field.arr) {
     if ( mask[p] == Mask.Solid ) {
       e = 0.0;
-      e[0] = density;
+      e[0] = 1.0;
     }
   }
 }

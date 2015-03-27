@@ -109,7 +109,7 @@ void initFluids(T)(ref T L) if ( isLattice!T ) {
       L.fluids[f].initFluid(f, rng);
     }
     // Coloured walls.
-    L.fluids[f].initEqDistWall(1.0, L.mask);
+    L.fluids[f].initEqDistWall(L.mask);
   }
 }
 
