@@ -23,19 +23,6 @@ import dlbc.range: Iota, dotProduct;
 import std.conv: to;
 import std.traits: isIterable, isNumeric;
 
-void initRank(T)(ref T field) @safe pure nothrow @nogc if ( isField!T ) {
-  foreach(ref e; field.byElementForward) {
-    static if ( isIterable!(typeof(e))) {
-      foreach( ref c; e ) {
-        c = M.rank;
-      }
-    }
-    else {
-      e = M.rank;
-    }
-  }
-}
-
 void initConst(T, U)(ref T field, in U fill) @safe pure nothrow @nogc if ( isField!T ) {
   foreach(ref e; field.byElementForward) {
     static if ( isIterable!(typeof(e))) {
@@ -70,6 +57,14 @@ void initEqDist(T)(ref T field, in double density) @safe nothrow @nogc if ( isFi
   }
 }
 
+void initEqDistRandom(T)(ref T field, in double density, ref RNG lrng) if ( isField!T ) {
+  alias conn = field.conn;
+  immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
+  foreach( ref e; field.byElementForward) {
+    e = density * uniform(0.0, 2.0, lrng) * eqpop[];
+  }
+}
+
 void initEqDistPerturb(T)(ref T field, in double density, in double perturb, ref RNG lrng) if ( isField!T ) {
   alias conn = field.conn;
   immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
@@ -83,14 +78,6 @@ void initEqDistPerturbFrac(T)(ref T field, in double density, in double perturb,
   immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
   foreach( ref e; field.byElementForward) {
     e = density * (1.0 + uniform(-perturb, perturb, lrng) ) * eqpop[];
-  }
-}
-
-void initEqDistRandom(T)(ref T field, in double density, ref RNG lrng) if ( isField!T ) {
-  alias conn = field.conn;
-  immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
-  foreach( ref e; field.byElementForward) {
-    e = density * uniform(0.0, 2.0, lrng) * eqpop[];
   }
 }
 
@@ -136,58 +123,6 @@ void initEqDistSphereFrac(T)(ref T field, in double density1, in double density2
   }
 
   initEqDistSphere(field, density1, density2, initSphereRadius, initSphereOffset, interfaceThickness);
-}
-
-void initEqDistCylinder(T)(ref T field, in double density1, in double density2, in Axis preferredAxis,
-                           in double initCylinderRadius, in double[] initCylinderOffset, in double interfaceThickness) if ( isField!T ) {
-  import std.math: sqrt;
-  alias conn = field.conn;
-
-  assert(initCylinderOffset.length == conn.d);
-
-  immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
-
-  // Initialize sites.
-  foreach(immutable p, ref e; field.arr) {
-    double[conn.d] gn, offset;
-    foreach(immutable i; Iota!(0, conn.d) ) {
-      if ( i == to!int(preferredAxis) ) {
-        offset[i] = 0.0;
-      }
-      else {
-        gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
-        offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * 0.5 + initCylinderOffset[i]) + 0.5;
-      }
-    }
-    immutable relpos = sqrt(offset.dotProduct(offset)) - initCylinderRadius;
-    e = relpos.symmetricLinearTransition(interfaceThickness, density1, density2)*eqpop[];
-  }
-}
-
-void initEqDistCylinderFrac(T)(ref T field, in double density1, in double density2, in Axis preferredAxis,
-                               in double initCylinderRadiusFrac, in double[] initCylinderOffsetFrac, in double interfaceThickness) if ( isField!T ) {
-  import dlbc.lattice: gn;
-  alias conn = field.conn;
-
-  assert(initCylinderOffsetFrac.length == conn.d);
-
-  size_t smallSize = 0;
-  foreach(immutable i; 0..gn.length) {
-    if ( i != to!int(preferredAxis) ) {
-      if ( gn[i] < smallSize || smallSize == 0 ) {
-        smallSize = gn[i];
-      }
-    }
-  }
-
-  immutable initCylinderRadius = initCylinderRadiusFrac * smallSize;
-  double[conn.d] initCylinderOffset;
-  foreach(immutable vd; Iota!(0,conn.d) ) {
-    initCylinderOffset[vd] = initCylinderOffsetFrac[vd] * smallSize;
-  }
-
-  initEqDistCylinder(field, density1, density2, preferredAxis, initCylinderRadius, initCylinderOffset, interfaceThickness);
-
 }
 
 
@@ -244,6 +179,58 @@ void initEqDistTwoSpheresFrac(T)(ref T field, in double density1, in double dens
   }
 
   initEqDistTwoSpheres(field, density1, density2, initSphereRadius, initSphereOffset, interfaceThickness, initSeparation);
+}
+
+void initEqDistCylinder(T)(ref T field, in double density1, in double density2, in Axis preferredAxis,
+                           in double initCylinderRadius, in double[] initCylinderOffset, in double interfaceThickness) if ( isField!T ) {
+  import std.math: sqrt;
+  alias conn = field.conn;
+
+  assert(initCylinderOffset.length == conn.d);
+
+  immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
+
+  // Initialize sites.
+  foreach(immutable p, ref e; field.arr) {
+    double[conn.d] gn, offset;
+    foreach(immutable i; Iota!(0, conn.d) ) {
+      if ( i == to!int(preferredAxis) ) {
+        offset[i] = 0.0;
+      }
+      else {
+        gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
+        offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * 0.5 + initCylinderOffset[i]) + 0.5;
+      }
+    }
+    immutable relpos = sqrt(offset.dotProduct(offset)) - initCylinderRadius;
+    e = relpos.symmetricLinearTransition(interfaceThickness, density1, density2)*eqpop[];
+  }
+}
+
+void initEqDistCylinderFrac(T)(ref T field, in double density1, in double density2, in Axis preferredAxis,
+                               in double initCylinderRadiusFrac, in double[] initCylinderOffsetFrac, in double interfaceThickness) if ( isField!T ) {
+  import dlbc.lattice: gn;
+  alias conn = field.conn;
+
+  assert(initCylinderOffsetFrac.length == conn.d);
+
+  size_t smallSize = 0;
+  foreach(immutable i; 0..gn.length) {
+    if ( i != to!int(preferredAxis) ) {
+      if ( gn[i] < smallSize || smallSize == 0 ) {
+        smallSize = gn[i];
+      }
+    }
+  }
+
+  immutable initCylinderRadius = initCylinderRadiusFrac * smallSize;
+  double[conn.d] initCylinderOffset;
+  foreach(immutable vd; Iota!(0,conn.d) ) {
+    initCylinderOffset[vd] = initCylinderOffsetFrac[vd] * smallSize;
+  }
+
+  initEqDistCylinder(field, density1, density2, preferredAxis, initCylinderRadius, initCylinderOffset, interfaceThickness);
+
 }
 
 void initEqDistLamellae(T, U)(ref T field, in U[] values, in double[] widths, in Axis preferredAxis, in double interfaceThickness) if ( isField!T ) {
@@ -454,6 +441,21 @@ void initEqDistWall(T, U)(ref T field, in double density, ref U mask) if ( isFie
     if ( mask[p] == Mask.Solid ) {
       e = 0.0;
       e[0] = density;
+    }
+  }
+}
+
+debug {
+  void initRank(T)(ref T field) @safe pure nothrow @nogc if ( isField!T ) {
+    foreach(ref e; field.byElementForward) {
+      static if ( isIterable!(typeof(e))) {
+	foreach( ref c; e ) {
+	  c = M.rank;
+	}
+      }
+      else {
+	e = M.rank;
+      }
     }
   }
 }

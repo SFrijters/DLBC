@@ -272,14 +272,6 @@ void initFluid(T)(ref T field, in size_t i, ref RNG lrng) if ( isPopulationField
     checkFDArrayParameterLength(2);
     field.initEqDistSphereFrac(fluidDensities[i][0], fluidDensities[i][1], initRadius, initOffset, interfaceThickness);
     break;
-  case(FluidInit.EqDistCylinder):
-    checkFDArrayParameterLength(2);
-    field.initEqDistCylinder(fluidDensities[i][0], fluidDensities[i][1], initAxis, initRadius, initOffset, interfaceThickness);
-    break;
-  case(FluidInit.EqDistCylinderFrac):
-    checkFDArrayParameterLength(2);
-    field.initEqDistCylinderFrac(fluidDensities[i][0], fluidDensities[i][1], initAxis, initRadius, initOffset, interfaceThickness);
-    break;
   case(FluidInit.EqDistTwoSpheres):
     checkFDArrayParameterLength(2);
     field.initEqDistTwoSpheres(fluidDensities[i][0], fluidDensities[i][1], initRadius, initOffset, interfaceThickness, initSeparation);
@@ -287,6 +279,14 @@ void initFluid(T)(ref T field, in size_t i, ref RNG lrng) if ( isPopulationField
   case(FluidInit.EqDistTwoSpheresFrac):
     checkFDArrayParameterLength(2);
     field.initEqDistTwoSpheresFrac(fluidDensities[i][0], fluidDensities[i][1], initRadius, initOffset, interfaceThickness, initSeparation);
+    break;
+  case(FluidInit.EqDistCylinder):
+    checkFDArrayParameterLength(2);
+    field.initEqDistCylinder(fluidDensities[i][0], fluidDensities[i][1], initAxis, initRadius, initOffset, interfaceThickness);
+    break;
+  case(FluidInit.EqDistCylinderFrac):
+    checkFDArrayParameterLength(2);
+    field.initEqDistCylinderFrac(fluidDensities[i][0], fluidDensities[i][1], initAxis, initRadius, initOffset, interfaceThickness);
     break;
   case(FluidInit.EqDistLamellae):
     checkFDArrayParameterLength(lamellaeWidths.length);
