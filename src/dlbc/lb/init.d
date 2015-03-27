@@ -233,6 +233,7 @@ enum FluidInit {
      i = number of the fluid field
 */
 void initFluid(T)(ref T field, in size_t i, ref RNG lrng) if ( isPopulationField!T ) {
+  alias conn = T.lbconn;
   import std.conv: to;
 
   writeLogRI("  Initializing fluid %d.", i);
@@ -290,10 +291,16 @@ void initFluid(T)(ref T field, in size_t i, ref RNG lrng) if ( isPopulationField
     break;
   case(FluidInit.EqDistLamellae):
     checkFDArrayParameterLength(lamellaeWidths.length);
+    if ( to!int(initAxis) >= conn.d ) {
+      writeLogF("lb.init.initAxis = %s is out of range (max is %s), this is not allowed for FluidInit.EqDistLamellae", initAxis, to!Axis(conn.d - 1));
+    }
     field.initEqDistLamellae(fluidDensities[i], lamellaeWidths, initAxis, interfaceThickness);
     break;
   case(FluidInit.EqDistLamellaeFrac):
     checkFDArrayParameterLength(lamellaeWidths.length);
+    if ( to!int(initAxis) >= conn.d ) {
+      writeLogF("lb.init.initAxis = %s is out of range (max is %s), this is not allowed for FluidInit.EqDistLamellaeFrac", initAxis, to!Axis(conn.d - 1));
+    }
     field.initEqDistLamellaeFrac(fluidDensities[i], lamellaeWidths, initAxis, interfaceThickness);
     break;
   }
@@ -306,5 +313,4 @@ private void checkFDArrayParameterLength(in size_t len) {
     checkArrayParameterLength(fluidDensities, name, components, true);
   }
 }
-
 
