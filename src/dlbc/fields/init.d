@@ -110,9 +110,9 @@ void initEqDistSphereFrac(T)(ref T field, in double density1, in double density2
   assert(initSphereOffsetFrac.length == conn.d);
 
   auto smallSize = gn[0];
-  foreach(immutable i; 0..gn.length) {
-    if ( gn[i] < smallSize ) {
-      smallSize = gn[i];
+  foreach(immutable vd; 0..gn.length) {
+    if ( gn[vd] < smallSize ) {
+      smallSize = gn[vd];
     }
   }
 
@@ -164,9 +164,9 @@ void initEqDistTwoSpheresFrac(T)(ref T field, in double density1, in double dens
   assert(initSeparationFrac.length == conn.d);
 
   auto smallSize = gn[0];
-  foreach(immutable i; 0..gn.length) {
-    if ( gn[i] < smallSize ) {
-      smallSize = gn[i];
+  foreach(immutable vd; 0..gn.length) {
+    if ( gn[vd] < smallSize ) {
+      smallSize = gn[vd];
     }
   }
 
@@ -174,8 +174,8 @@ void initEqDistTwoSpheresFrac(T)(ref T field, in double density1, in double dens
   double[conn.d] initSphereOffset;
   double[conn.d] initSeparation;
   foreach(immutable vd; Iota!(0,conn.d) ) {
-    initSphereOffset[vd] = initSphereOffsetFrac[vd] * smallSize;
-    initSeparation[vd] = initSeparationFrac[vd] * smallSize;
+    initSphereOffset[vd] = initSphereOffsetFrac[vd] * gn[vd];
+    initSeparation[vd] = initSeparationFrac[vd] * gn[vd];
   }
 
   initEqDistTwoSpheres(field, density1, density2, initSphereRadius, initSphereOffset, interfaceThickness, initSeparation);
