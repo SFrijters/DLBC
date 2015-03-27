@@ -26,7 +26,7 @@
     "parameters": [
       { "parameter": "lb.timesteps", "value": "1000" },
       { "parameter": "lb.io.densityFreq", "value": "1000" },
-      { "parameter": "lb.io.velocitiesFreq", "value": "1000" },
+      { "parameter": "lb.io.velocityFreq", "value": "1000" },
       { "parameter": "lb.io.maskFreq", "value": "1000" },
       { "parameter": "lb.io.forceFreq", "value": "1000" }
     ],
