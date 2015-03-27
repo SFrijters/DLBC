@@ -1,0 +1,28 @@
+[io]
+simulationName = fluid-init-eqdistlamellaefrac-x-2d
+outputPath = output
+
+[lattice]
+gn = [ 128, 64 ]
+
+[parallel]
+nc = [ 2, 2 ]
+
+[lb]
+timesteps = 0
+components = 2
+fieldNames = [ "red", "blue" ]
+io.populationFreq = 1
+io.colourFreq = 1
+io.maskFreq = 1
+
+// Init
+[lb]
+eqdist.eqDistForm = BDist2
+init.fluidInit = [ EqDistLamellaeFrac, EqDistLamellaeFrac ]
+init.lamellaeWidths = [ 0.5, 0.25, 0.125, 0.0625 ]
+init.fluidDensities = [ [ 1.0, 0.0, 1.0, 0.0 ], [ 1.0, 1.0, 0.0, 1.0 ] ]
+init.interfaceThickness = 4.0
+init.initAxis = X
+mask.maskInit = None
+
