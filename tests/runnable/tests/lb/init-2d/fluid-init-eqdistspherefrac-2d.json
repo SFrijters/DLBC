@@ -10,7 +10,8 @@
 
   "compare": {
     "data": [ "population-red", "population-blue", "colour-red-blue", "mask" ],
-    "comparison": [ { "type": "h5diff", "files": "%data%-fluid-init-eqdistspherefrac-2d-*t00000000.h5" } ]
+    "comparison": [ { "type": "h5diff", "files": "%data%-fluid-init-eqdistspherefrac-2d-*t00000000.h5" } ],
+    "shell": [ "./compare-fluid-init-eqdistspherefrac-2d.py" ]
   }
 }
 
