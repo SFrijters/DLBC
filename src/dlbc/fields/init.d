@@ -21,7 +21,7 @@ import dlbc.random;
 import dlbc.range: Iota, dotProduct;
 
 import std.conv: to;
-import std.traits: isIterable;
+import std.traits: isIterable, isNumeric;
 
 void initRank(T)(ref T field) @safe pure nothrow @nogc if ( isField!T ) {
   foreach(ref e; field.byElementForward) {
@@ -88,9 +88,9 @@ void initEqDistPerturbFrac(T)(ref T field, in double density, in double perturb,
 
 void initEqDistRandom(T)(ref T field, in double density, ref RNG lrng) if ( isField!T ) {
   alias conn = field.conn;
-  immutable double[conn.q] unity = eqDistUnity!conn(eqDistForm);
+  immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
   foreach( ref e; field.byElementForward) {
-    e = density * uniform(0.0, 2.0, lrng) * unity[];
+    e = density * uniform(0.0, 2.0, lrng) * eqpop[];
   }
 }
 
@@ -246,52 +246,19 @@ void initEqDistTwoSpheresFrac(T)(ref T field, in double density1, in double dens
   initEqDistTwoSpheres(field, density1, density2, initSphereRadius, initSphereOffset, interfaceThickness, initSeparation);
 }
 
-void initEqDistWall(T, U)(ref T field, in double density, ref U mask) if ( isField!T && isMaskField!U ) {
-  alias conn = field.conn;
-  foreach(immutable p, ref e; field.arr) {
-    if ( mask[p] == Mask.Solid ) {
-      e = 0.0;
-      e[0] = density;
-    }
-  }
-}
-
 void initEqDistLamellae(T, U)(ref T field, in U[] values, in double[] widths, in Axis preferredAxis, in double interfaceThickness) if ( isField!T ) {
-  import std.math: abs;
   alias conn = field.conn;
 
   assert(widths.length == values.length);
 
-  immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
   immutable ax = to!int(preferredAxis);
+  immutable double[] interfaces = calculateInterfaces(widths);
 
-  auto interfaces = [0.0 ] ~ widths.dup;
-  foreach(immutable i, ref w; interfaces) {
-    if ( i > 0 ) {
-      w += interfaces[i-1];
-    }
-  }
-  interfaces[] -= 0.5;
-
+  immutable double[conn.q] eqpop = eqDistUnity!conn(eqDistForm);
   foreach(immutable p, ref e; field.arr) {
     double gp = p[ax] + M.c[ax] * field.n[ax] - to!double(field.haloSize);
-    ptrdiff_t closestInterface;
-    double minDiff;
-    foreach(immutable i, ref w; interfaces) {
-      if ( i == 0 ) {
-        minDiff = abs(interfaces[i] - gp);
-        closestInterface = i;
-      }
-      else {
-        double diff = abs(interfaces[i] - gp);
-        if ( diff < minDiff ) {
-          minDiff = diff;
-          closestInterface = i;
-        }
-      }
-    }
-
-    minDiff = gp - interfaces[closestInterface];
+    immutable closestInterface = gp.findClosestInterface(interfaces);
+    immutable minDiff = gp - interfaces[closestInterface];
     if ( closestInterface == 0 ) {
       e = minDiff.symmetricLinearTransition(interfaceThickness, values[$-1], values[closestInterface])*eqpop[];
     }
@@ -304,54 +271,92 @@ void initEqDistLamellae(T, U)(ref T field, in U[] values, in double[] widths, in
   }
 }
 
-
 void initEqDistLamellaeFrac(T, U)(ref T field, in U[] values, in double[] widthsFrac, in Axis preferredAxis, in double interfaceThickness) if ( isField!T ) {
   import dlbc.lattice: gn;
   assert(widthsFrac.length == values.length);
-
   immutable ax = to!int(preferredAxis);
+  assert(ax <= T.d);
 
   double[] widths;
+  widths.length = widthsFrac.length;
   foreach(immutable i; 0..widthsFrac.length) {
-    widths ~= widthsFrac[i] * gn[ax];
+    widths[i] = widthsFrac[i] * gn[ax];
   }
     
-  initEqDistLamellae(field, values, widths, preferredAxis, interfaceThickness);
+  field.initEqDistLamellae(values, widths, preferredAxis, interfaceThickness);
 }
 
-/// Only inits physical sites!
-void initLamellae(T, U)(ref T field, in U[] values, in ptrdiff_t[] widths, in Axis preferredAxis) if ( isField!T ) {
+void initLamellae(T, U)(ref T field, in U[] values, in double[] widths, in Axis preferredAxis, in double interfaceThickness) if ( isField!T ) {
+  alias conn = field.conn;
+
   assert(widths.length == values.length);
-  size_t i = to!int(preferredAxis);
-  foreach(immutable p, ref e; field) {
-    auto gp = p[i] + M.c[i] * field.n[i] - field.haloSize;
-    e = values[gp.findLamella(widths)];
+
+  immutable ax = to!int(preferredAxis);
+  immutable double[] interfaces = calculateInterfaces(widths);
+
+  foreach(immutable p, ref e; field.arr) {
+    double gp = p[ax] + M.c[ax] * field.n[ax] - to!double(field.haloSize);
+    immutable closestInterface = gp.findClosestInterface(interfaces);
+    immutable minDiff = gp - interfaces[closestInterface];
+    if ( closestInterface == 0 ) {
+      e = minDiff.symmetricLinearTransition(interfaceThickness, values[$-1], values[closestInterface]);
+    }
+    else if ( closestInterface == values.length ) {
+      e = minDiff.symmetricLinearTransition(interfaceThickness, values[closestInterface-1], values[0]);
+    }
+    else {
+      e = minDiff.symmetricLinearTransition(interfaceThickness, values[closestInterface-1], values[closestInterface]);
+    }
   }
 }
 
-private ptrdiff_t findLamella(in ptrdiff_t pos, in double[] widths) @safe pure {
-  import std.math;
-  ptrdiff_t i = 0;
-  ptrdiff_t upper = to!ptrdiff_t(floor(widths[0]));
-  while ( pos > upper ) {
-    ++i;
-    upper += widths[i];
+void initLamellaeFrac(T, U)(ref T field, in U[] values, in double[] widthsFrac, in Axis preferredAxis, in double interfaceThickness) if ( isField!T ) {
+  import dlbc.lattice: gn;
+  assert(widthsFrac.length == values.length);
+  immutable ax = to!int(preferredAxis);
+  assert(ax <= T.d);
+
+  double[] widths;
+  widths.length = widthsFrac.length;
+  foreach(immutable i; 0..widthsFrac.length) {
+    widths[i] = widthsFrac[i] * gn[ax];
   }
-  return i;
+    
+  field.initLamellae(values, widths, preferredAxis, interfaceThickness);
 }
 
-private ptrdiff_t findLamella(in ptrdiff_t pos, in ptrdiff_t[] widths) @safe pure nothrow @nogc {
-  import std.math;
-  ptrdiff_t i = 0;
-  ptrdiff_t upper = widths[0];
-  while ( pos >= upper ) {
-    ++i;
-    upper += widths[i];
+private ptrdiff_t findClosestInterface(in double gp, in double[] interfaces) @safe pure nothrow @nogc {
+  import std.math: abs;
+  ptrdiff_t closestInterface;
+  double minDiff;
+  foreach(immutable i, ref w; interfaces) {
+    if ( i == 0 ) {
+      minDiff = abs(interfaces[i] - gp);
+      closestInterface = i;
+    }
+    else {
+      double diff = abs(interfaces[i] - gp);
+      if ( diff < minDiff ) {
+	minDiff = diff;
+	closestInterface = i;
+      }
+    }
   }
-  return i;
+  return closestInterface;
 }
 
-private U symmetricLinearTransition(T, U)(in T pos, in T width, in U negval, in U posval) @safe pure nothrow @nogc {
+private double[] calculateInterfaces(in double[] widths) @safe pure nothrow {
+  auto interfaces = [0.0 ] ~ widths.dup;
+  foreach(immutable i, ref w; interfaces) {
+    if ( i > 0 ) {
+      w += interfaces[i-1];
+    }
+  }
+  interfaces[] -= 0.5;
+  return interfaces;
+}
+
+private U symmetricLinearTransition(T, U)(in T pos, in T width, in U negval, in U posval) @safe pure nothrow @nogc if ( isNumeric!T && isNumeric!U ) {
   if ( width == 0.0 ) {
     if ( pos < 0 ) {
       return negval;
@@ -442,4 +447,14 @@ void initWalls(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis initAxis
   }
 }
 
+
+void initEqDistWall(T, U)(ref T field, in double density, ref U mask) if ( isField!T && isMaskField!U ) {
+  alias conn = field.conn;
+  foreach(immutable p, ref e; field.arr) {
+    if ( mask[p] == Mask.Solid ) {
+      e = 0.0;
+      e[0] = density;
+    }
+  }
+}
 

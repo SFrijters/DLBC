@@ -21,7 +21,7 @@ module dlbc.elec.init;
 @("param") double chargeDensitySolid;
 @("param") double saltConc;
 
-@("param") ptrdiff_t[] lamellaeWidths;
+@("param") double[] lamellaeWidths;
 @("param") double[] chargeLamellae;
 
 @("param") ElecDielInit dielInit;
@@ -136,6 +136,11 @@ void initElecConstants(T)(ref T L) if ( isLattice!T ) {
       dielContrast = 1.0;
     }
   }
+
+  if ( to!int(initAxis) > T.lbconn.d ) {
+    writeLogF("Preferred axis elec.initAxis cannot be larger than the dimensions of the system.");
+  }
+
   writeLogRI("Derived quantity: averageDiel = %e, dielContrast = %e", averageDiel, dielContrast);
   L.initPoissonSolver();
   initElecFlux();
@@ -350,7 +355,7 @@ private void initChargeElecCapacitorDensity(T)(ref T L, in double chargeDensity,
   assert(approxEqual(globalCharge, 0.0));
 }
 
-private void initChargeElecLamellae(T)(ref T L, in double[] chargeLamellae, in ptrdiff_t[] lamellaeWidths, in Axis initAxis) if ( isLattice!T ) {
+private void initChargeElecLamellae(T)(ref T L, in double[] chargeLamellae, in double[] lamellaeWidths, in Axis initAxis) if ( isLattice!T ) {
   double[] chargeP, chargeN;
   chargeP.length = chargeLamellae.length;
   chargeN.length = chargeLamellae.length;
@@ -360,8 +365,8 @@ private void initChargeElecLamellae(T)(ref T L, in double[] chargeLamellae, in p
 
   }
   writeLogD("%s, %s", chargeP, chargeN);
-  L.elChargeP.initLamellae(chargeP, lamellaeWidths, initAxis);
-  L.elChargeN.initLamellae(chargeN, lamellaeWidths, initAxis);
+  L.elChargeP.initLamellae(chargeP, lamellaeWidths, initAxis, 0.0);
+  L.elChargeN.initLamellae(chargeN, lamellaeWidths, initAxis, 0.0);
 }
 
 private double calculateGlobalCharge(T)(ref T L) if ( isLattice!T ) {
@@ -383,6 +388,8 @@ private double calculateGlobalCharge(T)(ref T L) if ( isLattice!T ) {
 
 private void initDielCapacitor(T)(ref T L, in double dielConstant, in double dielConstant2, in Axis initAxis) if ( isLattice!T ) {
   size_t i = to!int(initAxis);
-  L.elDiel.initLamellae([dielConstant, dielConstant2], [L.gn[i]/2, L.gn[i]/2], initAxis);
+  double[] diel = [dielConstant, dielConstant2];
+  double[] lamellaeWidths = [L.gn[i]/2, L.gn[i]/2];
+  L.elDiel.initLamellae(diel, lamellaeWidths, initAxis, 0.0);
 }
 
