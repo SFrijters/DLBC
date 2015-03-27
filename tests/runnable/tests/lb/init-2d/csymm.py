@@ -26,3 +26,34 @@ def checkMirrorSymmetryY2d(simulationName, fieldName, relpath):
 
     return 0
 
+def checkQuasi1dY2d(simulationName, fieldName, relpath):
+    globstr = os.path.join(relpath, fieldName + "*" + simulationName + "*h5")
+    g = glob.glob(globstr)
+    f = h5py.File(g[0], 'r')
+    v = f["/OutArray"]
+
+    line = v[:,0]
+
+    for i in range(0, v.shape[1]):
+        c = ( v[:,i] == line )
+        if ( not np.all(c) ):
+            return 1
+
+    return 0
+
+def checkQuasi1dX2d(simulationName, fieldName, relpath):
+    globstr = os.path.join(relpath, fieldName + "*" + simulationName + "*h5")
+    g = glob.glob(globstr)
+    f = h5py.File(g[0], 'r')
+    v = f["/OutArray"]
+
+    line = v[0,:]
+
+    for i in range(0, v.shape[1]):
+        c = ( v[i,:] == line )
+        if ( not np.all(c) ):
+            return 1
+
+    return 0
+
+
