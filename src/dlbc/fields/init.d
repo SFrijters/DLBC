@@ -193,13 +193,13 @@ void initEqDistCylinder(T)(ref T field, in double density1, in double density2, 
   // Initialize sites.
   foreach(immutable p, ref e; field.arr) {
     double[conn.d] gn, offset;
-    foreach(immutable i; Iota!(0, conn.d) ) {
-      if ( i == to!int(preferredAxis) ) {
-        offset[i] = 0.0;
+    foreach(immutable vd; Iota!(0, conn.d) ) {
+      if ( vd == to!int(preferredAxis) ) {
+        offset[vd] = 0.0;
       }
       else {
-        gn[i] = p[i] + M.c[i] * field.n[i] - to!double(field.haloSize);
-        offset[i] = gn[i] - to!double(M.nc[i] * field.n[i] * 0.5 + initCylinderOffset[i]) + 0.5;
+        gn[vd] = p[vd] + M.c[vd] * field.n[vd] - to!double(field.haloSize);
+        offset[vd] = gn[vd] - to!double(M.nc[vd] * field.n[vd] * 0.5 + initCylinderOffset[vd]) + 0.5;
       }
     }
     immutable relpos = sqrt(offset.dotProduct(offset)) - initCylinderRadius;
@@ -215,10 +215,10 @@ void initEqDistCylinderFrac(T)(ref T field, in double density1, in double densit
   assert(initCylinderOffsetFrac.length == conn.d);
 
   size_t smallSize = 0;
-  foreach(immutable i; 0..gn.length) {
-    if ( i != to!int(preferredAxis) ) {
-      if ( gn[i] < smallSize || smallSize == 0 ) {
-        smallSize = gn[i];
+  foreach(immutable vd; 0..gn.length) {
+    if ( vd != to!int(preferredAxis) ) {
+      if ( gn[vd] < smallSize || smallSize == 0 ) {
+        smallSize = gn[vd];
       }
     }
   }
@@ -226,7 +226,7 @@ void initEqDistCylinderFrac(T)(ref T field, in double density1, in double densit
   immutable initCylinderRadius = initCylinderRadiusFrac * smallSize;
   double[conn.d] initCylinderOffset;
   foreach(immutable vd; Iota!(0,conn.d) ) {
-    initCylinderOffset[vd] = initCylinderOffsetFrac[vd] * smallSize;
+    initCylinderOffset[vd] = initCylinderOffsetFrac[vd] * gn[vd];
   }
 
   initEqDistCylinder(field, density1, density2, preferredAxis, initCylinderRadius, initCylinderOffset, interfaceThickness);

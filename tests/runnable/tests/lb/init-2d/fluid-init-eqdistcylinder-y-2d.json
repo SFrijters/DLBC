@@ -1,0 +1,17 @@
+{
+  "name": "fluid-init-eqdistcylinder-y-2d",
+  "description": "Initialize two fluids with init EqDistCylinder and axis = Y.",
+  "tags": [ "init" ],
+
+  "configuration": "d2q9",
+  "input-file": "fluid-init-eqdistcylinder-y-2d.in",
+  "np": 4,
+  "clean": [ "output" ],
+
+  "compare": {
+    "data": [ "population-red", "population-blue", "colour-red-blue", "mask" ],
+    "comparison": [ { "type": "h5diff", "files": "%data%-fluid-init-eqdistcylinder-y-2d-*t00000000.h5" } ],
+    "shell": [ "./compare-fluid-init-eqdistcylinder-y-2d.py" ]
+  }
+}
+
