@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import csymm
+import cfrac
 
 relpath = "reference-data"
 
