@@ -39,6 +39,8 @@ module dlbc.lb.init;
 @("param") double interfaceThickness = 0.0;
 /// Ditto
 @("param") double[] lamellaeWidths;
+/// Ditto
+@("param") string[] fluidFiles;
 
 import dlbc.fields.field;
 import dlbc.lb.lb;
@@ -79,6 +81,7 @@ void initFluids(T)(ref T L) if ( isLattice!T ) {
   checkArrayParameterLength(initSeparation, "lb.init.initSeparation", conn.d);
   checkArrayParameterLength(randomReseed, "lb.init.randomReseed", components);
   checkArrayParameterLength(randomSeed, "lb.init.randomSeed", components);
+  checkArrayParameterLength(fluidFiles, "lb.init.fluidFiles", components);
   // If we don't actually want to collide at least once, we don't care about tau
   if ( timesteps > 0 ) {
     checkArrayParameterLength(tau, "lb.lb.tau", components, true);
@@ -118,6 +121,10 @@ enum FluidInit {
      No-op, use this only when a routine other than initFluid takes care of things.
   */
   None,
+  /**
+     Read fluid populations of fluid i from $(D fluidFiles[i]).
+  */
+  File,
   /**
      Initialize all sites of fluid i with $(D fluidDensities[i][0]) on all populations.
   */
@@ -233,13 +240,17 @@ enum FluidInit {
      i = number of the fluid field
 */
 void initFluid(T)(ref T field, in size_t i, ref RNG lrng) if ( isPopulationField!T ) {
-  alias conn = T.lbconn;
+  alias conn = T.conn;
   import std.conv: to;
 
   writeLogRI("  Initializing fluid %d.", i);
 
   final switch(fluidInit[i]) {
   case(FluidInit.None):
+    break;
+  case(FluidInit.File):
+    import dlbc.io.io: readField;
+    field.readField(fluidFiles[i]);
     break;
   case(FluidInit.Const):
     checkFDArrayParameterLength(1);

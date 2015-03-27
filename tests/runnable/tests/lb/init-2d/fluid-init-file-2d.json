@@ -1,0 +1,16 @@
+{
+  "name": "fluid-init-file-2d",
+  "description": "Initialize two fluids with init File.",
+  "tags": [ "init" ],
+
+  "configuration": "d2q9",
+  "input-file": "fluid-init-file-2d.in",
+  "np": 4,
+  "clean": [ "output" ],
+
+  "compare": {
+    "data": [ "population-red", "population-blue", "colour-red-blue", "mask" ],
+    "comparison": [ { "type": "h5diff", "files": "%data%-fluid-init-file-2d-*t00000000.h5" } ]
+  }
+}
+

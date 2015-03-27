@@ -1,0 +1,25 @@
+[io]
+simulationName = fluid-init-file-2d
+outputPath = output
+
+[lattice]
+gn = [ 128, 64 ]
+
+[parallel]
+nc = [ 2, 2 ]
+
+[lb]
+timesteps = 0
+components = 2
+fieldNames = [ "red", "blue" ]
+io.populationFreq = 1
+io.colourFreq = 1
+io.maskFreq = 1
+
+// Init
+[lb]
+eqdist.eqDistForm = BDist2
+init.fluidInit = [ File, File ]
+init.fluidFiles = [ "reference-data/population-red-fluid-init-file-2d-t00000000.h5", "reference-data/population-blue-fluid-init-file-2d-t00000000.h5" ]
+mask.maskInit = None
+
