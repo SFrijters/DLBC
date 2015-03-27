@@ -7,16 +7,36 @@
 
   "configuration": "d2q9",
   "input-file": "poiseuille-2d.in",
-  "np": 2,
   "clean": [ "output" ],
   "compare": {
     "data": [ "density-red", "density-blue", "velocity-red", "velocity-blue", "mask", "force-red", "force-blue" ],
-    "comparison": [ { "type": "h5diff", "files": "%data%-poiseuille-2d-*-t00100000.h5" } ]
+    "comparison": [ 
+      { "type": "h5diff", "files": "%data%-poiseuille-2d*-t00000000.h5" },
+      { "type": "h5diff", "files": "%data%-poiseuille-2d*-t00100000.h5" }
+    ]
   },
 
   "coverage": {
     "parameters": [
       { "parameter": "lb.timesteps", "value": "1" }
     ]
+  },
+
+  "fast": {
+    "parameters": [
+      { "parameter": "lb.timesteps", "value": "1000" },
+      { "parameter": "lb.io.densityFreq", "value": "1000" },
+      { "parameter": "lb.io.velocitiesFreq", "value": "1000" },
+      { "parameter": "lb.io.maskFreq", "value": "1000" },
+      { "parameter": "lb.io.forceFreq", "value": "1000" }
+    ],
+    "compare": {
+      "data": [ "density-red", "density-blue", "velocity-red", "velocity-blue", "mask", "force-red", "force-blue" ],
+      "comparison": [
+        { "type": "h5diff", "files": "%data%-poiseuille-2d*-t00000000.h5" },
+        { "type": "h5diff", "files": "%data%-poiseuille-2d*-t00001000.h5" }
+      ]
+    }
   }
+
 }

@@ -27,16 +27,9 @@ mask.initAxis = X
 [lattice]
 gn = [ 32, 4 ]     // Lattice size
 
-[parallel]
-nc = [ 2, 1]
-
 [io]
 simulationName = poiseuille-2d
-outputFormat = HDF5
 outputPath = output
-createPath = true
-
-startOutput = 100000
 
 checkpoint.cpFreq = 0
 
