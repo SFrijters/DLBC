@@ -65,9 +65,9 @@ def compareTest(compare, testRoot, timerName, compiler, strict, lax):
         logDebug("  Executing '" + " ".join(command) + "'.")
         p = subprocess.Popen(command, cwd=testRoot)
         p.communicate()
-        if ( p.returncode == 1 ):
-            logInformation("  Script '%s' returned %d - ignored." % ( s, p.returncode) )
-        elif ( p.returncode != 0 ):
+        # if ( p.returncode == 1 ):
+        #     logInformation("  Script '%s' returned %d - ignored." % ( s, p.returncode) )
+        if ( p.returncode != 0 ):
             logError("Script '%s' returned %d." % ( s, p.returncode) )
             nerr += 1
     if ( nerr == 0 ):
