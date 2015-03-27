@@ -28,7 +28,7 @@ module dlbc.lb.io;
 /**
    Frequency at which velocity fields should be written to disk.
 */
-@("param") int velocitiesFreq;
+@("param") int velocityFreq;
 /**
    Frequency at which force fields should be written to disk.
 */
@@ -77,7 +77,7 @@ void dumpLBData(T)(ref T L, uint t) if ( isLattice!T ) {
     }
   }
 
-  if (dumpNow(velocitiesFreq,t)) {
+  if (dumpNow(velocityFreq,t)) {
     foreach(immutable i, ref e; L.fluids) {
       auto velocity = e.velocityField(L.mask);
       velocity.dumpField("velocity-"~fieldNames[i], t);
