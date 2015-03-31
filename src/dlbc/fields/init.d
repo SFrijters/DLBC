@@ -397,13 +397,14 @@ void initBox(T, U)(ref T field, in U fillWall, in U fillVoid) if ( isField!T ) {
      fillVoid = fill value on other sites
      initAxis = direction of the tube
 */
-void initTube(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis initAxis) if ( isField!T ) {
+void initTube(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis preferredAxis) if ( isField!T ) {
+  immutable ax = to!int(preferredAxis);
   foreach(immutable p, ref e; field.arr) {
     ptrdiff_t[field.dimensions] gn;
     e = fillVoid;
     foreach(immutable vd; Iota!(0, field.dimensions) ) {
       gn[vd] = p[vd] + M.c[vd] * field.n[vd] - field.haloSize;
-      if ( vd != to!int(initAxis) && ( ( gn[vd] == 0 || gn[vd] == (field.n[vd] * M.nc[vd] - 1) ) ) ) {
+      if ( vd != ax && ( ( gn[vd] == 0 || gn[vd] == (field.n[vd] * M.nc[vd] - 1) ) ) ) {
         e = fillWall;
       }
     }
@@ -421,15 +422,15 @@ void initTube(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis initAxis)
      initAxis = walls are placed perpendicular to this axis
      wallOffset = distance from the side of the domain at which walls are placed
 */
-void initWalls(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis initAxis, in int wallOffset) if ( isField!T ) {
+void initWalls(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis preferredAxis, in int wallOffset) if ( isField!T ) {
+  immutable ax = to!int(preferredAxis);
   foreach(immutable p, ref e; field.arr) {
-    ptrdiff_t[field.dimensions] gn;
-    e = fillVoid;
-    foreach(immutable vd; Iota!(0, field.dimensions) ) {
-      gn[vd] = p[vd] + M.c[vd] * field.n[vd] - field.haloSize;
-      if ( vd == to!int(initAxis) && ( gn[vd] == wallOffset || gn[vd] == (field.n[vd] * M.nc[vd] - 1 - wallOffset) ) ) {
-        e = fillWall;
-      }
+    immutable gp = p[ax] + M.c[ax] * field.n[ax] - field.haloSize;
+    if ( gp == wallOffset || gp == (field.n[ax] * M.nc[ax] - 1 - wallOffset) ) {
+      e = fillWall;
+    }
+    else {
+      e = fillVoid;
     }
   }
 }

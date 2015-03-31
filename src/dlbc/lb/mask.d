@@ -132,14 +132,17 @@ void initMask(T)(ref T L) if (isLattice!T) {
     import dlbc.io.io: readField;
     L.mask.readField(maskFile);
     break;
+  case(MaskInit.Box):
+    L.mask.initBox(Mask.Solid, Mask.None);
+    break;
   case(MaskInit.Tube):
     L.mask.initTube(Mask.Solid, Mask.None, initAxis);
     break;
   case(MaskInit.Walls):
+    if ( to!int(initAxis) >= L.mask.dimensions ) {
+      writeLogF("lb.mask.initAxis = %s is out of range (max is %s), this is not allowed for MaskInit.Walls.", initAxis, to!Axis(L.mask.dimensions - 1));
+    }
     L.mask.initWalls(Mask.Solid, Mask.None, initAxis, wallOffset);
-    break;
-  case(MaskInit.Box):
-    L.mask.initBox(Mask.Solid, Mask.None);
     break;
   }
 }
