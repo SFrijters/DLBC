@@ -7,85 +7,68 @@ Helper script to execute the various elements of DLBC runnable test suite.
 import glob, fnmatch, os, shutil, subprocess, sys
 
 from dlbct.build import *
-from dlbct.coverage import *
-from dlbct.describe import *
+from dlbct.coverage import cleanCoverage, runUnittests
 from dlbct.latex import *
 from dlbct.logging import *
 from dlbct.plot import *
-from dlbct.parsejson import *
 from dlbct.run import *
+from dlbct.test import Test
     
-def processTest(testRoot, filename, options, singleTest, n, i):
+def processTest(thisTest, options, n, i, singleTest):
     """ Do everything required for a single test. """
 
-    nerr = 0
-    fn = os.path.join(testRoot, filename)
-    jsonData = open(fn)
-    try:
-        data = json.load(jsonData)
-    except ValueError:
-        logFatal("JSON file %s seems to be broken. Please notify the test designer." % fn, -1)
+    # Always execute a test if a json file has been passed explicitly
+    if ( singleTest ):
+        thisTest.disabled = False
 
-    if ( options.only_tag ):
-        tags = getTags(data, fn)
-        if ( not options.only_tag in tags ):
-            logDebug("Test %s does not have the required tag, skipping ..." % getName(data, fn))
-            return nerr
+    # Skip the test if it does not have the required tag
+    if ( options.only_tag and ( not options.only_tag in thisTest.tags ) ):
+        thisTest.skipped = True
+        logDebug("Test '%s' does not have the required tag '%s', skipping ..." % ( thisTest.name, options.only_tag ) )
+        return
 
+    # If --describe has been passed, only describe the tests
     if ( options.describe ):
-        describeTest(data, fn, n, i)
-        return nerr
+        thisTest.describe(n, i)
+        return
 
-    testName = describeTest(data, fn, n, i, True)
+    thisTest.describe(n, i, True)
+
+    # Do not do anything for disabled tests
+    if ( thisTest.disabled ):
+        logNotification("Test '%s' has been disabled, skipping ..." % thisTest.name )
+        return
 
     if ( options.timers_clean ):
-        cleanTimersData(testRoot)
-        return nerr
+        cleanTimersData(thisTest)
+        return
 
     if ( options.plot_reference ):
-        plotTest(testRoot, getPlot(data, fn), True)
-        return nerr
+        plotTest(thisTest, True)
+        return
 
-    cleanTest(testRoot, getClean(data, fn))
+    cleanTest(thisTest)
     if ( options.clean ):
-        return nerr
+        return
 
-    dubBuild(options.dub_compiler, options.dub_build, getConfiguration(data, fn), options.dub_force, options.dlbc_root)
+    nerr = 0
+
+    dubBuild(options.dub_compiler, options.dub_build, thisTest.configuration, options.dub_force, options.dlbc_root)
 
     # Need to symlink so the .d source files are in the same relative paths as from the DLBC root dir
     if ( options.coverage ):
-        if ( not os.path.isdir(os.path.join(testRoot, "src"))):
-            os.symlink(os.path.join(options.dlbc_root, "src"), os.path.join(testRoot, "src"))
-
-
-    if ( options.fast ):
-        compareOverrides = getFastOverrides(data, fn)
-        if ( compareOverrides ):
-            compare = compareOverrides["compare"]
-        else:
-            compare = getCompare(data, fn)
-    else:
-        compare = getCompare(data, fn)
-
-    if ( ( "disabled" in filename ) and ( not singleTest ) ):
-        disabled = True
-    else:
-        disabled = False
+        if ( not os.path.isdir(os.path.join(thisTest.testRoot, "src"))):
+            os.symlink(os.path.join(options.dlbc_root, "src"), os.path.join(thisTest.testRoot, "src"))
 
     # Run the tests
-    nsuct, nerrt = runTest(options, testRoot, testName, disabled, getConfiguration(data, fn), getInputFile(data, fn), getNP(data, fn), getParameters(data, fn), getCheckpoint(data, fn), compare, getPlot(data, fn), getCoverageOverrides(data, fn), getFastOverrides(data, fn))
-    nerr += nerrt
+    runTest(options, thisTest)
 
     if ( options.coverage ):
-        if ( nsuct > 0 ):
-            covpath = constructCoveragePath(options.dlbc_root)
-            mergeCovLsts(options, testRoot, covpath)
-        else:
-            logNotification("No succesful tests, not merging coverage information ...")
         # Clean up the symlink
-        os.remove(os.path.join(testRoot, "src"))
-    jsonData.close()
-    return nerr
+        os.remove(os.path.join(thisTest.testRoot, "src"))
+
+    if ( options.plot ):
+        plotTest(thisTest, False)
 
 def main():
     # Argument parser
@@ -134,63 +117,7 @@ def main():
     dlbct.logging.logPrefix = options.log_prefix
     dlbct.logging.logTime = options.log_time
 
-    if ( options.build_all ):
-        buildAll(options)
-        reportBuildTimers(120.0)
-        return
-
-    if ( options.describe ):
-        dlbct.logging.verbosityLevel = 5
-
     searchRoot = os.path.join(os.path.dirname(os.path.realpath(__file__)), options.only_below)
-
-    if ( options.latex ):
-        generateLaTeX(searchRoot)
-        return
-
-    if ( options.clean ):
-        # Clean coverage files here, tests will be cleaned later
-        cleanCoverage(options)
-
-    if ( options.coverage or options.coverage_unittest ):
-        if ( options.dub_compiler != "dmd" ):
-            logNotification("Coverage information is generated only by dmd, skipping unittest coverage...")
-            return
-        options.dub_build = "unittest-cov"
-        cleanCoverage(options)
-        runUnittests(options)
-        if ( not options.coverage ):
-            return
-        options.dub_build = "cov"
-
-    # Populate list of matching json files.
-    matches = []
-    if ( os.path.isfile(searchRoot) ):
-        testRoot = os.path.dirname(searchRoot)
-        filename = os.path.basename(searchRoot)
-        matches.append([testRoot, filename])
-        singleTest = True
-    else:
-        singleTest = False
-        for testRoot, dirnames, filenames in os.walk(searchRoot):
-            for filename in fnmatch.filter(filenames, '*.json*'):
-                matches.append([testRoot, filename])
-
-    nerr = 0
-    for i, m in enumerate(sorted(matches)):
-        if ( options.timers_all ):
-            for compiler in dubCompilerChoices:
-                options.dub_compiler = compiler
-                nerr += processTest(m[0], m[1], options, singleTest, len(matches), i)
-            plotTimersData(m[0], options.v)
-        elif ( options.timers ):
-            nerr += processTest(m[0], m[1], options, singleTest, len(matches), i)
-            plotTimersData(m[0], options.v)
-        else:
-            nerr += processTest(m[0], m[1], options, singleTest, len(matches), i)
-
-    if ( options.describe ):
-        return
 
     if ( options.coverage ):
         warnTime = 5.0
@@ -200,7 +127,69 @@ def main():
         else:
             warnTime = 300.0
 
-    reportRunTimers(warnTime)
+    if ( options.latex ):
+        generateLaTeX(searchRoot)
+        return
+
+    if ( options.build_all ):
+        buildAll(options)
+        reportBuildTimers(120.0)
+        return
+
+    if ( options.describe ):
+        dlbct.logging.verbosityLevel = 5
+
+    if ( options.clean ):
+        # Clean coverage files here, tests will be cleaned later
+        cleanCoverage(options)
+
+    unittests = []
+    if ( options.coverage or options.coverage_unittest ):
+        if ( options.dub_compiler != "dmd" ):
+            logNotification("Coverage information is generated only by dmd, skipping unittest coverage...")
+            return
+        options.dub_build = "unittest-cov"
+        cleanCoverage(options)
+        unittests = runUnittests(options)
+        if ( not options.coverage ):
+            reportRunTimers(unittests, warnTime)
+            return
+        options.dub_build = "cov"
+
+    # Populate list of matching tests.
+    matchingTests = []
+    if ( os.path.isfile(searchRoot) ):
+        testRoot = os.path.dirname(searchRoot)
+        filename = os.path.basename(searchRoot)
+        matchingTests.append(Test(testRoot, filename))
+        singleTest = True
+    else:
+        singleTest = False
+        for testRoot, dirnames, filenames in os.walk(searchRoot):
+            for filename in fnmatch.filter(filenames, '*.json*'):
+                matchingTests.append(Test(testRoot, filename))
+
+    nerr = 0
+    ntests = len(matchingTests)
+    for i, test in enumerate(sorted(matchingTests, key=lambda test: test.filePath)):
+        if ( options.timers_all ):
+            for compiler in dubCompilerChoices:
+                options.dub_compiler = compiler
+                processTest(test, options, ntests, i, singleTest)
+                nerr += sum(test.errors)
+            plotTimersData(m[0], options.v)
+        elif ( options.timers ):
+            processTest(test, options, ntests, i, singleTest)
+            nerr += sum(test.errors)
+            plotTimersData(m[0], options.v)
+        else:
+            processTest(test, options, ntests, i, singleTest)
+            nerr += sum(test.errors)
+
+    if ( options.describe ):
+        return
+
+    reportRunTimers(matchingTests + unittests, warnTime)
 
     # Final report
     logNotification("\n" + "="*80)

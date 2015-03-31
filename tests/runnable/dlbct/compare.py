@@ -5,17 +5,27 @@ Compare test results to its reference data.
 """
 
 from logging import *
-from parsejson import *
 
 import glob
 import os
 import string
 import subprocess
 
-def compareTest(compare, testRoot, timerName, compiler, strict, lax):
+def compareSingleTest(options, thisTest):
+    compareTest(options, thisTest, 0, None, None)
+
+def compareTest(options, thisTest, i, m, np):
     """ Run all necessary comparisons for a single subtest. """
+
     logNotification("Comparing test result to reference data ...")
-    nerr = 0
+
+    if ( options.fast and thisTest.fast ):
+        compare = thisTest.fast["compare"]
+    else:
+        compare = thisTest.compare
+
+    if ( m ):
+        compare = replaceTokensInCompare(compare, m, np)
 
     try:
         comparisons = compare["comparison"]
@@ -23,60 +33,81 @@ def compareTest(compare, testRoot, timerName, compiler, strict, lax):
         logWarning("Parameter compare does not contain any comparisons.")
         comparisons = []
 
+    try:
+        data = compare["data"]
+    except KeyError:
+        logWarning("Parameter compare does not contain any data.")
+        data = []
+
     for c in comparisons:
-        ctype = getCompareType(c)
-        acc = getCompareAccuracy(c)
+        try:
+            ctype = c["type"]
+        except KeyError:
+            logFatal("Comparison requires a 'type' parameter. Please notify the test designer.", -1)
+
+        try:
+            cfiles = c["files"]
+        except KeyError:
+            logFatal("Comparison requires a 'files' parameter. Please notify the test designer.", -1)
+
+        try:
+            cacc = c["accuracy"]
+        except KeyError:
+            logDebug("Comparison lacks an 'accuracy' parameter. Assuming no laxness.")
+            cacc = None
+
         if ( ctype == "h5diff" ):
-            for d in compare["data"]:
+            for d in data:
                 # Here we replace the %data% token for each item in the data array
                 try:
-                    search = os.path.join(testRoot, "output", c["files"].replace("%data%", d))
+                    search = os.path.join(thisTest.testRoot, "output", cfiles.replace("%data%", d))
                     g1 = glob.glob(search)[0]
                 except IndexError:
                     logFatal("Could not find any files matching '%s'." % search, -1)
 
                 try:
-                    search = os.path.join(testRoot, "reference-data", c["files"].replace("%data%", d))
+                    search = os.path.join(thisTest.testRoot, "reference-data", cfiles.replace("%data%", d))
                     g2 = glob.glob(search)[0]
                 except IndexError:
                     logFatal("Could not find any files matching '%s'." % search, -1)
 
                 command = [ "h5diff" ]
-                if ( not strict and compiler != "dmd" and acc != "" ):
-                    logDebug("  Applying non-strict accuracy cutoff '%s' ..." % acc )
-                    command += [ "-d", acc ]
-                if ( lax and compiler == "dmd" ):
-                    logDebug("  Applying lax accuracy cutoff '%s' ..." % acc )
-                    command += [ "-d", acc ]
+                if ( not options.compare_strict and options.dub_compiler != "dmd" and cacc ):
+                    logDebug("  Applying non-strict accuracy cutoff '%s' ..." % cacc )
+                    command += [ "-d", cacc ]
+                if ( options.compare_lax and options.dub_compiler == "dmd" and cacc ):
+                    logDebug("  Applying lax accuracy cutoff '%s' ..." % cacc )
+                    command += [ "-d", cacc ]
                 command += [ g1, g2, "/OutArray" ]
+
                 logDebug("  Executing '" + " ".join(command) + "'.")
                 p = subprocess.Popen(command)
                 p.communicate()
                 if ( p.returncode != 0 ):
-                    nerr += logError("h5diff returned %d." % p.returncode)
+                    thisTest.errors[i] += 1
+                    logError("h5diff returned %d." % p.returncode)
         else:
             logFatal("Unknown comparison type '%s'." % ctype)
 
-    shellscripts = getCompareShell(compare)
-    if ( len(shellscripts) > 0 ):
+    try:
+        cshellscripts = compare["shell"]
+    except KeyError:
+        logDebug("JSON file lacks a 'compare:shell' parameter. Assuming no additional shell commands need to be run.")
+        cshellscripts = []
+
+    if ( len(cshellscripts) > 0 ):
         logNotification("Running additional compare scripts ...")
-    for s in shellscripts:
+    for s in cshellscripts:
         command = string.split(s, " ")
         logDebug("  Executing '" + " ".join(command) + "'.")
-        p = subprocess.Popen(command, cwd=testRoot)
+        p = subprocess.Popen(command, cwd=thisTest.testRoot)
         p.communicate()
-        # if ( p.returncode == 1 ):
-        #     logInformation("  Script '%s' returned %d - ignored." % ( s, p.returncode) )
         if ( p.returncode != 0 ):
+            thisTest.errors[i] += 1           
             logError("Script '%s' returned %d." % ( s, p.returncode) )
-            nerr += 1
-    if ( nerr == 0 ):
+
+    if ( thisTest.errors[i] == 0 ):
         logInformation("  No errors found.")
-
-    import run
-    run.runSubtestErrors[timerName] += nerr
-
-    return nerr
 
 def replaceTokensInCompare(compare, parameters, np):
     """ Replace tokens in compare matrix, except %data%. """

@@ -45,10 +45,10 @@ def plotTimersData(testRoot, verbosity):
         logFatal("Plotting script returned %d." % p.returncode, p.returncode)
     logInformation("  Done!")
 
-def cleanTimersData(testRoot):
+def cleanTimersData(thisTest):
     """ Clean (remove) the coverage directory. """
     logNotification("Cleaning timer data ...")
-    timersPath = constructTimersPath(testRoot)
+    timersPath = constructTimersPath(thisTest.testRoot)
     if ( os.path.exists(timersPath) ):
         logInformation("  Removing timers directory ...")
         shutil.rmtree(timersPath)

@@ -14,3 +14,9 @@ def constructExeTargetName(configuration, build, compiler):
     """ Construct file name for executable. """
     return "dlbc-" + configuration + "-" + build + "-" + compiler
 
+def constructCoveragePath(dlbcRoot):
+    """ Construct the location where coverage data will be stored. """
+    import os
+    return os.path.normpath(os.path.join(dlbcRoot, "tests/coverage"))
+
+

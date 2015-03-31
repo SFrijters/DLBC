@@ -51,7 +51,7 @@ def getVerbosityPrefix(usePrefix, logLevel):
 def logAtLevel(str, logLevel, returncode=0):
     """ Log a message at logLevel. """
     if ( verbosityLevel >= logLevel ):
-        print getTimePrefix(logTime) + getVerbosityPrefix(logPrefix, logLevel) + str
+        print(getTimePrefix(logTime) + getVerbosityPrefix(logPrefix, logLevel) + str)
     if ( logLevel == 2 ):
         return 1
     if ( logLevel < 2 ):
@@ -60,7 +60,7 @@ def logAtLevel(str, logLevel, returncode=0):
 def logPlainAtLevel(str, logLevel, returncode=0):
     """ Log a message at logLevel, assuming logTime and logPrefix are False. """
     if ( verbosityLevel >= logLevel ):
-        print str
+        print(str)
     if ( logLevel == 2 ):
         return 1
     if ( logLevel < 2 ):

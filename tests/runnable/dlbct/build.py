@@ -38,7 +38,6 @@ def dubBuild(compiler, build, configuration, force, dlbcRoot):
     if ( p.returncode != 0 ):
         logFatal("Dub build command returned %d." % p.returncode, p.returncode)
     shutil.move(os.path.join(dlbcRoot, "dlbc-" + configuration), exePath)
-    return exePath
 
 def buildAll(options):
     """ Build all combinations of build type and configuration for the current compiler. """
@@ -57,6 +56,7 @@ def buildAll(options):
             n += 1
 
 def reportBuildTimers(warnTime):
+    """ Report on the contents of the buildTimers dictionary. """
     bnlen = max([len(t) for t in buildTimers])
 
     logNotification("\n" + "="*80 + "\n")

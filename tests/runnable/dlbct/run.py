@@ -13,46 +13,94 @@ from path import *
 from plot import *
 from timers import *
 
-runSubtestTimers = {}
-runSubtestErrors = {}
+def runTest(options, thisTest):
+    from coverage import mergeCovLsts
+    """ Run all parameter sets for a single test. Returns number of errors encountered. """
+    logNotification("Running subtests ...")
 
-def mapParameterMatrix(parameters):
-    """ Construct the cartesian product of all parameter values. """
-    tuples = []
-    n = 1
-    for p in parameters:
-        values = []
-        for v in p["values"]:
-            values.append((p["parameter"],v))
-        n *= len(values)
-        tuples.append(values)
-    import itertools
-    return itertools.product(*tuples), n
+    np = thisTest.np
 
-def constructParameterCommand(tuple):
-    """ Make a proper command line option for a parameter. """
-    command = []
-    for p in tuple:
-        command.append("--parameter")
-        command.append(p[0] + "=" + p[1])
-    return command
+    if ( thisTest.parameters ):
+        map = mapParameterMatrix(thisTest)
+        for i, m in enumerate(map):
+            # Get the parallel.nc parameter from the parameter set, if it's included
+            # If it is, set np to the product of its values
+            nc = getNC(m)
+            if ( nc ):
+                np = reduce(lambda x, y: int(x) * int(y), nc[1:-1].split(","), 1)
 
-def runSubtest(command, testRoot, timerName):
+            if ( options.only_first ):
+                if ( i == 0 ):
+                    logInformation("  Running parameter set %d of %d (only this one will be executed) ..." % (i+1, thisTest.nSubtests))
+                else:
+                    logInformation("  Skipping parameter set %d of %d ..." % (i+1, thisTest.nSubtests))
+                    thisTest.skipped[i] = True
+                    continue
+            elif ( options.only_serial and np > 1):
+                thisTest.skipped[i] = True
+                logInformation("  Parameter set %d of %d has np > 1, skipping ..." % (i+1, thisTest.nSubtests))
+                continue
+            else:
+                logInformation("  Running parameter set %d of %d ..." % (i+1, thisTest.nSubtests))
+
+            # Prepare command
+            command = prepareSubtestCommand(options, thisTest, m)
+
+            # Run subtest
+            runSubtest(command, thisTest, i)
+
+            # Postprocessing
+            if ( options.timers or options.timers_all ):
+                moveTimersData(thisTest.testRoot, options.dub_compiler)
+
+            if ( not options.coverage ):
+                if ( not options.compare_none ):
+                    compareTest(options, thisTest, i, m, np)
+            else:
+                if ( thisTest.errors[i] == 0 ):
+                    covpath = constructCoveragePath(options.dlbc_root)
+                    mergeCovLsts(options, thisTest.testRoot, covpath)
+                else:
+                    logNotification("No succesful tests, not merging coverage information ...")
+
+    else:
+        if ( options.only_serial and np > 1):
+            thisTest.skipped[0] = True
+            logInformation("  Parameter set 1 of 1 has np > 1, skipping ...")
+            return
+
+        logInformation("  Running parameter set 1 of 1 ...")
+
+        command = prepareSubtestCommand(options, thisTest)
+
+        runSubtest(command, thisTest, 0)
+
+        if ( options.timers or options.timers_all ):
+            moveTimersData(thisTest.testRoot, options.dub_compiler)
+
+        if ( not options.coverage ):
+            if ( not options.compare_none ):
+                compareSingleTest(options, thisTest)
+        else:
+            if ( thisTest.errors[0] == 0 ):
+                covpath = constructCoveragePath(options.dlbc_root)
+                mergeCovLsts(options, thisTest.testRoot, covpath)
+            else:
+                logNotification("No succesful tests, not merging coverage information ...")
+
+def runSubtest(command, thisTest, i):
     """ Run a single parameter set for a single test. Returns number of errors encountered. """
     import time
-    nerr = 0
-    runSubtestErrors[timerName] = 0
     logDebug("  Executing '" + " ".join(command) + "'")
     t0 = time.time()
-    p = subprocess.Popen(command, cwd=testRoot)
+    p = subprocess.Popen(command, cwd=thisTest.testRoot)
     p.communicate()
-    if ( p.returncode != 0 ):
-        nerr += logError("DLBC returned %d" % p.returncode)
-        runSubtestErrors[timerName] += 1
     timeElapsed = time.time() - t0
-    runSubtestTimers[timerName] = timeElapsed
+    thisTest.timers[i] = timeElapsed
+    if ( p.returncode != 0 ):
+        logError("DLBC returned %d" % p.returncode)
+        thisTest.errors[i] += 1
     logInformation("  Took %f seconds." % timeElapsed)
-    return nerr
 
 def getNC(map):
     """ Get nc from parallel.nc if available. """
@@ -61,110 +109,25 @@ def getNC(map):
             return p[1]
     return "[0,0]"
 
-def runTest(options, testRoot, testName, disabled, configuration, inputFile, np, parameters, checkpoint, compare, plot, coverageOverrides, fastOverrides):
-    """ Run all parameter sets for a single test. Returns number of errors encountered. """
-    logNotification("Running subtests ...")
-    nerr = 0
-    nsuc = 0
-    exePath = constructExeTargetPath(configuration, options.dub_build, options.dub_compiler, options.dlbc_root)
+def mapParameterMatrix(thisTest):
+    """ Construct the cartesian product of all parameter values. """
+    tuples = []
+    for p in thisTest.parameters:
+        values = []
+        for v in p["values"]:
+            values.append((p["parameter"],v))
+        tuples.append(values)
+    import itertools
+    return itertools.product(*tuples)
 
-    if ( parameters ):
-        map, nSubtests = mapParameterMatrix(parameters)
-        for i, m in enumerate(map):
-            # Get the parallel.nc parameter from the parameter set, if it's included
-            nc = getNC(m)
-            # If it is, set np to the product of its values
-            if ( nc != "[0,0]" ):
-                np = reduce(lambda x, y: int(x) * int(y), nc[1:-1].split(","), 1)
-
-            if ( disabled ):
-                logInformation("  Test has been disabled, skipping ...")
-                timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
-                runSubtestErrors[timerName] = -2
-                runSubtestTimers[timerName] = 0.0
-                break
-            elif ( options.only_first ):
-                logInformation("  Running parameter set %d of %d (only this one will be executed) ..." % (i+1, nSubtests))
-                timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
-                runSubtestErrors[timerName] = 0
-            elif ( options.only_serial and np > 1):
-                logInformation("  Parameter set %d of %d has np > 1, skipping ..." % (i+1, nSubtests))
-                timerName = os.path.relpath(os.path.join(testRoot, testName), "tests") + " %2d" % (i+1)
-                runSubtestErrors[timerName] = -1
-                runSubtestTimers[timerName] = 0.0
-                continue
-            else:
-                logInformation("  Running parameter set %d of %d ..." % (i+1, nSubtests))
-                timerName = os.path.relpath(os.path.join(testRoot, testName), "tests") + " %2d" % (i+1)
-                runSubtestErrors[timerName] = 0
-
-            # Prepare command
-            command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity, "--parameter", "timers.enableIO=true" ]
-            command = command + constructParameterCommand(m)
-
-            command = command + coverageCommand(options, coverageOverrides)
-            command = command + fastCommand(options, fastOverrides)
-            command = command + checkpointCommand(options, checkpoint)
-
-            # Run subtest
-            nerrst = runSubtest(command, testRoot, timerName) 
-            nerr += nerrst
-            if ( nerrst == 0 ): nsuc = nsuc + 1
-
-            # Postprocessing
-            if ( options.timers or options.timers_all ):
-                moveTimersData(testRoot, options.dub_compiler)
-
-            if ( not options.coverage ):
-                compareThis = replaceTokensInCompare(compare, m, np)
-                if ( not options.compare_none ):
-                    nerr += compareTest(compareThis, testRoot, timerName, options.dub_compiler, options.compare_strict, options.compare_lax )
-
-            if ( options.only_first ):
-                break
-
-    else:
-        timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
-        if ( disabled ):
-            logInformation("  Test has been disabled, skipping ...")
-            timerName = os.path.relpath(os.path.join(testRoot, testName), "tests")
-            runSubtestErrors[timerName] = -2
-            runSubtestTimers[timerName] = 0.0
-            return nsuc, nerr
-        elif ( options.only_serial and np > 1):
-            logInformation("  Parameter set 1 of 1 has np > 1, skipping ...")
-            runSubtestErrors[timerName] = -1
-            runSubtestTimers[timerName] = 0.0
-            return nsuc, nerr
-
-        runSubtestErrors[timerName] = 0
-        logInformation("  Running parameter set 1 of 1 ...")
-        command = [ "mpirun", "-np", str(np), exePath, "-p", inputFile, "-v", options.dlbc_verbosity, "--parameter", "timers.enableIO=true"]
-
-        command = command + coverageCommand(options, coverageOverrides)
-        command = command + fastCommand(options, fastOverrides)
-        command = command + checkpointCommand(options, checkpoint)
-
-        nerrst = runSubtest(command, testRoot, timerName)
-        nerr += nerrst
-        if ( nerrst == 0 ): nsuc = nsuc + 1
-
-        if ( options.timers or options.timers_all ):
-            moveTimersData(testRoot, options.dub_compiler)
-
-        if ( not options.coverage ):
-            if ( not options.compare_none ):
-                nerr += compareTest(compare, testRoot, timerName, options.dub_compiler, options.compare_strict, options.compare_lax )
-    if ( options.plot ):
-        plotTest(testRoot, plot, False)
-    return nsuc, nerr
-
-def cleanTest(testRoot, clean):
+def cleanTest(thisTest):
     """ Clean a single test. This removes all coverage *.lst files, as well as all paths listed in clean. """
     import glob
     import shutil
     logNotification("Cleaning test ...")
-    for c in clean:
+
+    testRoot = thisTest.testRoot
+    for c in thisTest.clean:
         f = os.path.join(testRoot, c)
         if ( os.path.exists(f) ):
             logDebug("  Removing '%s'" % f )
@@ -183,9 +146,31 @@ def cleanTest(testRoot, clean):
             logDebug("  Removing '%s'" % f )
             os.remove(f)
 
-def coverageCommand(options, coverageOverrides):
+def prepareSubtestCommand(options, thisTest, m = None):
+
+    exePath = constructExeTargetPath(thisTest.configuration, options.dub_build, options.dub_compiler, options.dlbc_root)
+    command = [ "mpirun", "-np", str(thisTest.np), exePath, "-p", thisTest.inputFile, "-v", options.dlbc_verbosity, "--parameter", "timers.enableIO=true"]
+
+    if ( thisTest.parameters ):
+        command = command + constructParameterCommand(m)
+
+    command = command + coverageCommand(options, thisTest)
+    command = command + fastCommand(options, thisTest)
+    command = command + checkpointCommand(options, thisTest)
+    return command
+
+def constructParameterCommand(tuple):
+    """ Make a proper command line option for a parameter. """
     command = []
-    if ( options.coverage and coverageOverrides ):
+    for p in tuple:
+        command.append("--parameter")
+        command.append(p[0] + "=" + p[1])
+    return command
+
+def coverageCommand(options, thisTest):
+    command = []
+    if ( options.coverage and thisTest.coverage ):
+        coverageOverrides = thisTest.coverage
         try:
             parameters = coverageOverrides["parameters"]
             for p in parameters:
@@ -195,9 +180,10 @@ def coverageCommand(options, coverageOverrides):
             logFatal("coverage parameter does not have a well-formed parameters parameter.")
     return command
 
-def fastCommand(options, fastOverrides):
+def fastCommand(options, thisTest):
     command = []
-    if ( options.fast and fastOverrides):
+    if ( options.fast and thisTest.fast and not options.coverage ):
+        fastOverrides = thisTest.fast
         try:
             parameters = fastOverrides["parameters"]
             for p in parameters:
@@ -207,9 +193,10 @@ def fastCommand(options, fastOverrides):
             logFatal("fast parameter does not have a well-formed parameters parameter.")
     return command
 
-def checkpointCommand(options, checkpoint):
+def checkpointCommand(options, thisTest):
     command = []
-    if ( checkpoint ):
+    if ( thisTest.checkpoint ):
+        checkpoint = thisTest.checkpoint
         try:
             name = checkpoint["name"]
             command.append("-r")
@@ -218,7 +205,7 @@ def checkpointCommand(options, checkpoint):
             logFatal("checkpoint parameter does not have a well-formed name parameter.")
     return command
 
-def reportRunTimers(warnTime):
+def reportRunTimers(testList, warnTime):
     totalTime = 0.0
     timeWarnings = 0
 
@@ -227,39 +214,64 @@ def reportRunTimers(warnTime):
     errors = 0
     disabled = 0
 
-    if ( len(runSubtestTimers) > 0 ):
-        tnlen = max([len(t) for t in runSubtestTimers])
+    if ( len(testList) > 0 ):
+        tnlen = max(max([len(t.timerName) for t in testList]), 16) # 16 is the length of a parameter set name
 
         logNotification("\n" + "="*80 + "\n")
         logNotification("  %*s %12s" % (tnlen, "test", "time (s)"))
         logNotification("%s" % "_"*(tnlen+15))
 
-        for test in sorted(runSubtestTimers):
-            tests += 1
-            time = runSubtestTimers[test]
-            err = runSubtestErrors[test]
+        for test in sorted(testList, key=lambda test: test.timerName):
+            nSubtests = test.nSubtests
+            if ( not test.disabled ):
+                tests += nSubtests
+
+            time = sum(test.timers)
+            err = sum(test.errors)
             totalTime += time
             prefix = " "
-            if ( time > warnTime ):
-                prefix = "!"
-                timeWarnings += 1
 
-            if ( err > 0 ):
-                prefix = "X"
-                errors += 1
-            elif ( err == -1 ):
-                prefix = "s"
-                skipped += 1
-            elif ( err == -2 ):
-                prefix = "D"
-                disabled += 1
-            elif ( err < -2 ):
-                prefix = "?"
+            if ( nSubtests == 1 or test.disabled ):
+                if ( time > warnTime ):
+                    prefix = "!"
+                    timeWarnings += 1
 
-            if ( time == 0 ):
-                logNotification("%s %*s %12s" % (prefix, tnlen, test, "---"))
+                if ( err > 0 ):
+                    prefix = "X"
+                    errors += 1
+                elif ( test.skipped[0] ):
+                    prefix = "s"
+                    skipped += 1
+                elif ( test.disabled ):
+                    prefix = "D"
+                    disabled += 1
+
+                if ( time == 0 ):
+                    logNotification("%s %*s %12s" % (prefix, tnlen, test.timerName, "---"))
+                else:
+                    logNotification("%s %*s %12e" % (prefix, tnlen, test.timerName, time))
             else:
-                logNotification("%s %*s %12e" % (prefix, tnlen, test, time))
+                logNotification("%s %*s %12e" % (prefix, tnlen, test.timerName, time))
+
+                for i in range(0, nSubtests):
+
+                    if ( test.timers[i] > warnTime ):
+                        prefix = "!"
+                        timeWarnings += 1
+
+                    if ( test.errors[i] > 0 ):
+                        prefix = "X"
+                        errors += 1
+                    elif ( test.skipped[i] ):
+                        prefix = "s"
+                        skipped += 1
+
+                    name = "Parameter set %2d" % ( i + 1 )
+                    time = test.timers[i]
+                    if ( time == 0 ):
+                        logNotification("%s %*s %12s" % (prefix, tnlen, name, "---"))
+                    else:
+                        logNotification("%s %*s %12e" % (prefix, tnlen, name, time))
 
         logNotification("%s" % "_"*(tnlen+15))
 
@@ -269,7 +281,7 @@ def reportRunTimers(warnTime):
         logNotification("  %*s %12e" % (tnlen, "total", totalTime))
         logNotification("  %*s %12s" % (tnlen, "", fTime))
 
-    logNotification("\nFound %d tests (of which %d are disabled) and skipped %d; executed %d." % ( tests, disabled, skipped, tests-disabled-skipped ) )
+    logNotification("\nFound %d subtests (%d tests are disabled) and skipped %d; executed %d." % ( tests, disabled, skipped, tests-disabled-skipped ) )
 
     if ( timeWarnings == 1 ):
         logNotification("  Encountered %d time warning (t > %.1f seconds)." % (timeWarnings, warnTime))
