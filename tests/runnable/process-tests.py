@@ -189,7 +189,7 @@ def main():
     if ( options.describe ):
         return
 
-    reportRunTimers(matchingTests + unittests, warnTime)
+    # reportRunTimers(matchingTests + unittests, warnTime)
 
     # Final report
     logNotification("\n" + "="*80)
