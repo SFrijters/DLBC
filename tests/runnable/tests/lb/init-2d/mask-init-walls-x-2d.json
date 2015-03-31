@@ -1,0 +1,16 @@
+{
+  "name": "mask-init-walls-x-2d",
+  "description": "Initialize the mask with init Walls and axis = X.",
+  "tags": [ "init" ],
+
+  "configuration": "d2q9",
+  "input-file": "mask-init-walls-x-2d.in",
+  "np": 4,
+  "clean": [ "output" ],
+
+  "compare": {
+    "data": [ "population-red", "population-blue", "colour-red-blue", "mask" ],
+    "comparison": [ { "type": "h5diff", "files": "%data%-mask-init-walls-x-2d-*t00000000.h5" } ]
+  }
+}
+

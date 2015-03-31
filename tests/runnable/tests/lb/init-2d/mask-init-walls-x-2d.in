@@ -1,0 +1,25 @@
+[io]
+simulationName = mask-init-walls-x-2d
+outputPath = output
+
+[lattice]
+gn = [ 64, 64 ]
+
+[parallel]
+nc = [ 2, 2 ]
+
+[lb]
+timesteps = 0
+components = 2
+fieldNames = [ "red", "blue" ]
+io.populationFreq = 1
+io.colourFreq = 1
+io.maskFreq = 1
+
+// Init
+[lb]
+init.fluidInit = [ None, None ]
+mask.maskInit = Walls
+mask.initAxis = X
+mask.wallOffset = 4
+
