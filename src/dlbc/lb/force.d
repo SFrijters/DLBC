@@ -128,7 +128,7 @@ private void preparePsiFields(T)(ref T L) if ( isLattice!T ) {
     L.psi[f] = typeof(L.psi[f])(L.lengths);
   }
   // Advection will make the psi fields stale.
-  postAdvectionHooks.registerFunction(&markPsiAsStale!T);
+  postAdvectionHooks.registerFunction(&markPsiAsStale!T, "markPsiAsStale");
 }
 
 /**

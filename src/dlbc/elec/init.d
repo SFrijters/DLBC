@@ -161,7 +161,7 @@ void prepareElecFields(T)(ref T L) if ( isLattice!T ) {
   L.elFluxP   = typeof(L.elFluxP)(L.lengths);
   L.elFluxN   = typeof(L.elFluxN)(L.lengths);
 
-  postAdvectionHooks.registerFunction(&markElDielAsStale!T);
+  postAdvectionHooks.registerFunction(&markElDielAsStale!T, "markElDielAsStale");
 }
 
 /**

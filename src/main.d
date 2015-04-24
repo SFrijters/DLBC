@@ -51,6 +51,7 @@ import dlbc.fields.field;
 import dlbc.fields.init;
 import dlbc.fields.parallel;
 import dlbc.getopt;
+import dlbc.hooks;
 import dlbc.io.checkpoint;
 import dlbc.io.io;
 import dlbc.io.hdf5;
@@ -101,6 +102,9 @@ int main(string[] args ) {
   // Create, broadcast, and show id of current simulation.
   initSimulationId();
 
+  // Execute all functions registered as plugin initializers.
+  pluginRegister.execute();
+
   // Warn if output paths do not exist.
   checkPaths();
 
@@ -136,6 +140,10 @@ int main(string[] args ) {
     L.initElec();
   }
   L.exchangeHalo();
+
+  // Report hooks
+  preAdvectionHooks.showAllRegisteredFunctions!(VL.Debug, LRF.Root)();
+  postAdvectionHooks.showAllRegisteredFunctions!(VL.Debug, LRF.Root)();
 
   // First data dump
   L.dumpData(timestep);

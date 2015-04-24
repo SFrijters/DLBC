@@ -13,15 +13,15 @@
 module dlbc.lb.advection;
 
 import dlbc.hooks;
-import dlbc.lattice: isLattice;
+import dlbc.lattice;
 import dlbc.lb.connectivity;
 import dlbc.lb.mask;
 import dlbc.fields.field;
 import dlbc.range;
 import dlbc.timers;
 
-LatticeHooks preAdvectionHooks;
-LatticeHooks postAdvectionHooks;
+TVoidHooks!(Lattice!gconn, "preAdvectionHooks") preAdvectionHooks;
+TVoidHooks!(Lattice!gconn, "postAdvectionHooks") postAdvectionHooks;
 
 /**
    Advect the LB population fields over one time step. The advected values are first

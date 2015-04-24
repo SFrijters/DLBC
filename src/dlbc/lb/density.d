@@ -335,7 +335,7 @@ void prepareDensityFields(T)(ref T L) if ( isLattice!T ) {
     L.density[f] = typeof(L.density[f])(L.lengths);
   }
   // Advection will make the density fields stale.
-  postAdvectionHooks.registerFunction(&markDensitiesAsStale!T);
+  postAdvectionHooks.registerFunction(&markDensitiesAsStale!T, "markDensitiesAsStale");
 }
 
 /**
