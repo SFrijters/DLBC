@@ -1,5 +1,5 @@
 [io]
-simulationName = mask-init-walls-x-2d
+simulationName = mask-init-plates-y-2d
 outputPath = output
 
 [lattice]
@@ -19,7 +19,7 @@ io.maskFreq = 1
 // Init
 [lb]
 init.fluidInit = [ None, None ]
-mask.maskInit = Walls
-mask.initAxis = X
+mask.maskInit = Plates
+mask.initAxis = Y
 mask.wallOffset = 4
 

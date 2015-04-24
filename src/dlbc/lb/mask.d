@@ -29,9 +29,18 @@ module dlbc.lb.mask;
    Offset of both walls, towards the centre of the system.
 */
 @("param") int wallOffset;
+/**
+   Thickness of all walls when $(D maskInit == MaskInit.Walls).
+*/
+@("param") int wallThickness = 1;
+/**
+   Whether or not to put walls on the bottom or top of the various dimensions of the system.
+*/
+@("param") bool[][] dimensionHasWall;
 
 import dlbc.lb.connectivity;
 import dlbc.logging;
+import dlbc.parameters;
 import dlbc.range;
 
 import std.conv: to;
@@ -49,19 +58,24 @@ enum MaskInit {
   */
   File,
   /**
+     Add walls of $(D Mask.Solid) sites of thickness 1 perpendicular to the
+     $(D initAxis) direction, offset by $(D wallOffset).
+  */
+  Plates,
+  /**
      Add walls of $(D Mask.Solid) sites of thickness 1 to the edges of the
      system, forming a tube in the direction $(D initAxis).
   */
   Tube,
   /**
-     Add walls of $(D Mask.Solid) sites of thickness 1 perpendicular to the
-     $(D initAxis) direction.
-  */
-  Walls,
-  /**
      Add walls of $(D Mask.Solid) sites of thickness 1 to all sides of the system.
   */
   Box,
+  /**
+     Add walls of $(D Mask.Solid) sites of thickness $(D wallThickness) to
+     the sides of the system specified by $(D dimensionHasWall).
+  */
+  Walls,
 }
 
 /**
@@ -118,10 +132,17 @@ auto countSolidSites(T)(ref T field) nothrow @nogc {
      L = lattice
 */
 void initMask(T)(ref T L) if (isLattice!T) {
+  import std.string: format;
   import dlbc.fields.init;
 
   if ( to!int(initAxis) >= L.mask.dimensions ) {
     writeLogRW("lb.mask.initAxis = %s is out of range (max is %s), this may have unintended consequences.", initAxis, to!Axis(L.mask.dimensions - 1));
+  }
+
+  checkArrayParameterLength(dimensionHasWall, "lb.mask.dimensionHasWall", L.lbconn.d);
+  foreach(immutable i, ref dhw; dimensionHasWall) {
+    auto name = format("lb.mask.dimensionHasWall[%d]", i);
+    checkArrayParameterLength(dhw, name, 2);
   }
 
   final switch(maskInit) {
@@ -138,11 +159,14 @@ void initMask(T)(ref T L) if (isLattice!T) {
   case(MaskInit.Tube):
     L.mask.initTube(Mask.Solid, Mask.None, initAxis);
     break;
-  case(MaskInit.Walls):
+  case(MaskInit.Plates):
     if ( to!int(initAxis) >= L.mask.dimensions ) {
       writeLogF("lb.mask.initAxis = %s is out of range (max is %s), this is not allowed for MaskInit.Walls.", initAxis, to!Axis(L.mask.dimensions - 1));
     }
-    L.mask.initWalls(Mask.Solid, Mask.None, initAxis, wallOffset);
+    L.mask.initPlates(Mask.Solid, Mask.None, initAxis, wallOffset);
+    break;
+  case(MaskInit.Walls):
+    L.mask.initWalls(Mask.Solid, Mask.None, dimensionHasWall, wallThickness);
     break;
   }
 }

@@ -422,7 +422,7 @@ void initTube(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis preferred
      initAxis = walls are placed perpendicular to this axis
      wallOffset = distance from the side of the domain at which walls are placed
 */
-void initWalls(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis preferredAxis, in int wallOffset) if ( isField!T ) {
+void initPlates(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis preferredAxis, in int wallOffset) if ( isField!T ) {
   immutable ax = to!int(preferredAxis);
   foreach(immutable p, ref e; field.arr) {
     immutable gp = p[ax] + M.c[ax] * field.n[ax] - field.haloSize;
@@ -435,6 +435,36 @@ void initWalls(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis preferre
   }
 }
 
+/**
+   Initializes walls of thickness $(D wallThickness) of $(D fillWall) to form solid planes
+   on the sides of the system indicated by $(D dimensionHasWall), and $(D fillVoid) on other sites.
+
+   Params:
+     field = (mask) field to initialise
+     fillWall = fill value on wall
+     fillVoid = fill value on other sites
+     dimensionHasWall = whether a bottom/top wall for each dimension should be placed
+     wallThickness = how many lattice sites the wall should extend
+*/
+void initWalls(T, U)(ref T field, in U fillWall, in U fillVoid, in bool[][] dimensionHasWall, in int wallThickness) if ( isField!T ) {
+  foreach(immutable p, ref e; field.arr) {
+    ptrdiff_t[field.dimensions] gn;
+    e = fillVoid;
+    foreach(immutable vd; Iota!(0, field.dimensions) ) {
+      gn[vd] = p[vd] + M.c[vd] * field.n[vd] - field.haloSize;
+      if ( dimensionHasWall[vd][0] ) {
+	if ( gn[vd] < wallThickness ) {
+	  e = fillWall;
+	}
+      }
+      if ( dimensionHasWall[vd][1] ) {
+	if ( gn[vd] >= (field.n[vd] * M.nc[vd] - wallThickness ) ) {
+	  e = fillWall;
+	}
+      }
+    }
+  }
+}
 
 void initEqDistWall(T, U)(ref T field, ref U mask) if ( isField!T && isMaskField!U ) {
   alias conn = field.conn;

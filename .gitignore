@@ -1,4 +1,5 @@
 /src/dlbc/revision.d
+/src/dlbc/plugins/plist.d
 *.[oa]
 *.html
 *.lst
