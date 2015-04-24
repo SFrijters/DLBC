@@ -123,6 +123,7 @@ private alias parameterSourceModules = TypeTuple!(
                          "dlbc.elec.io",
                          "dlbc.timers",
                          );
+
 /**
    List of parameters that have been set in the input files.
 */
@@ -362,7 +363,16 @@ private auto createParameterMixins() {
   string mixinStringBcast;
   string mixinStringFnameToken;
 
-  foreach(fullModuleName ; parameterSourceModules) {
+  // Minor voodoo: if the module dlbc.plugins.plist exists, also add its parameterSourcePluginModules tuple.
+  static if ( __traits(compiles, mixin("dlbc.plugins.plist"))) {
+    import dlbc.plugins.plist;
+    alias PSM = TypeTuple!(parameterSourceModules, parameterSourcePluginModules);
+  }
+  else {
+    alias PSM = parameterSourceModules;
+  }
+      
+  foreach(fullModuleName ; PSM) {
     immutable string qualModuleName = makeQualModuleName(fullModuleName);
     mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"\n[%s]\",\""~qualModuleName~"\");";
 

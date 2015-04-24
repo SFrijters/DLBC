@@ -18,7 +18,7 @@
     ],
 
     "libs": ["hdf5", "mpich", "dl"],
-    "preGenerateCommands": ["./get-revision.sh > src/dlbc/revision.d"],
+    "preGenerateCommands": ["./get-revision.sh > src/dlbc/revision.d", "./get-plugin-modules.sh > src/dlbc/plugins/plist.d" ],
 
     "configurations": [
         { "name": "d3q19", "versions": ["D3Q19"], "targetType": "executable", "targetName": "dlbc-d3q19" },
