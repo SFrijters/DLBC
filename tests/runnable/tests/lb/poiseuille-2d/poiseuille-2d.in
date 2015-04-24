@@ -21,7 +21,7 @@ io.densityFreq = 100000
 io.forceFreq = 100000
 io.maskFreq = 100000
 
-mask.maskInit = Walls
+mask.maskInit = Plates
 mask.initAxis = X
 
 [lattice]

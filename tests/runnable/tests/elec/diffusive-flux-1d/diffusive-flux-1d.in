@@ -12,7 +12,7 @@ checkpoint.cpFreq = 0
 timesteps = 0
 components = 0
 
-mask.maskInit = Walls
+mask.maskInit = Plates
 mask.initAxis = X
 
 io.maskFreq = 1000

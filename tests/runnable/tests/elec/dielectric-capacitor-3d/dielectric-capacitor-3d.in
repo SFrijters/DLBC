@@ -14,7 +14,7 @@ force.enableShanChen = false
 
 io.maskFreq = 1
 
-mask.maskInit = Walls
+mask.maskInit = Plates
 mask.initAxis = X
 mask.wallOffset = 14
 
