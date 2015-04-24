@@ -78,6 +78,10 @@ Calling the executable with `-h` will display a usage message. One will normally
 
 to run a basic simulation, where `<n>` is the number of processes MPI will use, `<verbosity>` specifies how much output is written to the console, and `<parameters.in>` is a path to a parameter file. Examples of these can be found in the [various tests](https://github.com/SFrijters/DLBC/search?utf8=%E2%9C%93&q=path%3Atests%2Frunnable+extension%3Ain&type=Code) below `tests/runnable`. Full documentation for all parameters can currently be found only in the code comments; creating a user pdf guide is a work in progress.
 
+## Plugins
+
+Plugins can be added in or below the `src/dlbc/plugins` directory. The module constructor should be used to register an initialisation function with the main code (which in turn can be used to hook up more functions). Any modules containing parameters are added to the list through the `get-plugin-modules.sh` script, which is run prior to compilation. For details, cf. the [plugins readme file](src/dlbc/plugins/README.md).
+
 ## Future improvements
 
 - Improve test code coverage.
