@@ -43,11 +43,16 @@ module dlbc.lb.init;
 @("param") string[] fluidFiles;
 
 import dlbc.fields.field;
+import dlbc.hooks;
 import dlbc.lb.lb;
 import dlbc.fields.init;
 import dlbc.logging;
 import dlbc.parameters: checkArrayParameterLength;
 import dlbc.random;
+import dlbc.timers;
+
+TVoidHooks!(LType, "preLbInitHooks") preLbInitHooks;
+TVoidHooks!(LType, "postLbInitHooks") postLbInitHooks;
 
 /**
    Prepare various LB related fields: fluids, advection, mask, density.
@@ -73,6 +78,13 @@ void initFluids(T)(ref T L) if ( isLattice!T ) {
   alias conn = T.lbconn;
 
   writeLogRN("Initializing fluids.");
+
+  // Run pre-LB-init hooks
+  if ( preLbInitHooks.length > 0 ) {
+    startTimer("pre");
+    preLbInitHooks.execute(L);
+    stopTimer("pre");
+  }
 
   checkArrayParameterLength(fluidInit, "lb.init.fluidInit", components);
   checkArrayParameterLength(fluidDensities, "lb.init.fluidDensities", components);
@@ -111,6 +123,14 @@ void initFluids(T)(ref T L) if ( isLattice!T ) {
     // Coloured walls.
     L.fluids[f].initEqDistWall(L.mask);
   }
+
+  // Run post-LB-init hooks
+  if ( postLbInitHooks.length > 0 ) {
+    startTimer("post");
+    postLbInitHooks.execute(L);
+    stopTimer("post");
+  }
+
 }
 
 /**

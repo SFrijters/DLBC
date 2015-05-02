@@ -116,7 +116,7 @@ int main(string[] args ) {
 
   // Create the local lattice structure.
   gconn.show!(VL.Information)();
-  auto L = Lattice!(gconn)(gn, components, fieldNames, M);
+  auto L = LType(gn, components, fieldNames, M);
 
   // Prepare various LB related fields: fluids, advection, mask, density.
   L.prepareLBFields();

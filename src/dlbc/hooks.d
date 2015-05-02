@@ -13,6 +13,7 @@
 module dlbc.hooks;
 
 import dlbc.logging;
+import dlbc.lattice: LType;
 
 /**
    Register of void functions without arguments, used to set up plugins, e.g. register more hooks.

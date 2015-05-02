@@ -13,6 +13,7 @@
 module dlbc.lb.collision;
 
 import dlbc.fields.field;
+import dlbc.hooks;
 import dlbc.lb.connectivity;
 import dlbc.lb.density;
 import dlbc.lb.eqdist;
@@ -24,6 +25,9 @@ import dlbc.timers;
 import dlbc.lattice;
 
 import dlbc.logging;
+
+TVoidHooks!(LType, "preCollisionHooks") preCollisionHooks;
+TVoidHooks!(LType, "postCollisionHooks") postCollisionHooks;
 
 /**
    Perform operations just before the collision step.
@@ -60,10 +64,26 @@ void collideFields(T)(ref T L, in double[] tau, in double[] globalAcc) if ( isLa
   if ( L.fluids.length == 0 ) return;
 
   startTimer("lb.coll.coll");
+
+  // Run pre-collision hooks
+  if ( preCollisionHooks.length > 0 ) {
+    startTimer("pre");
+    preCollisionHooks.execute(L);
+    stopTimer("pre");
+  }
+
   final switch(eqDistForm) {
     // Calls appropriate collideFieldEqDist
     mixin(edfMixin());
   }
+
+  // Run post-collision hooks
+  if ( postCollisionHooks.length > 0 ) {
+    startTimer("post");
+    postCollisionHooks.execute(L);
+    stopTimer("post");
+  }
+
   stopTimer("lb.coll.coll");
 }
 

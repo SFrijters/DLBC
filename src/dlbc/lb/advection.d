@@ -20,8 +20,8 @@ import dlbc.fields.field;
 import dlbc.range;
 import dlbc.timers;
 
-TVoidHooks!(Lattice!gconn, "preAdvectionHooks") preAdvectionHooks;
-TVoidHooks!(Lattice!gconn, "postAdvectionHooks") postAdvectionHooks;
+TVoidHooks!(LType, "preAdvectionHooks") preAdvectionHooks;
+TVoidHooks!(LType, "postAdvectionHooks") postAdvectionHooks;
 
 /**
    Advect the LB population fields over one time step. The advected values are first

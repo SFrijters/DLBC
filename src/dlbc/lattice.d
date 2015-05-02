@@ -32,6 +32,8 @@ import dlbc.range;
 */
 enum Exchange;
 
+alias LType = Lattice!gconn;
+
 /**
    The lattice struct holds various fields, and information on the shape of these fields.
 
