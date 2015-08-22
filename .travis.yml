@@ -2,7 +2,9 @@ language: d
 
 d:
   - dmd-2.066.1
-  - ldc-0.15.1
+  - dmd-2.068.0
+  - ldc-0.15.1   # frontend 2.066.1
+  - gdc-4.9.2    # frontend 2.066.1
 
 install:
   - ./tests/travis-ci/get-dependencies.sh

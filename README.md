@@ -22,11 +22,11 @@ An example of an installation can be found in the [Travis CI file](.travis.yml).
 
 ### Basic requirements
 
-**DMD**: ![DMD-2.067.0](https://img.shields.io/badge/DMD-2.067.0-lightgrey.svg) ![DMD-2.066.1](https://img.shields.io/badge/DMD-2.066.1-brightgreen.svg) ![DMD-2.065.0](https://img.shields.io/badge/DMD-2.065.0-red.svg)
+**DMD**: ![DMD-2.068.0](https://img.shields.io/badge/DMD-2.068.0-brightgreen.svg) ![DMD-2.066.1](https://img.shields.io/badge/DMD-2.066.1-brightgreen.svg) ![DMD-2.065.0](https://img.shields.io/badge/DMD-2.065.0-red.svg)
 
 **LDC**: ![LDC-0.15.1](https://img.shields.io/badge/LDC-0.15.1-brightgreen.svg) ![LDC-0.14.0](https://img.shields.io/badge/LDC-0.14.0-red.svg)
 
-**GDC**: ![GDC-b7ec7e2](https://img.shields.io/badge/GDC-b7ec7e2-brightgreen.svg) ![GDC-4.9.0](https://img.shields.io/badge/GDC-4.9.0-red.svg)
+**GDC**: ![GDC-4.9.2](https://img.shields.io/badge/GDC-4.9.2-brightgreen.svg) ![GDC-4.9.0](https://img.shields.io/badge/GDC-4.9.0-red.svg)
 
 - The code has been tested on Linux only; it may work on other systems as well, but this has never been tried.
 - To build the code a D compiler is required (obviously). In particular, because of the use of the new multidimensional array syntax, a frontend version v2.066.0 or later is required. The code currently compiles with DMD, as well as GDC and LDC2. GDC currently achieves the best performance.
