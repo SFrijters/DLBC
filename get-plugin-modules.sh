@@ -18,7 +18,7 @@ echo "*/"
 echo
 echo "module dlbc.plugins.plist;"
 echo
-echo "import std.typecons;"
+echo "import std.typetuple; // For TypeTuple / AliasSeq - keep for now for backwards compatibility"
 echo
 echo "alias parameterSourcePluginModules = TypeTuple!("
 

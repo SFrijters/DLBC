@@ -22,7 +22,7 @@ An example of an installation can be found in the [Travis CI file](.travis.yml).
 
 ### Basic requirements
 
-**DMD**: ![DMD-2.068.0](https://img.shields.io/badge/DMD-2.068.0-brightgreen.svg) ![DMD-2.066.1](https://img.shields.io/badge/DMD-2.066.1-brightgreen.svg) ![DMD-2.065.0](https://img.shields.io/badge/DMD-2.065.0-red.svg)
+**DMD**: ![DMD-2.067.1](https://img.shields.io/badge/DMD-2.068.0-red.svg) ![DMD-2.066.1](https://img.shields.io/badge/DMD-2.066.1-brightgreen.svg) ![DMD-2.065.0](https://img.shields.io/badge/DMD-2.065.0-red.svg)
 
 **LDC**: ![LDC-0.15.1](https://img.shields.io/badge/LDC-0.15.1-brightgreen.svg) ![LDC-0.14.0](https://img.shields.io/badge/LDC-0.14.0-red.svg)
 
@@ -32,6 +32,7 @@ An example of an installation can be found in the [Travis CI file](.travis.yml).
 - To build the code a D compiler is required (obviously). In particular, because of the use of the new multidimensional array syntax, a frontend version v2.066.0 or later is required. The code currently compiles with DMD, as well as GDC and LDC2. GDC currently achieves the best performance.
 - The use of [DUB](http://code.dlang.org/download) as an installer is recommended (and is required for testing).
 - To run the simulation code, the [MPICH 3.1](http://www.mpich.org/) and [HDF5 1.8.13](http://www.hdfgroup.org/HDF5/) libraries are required.
+- The multidimensional arrays exhibit problems in v2.067.0 and above. As we ideally want to replace it with the upcoming stdlib implementation, it will not be supported for the time being.
 
 ### Additional requirements
 

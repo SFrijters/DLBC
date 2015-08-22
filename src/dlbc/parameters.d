@@ -64,7 +64,7 @@ module dlbc.parameters;
 
 import std.conv;
 import std.traits;
-import std.typecons;
+import std.typetuple; // For TypeTuple / AliasSeq - keep for now for backwards compatibility
 
 import dlbc.logging;
 import dlbc.parallel;

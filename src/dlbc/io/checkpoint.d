@@ -23,7 +23,7 @@ import dlbc.lattice;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.timers;
-import std.typecons;
+import std.typetuple; // For TypeTuple / AliasSeq - keep for now for backwards compatibility
 import dlbc.fields.field: isField;
 
 mixin(createImports());

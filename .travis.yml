@@ -2,6 +2,7 @@ language: d
 
 d:
   - dmd-2.066.1
+  - dmd-2.067.1
   - dmd-2.068.0
   - ldc-0.15.1   # frontend 2.066.1
   - gdc-4.9.2    # frontend 2.066.1
@@ -44,11 +45,11 @@ script:
   - ./tests/travis-ci/doveralls-coverage.sh ${DC}
   - ./tests/travis-ci/runnable-tests.sh ${DC}
 
-# Until the output files of the dub builds are set correctly,
-# don't expect the ldc tests to find the right executables...
-# matrix:
-#   allow_failures:
-#    - d: ldc-0.15.1
+# Until the code has been updated further, allow failure
+matrix:
+  allow_failures:
+   - d: dmd-2.067.1
+   - d: dmd-2.068.0
 
 branches:
   only:
