@@ -1,5 +1,7 @@
 language: d
 
+sudo: false
+
 d:
   - dmd-2.066.1
   - dmd-2.067.1
@@ -7,27 +9,27 @@ d:
   - ldc-0.15.1   # frontend 2.066.1
   - gdc-4.9.2    # frontend 2.066.1
 
+addons:
+  apt:
+    packages:
+      - python-h5py
+
 install:
-  - ./tests/travis-ci/get-dependencies.sh
-  # MPICH 3.1
-  # - wget http://www.mpich.org/static/downloads/3.1/mpich-3.1.tar.gz
-  # - tar -xf mpich-3.1.tar.gz
-  # - cd mpich-3.1/
-  # - ./configure --disable-fc --disable-f77 &> /dev/null
-  # - make &> /dev/null
-  # - sudo make install &> /dev/null
-  # - cd ..
+  # Get MPICH 3.1
+  - wget -O mpich-3.1.tar.bz2 https://www.dropbox.com/s/3k0i6xrop33y9dz/mpich-3.1.tar.bz2?dl=1
+  - tar -xf mpich-3.1.tar.bz2
+  - export PATH=$PWD/mpich-3.1/bin:$PATH
+  - export LD_LIBRARY_PATH=$PWD/mpich-3.1/lib:$LD_LIBRARY_PATH
+  - export LIBRARY_PATH=$PWD/mpich-3.1/lib:$LIBRARY_PATH
   # Check MPICH version
   - mpichversion
 
-  # HDF5 1.8.13
-  # - wget http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.13/src/hdf5-1.8.13.tar.bz2
-  # - tar -xf hdf5-1.8.13.tar.bz2
-  # - cd hdf5-1.8.13
-  # - ./configure --prefix=/usr --enable-parallel --disable-fortran &> /dev/null
-  # - make &> /dev/null
-  # - sudo make install &> /dev/null
-  # - cd ..
+  # Get HDF5 1.8.13 for MPICH 3.1
+  - wget -O hdf5-1.8.13-mpich-3.1.tar.bz2 https://www.dropbox.com/s/h50k3yu4om9hnz4/hdf5-1.8.13-mpich-3.1.tar.bz2?dl=1
+  - tar -xf hdf5-1.8.13-mpich-3.1.tar.bz2
+  - export PATH=$PWD/hdf5-1.8.13-mpich-3.1/bin:$PATH
+  - export LD_LIBRARY_PATH=$PWD/hdf5-1.8.13-mpich-3.1/lib:$LD_LIBRARY_PATH
+  - export LIBRARY_PATH=$PWD/hdf5-1.8.13-mpich-3.1/lib:$LIBRARY_PATH
   # Check HDF5 version
   - h5dump -V
 
@@ -35,8 +37,7 @@ install:
   - dub fetch doveralls
   - dub build --compiler ${DC} doveralls
 
-  # Install h5py
-  - sudo apt-get install python-h5py -y
+  # Check h5py installation
   - ./tests/runnable/dlbct/mplhelper.py -V
 
 script:
