@@ -22,7 +22,7 @@ An example of an installation can be found in the [Travis CI file](.travis.yml).
 
 ### Basic requirements
 
-**DMD**: ![DMD-2.067.1](https://img.shields.io/badge/DMD-2.068.0-red.svg) ![DMD-2.066.1](https://img.shields.io/badge/DMD-2.066.1-brightgreen.svg) ![DMD-2.065.0](https://img.shields.io/badge/DMD-2.065.0-red.svg)
+**DMD**: ![DMD-2.069.1](https://img.shields.io/badge/DMD-2.069.1-brightgreen.svg) ![DMD-2.066.1](https://img.shields.io/badge/DMD-2.066.1-brightgreen.svg) ![DMD-2.065.0](https://img.shields.io/badge/DMD-2.065.0-red.svg)
 
 **LDC**: ![LDC-0.15.1](https://img.shields.io/badge/LDC-0.15.1-brightgreen.svg) ![LDC-0.14.0](https://img.shields.io/badge/LDC-0.14.0-red.svg)
 
@@ -32,12 +32,11 @@ An example of an installation can be found in the [Travis CI file](.travis.yml).
 - To build the code a D compiler is required (obviously). In particular, because of the use of the new multidimensional array syntax, a frontend version v2.066.0 or later is required. The code currently compiles with DMD, as well as GDC and LDC2. GDC currently achieves the best performance.
 - The use of [DUB](http://code.dlang.org/download) as an installer is recommended (and is required for testing).
 - To run the simulation code, the [MPICH 3.1](http://www.mpich.org/) and [HDF5 1.8.13](http://www.hdfgroup.org/HDF5/) libraries are required.
-- The multidimensional arrays exhibit problems in v2.067.0 and above. As we ideally want to replace it with the upcoming stdlib implementation, it will not be supported for the time being.
 
 ### Additional requirements
 
 - To run the tests, python and the HDF5 binaries are also required (in particular h5diff).
-- To create the test result plots matplotlib, h5py and numpy/scipy are required.
+- To create the test result plots matplotlib, h5py and numpy/scipy are required (installing [Anaconda](https://www.continuum.io/downloads) is an easy way to achieve this).
 - To create PDF documentation, LaTeX is required.
 - To render the data, mayavi is required.
 
@@ -47,7 +46,7 @@ D HDF5 bindings have been added as a submodule [hdf5-d](http://github.com/SFrijt
 
 D MPI bindings are also still a work in progress and are currently handled through a partial header translation [`mpi.d`](src/dlbc/mpi.d) in this repository, which only includes MPI functions that are actually required by this code.
 
-Multidimensional arrays have been added using a fork of Denis Shelomovskij's [Unstandard library](https://bitbucket.org/SFrijters/unstandard). Compared to upstream, some modules that are not used by DLBC have been removed, and support for addressing the array by a fixed-length array have been added.
+Multidimensional arrays have been added using a fork of Denis Shelomovskij's [Unstandard library](https://bitbucket.org/SFrijters/unstandard). Compared to upstream, some modules that are not used by DLBC have been removed, and support for addressing the array by a fixed-length array have been added. Ideally, this dependency will be removed in favour of an ndslice implementation in the standard library.
 
 Documentation is generated using DDoc and Jakob Ovrum's [bootDoc](http://github.com/JakobOvrum/bootDoc).
 
