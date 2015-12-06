@@ -6,11 +6,8 @@ function run_tests {
     else
         DUMP=1
     fi
-    echo "Removing old coverage information"
-    rm -f *.lst
-    rm -rf ./tests/coverage
     ./tests/runnable/process-tests.py --coverage --dub-compiler ${DC} --only-first
-    cp ./tests/coverage/*.lst .
+    cp tests/coverage/*.lst .
     if [[ "$DUMP" == 1 ]]; then
 	dub run --compiler ${DC} doveralls -- -d > $1
     else
