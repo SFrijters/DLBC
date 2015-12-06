@@ -103,7 +103,7 @@ private void resetFlux(T)(ref T L) @safe pure nothrow @nogc if ( isLattice!T ) {
 
    Todo: verify multicomponent.
 */
-private void calculateDiffusiveFlux(T)(ref T L) @safe nothrow @nogc if ( isLattice!T ) {
+private void calculateDiffusiveFlux(T)(ref T L) nothrow @nogc if ( isLattice!T ) {
   if ( ! enableDiffusiveFlux ) return;
   immutable cv = econn.velocities;
   if ( components > 2 ) {

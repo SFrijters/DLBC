@@ -181,6 +181,7 @@ void showFinalAllTimers(VL vl, LRF logRankFormat)() {
   import std.algorithm, std.array;
   import std.conv: to;
   import std.string: format;
+  import std.typecons: tuple;
   assert( (mainTimerName in timersAA) !is null );
 
   import std.stdio;

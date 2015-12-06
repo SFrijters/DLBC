@@ -149,7 +149,7 @@ struct Field(T, alias c, uint hs) {
   */
 
   /// Ditto
-  int opApply(int delegate(immutable ptrdiff_t[arr.dimensions], ref T) @safe nothrow @nogc dg) @safe nothrow @nogc {
+  int opApply(int delegate(immutable ptrdiff_t[arr.dimensions], ref T) nothrow @nogc dg) nothrow @nogc {
     if(!elements)
       return 0;
 
@@ -172,7 +172,7 @@ struct Field(T, alias c, uint hs) {
   }
 
   /// Ditto
-  int opApply(int delegate(immutable ptrdiff_t[arr.dimensions], ref const(T)) @safe nothrow @nogc dg) const @safe nothrow @nogc {
+  int opApply(int delegate(immutable ptrdiff_t[arr.dimensions], ref const(T)) nothrow @nogc dg) const nothrow @nogc {
     if(!elements)
       return 0;
 
