@@ -40,11 +40,11 @@ An example of an installation can be found in the [Travis CI file](.travis.yml).
 - To create PDF documentation, LaTeX is required.
 - To render the data, mayavi is required.
 
-### Submodules
+### Dependencies
 
-D HDF5 bindings have been added as a submodule [hdf5-d](http://github.com/SFrijters/hdf5-d). This is a work in progess but does the job for now.
+D HDF5 bindings have been added as a dub dependency on [hdf5-d](http://code.dlang.org/packages/hdf5-d). This is a work in progess but does the job for now.
 
-D MPI bindings are also still a work in progress and are currently handled through a partial header translation [`mpi.d`](src/dlbc/mpi.d) in this repository, which only includes MPI functions that are actually required by this code.
+D MPI bindings are also still a work in progress and are currently handled through a partial header translation [`mpi.d`](src/dlbc/mpi.d) in this repository, which only includes MPI functions that are actually required by this code. It also only allows for MPICH to be used; OpenMPI is not yet supported.
 
 Multidimensional arrays have been added using a fork of Denis Shelomovskij's [Unstandard library](https://bitbucket.org/SFrijters/unstandard). Compared to upstream, some modules that are not used by DLBC have been removed, and support for addressing the array by a fixed-length array have been added. Ideally, this dependency will be removed in favour of an ndslice implementation in the standard library.
 

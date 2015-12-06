@@ -10,11 +10,10 @@
 
     "dependencies": {
       "dlbc:unstandard": ">=0.0.1",
-      "dlbc:hdf5-d": ">=0.0.1",
+      "hdf5-d": ">=0.0.1",
     },
     "subPackages": [
       "./unstandard/",
-      "./hdf5-d/"
     ],
 
     "libs": ["hdf5", "mpich", "dl"],
