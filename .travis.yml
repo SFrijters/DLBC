@@ -46,8 +46,8 @@ install:
 script:
   # Run tests - split up the various testing sections to get timing for them separately
   - ./tests/travis-ci/build-configurations.sh ${DC}
-  - ./tests/travis-ci/doveralls-coverage.sh ${DC}
-  - ./tests/travis-ci/runnable-tests.sh ${DC} 2.069.1
+  - ./tests/travis-ci/doveralls-coverage.sh ${DC} v2.069.1
+  - ./tests/travis-ci/runnable-tests.sh ${DC} v2.069.1
 
 # Until the code has been updated further, allow failure
 # matrix:
