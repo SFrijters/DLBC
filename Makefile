@@ -44,6 +44,8 @@ test-runnable:
 clean-all: clean test-clean
 
 clean:
+	rm -f __dummy.html
+	rm -f docs.json
 	rm -f src/dlbc/revision.d
 	rm -rf doc/html
 	rm -f *.gcda

@@ -6,6 +6,7 @@ d:
   - dmd-2.066.1
   - dmd-2.067.1
   - dmd-2.068.0
+  - dmd-2.069.1
   - ldc-0.15.1   # frontend 2.066.1
   - gdc-4.9.2    # frontend 2.066.1
 
@@ -34,6 +35,8 @@ install:
   - h5dump -V
 
   # Doveralls; coveralls.io for D
+  # Check dub version
+  - dub --version
   - dub fetch doveralls
   - dub build --compiler ${DC} doveralls
 
@@ -44,13 +47,13 @@ script:
   # Run tests - split up the various testing sections to get timing for them separately
   - ./tests/travis-ci/build-configurations.sh ${DC}
   - ./tests/travis-ci/doveralls-coverage.sh ${DC}
-  - ./tests/travis-ci/runnable-tests.sh ${DC}
+  - ./tests/travis-ci/runnable-tests.sh ${DC} 2.069.1
 
 # Until the code has been updated further, allow failure
-matrix:
-  allow_failures:
-   - d: dmd-2.067.1
-   - d: dmd-2.068.0
+# matrix:
+#  allow_failures:
+#   - d: dmd-2.067.1
+#   - d: dmd-2.068.0
 
 branches:
   only:
