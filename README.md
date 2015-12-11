@@ -48,8 +48,6 @@ D MPI bindings are also still a work in progress and are currently handled throu
 
 Multidimensional arrays have been added using a fork of Denis Shelomovskij's [Unstandard library](https://bitbucket.org/SFrijters/unstandard). Compared to upstream, some modules that are not used by DLBC have been removed, and support for addressing the array by a fixed-length array have been added. Ideally, this dependency will be removed in favour of an ndslice implementation in the standard library.
 
-Documentation is generated using DDoc and Jakob Ovrum's [bootDoc](http://github.com/JakobOvrum/bootDoc).
-
 ### Code quality
 
 Continuous integration testing using [Travis CI](https://travis-ci.org/SFrijters/DLBC) is achieved by a small custom Python framework with a JSON test specification. PDF documentation on the testing framework can be generated:
