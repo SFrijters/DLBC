@@ -395,7 +395,7 @@ void initBox(T, U)(ref T field, in U fillWall, in U fillVoid) if ( isField!T ) {
      field = (mask) field to initialise
      fillWall = fill value on wall
      fillVoid = fill value on other sites
-     initAxis = direction of the tube
+     preferredAxis = direction of the tube
 */
 void initTube(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis preferredAxis) if ( isField!T ) {
   immutable ax = to!int(preferredAxis);
@@ -419,7 +419,7 @@ void initTube(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis preferred
      field = (mask) field to initialise
      fillWall = fill value on wall
      fillVoid = fill value on other sites
-     initAxis = walls are placed perpendicular to this axis
+     preferredAxis = walls are placed perpendicular to this axis
      wallOffset = distance from the side of the domain at which walls are placed
 */
 void initPlates(T, U)(ref T field, in U fillWall, in U fillVoid, in Axis preferredAxis, in int wallOffset) if ( isField!T ) {

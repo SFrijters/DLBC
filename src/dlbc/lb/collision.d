@@ -54,10 +54,9 @@ void prepareToCollide(T)(ref T L) if ( isLattice!T ) {
    Let the populations of the field collide.
 
    Params:
-     field = field of populations
-     mask = mask field
-     force = force field
+     L = lattice
      tau = relaxation time
+     globalAcc = global acceleration vector
 */
 void collideFields(T)(ref T L, in double[] tau, in double[] globalAcc) if ( isLattice!T ) {
 

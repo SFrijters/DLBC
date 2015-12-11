@@ -258,6 +258,7 @@ enum FluidInit {
    Params:
      field = fluid field to initialize
      i = number of the fluid field
+     lrng = local random number generator
 */
 void initFluid(T)(ref T field, in size_t i, ref RNG lrng) if ( isPopulationField!T ) {
   alias conn = T.conn;
