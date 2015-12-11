@@ -11,6 +11,9 @@ d:
   - ldc-0.16.1   # frontend 2.067.1
   - gdc-4.9.2    # frontend 2.066.1
 
+env:
+  - DMD_VERSION_FOR_EXTENDED_TESTS=2.069.1
+
 addons:
   apt:
     packages:
@@ -36,8 +39,6 @@ install:
   - h5dump -V
 
   # Doveralls; coveralls.io for D
-  # Check dub version
-  - dub --version
   - dub fetch doveralls
   - dub build --compiler ${DC} doveralls
 
@@ -47,8 +48,9 @@ install:
 script:
   # Run tests - split up the various testing sections to get timing for them separately
   - ./tests/travis-ci/build-configurations.sh ${DC}
-  - ./tests/travis-ci/doveralls-coverage.sh ${DC} v2.069.1
-  - ./tests/travis-ci/runnable-tests.sh ${DC} v2.069.1
+  - ./tests/travis-ci/build-documentation.sh ${DC} ${DMD_VERSION_FOR_EXTENDED_TESTS}
+  - ./tests/travis-ci/doveralls-coverage.sh ${DC} ${DMD_VERSION_FOR_EXTENDED_TESTS}
+  - ./tests/travis-ci/runnable-tests.sh ${DC} ${DMD_VERSION_FOR_EXTENDED_TESTS}
 
 matrix:
   allow_failures:
