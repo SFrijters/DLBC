@@ -6,6 +6,7 @@
 dlbc-*
 .dub
 docs.json
+docs/
 __dummy.html
 *.obj
 /tests/runnable/doc/generated
