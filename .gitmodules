@@ -1,6 +1,3 @@
-[submodule "bootDoc"]
-	path = bootDoc
-	url = git://github.com/JakobOvrum/bootDoc.git
 [submodule "unstandard"]
 	path = unstandard
 	url = https://bitbucket.org/SFrijters/unstandard.git

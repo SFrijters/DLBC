@@ -1,13 +1,8 @@
 all:
 	dub build
 
-doc: src/dlbc/revision.d src/main.d src/dlbc/*.d src/dlbc/elec/*.d src/dlbc/fields/*.d src/dlbc/io/*.d src/dlbc/lb/*.d doc/*.ddoc
-	cd src/ ; ln -s ../unstandard/unstd
-	cd doc/ ; rdmd bootDoc/generate.d ./../src --output=./html --bootdoc=.
-	rm -f src/unstd
-
-src/dlbc/revision.d: .git/HEAD .git/index
-	./get-revision.sh > $@
+doc:
+	dub build -b ddox
 
 test: clean test-clean test-build test-unittest test-runnable
 
@@ -41,11 +36,8 @@ test-runnable:
 
 clean-all: clean test-clean
 
-clean:
-	rm -f __dummy.html
-	rm -f docs.json
+clean: clean-doc
 	rm -f src/dlbc/revision.d
-	rm -rf doc/html
 	rm -f *.gcda
 	rm -f *.gcno
 	rm -f src/*.o
@@ -68,4 +60,8 @@ clean:
 	rm -f *~
 	rm -rf .dub
 	rm -f dub.selections.json
+
+clean-doc:
+	rm -f docs.json
+	rm -rf docs/
 
