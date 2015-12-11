@@ -98,6 +98,8 @@ def main():
     parser.add_argument("--log-prefix", action="store_true", help="prefix log messages with the log level")
     parser.add_argument("--log-time", action="store_true", help="prefix log messages with the time")
     parser.add_argument("--only-below", default=".", help="only execute tests below this path", metavar="")
+    parser.add_argument("--only-doc", action="store_true", help="only build the documentation")
+    parser.add_argument("--only-dmd", default=".", help="only continue when using the dmd compiler of the requested version", metavar="")
     parser.add_argument("--only-first", action="store_true", help="only the first combination of parameters whenever a parameter matrix is defined")
     parser.add_argument("--only-serial", action="store_true", help="only run tests which use one rank")
     parser.add_argument("--only-tag", help="only consider tests which have this tag", metavar="")
@@ -117,6 +119,10 @@ def main():
     dlbct.logging.logPrefix = options.log_prefix
     dlbct.logging.logTime = options.log_time
 
+    if ( not isCorrectDMD(options.dub_compiler, options.only_dmd) ):
+        logNotification("Compiler is not the requested dmd version (%s), aborting..." % options.only_dmd)
+        return
+
     searchRoot = os.path.join(os.path.dirname(os.path.realpath(__file__)), options.only_below)
 
     if ( options.coverage ):
@@ -129,6 +135,10 @@ def main():
 
     if ( options.latex ):
         generateLaTeX(searchRoot)
+        return
+
+    if ( options.only_doc ):
+        buildDoc(options.dub_compiler, options.dlbc_root)
         return
 
     if ( options.build_all ):

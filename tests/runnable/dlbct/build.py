@@ -18,6 +18,31 @@ dubBuildChoices = [ "release", "cov", "unittest-cov", "profile" ]
 dubBuildBuildAll = [ "release", "cov", "unittest-cov" ]
 dlbcConfigurations = [ "d1q3", "d1q5", "d2q9", "d3q19" ]
 
+def isCorrectDMD(compiler, requested):
+    """ Check if the compiler is the correct version, if a version is requested. """
+    if not requested:
+        return True
+    if compiler != "dmd":
+        return False
+    command = [ compiler, "--version" ]
+    stdout = subprocess.check_output(command)
+    if requested in stdout:
+        return True
+    return False
+
+def buildDoc(compiler, dlbcRoot):
+    """ Build documentation using ddox build type. """
+    import dlbct.logging
+    logInformation("  Building documentation ...")
+    command = [ "dub", "build", "--compiler", compiler, "-b", "ddox" ]
+    if ( dlbct.logging.verbosityLevel < 6 ):
+        command.append("--vquiet")
+    logDebug("  Executing '" + " ".join(command) + "'.")
+    p = subprocess.Popen(command, cwd=dlbcRoot)
+    p.communicate()
+    if ( p.returncode != 0 ):
+        logFatal("Dub build command returned %d." % p.returncode, p.returncode)
+
 def dubBuild(compiler, build, configuration, force, dlbcRoot):
     """ Build a DLBC executable for a particular compiler/build/configuration, if needed. """
     import dlbct.logging
