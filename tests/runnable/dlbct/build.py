@@ -25,7 +25,10 @@ def isCorrectDMD(compiler, requested):
     if compiler != "dmd":
         return False
     command = [ compiler, "--version" ]
-    stdout = subprocess.check_output(command)
+    try:
+        stdout = subprocess.check_output(command)
+    except subprocess.CalledProcessError:
+        return False
     if requested in stdout:
         return True
     return False
