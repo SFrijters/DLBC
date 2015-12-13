@@ -8,18 +8,14 @@ fi
 CD=`pwd`
 
 mkdir $1
-cp -r * $1
+cp -r src/ $1
+cp Makefile $1
+cat dub.json | sed 's/"preGenerateCommands": \[.*\],//' > $1/dub.json
 cd $1
 
 make clean
 cp $CD/src/dlbc/revision.d src/dlbc/.
+cp $CD/src/dlbc/plugins/plist.d src/dlbc/plugins/.
 
-cat Makefile | sed 's/src\/dlbc\/revision.d: .git\/HEAD .git\/index/src\/dlbc\/revision.d:/' | sed 's/.\/get-revision.sh > $@/.\/get-revision.sh/' > Makefile.tmp
-mv Makefile.tmp Makefile
-rm -rf tests
-rm -rf doc
-rm -rf bootDoc
-rm -rf d-test
-rm -rf testdoc
-for f in `find . -name "*.git*"`; do echo $f; rm -rf $f ; done
+# Change directory to $1 and use 'dustmite . 'dub build 2>&1 | grep -qF something' to reduce.
 
