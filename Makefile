@@ -38,6 +38,7 @@ clean-all: clean test-clean
 
 clean: clean-doc
 	rm -f src/dlbc/revision.d
+	rm -f src/dlbc/plugins/plist.d
 	rm -f *.gcda
 	rm -f *.gcno
 	rm -f src/*.o
