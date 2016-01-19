@@ -55,7 +55,8 @@ script:
 
 matrix:
   allow_failures:
-   - d: ldc-0.16.1 # allow failure until dub has been updated to a version that doesn't send wrong flags to ldc2
+   - d: ldc-0.16.1     # allow failure until dub has been updated to a version that doesn't send wrong flags to ldc2
+   - d: dmd-2.070.0-b2 # allow failure until doveralls has been updated with the currect new curl syntax
 
 branches:
   only:
