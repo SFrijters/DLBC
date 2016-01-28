@@ -22,7 +22,7 @@ An example of an installation can be found in the [Travis CI file](.travis.yml).
 
 ### Basic requirements
 
-**DMD**: ![DMD-2.069.1](https://img.shields.io/badge/DMD-2.069.1-brightgreen.svg) ![DMD-2.066.1](https://img.shields.io/badge/DMD-2.066.1-brightgreen.svg) ![DMD-2.065.0](https://img.shields.io/badge/DMD-2.065.0-red.svg)
+**DMD**: ![DMD-2.070.0](https://img.shields.io/badge/DMD-2.070.0-brightgreen.svg) ![DMD-2.066.1](https://img.shields.io/badge/DMD-2.066.1-brightgreen.svg) ![DMD-2.065.0](https://img.shields.io/badge/DMD-2.065.0-red.svg)
 
 **LDC**: ![LDC-0.15.1](https://img.shields.io/badge/LDC-0.15.1-brightgreen.svg) ![LDC-0.14.0](https://img.shields.io/badge/LDC-0.14.0-red.svg)
 
