@@ -28,10 +28,10 @@ void showRevisionInfo(VL vl, LRF logRankFormat)() {
   import dlbc.revision;
 
   if (revisionChanged == 0) {
-    writeLog!(vl, logRankFormat)("Executable built from revision '%s'.", revisionDesc );
+    writeLog!(vl, logRankFormat)("Executable built from revision '%s', branch '%s'.", revisionDesc, revisionBranch );
   }
   else if (revisionChanged == 1) {
-    writeLog!(vl, logRankFormat)("Executable built from revision '%s' (with local changes).", revisionDesc );
+    writeLog!(vl, logRankFormat)("Executable built from revision '%s', branch '%s' (with local changes).", revisionDesc, revisionBranch );
     writeLog!(VL.Debug, logRankFormat)("Changes from HEAD:\n%s\n", revisionChanges );
   }
   else {
@@ -70,4 +70,3 @@ void showCompilerInfo(VL vl, LRF logRankFormat)() {
     writeLog!(vl, logRankFormat)("Executable built using %s compiler (%s); front-end version %d.%03d.", name, to!string(vendor), version_major, version_minor );
   }
 }
-
