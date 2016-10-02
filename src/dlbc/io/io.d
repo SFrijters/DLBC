@@ -16,7 +16,8 @@ import std.datetime;
 
 import dlbc.elec.io;
 import dlbc.fields.field;
-import dlbc.lb.lb;
+import dlbc.lb.density;
+import dlbc.lb.io;
 import dlbc.lattice;
 import dlbc.logging;
 import dlbc.io.checkpoint;
@@ -129,7 +130,7 @@ bool isValidPath(in string path) {
   if ( path.exists() && path.isDir() ) {
     return true;
   }
-  
+
   if ( path.exists() && !path.isDir() ) {
     writeLogRW("Path `%s' exists, but is not a directory. I/O will probably fail.", path);
     return false;
@@ -267,4 +268,3 @@ void readField(T)(ref T field, in string fileName) if (isField!T) {
   }
   stopTimer("io.in");
 }
-

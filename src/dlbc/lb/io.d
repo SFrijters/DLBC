@@ -42,7 +42,10 @@ module dlbc.lb.io;
 */
 @("param") int laplaceFreq;
 
+import dlbc.lb.density;
+import dlbc.lb.laplace;
 import dlbc.lb.lb;
+import dlbc.lb.velocity;
 import dlbc.io.io;
 import dlbc.lattice;
 
@@ -99,4 +102,3 @@ void dumpLBData(T)(ref T L, uint t) if ( isLattice!T ) {
   }
 
 }
-

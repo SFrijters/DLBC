@@ -30,13 +30,13 @@ import dlbc.range;
 */
 @("param") bool writeChunked = false;
 
-private {
-  bool hdf5HasStarted = false;
-  immutable defaultDatasetName = "/OutArray";
-  immutable defaultInputFileAName = "input";
-  immutable defaultMetadataGName = "metadata";
-  immutable defaultGlobalsGName = "globals";
-}
+// TODO: restore private {
+bool hdf5HasStarted = false;
+immutable defaultDatasetName = "/OutArray";
+immutable defaultInputFileAName = "input";
+immutable defaultMetadataGName = "metadata";
+immutable defaultGlobalsGName = "globals";
+//}
 
 /**
    This function wraps a call to $(D H5open()) to start up HDF5 and reports the version of the HDF5 library.
@@ -496,7 +496,7 @@ T readAttributeHDF5(T)(in string name, in hid_t loc_id) {
     hsize_t[] dims;
     dims.length = 1;
     H5Sget_simple_extent_dims(dataspace, dims.ptr, null);
- 
+
     char*[] chars;
     chars.length = dims[0];
     type = H5Tget_native_type(ftype, H5T_direction_t.H5T_DIR_ASCEND);
@@ -595,4 +595,3 @@ string[] readInputFileAttributes(in string fileNameString) {
 
   return strings;
 }
-

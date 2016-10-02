@@ -15,8 +15,11 @@ module dlbc.lb.laplace;
 import dlbc.lattice;
 import dlbc.parallel;
 import dlbc.logging;
-import dlbc.lb.density: precalculateDensities;
+import dlbc.lb.density;
+import dlbc.lb.force;
 import dlbc.lb.lb;
+import dlbc.lb.init;
+import dlbc.lb.mask: isFluid;
 import dlbc.range;
 
 import std.conv: to;
@@ -203,7 +206,7 @@ void dumpLaplace(T)(ref T L, in uint t) if ( isLattice!T ) {
 
   double rel = sigma / previousSigma - 1.0;
   writeLogRI("Laplace calculation report for t = %d:", t);
-  writeLogRI("  sigma = %e (%e relative change)", sigma, rel); 
+  writeLogRI("  sigma = %e (%e relative change)", sigma, rel);
   writeLogRI("  radius = %e, inPres = %e, outPres = %e", measuredR, inPres, outPres);
   writeLogRI("  deformation = %e", D);
   writeToFile(gcc[0][1], initRadius, t, sigma, rel, measuredR, inPres, outPres, D );
@@ -299,4 +302,3 @@ private void writeToFile(in double gcc, in double initR, in uint t, in double si
   // After the first output, start appending.
   appendToFile = true;
 }
-

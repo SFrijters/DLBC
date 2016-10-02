@@ -240,4 +240,3 @@ import dlbc.lattice: isLattice;
 void prepareMaskField(T)(ref T L) if ( isLattice!T ) {
   L.mask = typeof(L.mask)(L.lengths);
 }
-

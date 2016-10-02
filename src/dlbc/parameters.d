@@ -14,7 +14,7 @@
    Input files have a simple structure. Parameters can be speficied by including the
    module name (leaving off '$(D dlbc.)') in front of the variable name, or by first
    creating a section corresponding to a module. This is achieved by enclosing the
-   name of the module in square brackets. Single-line comments are supported and 
+   name of the module in square brackets. Single-line comments are supported and
    denoted by '$(D //)'. Everything after this on a line is ignored. Similarly, empty
    lines are ignored. The syntax for setting a parameter value is simply $(D 'foo = bar'),
    where $(D foo) is the name of the parameter and everything to the right of the equal
@@ -94,6 +94,8 @@ bool warnUnset = false;
    The UDA to be used to denote a parameter variable.
 */
 static immutable string parameterUDA = "param";
+
+// TODO: Redo imports and mixins once visibility rules have been relaxed in 2.072 or beyond...
 
 /**
    A list of modules that have to be scanned for parameters.
@@ -279,7 +281,7 @@ void checkArrayParameterLength(T)(ref T vector, in string name, in size_t len, i
 
 /**
    Recursively set all elements to zero or the empty string where applicable.
-   
+
    Params:
      obj = thing to zero out
 */
@@ -307,27 +309,17 @@ private void setZero(T)(ref T obj) {
      fileName = name of the file to be parsed
 */
 private void readParameterSetFromTextFile(in string fileName) {
-  import std.file;
-  import std.stream;
-
+  import std.stdio;
   string currentSection;
-  File f;
-  writeLogRI("Reading parameters from file '%s'.",fileName);
+  writeLogRI("Reading parameters from file '%s'.", fileName);
 
-  try {
-    f = new File(fileName,FileMode.In);
-  }
-  catch (OpenException e) {
-    writeLogRF("Error opening parameter file '%s' for reading.", fileName);
-  }
+  auto f = File(fileName);
 
   size_t ln = 0;
-  while(!f.eof()) {
-    auto line = f.readLine();
+  foreach(line; f.byLine()) {
     inputFileData ~= to!string(line);
     parseParameterLine(line,++ln,currentSection);
   }
-  f.close();
 }
 
 /**
@@ -338,11 +330,10 @@ private void readParameterSetFromTextFile(in string fileName) {
 */
 private void readParameterSetFromHdf5File(in string fileName) {
   import std.file;
-  import std.stream;
 
   string currentSection;
   writeLogRI("Extracting parameters from file '%s'.",fileName);
-  auto lines = readInputFileAttributes(fileName);
+  auto lines = dlbc.io.hdf5.readInputFileAttributes(fileName);
   foreach(immutable ln, line; lines ) {
     inputFileData ~= line;
     char[] cline = line.dup;
@@ -371,7 +362,7 @@ private auto createParameterMixins() {
   else {
     alias PSM = parameterSourceModules;
   }
-      
+
   foreach(fullModuleName ; PSM) {
     immutable string qualModuleName = makeQualModuleName(fullModuleName);
     mixinStringShow ~= "  writeLog!(vl, logRankFormat)(\"\n[%s]\",\""~qualModuleName~"\");";
@@ -464,7 +455,8 @@ private immutable parameterMixins = createParameterMixins();
      valueString = value to be assigned
      ln = line number (for more useful warnings)
 */
-private void parseParameter(in string keyString, in string valueString, in ptrdiff_t ln) {
+// TODO: restore private
+void parseParameter(in string keyString, in string valueString, in ptrdiff_t ln) {
   import std.algorithm;
   switch(keyString) {
     mixin(parameterMixins[0]);
@@ -495,7 +487,8 @@ void showParameters(VL vl, LRF logRankFormat)() {
 /**
    Broadcast all parameters from the root process to all other processes.
 */
-private void broadcastParameters() {
+// TODO: restore private
+void broadcastParameters() {
   int arrlen;
   writeLogRI("Distributing parameter set through MPI_Bcast.");
   mixin(parameterMixins[2]);
@@ -515,7 +508,8 @@ string replaceFnameTokens(string name) {
 /**
    Parse out the index of a parameter token for an array parameter.
 */
-private int[] arrayFnameIndex(in string name, in string token) {
+// TODO: restore private
+int[] arrayFnameIndex(in string name, in string token) {
   import std.regex;
   foreach(c; match(name, regex(`%`~token~r"\[(?P<idx1>[0-9]+)\]\[(?P<idx2>[0-9]+)\]%","g")) ) {
     return [ to!int(c["idx1"]), to!int(c["idx2"]) ];
@@ -556,7 +550,7 @@ private auto makeQualModuleName(in string fullModuleName) {
 private auto createImports() {
   string mixinString;
   foreach(immutable fullModuleName ; parameterSourceModules) {
-    mixinString ~= "import " ~ fullModuleName ~ ";";
+    mixinString ~= "static import " ~ fullModuleName ~ ";";
   }
   return mixinString;
 }

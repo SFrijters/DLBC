@@ -45,11 +45,14 @@ import dlbc.fields.init;
 import dlbc.fields.parallel;
 import dlbc.lb.mask;
 import dlbc.lb.advection: postAdvectionHooks;
+import dlbc.lb.connectivity: Axis;
 import dlbc.lattice;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.parameters;
 import dlbc.range;
+
+import std.conv: to;
 
 /**
    Electric charge initial conditions.
@@ -71,7 +74,7 @@ enum ElecChargeInit {
   UniformDensity,
   /**
      Place charge $(D chargeDensitySolid) on solid sites which are positioned in
-     the lower half of the system (according to ($D initAxis)), 
+     the lower half of the system (according to ($D initAxis)),
      charge -$(D chargeDensitySolid) on other solid sites, and zero anywhere else.
   */
   CapacitorDensity,
@@ -277,7 +280,7 @@ private void initChargeElecUniform(T)(ref T L, in bool asDensity) if ( isLattice
       chargeDensitySolid = chargeSolid / to!double(nSolidSites);
       rhoSolid = chargeDensitySolid;
     }
-    
+
     rhoSolidP =  0.5*rhoSolid;
     rhoSolidN = -0.5*rhoSolid;
   }
@@ -325,7 +328,7 @@ private void initChargeElecUniform(T)(ref T L, in bool asDensity) if ( isLattice
     }
   }
 
-  import std.math: approxEqual;  
+  import std.math: approxEqual;
   auto globalCharge = L.calculateGlobalCharge();
   assert(approxEqual(globalCharge, 0.0));
 }
@@ -334,7 +337,7 @@ private void initChargeElecCapacitorDensity(T)(ref T L, in double chargeDensity,
   size_t i = to!int(initAxis);
   foreach(immutable p, ref e; L.mask) {
     if ( e == Mask.Solid ) {
-      auto gp = p[i] + M.c[i] * L.mask.n[i] - L.mask.haloSize; 
+      auto gp = p[i] + M.c[i] * L.mask.n[i] - L.mask.haloSize;
       if ( gp < L.gn[i] / 2 ) {
         L.elChargeP[p] =  0.5*chargeDensity;
         L.elChargeN[p] = -0.5*chargeDensity;
@@ -350,7 +353,7 @@ private void initChargeElecCapacitorDensity(T)(ref T L, in double chargeDensity,
     }
   }
 
-  import std.math: approxEqual;  
+  import std.math: approxEqual;
   auto globalCharge = L.calculateGlobalCharge();
   assert(approxEqual(globalCharge, 0.0));
 }
@@ -382,7 +385,7 @@ private double calculateGlobalCharge(T)(ref T L) if ( isLattice!T ) {
   double globalChargeP, globalChargeN;
   MPI_Allreduce(&localChargeP, &globalChargeP, 1, MPI_DOUBLE, MPI_SUM, M.comm);
   MPI_Allreduce(&localChargeN, &globalChargeN, 1, MPI_DOUBLE, MPI_SUM, M.comm);
-  
+
   return globalChargeP - globalChargeN;
 }
 
@@ -392,4 +395,3 @@ private void initDielCapacitor(T)(ref T L, in double dielConstant, in double die
   double[] lamellaeWidths = [L.gn[i]/2, L.gn[i]/2];
   L.elDiel.initLamellae(diel, lamellaeWidths, initAxis, 0.0);
 }
-

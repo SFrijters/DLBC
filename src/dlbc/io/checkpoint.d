@@ -15,18 +15,25 @@
 
 module dlbc.io.checkpoint;
 
+// TODO: Redo imports and mixins once visibility rules have been relaxed in 2.072 or beyond...
+static import dlbc.lb.lb;
+static import dlbc.parameters;
+
 import dlbc.io.hdf5;
 import dlbc.io.io;
 import dlbc.lb.lb: fieldNames;
 import dlbc.elec.elec: enableElec;
 import dlbc.lattice;
+import dlbc.lb.connectivity: gconn;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.timers;
 import std.typetuple; // For TypeTuple / AliasSeq - keep for now for backwards compatibility
 import dlbc.fields.field: isField;
 
-mixin(createImports());
+import std.conv: to;
+
+//mixin(createImports());
 
 /**
    Path to create checkpoint files at, relative to $(D dlbc.io.outputPath).
@@ -77,7 +84,8 @@ private bool isCpField(string field)() @safe pure nothrow @nogc {
   return hasAttribute!(Exchange, field);
 }
 
-private auto createCheckpointMixins() @safe pure nothrow {
+// TODO: restore private
+auto createCheckpointMixins() @safe pure nothrow {
   import std.traits;
 
   string mixinStringDump;
@@ -102,7 +110,8 @@ private auto createCheckpointMixins() @safe pure nothrow {
   return [ mixinStringDump, mixinStringRead, mixinStringRemove ];
 }
 
-private immutable checkpointMixins = createCheckpointMixins();
+// TODO: restore private
+immutable checkpointMixins = createCheckpointMixins();
 
 /**
    Write a checkpoint to disk. A full checkpoint currently includes:
@@ -174,7 +183,8 @@ bool isRestoring() {
    from the root process. This function should be called early in the simulation,
    but definitely before any IO has been performed.
 */
-private void broadcastRestoreString() {
+// TODO: restore private
+void broadcastRestoreString() {
   import dlbc.parallel: MpiBcastString;
   MpiBcastString(restoreString);
 }
@@ -245,7 +255,8 @@ mixin(createGlobalsMixins());
 /**
    Creates an string mixin to define $(D dumpCheckpointGlobals), $(D readCheckpointGlobals), and $(D  broadcastCheckpointGlobals ).
 */
-private auto createGlobalsMixins() @safe pure nothrow {
+// TODO: restore private
+auto createGlobalsMixins() @safe pure nothrow {
   string mixinStringDump;
   string mixinStringRead;
   string mixinStringBcast;
@@ -303,6 +314,7 @@ private auto createGlobalsMixins() @safe pure nothrow {
       }`);
     }
   }
+
   mixinStringDump ~= "    H5Gclose(group_id);\n    H5Gclose(root_id);\n    H5Fclose(file_id);\n  }\n";
 
   mixinStringRead ~= "    H5Gclose(group_id);\n    H5Gclose(root_id);\n    H5Fclose(file_id);\n  }\n";
@@ -315,7 +327,8 @@ private auto createGlobalsMixins() @safe pure nothrow {
 /**
    Creates an string mixin to import the modules specified in $(D globalsSourceModules).
 */
-private auto createImports() @safe pure nothrow {
+// TODO: restore private
+auto createImports() @safe pure nothrow {
   string mixinString;
 
   foreach(fullModuleName; globalsSourceModules) {
@@ -333,4 +346,3 @@ unittest {
     assert(!isCpField!("Lattice!gconn.nosuchfield"));
   }
 }
-

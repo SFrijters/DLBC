@@ -13,6 +13,9 @@
 module dlbc.lb.force;
 
 import dlbc.lb.lb;
+import dlbc.lb.advection: postAdvectionHooks;
+import dlbc.lb.density;
+import dlbc.lb.mask;
 import dlbc.fields.field;
 import dlbc.fields.init;
 import dlbc.lattice;
@@ -170,7 +173,7 @@ void resetForce(T)(ref T L) if ( isLattice!T ) {
 }
 
 /**
-   Forces saved into the $(D L.forceDistributed) array are distributed according to the 
+   Forces saved into the $(D L.forceDistributed) array are distributed according to the
    relative densities of the fluids on the lattice site.
 
    Params:
@@ -382,4 +385,3 @@ unittest {
   assert(psi!(PsiForm.Linear)(density) == 2.0);
   assert(approxEqual(psi!(PsiForm.Exponential)(density), 0.86466471676) );
 }
-

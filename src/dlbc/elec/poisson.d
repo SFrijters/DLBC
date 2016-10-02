@@ -15,6 +15,7 @@ module dlbc.elec.poisson;
 import dlbc.lattice;
 import dlbc.elec.elec;
 import dlbc.fields.parallel;
+import dlbc.lb.lb: components;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.range;
@@ -111,7 +112,7 @@ private void solvePoissonSOR(T)(ref T L) if ( isLattice!T ) {
     double depsphi = 0.0;
     double curRho = L.elChargeP[p] - L.elChargeN[p];
     double curPhi = e;
-    
+
     if ( localDiel ) {
       double curDiel = L.elDiel[p];
       foreach(immutable i; 1..cv.length) { // Do not iterate over self vector!
@@ -418,4 +419,3 @@ void precalculateElDiel(T)(ref T L) if ( isLattice!T ) {
 void markElDielAsStale(T)(ref T L) if ( isLattice!T ) {
   L.elDiel.markAsStale();
 }
-

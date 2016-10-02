@@ -21,6 +21,7 @@ import dlbc.logging;
 import dlbc.parallel;
 import dlbc.range;
 import dlbc.timers;
+import dlbc.lb.lb: components;
 
 import std.math: exp;
 
@@ -55,7 +56,8 @@ private double DPos, DNeg;
 /**
    Calculate derived quantities for flux calculations.
 */
-package void initElecFlux() {
+// TODO: restore package
+void initElecFlux() {
   DPos = thermalDiffusionCoeff + deltaTDC;
   DNeg = thermalDiffusionCoeff - deltaTDC;
   writeLogRI("Derived quantities: DPos = %e, DNeg = %e", DPos, DNeg);
@@ -66,7 +68,8 @@ package void initElecFlux() {
 
    Returns: whether the fluxes are below the accuracy threshold.
 */
-package bool moveElecCharges(T)(ref T L) if ( isLattice!T ) {
+// TODO: restore package
+bool moveElecCharges(T)(ref T L) if ( isLattice!T ) {
   bool isEquilibrated;
 
   startTimer("elec.flux");
@@ -145,7 +148,7 @@ private void calculateDiffusiveFlux(T)(ref T L) nothrow @nogc if ( isLattice!T )
           else {
             immutable expDPhi = exp( beta * elementaryCharge * ( nbPhiTot - curPhiTot ) );
             immutable invExpDPhi = 1.0 / expDPhi;
-            
+
             immutable fluxLinkPos = -0.5 * DPos * (1.0 + invExpDPhi) * ( L.elChargeP[nb] * expDPhi - L.elChargeP[p] );
             immutable fluxLinkNeg = -0.5 * DNeg * (1.0 + expDPhi) * ( L.elChargeN[nb] * invExpDPhi - L.elChargeN[p] );
             L.elFluxP[p] += fluxLinkPos;
@@ -224,7 +227,8 @@ private bool applyFlux(T)(ref T L) @trusted nothrow @nogc if ( isLattice!T ) {
 
    Returns: whether a mask allows movable charges.
 */
-private bool isMobileCharge(Mask bc) @safe pure nothrow @nogc {
+// TODO: restore private
+bool isMobileCharge(Mask bc) @safe pure nothrow @nogc {
   final switch(bc) {
   case Mask.None:
     return true;
@@ -232,5 +236,3 @@ private bool isMobileCharge(Mask bc) @safe pure nothrow @nogc {
     return false;
   }
 }
-
-

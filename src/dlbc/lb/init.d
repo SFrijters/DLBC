@@ -42,14 +42,22 @@ module dlbc.lb.init;
 /// Ditto
 @("param") string[] fluidFiles;
 
+import dlbc.lb.connectivity: Axis;
+import dlbc.parallel: M;
 import dlbc.fields.field;
-import dlbc.hooks;
-import dlbc.lb.lb;
 import dlbc.fields.init;
+import dlbc.hooks;
+import dlbc.lb.density;
+import dlbc.lb.lb;
+import dlbc.lb.mask;
+import dlbc.fields.init;
+import dlbc.lattice: LType, isLattice;
 import dlbc.logging;
 import dlbc.parameters: checkArrayParameterLength;
 import dlbc.random;
 import dlbc.timers;
+
+import std.conv: to;
 
 TVoidHooks!(LType, "preLbInitHooks") preLbInitHooks;
 TVoidHooks!(LType, "postLbInitHooks") postLbInitHooks;
@@ -345,4 +353,3 @@ private void checkFDArrayParameterLength(in size_t len) {
     checkArrayParameterLength(fluidDensities, name, components, true);
   }
 }
-

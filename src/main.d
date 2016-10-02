@@ -56,7 +56,13 @@ import dlbc.io.checkpoint;
 import dlbc.io.io;
 import dlbc.io.hdf5;
 import dlbc.lattice;
+import dlbc.lb.advection;
+import dlbc.lb.collision;
+import dlbc.lb.connectivity;
+import dlbc.lb.init;
+import dlbc.lb.force;
 import dlbc.lb.lb;
+import dlbc.lb.mask;
 import dlbc.logging;
 import dlbc.parallel;
 import dlbc.parameters;
@@ -198,4 +204,3 @@ void runTimeloop(T)(ref T L) if ( isLattice!T ) {
     L.dumpData(timestep);
   }
 }
-

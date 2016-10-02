@@ -16,7 +16,7 @@ import dlbc.elec.elec;
 import dlbc.fields.field;
 import dlbc.fields.parallel;
 import dlbc.io.checkpoint;
-import dlbc.lb.lb;
+import dlbc.lb.connectivity;
 import dlbc.lb.mask;
 import dlbc.logging;
 import dlbc.parallel;
@@ -230,7 +230,8 @@ struct Lattice(alias conn) {
      gn = global lattice size
      nc = number of processes
 */
-private bool canDivide(in size_t[] gn, in int[] nc) @safe pure nothrow @nogc {
+// TODO: restore private
+bool canDivide(in size_t[] gn, in int[] nc) @safe pure nothrow @nogc {
   assert(gn.length == nc.length);
   foreach(immutable i, g; gn) {
     if ( g % nc[i] != 0 ) {
@@ -246,4 +247,3 @@ private bool canDivide(in size_t[] gn, in int[] nc) @safe pure nothrow @nogc {
 template isLattice(T) {
   enum isLattice = is(T:Lattice!(Connectivity!(d,q)), uint d, uint q);
 }
-
