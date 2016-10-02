@@ -3,7 +3,7 @@
     "description": "Lattice Boltzmann simulation package for fluid dynamics",
     "homepage": "https://github.com/SFrijters/DLBC",
     "authors": ["Stefan Frijters"],
-    "copyright": "Copyright © Stefan Frijters 2011-2015",
+    "copyright": "Copyright © Stefan Frijters 2011-2016",
     "license": "GPL-3.0",
 
     "sourcePaths": ["src"],
@@ -11,6 +11,7 @@
     "dependencies": {
       "dlbc:unstandard": ">=0.0.1",
       "hdf5-d": ">=0.0.1",
+      "mir": "~>0.18.4",
     },
     "subPackages": [
       "./unstandard/",
